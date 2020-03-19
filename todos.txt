@@ -3,3 +3,5 @@ ToDos
 
 - implement targetStorageType: "ddm"
 - implement adapterTypes: "sqlAdapter" | "genericAdapter" | "cenzontleAdapter"
+- when implementing the "sqlAdapter" include migrations
+- for ddm implement ACL based on adapter

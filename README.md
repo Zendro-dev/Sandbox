@@ -64,3 +64,43 @@ single-page-app-codegen --jsonFiles /opt/data_model_definitions/ -o /opt/RemoteC
 ```
 
 Note, that the above `<user_id>` and `<group_id>` can be obtained from the `id` Shell command.
+
+##### Setup the databases
+
+###### Seeder (initial data)
+
+```
+# - in the "local" Cenzontle instance
+cd ./LocalCenzontleInstance
+cp -r ./seeders ./graphql-server/
+```
+
+```
+# - in the "remote" Cenzontle instance
+cd ./RemoteCenzontleInstance
+cp -r ./seeders ./graphql-server/
+```
+
+##### Start the Cenzontle instances
+
+###### Create the network shared by the two Cenzontle instances
+
+```
+docker network create cenzontle
+```
+
+###### Start the two Cenzontle instances
+
+####### Local Cenzontle
+
+```
+cd ./LocalCenzontleInstance
+docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
+```
+
+####### Remote Cenzontle
+
+```
+cd ./RemoteCenzontleInstance
+docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
+```
