@@ -1,6 +1,8 @@
 [submodule "LocalCenzontleInstance"]
 	path = LocalCenzontleInstance
 	url = git@github.com:ScienceDb/ScienceDbStarterPack.git
+  branch = sandbox_master_local_cenzontle
 [submodule "RemoteCenzontleInstance"]
 	path = RemoteCenzontleInstance
 	url = git@github.com:ScienceDb/ScienceDbStarterPack.git
+  branch = sandbox_master_remote_cenzontle
