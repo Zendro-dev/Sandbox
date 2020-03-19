@@ -1,0 +1,24 @@
+{
+  "model": "Book",
+  "storageType": "cenzontle-web-service-adapter",
+  "adapterName": "booksRemote",
+  "regex": "booksRemote",
+  "url": "http://localhost:3030/graphql",
+  "attributes": {
+    "title": "String",
+    "genre": "String",
+    "internalPersonId": "String",
+    "internalBookId": "String"
+  },
+  "associations": {
+    "author": {
+      "type": "to_one",
+      "target": "Person",
+      "targetKey": "internalPersonId",
+      "keyIn": "Book",
+      "targetStorageType": "cenz_server",
+      "label": "email"
+    }
+  },
+  "internalId": "internalBookId"
+}

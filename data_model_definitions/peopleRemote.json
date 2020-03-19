@@ -1,0 +1,25 @@
+{
+  "model": "Person",
+  "storageType": "cenzontle-web-service-adapter",
+  "adapterName": "peopleRemote",
+  "regex": "peopleRemote",
+  "url": "http://localhost:3030/graphql",
+  "attributes": {
+    "firstName": "String",
+    "lastName": "String",
+    "email": "String",
+    "companyId": "Int",
+    "internalPersonId": "String"
+  },
+  "associations": {
+    "works": {
+      "type": "to_many",
+      "target": "Book",
+      "targetKey": "internalPersonId",
+      "keyIn": "Book",
+      "targetStorageType": "cenz_server",
+      "label": "title"
+    }
+  },
+  "internalId": "internalPersonId"
+}

@@ -1,0 +1,5 @@
+ToDos
+=====
+
+- implement targetStorageType: "ddm"
+- implement adapterTypes: "sqlAdapter" | "genericAdapter" | "cenzontleAdapter"

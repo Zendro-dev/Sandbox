@@ -1,0 +1,6 @@
+[submodule "LocalCenzontleInstance"]
+	path = LocalCenzontleInstance
+	url = git@github.com:ScienceDb/ScienceDbStarterPack.git
+[submodule "RemoteCenzontleInstance"]
+	path = RemoteCenzontleInstance
+	url = git@github.com:ScienceDb/ScienceDbStarterPack.git
