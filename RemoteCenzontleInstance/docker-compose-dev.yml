@@ -20,9 +20,9 @@ services:
       dockerfile: Dockerfile.graphql_server
     ports:
       # Remote Cenzontle will be running on this port
-      - 3030:3000
+      - 3030:3030
     environment:
-      - PORT=3000
+      - PORT=3030
       - REQUIRE_SIGN_IN="false"
     volumes:
       - .:/usr/ScienceDbStarterPack
