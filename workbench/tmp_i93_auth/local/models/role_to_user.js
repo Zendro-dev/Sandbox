@@ -1,135 +1,70 @@
+'use strict';
+
 const _ = require('lodash');
-const axios_general = require('axios');
-const globals = require('../config/globals');
-const {
-    handleError
-} = require('../utils/errors');
 const Sequelize = require('sequelize');
 const dict = require('../utils/graphql-sequelize-types');
-const validatorUtil = require('../utils/validatorUtil');
-const helper = require('../utils/helper');
 const searchArg = require('../utils/search-argument');
-
-let axios = axios_general.create();
-axios.defaults.timeout = globals.MAX_TIME_OUT;
-
-const remoteCenzontleURL = "http://localhost:3000/graphql";
-const iriRegex = new RegExp('peopleLocal');
-
+const globals = require('../config/globals');
+const validatorUtil = require('../utils/validatorUtil');
+const fileTools = require('../utils/file-tools');
+const helpersAcl = require('../utils/helpers-acl');
+const email = require('../utils/email');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const uuidv4 = require('uuidv4');
+const helper = require('../utils/helper');
+const models = require(path.join(__dirname, '..', 'models_index.js'));
+const moment = require('moment');
+// An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Person',
-    storageType: 'distributed-data-model',
-    registry: [
-        'peopleRemote',
-        'peopleLocalSql'
-    ],
+    model: 'role_to_user',
+    storageType: 'SQL',
     attributes: {
-        firstName: 'String',
-        lastName: 'String',
-        email: 'String',
-        companyId: 'Int',
-        internalPersonId: 'String'
+        userId: 'Int',
+        roleId: 'Int'
     },
-    associations: {
-        works: {
-            type: 'to_many',
-            target: 'Book',
-            targetKey: 'internalPersonId',
-            keyIn: 'Book',
-            targetStorageType: 'cenz_server',
-            label: 'title',
-            name: 'works',
-            name_lc: 'works',
-            name_cp: 'Works',
-            target_lc: 'book',
-            target_lc_pl: 'books',
-            target_pl: 'Books',
-            target_cp: 'Book',
-            target_cp_pl: 'Books',
-            keyIn_lc: 'book'
-        }
-    },
-    internalId: 'internalPersonId',
     id: {
-        name: 'internalPersonId',
-        type: 'String'
+        name: 'id',
+        type: 'Int'
     }
 };
 
+/**
+ * module - Creates a sequelize model
+ *
+ * @param  {object} sequelize Sequelize instance.
+ * @param  {object} DataTypes Allowed sequelize data types.
+ * @return {object}           Sequelize model with associations defined
+ */
 
-module.exports = class peopleLocalSql extends Sequelize.Model {
+module.exports = class role_to_user extends Sequelize.Model {
 
-  static init(sequelize, DataTypes) {
-      return super.init({
+    static init(sequelize, DataTypes) {
+        return super.init({
 
-          internalPersonId: {
-              type: Sequelize[dict['String']],
-              primaryKey: true
-          },
-          firstName: {
-              type: Sequelize[dict['String']]
-          },
-          lastName: {
-              type: Sequelize[dict['String']]
-          },
-          email: {
-              type: Sequelize[dict['String']]
-          },
-          companyId: {
-              type: Sequelize[dict['Int']]
-          }
+            userId: {
+                type: Sequelize[dict['Int']]
+            },
+            roleId: {
+                type: Sequelize[dict['Int']]
+            }
 
 
-      }, {
-          modelName: "person",
-          tableName: "people",
-          sequelize
-      });
-  }
-
-
-      static addOne(input) {
-          console.log("GOT TO THE CORRECT ADAPTER");
-          return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-              .then(async (valSuccess) => {
-                  try {
-                      console.log("INPUT", input);
-                      const result = await sequelize.transaction(async (t) => {
-                          let item = await super.create(input, {
-                              transaction: t
-                          });
-                          let promises_associations = [];
-
-                          return Promise.all(promises_associations).then(() => {
-                              return item
-                          });
-                      });
-
-                      if (input.addWorks) {
-                          let wrong_ids = await helper.checkExistence(input.addWorks, models.book);
-                          if (wrong_ids.length > 0) {
-                              throw new Error(`Ids ${wrong_ids.join(",")} in model book were not found.`);
-                          } else {
-                              await result._addWorks(input.addWorks);
-                          }
-                      }
-                      return result;
-                  } catch (error) {
-                      throw error;
-                  }
-              });
-      }
-
-
-    static recognizeId(iri) {
-        return iriRegex.test(iri);
+        }, {
+            modelName: "role_to_user",
+            tableName: "role_to_users",
+            sequelize
+        });
     }
+
+    static associate(models) {}
 
     static readById(id) {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return peopleLocalSql.findOne(options);
+        return role_to_user.findOne(options);
     }
 
     static countRecords(search) {
@@ -140,6 +75,40 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
             options['where'] = arg_sequelize;
         }
         return super.count(options);
+    }
+
+    static readAll(search, order, pagination) {
+        let options = {};
+        if (search !== undefined) {
+            let arg = new searchArg(search);
+            let arg_sequelize = arg.toSequelize();
+            options['where'] = arg_sequelize;
+        }
+
+        return super.count(options).then(items => {
+            if (order !== undefined) {
+                options['order'] = order.map((orderItem) => {
+                    return [orderItem.field, orderItem.order];
+                });
+            } else if (pagination !== undefined) {
+                options['order'] = [
+                    ["id", "ASC"]
+                ];
+            }
+
+            if (pagination !== undefined) {
+                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
+                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
+            } else {
+                options['offset'] = 0;
+                options['limit'] = items;
+            }
+
+            if (globals.LIMIT_RECORDS < options['limit']) {
+                throw new Error(`Request of total role_to_users exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+            }
+            return super.findAll(options);
+        });
     }
 
     static readAllCursor(search, order, pagination) {
@@ -179,9 +148,9 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
             }
             if (!options['order'].map(orderItem => {
                     return orderItem[0]
-                }).includes("internalPersonId")) {
+                }).includes("id")) {
                 options['order'] = [...options['order'], ...[
-                    ["internalPersonId", "ASC"]
+                    ["id", "ASC"]
                 ]];
             }
 
@@ -195,22 +164,23 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "internalPersonId", pagination.includeCursor)
+                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
-                } else { //backward
+                } else { //backward 
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "internalPersonId", pagination.includeCursor)
+                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
                 }
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = { ...options['where']
+            woptions['where'] = {
+                ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -235,7 +205,7 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                 }
                 //check: limit
                 if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total people exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                    throw new Error(`Request of total role_to_users exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
                 }
 
                 /*
@@ -295,6 +265,27 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
         });
     }
 
+    static addOne(input) {
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                try {
+                    const result = await sequelize.transaction(async (t) => {
+                        let item = await super.create(input, {
+                            transaction: t
+                        });
+                        let promises_associations = [];
+
+                        return Promise.all(promises_associations).then(() => {
+                            return item
+                        });
+                    });
+
+                    return result;
+                } catch (error) {
+                    throw error;
+                }
+            });
+    }
 
     static deleteOne(id) {
         return super.findByPk(id)
@@ -336,24 +327,6 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
 
 
 
-                    if (input.addWorks) {
-                        let wrong_ids = await helper.checkExistence(input.addWorks, models.book);
-                        if (wrong_ids.length > 0) {
-                            throw new Error(`Ids ${wrong_ids.join(",")} in model book were not found.`);
-                        } else {
-                            await result._addWorks(input.addWorks);
-                        }
-                    }
-
-                    if (input.removeWorks) {
-                        let ids_associated = await result.worksImpl().map(t => `${t[models.book.idAttribute()]}`);
-                        await helper.asyncForEach(input.removeWorks, async id => {
-                            if (!ids_associated.includes(id)) {
-                                throw new Error(`The association with id ${id} that you're trying to remove desn't exist`);
-                            }
-                        });
-                        await result._removeWorks(input.removeWorks);
-                    }
 
 
                     return result;
@@ -363,9 +336,95 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
             });
     }
 
+    static bulkAddCsv(context) {
+
+        let delim = context.request.body.delim;
+        let cols = context.request.body.cols;
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        context.request.files.csv_file.mv(tmpFile).then(() => {
+
+            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
+                try {
+                    console.log(`Sending ${addedZipFilePath} to the user.`);
+
+                    let attach = [];
+                    attach.push({
+                        filename: path.basename("added_data.zip"),
+                        path: addedZipFilePath
+                    });
+
+                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                        'ScienceDB batch add',
+                        'Your data has been successfully added to the database.',
+                        attach).then(function(info) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.log(info);
+                    }).catch(function(err) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.error(err);
+                    });
+
+                } catch (error) {
+                    console.error(error.message);
+                }
+
+                fs.unlinkSync(tmpFile);
+            }).catch((error) => {
+                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                    'ScienceDB batch add', `${error.message}`).then(function(info) {
+                    console.error(info);
+                }).catch(function(err) {
+                    console.error(err);
+                });
+
+                fs.unlinkSync(tmpFile);
+            });
+
+        }).catch((error) => {
+            throw new Error(error);
+        });
+    }
+
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(role_to_user);
+    }
+
+
+
+
+
+
+
+
+    /**
+     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+     *
+     * @return {type} Name of the attribute that functions as an internalId
+     */
+
+    static idAttribute() {
+        return role_to_user.definition.id.name;
+    }
+
+    /**
+     * idAttributeType - Return the Type of the internalId.
+     *
+     * @return {type} Type given in the JSON model
+     */
+
+    static idAttributeType() {
+        return role_to_user.definition.id.type;
+    }
+
+    /**
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of role_to_user.
+     *
+     * @return {type} id value
+     */
 
     getIdValue() {
-        return this[peopleLocalSql.idAttribute()]
+        return this[role_to_user.idAttribute()]
     }
 
     static get definition() {
@@ -381,29 +440,23 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(peopleLocalSql.definition.attributes);
+        let attributes = Object.keys(role_to_user.definition.attributes);
+        attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
+    static externalIdsArray() {
+        let externalIds = [];
+        if (definition.externalIds) {
+            externalIds = definition.externalIds;
+        }
 
-
-    /**
-     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
-     *
-     * @return {type} Name of the attribute that functions as an internalId
-     */
-
-    static idAttribute() {
-        let internalId = peopleLocalSql.definition.id.name;
-        return internalId;
+        return externalIds;
     }
 
-    static get name() {
-        return "peopleLocalSql";
+    static externalIdsObject() {
+        return {};
     }
 
-    static get type(){
-      return 'local';
-    }
 }

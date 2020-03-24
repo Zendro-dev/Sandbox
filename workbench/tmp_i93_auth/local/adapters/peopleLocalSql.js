@@ -7,13 +7,13 @@ const {
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-const remoteCenzontleURL = "http://localhost:3030/graphql";
-const iriRegex = new RegExp('booksRemote');
+const remoteCenzontleURL = "http://localhost:3000/graphql";
+const iriRegex = new RegExp('peopleLocal');
 
-module.exports = class booksRemote {
+module.exports = class peopleLocalSql {
 
     static get name() {
-        return "booksRemote";
+        return "peopleLocalSql";
     }
 
     static recognizeId(iri) {
@@ -21,15 +21,16 @@ module.exports = class booksRemote {
     }
 
     static readById(iri) {
-        let query = `query readOneBook{readOneBook(internalBookId: "${iri}"){ internalBookId        title
-            genre
-            internalPersonId
+        let query = `query readOnePerson{readOnePerson(internalPersonId: "${iri}"){ internalPersonId        firstName
+            lastName
+            email
+            companyId
       }}  `;
 
         return axios.post(remoteCenzontleURL, {
             query: query
         }).then(res => {
-            let data = res.data.data.readOneBook;
+            let data = res.data.data.readOnePerson;
             return data;
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
@@ -38,8 +39,8 @@ module.exports = class booksRemote {
     }
 
     static countRecords(search) {
-        let query = `query countBooks($search: searchBookInput){
-  countBooks(search: $search)
+        let query = `query countPeople($search: searchPersonInput){
+  countPeople(search: $search)
   }`
 
         return axios.post(remoteCenzontleURL, {
@@ -48,7 +49,7 @@ module.exports = class booksRemote {
                 search: search
             }
         }).then(res => {
-            return res.data.data.countBooks;
+            return res.data.data.countPeople;
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -61,10 +62,11 @@ module.exports = class booksRemote {
         if (!argsValid) {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
-        let query = `query booksConnection($search: searchBookInput $pagination: paginationCursorInput $order: [orderBookInput]){
-      booksConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  internalBookId  title
-         genre
-         internalPersonId
+        let query = `query peopleConnection($search: searchPersonInput $pagination: paginationCursorInput $order: [orderPersonInput]){
+      peopleConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  internalPersonId  firstName
+         lastName
+         email
+         companyId
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
 
         return axios.post(remoteCenzontleURL, {
@@ -75,7 +77,7 @@ module.exports = class booksRemote {
                 pagination: pagination
             }
         }).then(res => {
-            return res.data.data.booksConnection;
+            return res.data.data.peopleConnection;
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -83,22 +85,25 @@ module.exports = class booksRemote {
     }
 
     static addOne(input) {
-        let query = `mutation addBook( 
-          $internalBookId:ID  
-          $title:String
-          $genre:String
-          $internalPersonId:String
+        let query = `mutation addPerson( 
+          $internalPersonId:ID  
+          $firstName:String
+          $lastName:String
+          $email:String
+          $companyId:Int
         ){
-          addBook( 
-            internalBookId:$internalBookId  
-            title:$title
-            genre:$genre
-            internalPersonId:$internalPersonId
+          addPerson( 
+            internalPersonId:$internalPersonId  
+            firstName:$firstName
+            lastName:$lastName
+            email:$email
+            companyId:$companyId
           ){
-            internalBookId 
-            title
-            genre
-            internalPersonId
+            internalPersonId 
+            firstName
+            lastName
+            email
+            companyId
      
           }
         }`;
@@ -107,8 +112,8 @@ module.exports = class booksRemote {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.addBook;
-            return new Book(data);
+            let data = res.data.data.addPerson;
+            return new Person(data);
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -116,12 +121,12 @@ module.exports = class booksRemote {
     }
 
     static deleteOne(id) {
-        let query = `mutation deleteBook{ deleteBook(internalBookId: ${id}) }`;
+        let query = `mutation deletePerson{ deletePerson(internalPersonId: ${id}) }`;
 
         return axios.post(remoteCenzontleURL, {
             query: query
         }).then(res => {
-            return res.data.data.deleteBook;
+            return res.data.data.deletePerson;
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -129,22 +134,25 @@ module.exports = class booksRemote {
     }
 
     static updateOne(input) {
-        let query = `mutation updateBook(
-          $internalBookId:ID!
-          $title:String
-          $genre:String
-          $internalPersonId:String
+        let query = `mutation updatePerson(
+          $internalPersonId:ID!
+          $firstName:String
+          $lastName:String
+          $email:String
+          $companyId:Int
         ){
-            updateBook(
-              internalBookId:$internalBookId
-              title:$title
-              genre:$genre
+            updatePerson(
               internalPersonId:$internalPersonId
+              firstName:$firstName
+              lastName:$lastName
+              email:$email
+              companyId:$companyId
             ){
-              internalBookId
-              title
-              genre
               internalPersonId
+              firstName
+              lastName
+              email
+              companyId
             }
         }`
 
@@ -152,8 +160,8 @@ module.exports = class booksRemote {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.updateBook;
-            return new Book(data);
+            let data = res.data.data.updatePerson;
+            return new Person(data);
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -161,15 +169,15 @@ module.exports = class booksRemote {
     }
 
     static bulkAddCsv(context) {
-        throw Error("Book.bulkAddCsv is not implemented.")
+        throw Error("Person.bulkAddCsv is not implemented.")
     }
 
     static csvTableTemplate() {
-        let query = `query { csvTableTemplateBook }`;
+        let query = `query { csvTableTemplatePerson }`;
         return axios.post(remoteCenzontleURL, {
             query: query
         }).then(res => {
-            return res.data.data.csvTableTemplateBook;
+            return res.data.data.csvTableTemplatePerson;
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);

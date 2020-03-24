@@ -7,13 +7,13 @@ const {
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-const remoteCenzontleURL = "http://localhost:3030/graphql";
-const iriRegex = new RegExp('booksRemote');
+const remoteCenzontleURL = "http://localhost:3000/graphql";
+const iriRegex = new RegExp('booksLocal');
 
-module.exports = class booksRemote {
+module.exports = class booksLocalSql {
 
     static get name() {
-        return "booksRemote";
+        return "booksLocalSql";
     }
 
     static recognizeId(iri) {
