@@ -1,31 +1,25 @@
+'use strict';
+
 const _ = require('lodash');
-const axios_general = require('axios');
-const globals = require('../config/globals');
-const {
-    handleError
-} = require('../utils/errors');
 const Sequelize = require('sequelize');
 const dict = require('../utils/graphql-sequelize-types');
-const validatorUtil = require('../utils/validatorUtil');
-const helper = require('../utils/helper');
 const searchArg = require('../utils/search-argument');
+const globals = require('../config/globals');
+const validatorUtil = require('../utils/validatorUtil');
+const fileTools = require('../utils/file-tools');
+const helpersAcl = require('../utils/helpers-acl');
+const email = require('../utils/email');
+const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const uuidv4 = require('uuidv4');
+const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
-
-
-let axios = axios_general.create();
-axios.defaults.timeout = globals.MAX_TIME_OUT;
-
-//const remoteCenzontleURL = "http://localhost:3030/graphql";
-const iriRegex = new RegExp('booksLocal');
-
+const moment = require('moment');
+// An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Book',
-    storageType: 'distributed-data-model',
-    registry: [
-        'booksRemote',
-        'booksLocalSql'
-    ],
+    storageType: 'sql',
     attributes: {
         title: 'String',
         genre: 'String',
@@ -58,72 +52,48 @@ const definition = {
     }
 };
 
-module.exports = class booksLocalSql extends Sequelize.Model{
+/**
+ * module - Creates a sequelize model
+ *
+ * @param  {object} sequelize Sequelize instance.
+ * @param  {object} DataTypes Allowed sequelize data types.
+ * @return {object}           Sequelize model with associations defined
+ */
 
-  static init(sequelize, DataTypes) {
-      return super.init({
+module.exports = class Book extends Sequelize.Model {
 
-          internalBookId: {
-              type: Sequelize[dict['String']],
-              primaryKey: true
-          },
-          title: {
-              type: Sequelize[dict['String']]
-          },
-          genre: {
-              type: Sequelize[dict['String']]
-          },
-          internalPersonId: {
-              type: Sequelize[dict['String']]
-          }
+    static init(sequelize, DataTypes) {
+        return super.init({
+
+            internalBookId: {
+                type: Sequelize[dict['String']],
+                primaryKey: true
+            },
+            title: {
+                type: Sequelize[dict['String']]
+            },
+            genre: {
+                type: Sequelize[dict['String']]
+            },
+            internalPersonId: {
+                type: Sequelize[dict['String']]
+            }
 
 
-      }, {
-          modelName: "book",
-          tableName: "books",
-          sequelize
-      });
-  }
-
-  static addOne(input) {
-      return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-          .then(async (valSuccess) => {
-              try {
-                  const result = await sequelize.transaction(async (t) => {
-                      let item = await super.create(input, {
-                          transaction: t
-                      });
-                      let promises_associations = [];
-
-                      return Promise.all(promises_associations).then(() => {
-                          return item
-                      });
-                  });
-
-                  if (input.addAuthor) {
-                      let wrong_ids = await helper.checkExistence(input.addAuthor, models.person);
-                      if (wrong_ids.length > 0) {
-                          throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
-                      } else {
-                          await result._addAuthor(input.addAuthor);
-                      }
-                  }
-                  return result;
-              } catch (error) {
-                  throw error;
-              }
-          });
-  }
-
-    static recognizeId(iri) {
-        return iriRegex.test(iri);
+        }, {
+            modelName: "book",
+            tableName: "books",
+            sequelize
+        });
     }
+
+    static associate(models) {}
 
     static readById(id) {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return booksLocalSql.findOne(options);
+        return Book.findOne(options);
     }
 
     static countRecords(search) {
@@ -135,6 +105,41 @@ module.exports = class booksLocalSql extends Sequelize.Model{
         }
         return super.count(options);
     }
+
+    static readAll(search, order, pagination) {
+        let options = {};
+        if (search !== undefined) {
+            let arg = new searchArg(search);
+            let arg_sequelize = arg.toSequelize();
+            options['where'] = arg_sequelize;
+        }
+
+        return super.count(options).then(items => {
+            if (order !== undefined) {
+                options['order'] = order.map((orderItem) => {
+                    return [orderItem.field, orderItem.order];
+                });
+            } else if (pagination !== undefined) {
+                options['order'] = [
+                    ["internalBookId", "ASC"]
+                ];
+            }
+
+            if (pagination !== undefined) {
+                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
+                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
+            } else {
+                options['offset'] = 0;
+                options['limit'] = items;
+            }
+
+            if (globals.LIMIT_RECORDS < options['limit']) {
+                throw new Error(`Request of total books exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+            }
+            return super.findAll(options);
+        });
+    }
+
     static readAllCursor(search, order, pagination) {
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
@@ -288,6 +293,36 @@ module.exports = class booksLocalSql extends Sequelize.Model{
         });
     }
 
+    static addOne(input) {
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                try {
+                    const result = await sequelize.transaction(async (t) => {
+                        let item = await super.create(input, {
+                            transaction: t
+                        });
+                        let promises_associations = [];
+
+                        return Promise.all(promises_associations).then(() => {
+                            return item
+                        });
+                    });
+
+                    if (input.addAuthor) {
+                        // let wrong_ids = await helper.checkExistence(input.addAuthor, models.person);
+                        // if (wrong_ids.length > 0) {
+                        //     throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
+                        // } else {
+                            await result._addAuthor(input.addAuthor);
+                        //}
+                    }
+                    return result;
+                } catch (error) {
+                    throw error;
+                }
+            });
+    }
+
     static deleteOne(id) {
         return super.findByPk(id)
             .then(item => {
@@ -354,10 +389,64 @@ module.exports = class booksLocalSql extends Sequelize.Model{
             });
     }
 
+    static bulkAddCsv(context) {
 
-    async set_internalPersonId(value) {
+        let delim = context.request.body.delim;
+        let cols = context.request.body.cols;
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        context.request.files.csv_file.mv(tmpFile).then(() => {
+
+            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
+                try {
+                    console.log(`Sending ${addedZipFilePath} to the user.`);
+
+                    let attach = [];
+                    attach.push({
+                        filename: path.basename("added_data.zip"),
+                        path: addedZipFilePath
+                    });
+
+                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                        'ScienceDB batch add',
+                        'Your data has been successfully added to the database.',
+                        attach).then(function(info) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.log(info);
+                    }).catch(function(err) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.error(err);
+                    });
+
+                } catch (error) {
+                    console.error(error.message);
+                }
+
+                fs.unlinkSync(tmpFile);
+            }).catch((error) => {
+                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                    'ScienceDB batch add', `${error.message}`).then(function(info) {
+                    console.error(info);
+                }).catch(function(err) {
+                    console.error(err);
+                });
+
+                fs.unlinkSync(tmpFile);
+            });
+
+        }).catch((error) => {
+            throw new Error(error);
+        });
+    }
+
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(Book);
+    }
+
+
+    set_internalPersonId(value) {
         this.internalPersonId = value;
-        return await super.save();
+        return super.save();
     }
 
 
@@ -368,6 +457,66 @@ module.exports = class booksLocalSql extends Sequelize.Model{
     _removeAuthor(id) {
         return this.set_internalPersonId(null);
     }
+
+    authorImpl(search) {
+        if (search === undefined) {
+            return models.person.readById(this.internalPersonId);
+        } else {
+            let id_search = {
+                "field": models.person.idAttribute(),
+                "value": {
+                    "value": this.internalPersonId
+                },
+                "operator": "eq"
+            }
+
+            let ext_search = {
+                "operator": "and",
+                "search": [id_search, search]
+            }
+
+            return models.person.readAll(ext_search)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
+    }
+
+
+
+
+
+
+
+    /**
+     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+     *
+     * @return {type} Name of the attribute that functions as an internalId
+     */
+
+    static idAttribute() {
+        return Book.definition.id.name;
+    }
+
+    /**
+     * idAttributeType - Return the Type of the internalId.
+     *
+     * @return {type} Type given in the JSON model
+     */
+
+    static idAttributeType() {
+        return Book.definition.id.type;
+    }
+
+    /**
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Book.
+     *
+     * @return {type} id value
+     */
 
     getIdValue() {
         return this[Book.idAttribute()]
@@ -386,20 +535,22 @@ module.exports = class booksLocalSql extends Sequelize.Model{
     }
 
     stripAssociations() {
-        let attributes = Object.keys(booksLocalSql.definition.attributes);
+        let attributes = Object.keys(Book.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
-    static idAttributeType() {
-        return booksLocalSql.definition.id.type;
+    static externalIdsArray() {
+        let externalIds = [];
+        if (definition.externalIds) {
+            externalIds = definition.externalIds;
+        }
+
+        return externalIds;
     }
 
-    static get name() {
-        return "booksLocalSql";
+    static externalIdsObject() {
+        return {};
     }
 
-    static get type(){
-      return 'local';
-    }
 }

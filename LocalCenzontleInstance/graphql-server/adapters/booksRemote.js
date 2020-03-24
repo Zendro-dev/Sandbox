@@ -1,8 +1,10 @@
 const axios_general = require('axios');
+const path = require('path');
 const globals = require('../config/globals');
 const {
     handleError
 } = require('../utils/errors');
+const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
@@ -12,9 +14,6 @@ const iriRegex = new RegExp('booksRemote');
 
 module.exports = class booksRemote {
 
-    static get name() {
-        return "booksRemote";
-    }
 
     static recognizeId(iri) {
         return iriRegex.test(iri);
@@ -39,8 +38,8 @@ module.exports = class booksRemote {
 
     static countRecords(search) {
         let query = `query countBooks($search: searchBookInput){
-  countBooks(search: $search)
-  }`
+    countBooks(search: $search)
+    }`
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -83,23 +82,23 @@ module.exports = class booksRemote {
     }
 
     static addOne(input) {
-        let query = `mutation addBook( 
-          $internalBookId:ID  
+        let query = `mutation addBook(
+          $internalBookId:ID!
           $title:String
           $genre:String
-          $internalPersonId:String
+          $addAuthor:ID
         ){
-          addBook( 
-            internalBookId:$internalBookId  
+          addBook(
+            internalBookId:$internalBookId
             title:$title
             genre:$genre
-            internalPersonId:$internalPersonId
+            addAuthor:$addAuthor
           ){
-            internalBookId 
+            internalBookId
             title
             genre
             internalPersonId
-     
+
           }
         }`;
 
@@ -108,8 +107,11 @@ module.exports = class booksRemote {
             variables: input
         }).then(res => {
             let data = res.data.data.addBook;
-            return new Book(data);
+            return new models.book(data);
         }).catch(error => {
+          console.log("ERROOOOR", error);
+          console.log("ERROOOOR 1", error.response.data.errors);
+          console.log("ERROOOOR 2", error.data)
             error['url'] = remoteCenzontleURL;
             handleError(error);
         });
@@ -153,26 +155,19 @@ module.exports = class booksRemote {
             variables: input
         }).then(res => {
             let data = res.data.data.updateBook;
-            return new Book(data);
+            return new models.book(data);
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
         });
     }
 
-    static bulkAddCsv(context) {
-        throw Error("Book.bulkAddCsv is not implemented.")
+
+    static get name() {
+        return "booksRemote";
     }
 
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplateBook }`;
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplateBook;
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+    static get type(){
+      return 'cenz';
     }
 }

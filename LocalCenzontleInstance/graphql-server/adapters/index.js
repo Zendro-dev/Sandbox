@@ -15,11 +15,10 @@
     if( adapters[adapter.name] ){
       throw Error(`Duplicated adapter name ${adapter.name}`);
     }
-    
+
     if(adapter.type === 'local'){
       adapters[adapter.name] = adapter.init(sequelize, Sequelize);
     }else{
       adapters[adapter.name] = adapter;
     }
   });
-  

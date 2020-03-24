@@ -70,11 +70,18 @@ module.exports = class Book {
         return "book";
     }
 
-    static get registeredAdapters() {
-        ["booksRemote", "booksLocalSql"].reduce((a, c) => {
-            a[c] = adapters[c];
-            return a;
-        }, {});
+    static readById(id) {
+        if (id !== null) {
+            let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
+
+            if (responsibleAdapter.length > 1) {
+                throw new Error("IRI has no unique match");
+            } else if (responsibleAdapter.length === 0) {
+                throw new Error("IRI has no match WS");
+            }
+
+            return adapters[responsibleAdapter[0]].readById(id).then(result => new Book(result));
+        }
     }
 
     static adapterForIri(iri) {
@@ -87,15 +94,16 @@ module.exports = class Book {
         return responsibleAdapter;
     }
 
-    static readById(id) {
-        if (id !== null) {
-            let responsibleAdapter = this.adapterForIri(id)
-            return adapters[responsibleAdapter[0]].readById(id).then(result => new Book(result));
+    static assertInputHasId(input) {
+        if (!input.internalBookId) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'internalPersonId'.`);
         }
+        return true;
     }
 
-    static countRecords(search, authorizedAdapters) {
-        let promises = authorizedAdapters.map(adapter => adapters[adapter].countRecords(search));
+
+    static countRecords(search) {
+        let promises = registry.map(adapter => adapters[adapter].countRecords(search));
 
         return Promise.all(promises).then(results => {
             return results.reduce((total, current) => total + current, 0);
@@ -103,7 +111,7 @@ module.exports = class Book {
     }
 
 
-    static readAllCursor(search, order, pagination, authorizedAdapters) {
+    static readAllCursor(search, order, pagination) {
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -111,7 +119,7 @@ module.exports = class Book {
         }
 
         let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let promises = authorizedAdapters.map(adapter => adapters[adapter].readAllCursor(search, order, pagination));
+        let promises = registry.map(adapter => adapters[adapter].readAllCursor(search, order, pagination));
         let someHasNextPage = false;
         let someHasPreviousPage = false;
         return Promise.all(promises).then(results => {
@@ -228,13 +236,6 @@ module.exports = class Book {
         return this[Book.idAttribute()]
     }
 
-    static assertInputHasId(input) {
-        if (!input.internalBookId) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'internalBookId'.`);
-        }
-        return true;
-    }
-
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.internalBookId);
@@ -242,21 +243,13 @@ module.exports = class Book {
     }
 
     static deleteOne(id) {
-        let responsibleAdapter = this.adapterForIri(id);
-        return adapters[responsibleAdapter].deleteOne(id);
+     let responsibleAdapter = this.adapterForIri(id);
+     return adapters[responsibleAdapter].deleteOne(id);
     }
 
     static updateOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.internalBookId);
         return adapters[responsibleAdapter].updateOne(input);
-    }
-
-    static bulkAddCsv(context) {
-        throw Error("Book.bulkAddCsv is not implemented.")
-    }
-
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(Book);
     }
 }

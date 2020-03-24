@@ -1,31 +1,25 @@
+'use strict';
+
 const _ = require('lodash');
-const axios_general = require('axios');
-const globals = require('../config/globals');
-const {
-    handleError
-} = require('../utils/errors');
 const Sequelize = require('sequelize');
 const dict = require('../utils/graphql-sequelize-types');
-const validatorUtil = require('../utils/validatorUtil');
-const helper = require('../utils/helper');
 const searchArg = require('../utils/search-argument');
+const globals = require('../config/globals');
+const validatorUtil = require('../utils/validatorUtil');
+const fileTools = require('../utils/file-tools');
+const helpersAcl = require('../utils/helpers-acl');
+const email = require('../utils/email');
+const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const uuidv4 = require('uuidv4');
+const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
-
-
-let axios = axios_general.create();
-axios.defaults.timeout = globals.MAX_TIME_OUT;
-
-//const remoteCenzontleURL = "http://localhost:3000/graphql";
-const iriRegex = new RegExp('peopleLocal');
-
+const moment = require('moment');
+// An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Person',
-    storageType: 'distributed-data-model',
-    registry: [
-        'peopleRemote',
-        'peopleLocalSql'
-    ],
+    storageType: 'sql',
     attributes: {
         firstName: 'String',
         lastName: 'String',
@@ -59,80 +53,51 @@ const definition = {
     }
 };
 
+/**
+ * module - Creates a sequelize model
+ *
+ * @param  {object} sequelize Sequelize instance.
+ * @param  {object} DataTypes Allowed sequelize data types.
+ * @return {object}           Sequelize model with associations defined
+ */
 
-module.exports = class peopleLocalSql extends Sequelize.Model {
+module.exports = class Person extends Sequelize.Model {
 
-  static init(sequelize, DataTypes) {
-      return super.init({
+    static init(sequelize, DataTypes) {
+        return super.init({
 
-          internalPersonId: {
-              type: Sequelize[dict['String']],
-              primaryKey: true
-          },
-          firstName: {
-              type: Sequelize[dict['String']]
-          },
-          lastName: {
-              type: Sequelize[dict['String']]
-          },
-          email: {
-              type: Sequelize[dict['String']]
-          },
-          companyId: {
-              type: Sequelize[dict['Int']]
-          }
-
-
-      }, {
-          modelName: "person",
-          tableName: "people",
-          sequelize
-      });
-  }
-
-
-      static addOne(input) {
-          console.log("GOT TO THE CORRECT ADAPTER");
-          return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-              .then(async (valSuccess) => {
-                  try {
-                      console.log("INPUT", input);
-                      const result = await sequelize.transaction(async (t) => {
-                          let item = await super.create(input, {
-                              transaction: t
-                          });
-                          let promises_associations = [];
-
-                          return Promise.all(promises_associations).then(() => {
-                              return item
-                          });
-                      });
-
-                      if (input.addWorks) {
-                          let wrong_ids = await helper.checkExistence(input.addWorks, models.book);
-                          if (wrong_ids.length > 0) {
-                              throw new Error(`Ids ${wrong_ids.join(",")} in model book were not found.`);
-                          } else {
-                              await result._addWorks(input.addWorks);
-                          }
-                      }
-                      return result;
-                  } catch (error) {
-                      throw error;
-                  }
-              });
-      }
+            internalPersonId: {
+                type: Sequelize[dict['String']],
+                primaryKey: true
+            },
+            firstName: {
+                type: Sequelize[dict['String']]
+            },
+            lastName: {
+                type: Sequelize[dict['String']]
+            },
+            email: {
+                type: Sequelize[dict['String']]
+            },
+            companyId: {
+                type: Sequelize[dict['Int']]
+            }
 
 
-    static recognizeId(iri) {
-        return iriRegex.test(iri);
+        }, {
+            modelName: "person",
+            tableName: "people",
+            sequelize
+        });
     }
+
+    static associate(models) {}
 
     static readById(id) {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return peopleLocalSql.findOne(options);
+        return Person.findOne(options);
     }
 
     static countRecords(search) {
@@ -143,6 +108,40 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
             options['where'] = arg_sequelize;
         }
         return super.count(options);
+    }
+
+    static readAll(search, order, pagination) {
+        let options = {};
+        if (search !== undefined) {
+            let arg = new searchArg(search);
+            let arg_sequelize = arg.toSequelize();
+            options['where'] = arg_sequelize;
+        }
+
+        return super.count(options).then(items => {
+            if (order !== undefined) {
+                options['order'] = order.map((orderItem) => {
+                    return [orderItem.field, orderItem.order];
+                });
+            } else if (pagination !== undefined) {
+                options['order'] = [
+                    ["internalPersonId", "ASC"]
+                ];
+            }
+
+            if (pagination !== undefined) {
+                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
+                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
+            } else {
+                options['offset'] = 0;
+                options['limit'] = items;
+            }
+
+            if (globals.LIMIT_RECORDS < options['limit']) {
+                throw new Error(`Request of total people exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+            }
+            return super.findAll(options);
+        });
     }
 
     static readAllCursor(search, order, pagination) {
@@ -201,7 +200,7 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                             ...helper.parseOrderCursor(options['order'], decoded_cursor, "internalPersonId", pagination.includeCursor)
                         };
                     }
-                } else { //backward
+                } else { //backward 
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {
@@ -298,6 +297,35 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
         });
     }
 
+    static addOne(input) {
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                try {
+                    const result = await sequelize.transaction(async (t) => {
+                        let item = await super.create(input, {
+                            transaction: t
+                        });
+                        let promises_associations = [];
+
+                        return Promise.all(promises_associations).then(() => {
+                            return item
+                        });
+                    });
+
+                    if (input.addWorks) {
+                        let wrong_ids = await helper.checkExistence(input.addWorks, models.book);
+                        if (wrong_ids.length > 0) {
+                            throw new Error(`Ids ${wrong_ids.join(",")} in model book were not found.`);
+                        } else {
+                            await result._addWorks(input.addWorks);
+                        }
+                    }
+                    return result;
+                } catch (error) {
+                    throw error;
+                }
+            });
+    }
 
     static deleteOne(id) {
         return super.findByPk(id)
@@ -366,9 +394,190 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
             });
     }
 
+    static bulkAddCsv(context) {
+
+        let delim = context.request.body.delim;
+        let cols = context.request.body.cols;
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        context.request.files.csv_file.mv(tmpFile).then(() => {
+
+            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
+                try {
+                    console.log(`Sending ${addedZipFilePath} to the user.`);
+
+                    let attach = [];
+                    attach.push({
+                        filename: path.basename("added_data.zip"),
+                        path: addedZipFilePath
+                    });
+
+                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                        'ScienceDB batch add',
+                        'Your data has been successfully added to the database.',
+                        attach).then(function(info) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.log(info);
+                    }).catch(function(err) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.error(err);
+                    });
+
+                } catch (error) {
+                    console.error(error.message);
+                }
+
+                fs.unlinkSync(tmpFile);
+            }).catch((error) => {
+                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                    'ScienceDB batch add', `${error.message}`).then(function(info) {
+                    console.error(info);
+                }).catch(function(err) {
+                    console.error(err);
+                });
+
+                fs.unlinkSync(tmpFile);
+            });
+
+        }).catch((error) => {
+            throw new Error(error);
+        });
+    }
+
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(Person);
+    }
+
+
+
+
+
+    async _removeWorks(ids) {
+        await helper.asyncForEach(ids, async id => {
+            let record = await models.book.readById(id);
+            await record.set_internalPersonId(null);
+        });
+    }
+
+    async _addWorks(ids) {
+        await helper.asyncForEach(ids, async id => {
+            let record = await models.book.readById(id);
+            await record.set_internalPersonId(this.getIdValue());
+        });
+    }
+
+    worksFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+        if (search === undefined) {
+            return models.book.readAll({
+                "field": "internalPersonId",
+                "value": {
+                    "value": this.getIdValue()
+                },
+                "operator": "eq"
+            }, order, pagination);
+        } else {
+            return models.book.readAll({
+                "operator": "and",
+                "search": [{
+                    "field": "internalPersonId",
+                    "value": {
+                        "value": this.getIdValue()
+                    },
+                    "operator": "eq"
+                }, search]
+            }, order, pagination)
+        }
+    }
+
+    countFilteredWorksImpl({
+        search
+    }) {
+
+        if (search === undefined) {
+            return models.book.countRecords({
+                "field": "internalPersonId",
+                "value": {
+                    "value": this.getIdValue()
+                },
+                "operator": "eq"
+            });
+        } else {
+            return models.book.countRecords({
+                "operator": "and",
+                "search": [{
+                    "field": "internalPersonId",
+                    "value": {
+                        "value": this.getIdValue()
+                    },
+                    "operator": "eq"
+                }, search]
+            })
+        }
+
+    }
+
+    worksConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+        if (search === undefined) {
+            return models.book.readAllCursor({
+                "field": "internalPersonId",
+                "value": {
+                    "value": this.getIdValue()
+                },
+                "operator": "eq"
+            }, order, pagination);
+        } else {
+            return models.book.readAllCursor({
+                "operator": "and",
+                "search": [{
+                    "field": "internalPersonId",
+                    "value": {
+                        "value": this.getIdValue()
+                    },
+                    "operator": "eq"
+                }, search]
+            }, order, pagination)
+        }
+    }
+
+
+
+
+    /**
+     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+     *
+     * @return {type} Name of the attribute that functions as an internalId
+     */
+
+    static idAttribute() {
+        return Person.definition.id.name;
+    }
+
+    /**
+     * idAttributeType - Return the Type of the internalId.
+     *
+     * @return {type} Type given in the JSON model
+     */
+
+    static idAttributeType() {
+        return Person.definition.id.type;
+    }
+
+    /**
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Person.
+     *
+     * @return {type} id value
+     */
 
     getIdValue() {
-        return this[peopleLocalSql.idAttribute()]
+        return this[Person.idAttribute()]
     }
 
     static get definition() {
@@ -384,29 +593,22 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(peopleLocalSql.definition.attributes);
+        let attributes = Object.keys(Person.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
+    static externalIdsArray() {
+        let externalIds = [];
+        if (definition.externalIds) {
+            externalIds = definition.externalIds;
+        }
 
-
-    /**
-     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
-     *
-     * @return {type} Name of the attribute that functions as an internalId
-     */
-
-    static idAttribute() {
-        let internalId = peopleLocalSql.definition.id.name;
-        return internalId;
+        return externalIds;
     }
 
-    static get name() {
-        return "peopleLocalSql";
+    static externalIdsObject() {
+        return {};
     }
 
-    static get type(){
-      return 'local';
-    }
 }

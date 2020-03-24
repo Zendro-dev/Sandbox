@@ -73,11 +73,18 @@ module.exports = class Person {
         return "person";
     }
 
-    static get registeredAdapters() {
-        ["peopleRemote", "peopleLocalSql"].reduce((a, c) => {
-            a[c] = adapters[c];
-            return a;
-        }, {});
+    static readById(id) {
+        if (id !== null) {
+            let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
+
+            if (responsibleAdapter.length > 1) {
+                throw new Error("IRI has no unique match");
+            } else if (responsibleAdapter.length === 0) {
+                throw new Error("IRI has no match WS");
+            }
+
+            return adapters[responsibleAdapter[0]].readById(id).then(result => new Person(result));
+        }
     }
 
     static adapterForIri(iri) {
@@ -90,15 +97,17 @@ module.exports = class Person {
         return responsibleAdapter;
     }
 
-    static readById(id) {
-        if (id !== null) {
-            let responsibleAdapter = this.adapterForIri(id)
-            return adapters[responsibleAdapter[0]].readById(id).then(result => new Person(result));
+    static assertInputHasId(input) {
+        if (!input.internalPersonId) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'internalPersonId'.`);
         }
+        return true;
     }
 
-    static countRecords(search, authorizedAdapters) {
-        let promises = authorizedAdapters.map(adapter => adapters[adapter].countRecords(search));
+
+
+    static countRecords(search) {
+        let promises = registry.map(adapter => adapters[adapter].countRecords(search));
 
         return Promise.all(promises).then(results => {
             return results.reduce((total, current) => total + current, 0);
@@ -106,7 +115,7 @@ module.exports = class Person {
     }
 
 
-    static readAllCursor(search, order, pagination, authorizedAdapters) {
+    static readAllCursor(search, order, pagination) {
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -114,7 +123,7 @@ module.exports = class Person {
         }
 
         let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let promises = authorizedAdapters.map(adapter => adapters[adapter].readAllCursor(search, order, pagination));
+        let promises = registry.map(adapter => adapters[adapter].readAllCursor(search, order, pagination));
         let someHasNextPage = false;
         let someHasPreviousPage = false;
         return Promise.all(promises).then(results => {
@@ -257,35 +266,30 @@ module.exports = class Person {
         return this[Person.idAttribute()]
     }
 
-    static assertInputHasId(input) {
-        if (!input.internalPersonId) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'internalPersonId'.`);
-        }
-        return true;
-    }
-
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.internalPersonId);
+        console.log("RESPONSIBLE ADAPTER", responsibleAdapter)
         return adapters[responsibleAdapter].addOne(input);
     }
 
     static deleteOne(id) {
-        let responsibleAdapter = this.adapterForIri(id);
-        return adapters[responsibleAdapter].deleteOne(id);
+     let responsibleAdapter = this.adapterForIri(id);
+     return adapters[responsibleAdapter].deleteOne(id);
     }
 
-    static updateOne(input) {
-        this.assertInputHasId(input);
-        let responsibleAdapter = this.adapterForIri(input.internalPersonId);
-        return adapters[responsibleAdapter].updateOne(input);
-    }
+     static updateOne(input) {
+         this.assertInputHasId(input);
+         let responsibleAdapter = this.adapterForIri(input.internalPersonId);
+         return adapters[responsibleAdapter].updateOne(input);
+     }
 
-    static bulkAddCsv(context) {
-        throw Error("Person.bulkAddCsv is not implemented.")
-    }
+     static bulkAddCsv(context) {
+         throw Error("Person.bulkAddCsv is not implemented.")
+     }
 
-    static csvTableTemplate() {
+     static csvTableTemplate() {
         return helper.csvTableTemplate(Person);
-    }
+     }
+
 }

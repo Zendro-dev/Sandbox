@@ -1,20 +1,20 @@
 const axios_general = require('axios');
+const path = require('path');
 const globals = require('../config/globals');
 const {
     handleError
 } = require('../utils/errors');
+const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
+
 
 const remoteCenzontleURL = "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql";
 const iriRegex = new RegExp('peopleRemote');
 
 module.exports = class peopleRemote {
 
-    static get name() {
-        return "peopleRemote";
-    }
 
     static recognizeId(iri) {
         return iriRegex.test(iri);
@@ -40,8 +40,8 @@ module.exports = class peopleRemote {
 
     static countRecords(search) {
         let query = `query countPeople($search: searchPersonInput){
-  countPeople(search: $search)
-  }`
+    countPeople(search: $search)
+    }`
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -85,26 +85,26 @@ module.exports = class peopleRemote {
     }
 
     static addOne(input) {
-        let query = `mutation addPerson( 
-          $internalPersonId:ID  
+        let query = `mutation addPerson(
+          $internalPersonId:ID
           $firstName:String
           $lastName:String
           $email:String
           $companyId:Int
         ){
-          addPerson( 
-            internalPersonId:$internalPersonId  
+          addPerson(
+            internalPersonId:$internalPersonId
             firstName:$firstName
             lastName:$lastName
             email:$email
             companyId:$companyId
           ){
-            internalPersonId 
+            internalPersonId
             firstName
             lastName
             email
             companyId
-     
+
           }
         }`;
 
@@ -113,7 +113,7 @@ module.exports = class peopleRemote {
             variables: input
         }).then(res => {
             let data = res.data.data.addPerson;
-            return new Person(data);
+            return new models.person(data);
         }).catch(error => {
             error['url'] = remoteCenzontleURL;
             handleError(error);
@@ -121,66 +121,58 @@ module.exports = class peopleRemote {
     }
 
     static deleteOne(id) {
-        let query = `mutation deletePerson{ deletePerson(internalPersonId: ${id}) }`;
+    let query = `mutation deletePerson{ deletePerson(internalPersonId: ${id}) }`;
 
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            return res.data.data.deletePerson;
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
+    return axios.post(remoteCenzontleURL, {
+        query: query
+    }).then(res => {
+        return res.data.data.deletePerson;
+    }).catch(error => {
+        error['url'] = remoteCenzontleURL;
+        handleError(error);
+    });
+}
 
-    static updateOne(input) {
-        let query = `mutation updatePerson(
-          $internalPersonId:ID!
-          $firstName:String
-          $lastName:String
-          $email:String
-          $companyId:Int
+static updateOne(input) {
+    let query = `mutation updatePerson(
+      $internalPersonId:ID!
+      $firstName:String
+      $lastName:String
+      $email:String
+      $companyId:Int
+    ){
+        updatePerson(
+          internalPersonId:$internalPersonId
+          firstName:$firstName
+          lastName:$lastName
+          email:$email
+          companyId:$companyId
         ){
-            updatePerson(
-              internalPersonId:$internalPersonId
-              firstName:$firstName
-              lastName:$lastName
-              email:$email
-              companyId:$companyId
-            ){
-              internalPersonId
-              firstName
-              lastName
-              email
-              companyId
-            }
-        }`
+          internalPersonId
+          firstName
+          lastName
+          email
+          companyId
+        }
+    }`
 
-        return axios.post(remoteCenzontleURL, {
-            query: query,
-            variables: input
-        }).then(res => {
-            let data = res.data.data.updatePerson;
-            return new Person(data);
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+    return axios.post(remoteCenzontleURL, {
+        query: query,
+        variables: input
+    }).then(res => {
+        let data = res.data.data.updatePerson;
+        return new models.person(data);
+    }).catch(error => {
+        error['url'] = remoteCenzontleURL;
+        handleError(error);
+    });
+}
+
+    static get name() {
+        return "peopleRemote";
     }
 
-    static bulkAddCsv(context) {
-        throw Error("Person.bulkAddCsv is not implemented.")
-    }
-
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplatePerson }`;
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplatePerson;
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+    static get type(){
+      return 'cenz';
     }
 }
