@@ -7,7 +7,7 @@ const {
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-const remoteCenzontleURL = "http://localhost:3030/graphql";
+const remoteCenzontleURL = "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql";
 const iriRegex = new RegExp('peopleRemote');
 
 module.exports = class peopleRemote {
