@@ -96,7 +96,7 @@ module.exports = class Book {
 
     static assertInputHasId(input) {
         if (!input.internalBookId) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'internalPersonId'.`);
+            throw new Error(`Illegal argument. Provided input requires attribute 'internalBookId'.`);
         }
         return true;
     }
@@ -202,7 +202,10 @@ module.exports = class Book {
     }
 
 
-
+    async set_internalPersonId(value) {
+      let input = { [Book.idAttribute()] : this.getIdValue(), "addAuthor": value };
+      return await Book.updateOne( input);
+    }
 
 
     /**

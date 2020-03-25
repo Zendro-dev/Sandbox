@@ -177,10 +177,6 @@ module.exports = class Person {
         return data_values;
     }
 
-
-
-
-
     countFilteredWorksImpl({
         search
     }) {

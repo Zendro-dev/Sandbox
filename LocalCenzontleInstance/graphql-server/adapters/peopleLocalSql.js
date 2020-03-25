@@ -16,7 +16,7 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-//const remoteCenzontleURL = "http://localhost:3000/graphql";
+const remoteCenzontleURL = "http://localhost:3000/graphql";
 const iriRegex = new RegExp('peopleLocal');
 
 const definition = {
@@ -92,11 +92,10 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
 
 
       static addOne(input) {
-          console.log("GOT TO THE CORRECT ADAPTER");
           return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
               .then(async (valSuccess) => {
                   try {
-                      console.log("INPUT", input);
+
                       const result = await sequelize.transaction(async (t) => {
                           let item = await super.create(input, {
                               transaction: t
@@ -116,6 +115,7 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                               await result._addWorks(input.addWorks);
                           }
                       }
+
                       return result;
                   } catch (error) {
                       throw error;
@@ -323,6 +323,7 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
             .then(async (valSuccess) => {
                 try {
+
                     let result = await sequelize.transaction(async (t) => {
                         let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
@@ -344,7 +345,7 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                         if (wrong_ids.length > 0) {
                             throw new Error(`Ids ${wrong_ids.join(",")} in model book were not found.`);
                         } else {
-                            await result._addWorks(input.addWorks);
+                           await result._addWorks(input.addWorks);
                         }
                     }
 
@@ -358,13 +359,28 @@ module.exports = class peopleLocalSql extends Sequelize.Model {
                         await result._removeWorks(input.removeWorks);
                     }
 
-
                     return result;
                 } catch (error) {
                     throw error;
                 }
             });
     }
+
+
+    async _removeWorks(ids) {
+        await helper.asyncForEach(ids, async id => {
+            let record = await models.book.readById(id);
+            await record.set_internalPersonId(null);
+        });
+    }
+
+    async _addWorks(ids) {
+        return helper.asyncForEach(ids, async id => {
+            let record = await models.book.readById(id);
+            await record.set_internalPersonId(this.getIdValue());
+        });
+    }
+
 
 
     getIdValue() {
