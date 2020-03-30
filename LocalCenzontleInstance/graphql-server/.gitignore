@@ -10,7 +10,6 @@ package-lock.json
 migrations
 models
 models-webservice
-resolvers
 schemas
 test
 validations

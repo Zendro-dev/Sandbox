@@ -221,7 +221,7 @@ module.exports = class Book {
                      */
                     console.log("-@@-------- ddm: rx:\nlocal.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
                     return r;
-                });
+                }).catch(err => err);
             } else if (adapter.adapterType === 'remote') {
                 //check: @search.excludeAdapterNames
                 let nsearch = {};
@@ -265,7 +265,7 @@ module.exports = class Book {
                      */
                     console.log("-@@-------- ddm: rx:\nremote.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
                     return r;
-                });
+                }).catch(err => err);
             } else {
 
                 throw Error(`Adapter of type '${adapter.adapterType}' is not supported.`)
@@ -282,8 +282,13 @@ module.exports = class Book {
                 console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
 
                 return results.reduce((total, current) => {
+                    //check for Errors
+                    if (current instanceof Error) {
+                        total.unshift(current);
+                        return total;
+                    }
                     //check
-                    if (current && current.pageInfo && current.edges) {
+                    else if (current && current.pageInfo && current.edges) {
                         someHasNextPage |= current.pageInfo.hasNextPage;
                         someHasPreviousPage |= current.pageInfo.hasPreviousPage;
                         return total.concat(current.edges.map(e => e.node));
@@ -298,6 +303,9 @@ module.exports = class Book {
                  * Debug
                  */
                 console.log("@@---------- phase2:\n", "\n nodes[", typeof nodes, "]", "\n---------- @@@");
+
+                let errors = nodes.filter(record => record instanceof Error);
+                nodes.splice(0,errors.length);
 
                 if (order === undefined) {
                     order = [{
@@ -323,7 +331,9 @@ module.exports = class Book {
                 let hasNextPage = ordered_records.length > pagination.first || someHasNextPage;
                 let hasPreviousPage = ordered_records.length > pagination.last || someHasPreviousPage;
 
-                return helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
+                let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
+                graphQLConnection['errors'] = errors;
+                return graphQLConnection;
             });
     }
 
