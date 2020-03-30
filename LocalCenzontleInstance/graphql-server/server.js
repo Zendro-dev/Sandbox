@@ -185,6 +185,8 @@ app.use('/export', cors(), (req, res) =>{
 
  // Error handling
  app.use(function (err, req, res, next) {
+  console.log("\n\n!!SERVER_A: error: \n\n", err);
+
      if (err.name === 'UnauthorizedError') { // Send the error rather than to show it on the console
          res.status(401).send(err);
      }

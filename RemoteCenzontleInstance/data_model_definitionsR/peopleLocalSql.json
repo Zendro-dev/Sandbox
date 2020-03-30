@@ -1,10 +1,10 @@
 {
   "model": "Person",
   "storageType": "cenzontle-web-service-adapter",
-  "adapterName": "peopleRemote",
-  "adapterType": "remote",
-  "regex": "peopleRemote",
-  "url": "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql",
+  "adapterName": "people_server_b",
+  "adapterType": "local",
+  "regex": "_server_b",
+  "url": "http://localhost:3030/graphql",
   "attributes": {
     "firstName": "String",
     "lastName": "String",

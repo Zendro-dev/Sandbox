@@ -1,10 +1,10 @@
 {
   "model": "Book",
   "storageType": "cenzontle-web-service-adapter",
-  "adapterName": "booksRemote",
+  "adapterName": "books_server_a",
   "adapterType": "remote",
-  "regex": "booksRemote",
-  "url": "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql",
+  "regex": "_server_a",
+  "url": "http://localcenzontleinstance_sdb_science_db_graphql_server_1:3000/graphql",
   "attributes": {
     "title": "String",
     "genre": "String",

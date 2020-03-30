@@ -2,8 +2,9 @@
   "model": "Book",
   "storageType": "cenzontle-web-service-adapter",
   "adapterName": "booksLocalSql",
+  "adapterType": "local",
   "regex": "booksLocal",
-  "url": "http://localhost:3000/graphql",
+  "url": "http://localhost:3030/graphql",
   "attributes": {
     "title": "String",
     "genre": "String",

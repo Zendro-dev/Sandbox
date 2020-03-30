@@ -2,6 +2,7 @@
   "model": "Person",
   "storageType": "cenzontle-web-service-adapter",
   "adapterName": "peopleLocalSql",
+  "adapterType": "local",
   "regex": "peopleLocal",
   "url": "http://localhost:3000/graphql",
   "attributes": {

@@ -12,14 +12,15 @@
   }).forEach( file =>{
 
     let adapter = require(path.join(__dirname, file));
-    if( adapters[adapter.name] ){
-      throw Error(`Duplicated adapter name ${adapter.name}`);
+    if( adapters[adapter.adapterName] ){
+      throw Error(`Duplicated adapter name ${adapter.adapterName}`);
     }
     
-    if(adapter.type === 'local'){
-      adapters[adapter.name] = adapter.init(sequelize, Sequelize);
+    if(adapter.adapterType === 'local'){
+      adapters[adapter.adapterName] = adapter.init(sequelize, Sequelize);
     }else{
-      adapters[adapter.name] = adapter;
+      adapters[adapter.adapterName] = adapter;
     }
   });
+  
   
