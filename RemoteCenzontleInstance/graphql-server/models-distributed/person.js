@@ -9,8 +9,8 @@ const definition = {
     model: 'Person',
     storageType: 'distributed-data-model',
     registry: [
-        'peopleRemote',
-        'peopleLocalSql'
+        'people_server_a',
+        'people_server_b'
     ],
     attributes: {
         firstName: 'String',
@@ -45,7 +45,7 @@ const definition = {
     }
 };
 
-let registry = ["peopleRemote", "peopleLocalSql"];
+let registry = ["people_server_a", "people_server_b"];
 
 module.exports = class Person {
 
@@ -80,7 +80,7 @@ module.exports = class Person {
      * @return {string}     baseUrl from request.
      */
     static get registeredAdapters() {
-        return ["peopleRemote", "peopleLocalSql"].reduce((a, c) => {
+        return ["people_server_a", "people_server_b"].reduce((a, c) => {
             a[c] = adapters[c];
             return a;
         }, {});

@@ -2,8 +2,8 @@
   "model": "Person",
   "storageType": "distributed-data-model",
   "registry": [
-    "peopleRemote",
-    "peopleLocalSql"
+    "people_server_a",
+    "people_server_b"
   ],
   "attributes": {
     "firstName": "String",
