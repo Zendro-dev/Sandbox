@@ -103,8 +103,15 @@ module.exports = class Person {
         console.log("-@@---- ddm.readById \nid: ", id);
 
         if (id !== null) {
-            let responsibleAdapter = this.adapterForIri(id);
-            return adapters[responsibleAdapter].readById(id);
+            let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
+
+            if (responsibleAdapter.length > 1) {
+                throw new Error("IRI has no unique match");
+            } else if (responsibleAdapter.length === 0) {
+                throw new Error("IRI has no match WS");
+            }
+
+            return adapters[responsibleAdapter[0]].readById(id).then(result => new Person(result));
         }
     }
 
@@ -112,26 +119,30 @@ module.exports = class Person {
         /**
          * Debug
          */
-        console.log("-@@---- ddm.countRecords \nauth.adapters: ", authorizedAdapters.reduce((a, c) => {
-            a.push(c.adapterName);
-            return a;
-        }, []));
+        console.log("-@@---- ddm.countRecords \nauth.adapters: ", authorizedAdapters);
 
-        let promises = authorizedAdapters.map(adapter => {
+        let authAdapters = [];
+        /**
+         * Cases
+         *   authorizedAdapters : called from resolved
+         *      - will contains only those authorized adapters.
+         *  !authorizedAdapters : called internally 
+         *      - will be null, and will be set to registered adapters.
+         */
+        if (authorizedAdapters === undefined) {
+            authAdapters = Object.values(this.registeredAdapters);
+        } else {
+            authAdapters = Array.from(authorizedAdapters)
+        }
+
+        let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
              *   local: resolve with current parameters.
              *   remote: add exclusions to search.excludeAdapterNames
              */
             if (adapter.adapterType === 'local') {
-
-                return adapter.countRecords(search).then(r => {
-                    /**
-                     * Debug
-                     */
-                    console.log("-@@-------- ddm: rx:\nlocal.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
-                    return r;
-                });
+                return adapter.countRecords(search);
             } else if (adapter.adapterType === 'remote') {
                 //check: @search.excludeAdapterNames
                 let nsearch = {};
@@ -198,10 +209,21 @@ module.exports = class Person {
         /**
          * Debug
          */
-        console.log("-@@---- ddm.readAllCursor \nauth.adapters: ", authorizedAdapters.reduce((a, c) => {
-            a.push(c.adapterName);
-            return a;
-        }, []));
+        console.log("-@@---- ddm.readAllCursor \nauth.adapters: ", authorizedAdapters);
+
+        let authAdapters = [];
+        /**
+         * Cases
+         *   authorizedAdapters : called from resolved
+         *      - will contains only those authorized adapters.
+         *  !authorizedAdapters : called internally 
+         *      - will be null, and will be set to registered adapters.
+         */
+        if (authorizedAdapters === undefined) {
+            authAdapters = Object.values(this.registeredAdapters);
+        } else {
+            authAdapters = Array.from(authorizedAdapters)
+        }
 
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
@@ -210,7 +232,7 @@ module.exports = class Person {
         }
 
         let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let promises = authorizedAdapters.map(adapter => {
+        let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
              *   local: resolve with current parameters.
@@ -262,13 +284,7 @@ module.exports = class Person {
                     }
                 });
                 //use new search
-                return adapter.readAllCursor(nsearch, order, pagination).then(r => {
-                    /**
-                     * Debug
-                     */
-                    console.log("-@@-------- ddm: rx:\nremote.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
-                    return r;
-                });
+                return adapter.readAllCursor(nsearch, order, pagination);
             } else {
 
                 throw Error(`Adapter of type '${adapter.adapterType}' is not supported.`)
@@ -453,7 +469,7 @@ module.exports = class Person {
          */
         console.log("-@@---- ddm.addOne: \nresponsibleAdapter: ", responsibleAdapter);
 
-        return adapters[responsibleAdapter].addOne(input);
+        return adapters[responsibleAdapter].addOne(input).then(result => new Person(result));
     }
 
     static deleteOne(id) {
@@ -476,7 +492,7 @@ module.exports = class Person {
          */
         console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
 
-        return adapters[responsibleAdapter].updateOne(input);
+        return adapters[responsibleAdapter].updateOne(input).then(result => new Person(result));
     }
 
     static bulkAddCsv(context) {

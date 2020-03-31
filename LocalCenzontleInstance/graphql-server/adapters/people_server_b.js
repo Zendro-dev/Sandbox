@@ -305,5 +305,4 @@ module.exports = class people_server_b {
             handleError(error);
         });
     }
-
 }

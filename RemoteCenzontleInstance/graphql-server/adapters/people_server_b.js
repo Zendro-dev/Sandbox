@@ -115,7 +115,7 @@ module.exports = class people_server_b extends Sequelize.Model {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return super.findOne(options);
+        return people_server_b.findOne(options);
     }
 
     static countRecords(search) {
@@ -472,7 +472,6 @@ module.exports = class people_server_b extends Sequelize.Model {
 
 
 
-
     async _removeWorks(ids) {
         await helper.asyncForEach(ids, async id => {
             let record = await models.book.readById(id);
@@ -482,25 +481,10 @@ module.exports = class people_server_b extends Sequelize.Model {
 
     async _addWorks(ids) {
         await helper.asyncForEach(ids, async id => {
-            let responsibleAdapter = models.book.registeredAdapters[models.book.adapterForIri(id)];
-            /**
-             * Diferentiated cases:
-             * 
-             *   local: get Sequelize model by readById() and calls its non-static set_ method.
-             *   remote: calls the adapter static set_ method to resolve remotely.
-             */
-            if (responsibleAdapter.adapterType === 'remote') {
-                await responsibleAdapter.set_internalPersonId(id, this.getIdValue());
-            } else if (responsibleAdapter.adapterType === 'local') {
-                let record = await models.book.readById(id);
-                await record.set_internalPersonId(this.getIdValue());
-            } else {
-                throw Error(`Adapter of type '${responsibleAdapter.adapterType}' is not supported.`);
-            }
+            let record = await models.book.readById(id);
+            await record.set_internalPersonId(this.getIdValue());
         });
     }
-
-
 
 
 

@@ -111,7 +111,7 @@ module.exports = class books_server_b extends Sequelize.Model {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return super.findOne(options);
+        return books_server_b.findOne(options);
     }
 
     static countRecords(search) {
@@ -470,7 +470,6 @@ module.exports = class books_server_b extends Sequelize.Model {
         return super.save();
     }
 
-
     _addAuthor(id) {
         return this.set_internalPersonId(id);
     }
@@ -478,8 +477,6 @@ module.exports = class books_server_b extends Sequelize.Model {
     _removeAuthor(id) {
         return this.set_internalPersonId(null);
     }
-
-
 
 
 
