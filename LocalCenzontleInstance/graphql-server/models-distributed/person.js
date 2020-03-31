@@ -119,7 +119,7 @@ module.exports = class Person {
         /**
          * Debug
          */
-        console.log("-@@---- ddm.countRecords \nauth.adapters: ", authorizedAdapters);
+        console.log("-@@---- ddm.countRecords");
 
         let authAdapters = [];
         /**
@@ -209,7 +209,7 @@ module.exports = class Person {
         /**
          * Debug
          */
-        console.log("-@@---- ddm.readAllCursor \nauth.adapters: ", authorizedAdapters);
+        console.log("-@@---- ddm.readAllCursor");
 
         let authAdapters = [];
         /**
