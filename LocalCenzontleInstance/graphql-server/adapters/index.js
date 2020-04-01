@@ -13,13 +13,22 @@
 
     let adapter = require(path.join(__dirname, file));
     if( adapters[adapter.adapterName] ){
-      throw Error(`Duplicated adapter name ${adapter.adapterName}`);
+      throw new Error(`Duplicated adapter name ${adapter.adapterName}`);
     }
     
-    if(adapter.adapterType === 'local'){
-      adapters[adapter.adapterName] = adapter.init(sequelize, Sequelize);
-    }else{
-      adapters[adapter.adapterName] = adapter;
+    switch(adapter.adapterType) {
+      case 'ddm-adapter':
+      case 'cenzontle-webservice-adapter':
+      case 'generic-adapter':
+        adapters[adapter.adapterName] = adapter; 
+        break;
+
+      case 'sql-adapter':
+        adapters[adapter.adapterName] = adapter.init(sequelize, Sequelize);
+        break;
+      
+      case 'default':
+        throw new Error(`Adapter storageType '${adapter.storageType}' is not supported`);
     }
   });
   

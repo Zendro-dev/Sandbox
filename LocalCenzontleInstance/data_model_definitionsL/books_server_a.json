@@ -1,8 +1,7 @@
 {
   "model": "Book",
-  "storageType": "cenzontle-web-service-adapter",
+  "storageType": "sql-adapter",
   "adapterName": "books_server_a",
-  "adapterType": "local",
   "regex": "_server_a",
   "url": "http://localhost:3000/graphql",
   "attributes": {
@@ -17,7 +16,7 @@
       "target": "Person",
       "targetKey": "internalPersonId",
       "keyIn": "Book",
-      "targetStorageType": "cenz_server",
+      "targetStorageType": "cenz-server",
       "label": "email"
     }
   },

@@ -654,7 +654,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * on the search.excludeAdapterNames input. If search.excludeAdapterNames is not
    * defined or is empty, the array returned will be equal to the @adapters array.
    */
-  module.exports.removeExcludedAdapters = async function(search, adapters) {
+  module.exports.removeExcludedAdapters = function(search, adapters) {
     let result = Array.from(adapters);
     
     //check: @adapters
@@ -682,4 +682,60 @@ module.exports.vueTable = function(req, model, strAttributes) {
       }
     }
     return result
+  }
+
+  /**
+   * addExclusions - Adds all @registeredAdapters, except the @currentAdapter, to
+   * the @excludeAdapterNames on search object.
+   *
+   * @param {object} search - Search object.
+   * @param {string} currentAdapterName - String of the current adapterName. 
+   * @param {array} registeredAdapters - Array of registered adapters for the calling ddm.
+   *
+   * @return {object} New search object that includes the excluded adapters on the 
+   * attribute @excludeAdapterNames. This functions does not modify the @search object,
+   * instead a new one is returned. 
+   */
+  module.exports.addExclusions = function(search, currentAdapterName, registeredAdapters) {
+    let nsearch = {};
+
+    //check
+    if((!search || typeof search !== 'object')) { //has not search object
+
+      nsearch.excludeAdapterNames = [];
+
+    } else {
+      //check
+      if(search.excludeAdapterNames === undefined) { //search object has not exclusions
+
+        nsearch = {
+          ...search
+        };
+        nsearch.excludeAdapterNames = [];
+
+      } else {//exclusions are defined
+
+        //check
+        if(!Array.isArray(search.excludeAdapterNames)){ //defined but invalid
+          throw new Error('Illegal excludeAdapterNames parameter in search object, it should be an array.');
+        }//else
+
+        nsearch = {
+          ...search
+        };
+      }
+    }
+
+    /*
+     * append all @registeredAdapters, except the @currentAdapter, 
+     * to search.excludeAdapterNames array.
+     */
+    registeredAdapters.forEach(a => {
+      if(a.adapterName !== currentAdapterName && !nsearch.excludeAdapterNames.includes(a.adapterName)) {
+        //add adapter name to exclude list
+        nsearch.excludeAdapterNames.push(a.adapterName);
+      }
+    });
+
+    return nsearch;
   }

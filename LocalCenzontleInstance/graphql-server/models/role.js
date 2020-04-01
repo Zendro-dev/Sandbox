@@ -194,7 +194,7 @@ module.exports = class role extends Sequelize.Model {
                             ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
-                } else { //backward 
+                } else { //backward
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {
@@ -302,14 +302,14 @@ module.exports = class role extends Sequelize.Model {
                         });
                         let promises_associations = [];
                         if (input.addUsers) {
-                            let wrong_ids = await helper.checkExistence(input.addUsers, models.user);
-                            if (wrong_ids.length > 0) {
-                                throw new Error(`Ids ${wrong_ids.join(",")} in model user were not found.`);
-                            } else {
-                                promises_associations.push(item.setUsers(input.addUsers, {
-                                    transaction: t
-                                }));
-                            }
+                            //let wrong_ids =  await helper.checkExistence(input.addUsers, models.user);
+                            //if(wrong_ids.length > 0){
+                            //    throw new Error(`Ids ${wrong_ids.join(",")} in model user were not found.`);
+                            //}else{
+                            promises_associations.push(item.setUsers(input.addUsers, {
+                                transaction: t
+                            }));
+                            //}
                         }
 
                         return Promise.all(promises_associations).then(() => {
@@ -358,23 +358,23 @@ module.exports = class role extends Sequelize.Model {
                         });
 
                         if (input.addUsers) {
-                            let wrong_ids = await helper.checkExistence(input.addUsers, models.user);
-                            if (wrong_ids.length > 0) {
-                                throw new Error(`Ids ${wrong_ids.join(",")} in model user were not found.`);
-                            } else {
-                                promises_associations.push(updated.addUsers(input.addUsers, {
-                                    transaction: t
-                                }));
-                            }
+                            //let wrong_ids =  await helper.checkExistence(input.addUsers, models.user);
+                            //if(wrong_ids.length > 0){
+                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model user were not found.`);
+                            //}else{
+                            promises_associations.push(updated.addUsers(input.addUsers, {
+                                transaction: t
+                            }));
+                            //}
                         }
 
                         if (input.removeUsers) {
-                            let ids_associated = await item.getUsers().map(t => `${t[models.user.idAttribute()]}`);
-                            await helper.asyncForEach(input.removeUsers, id => {
-                                if (!ids_associated.includes(id)) {
-                                    throw new Error(`The association with id ${id} that you're trying to remove desn't exists`);
-                                }
-                            });
+                            //let ids_associated = await item.getUsers().map(t => `${t[models.user.idAttribute()]}`);
+                            //await helper.asyncForEach(input.removeUsers, id =>{
+                            //  if(!ids_associated.includes(id)){
+                            //    throw new Error(`The association with id ${id} that you're trying to remove desn't exists`);
+                            //  }
+                            //});
                             promises_associations.push(updated.removeUsers(input.removeUsers, {
                                 transaction: t
                             }));

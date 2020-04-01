@@ -167,7 +167,7 @@ module.exports = class role_to_user extends Sequelize.Model {
                             ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
-                } else { //backward 
+                } else { //backward
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {

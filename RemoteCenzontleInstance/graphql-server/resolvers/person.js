@@ -95,7 +95,7 @@ module.exports = {
 
         try {
             //exclude adapters
-            let adapters = await helper.removeExcludedAdapters(search, registeredAdapters);
+            let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
             if (adapters.length === 0) {
                 throw new Error('All adapters was excluded for data model "Person"');
             } //else
@@ -103,9 +103,15 @@ module.exports = {
             //check: auth adapters
             let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
             if (authorizationCheck.authorizedAdapters.length > 0) {
-                let connectionObj = person.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
+                let connectionObj = await person.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
+                //check adapter authorization Errors
                 if (authorizationCheck.authorizationErrors.length > 0) {
-                    connectionObj.edges.nodes.push(authorizationCheck.authorizationErrors);
+                    context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
+                }
+                //check Errors returned by the model layer (time-outs, unreachable, etc...)
+                if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
+                    context.benignErrors = context.benignErrors.concat(connectionObj.errors)
+                    delete connectionObj['errors']
                 }
                 return connectionObj;
             } else { //adapters not auth || errors
@@ -289,7 +295,7 @@ module.exports = {
 
         try {
             //exclude adapters
-            let adapters = await helper.removeExcludedAdapters(search, registeredAdapters);
+            let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
             if (adapters.length === 0) {
                 throw new Error('All adapters was excluded for data model "Person"');
             } //else
@@ -297,7 +303,18 @@ module.exports = {
             //check: auth adapters
             let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
             if (authorizationCheck.authorizedAdapters.length > 0) {
-                return person.countRecords(search, authorizationCheck.authorizedAdapters);
+
+                let countObj = await person.countRecords(search, authorizationCheck.authorizedAdapters);
+                //check adapter authorization Errors
+                if (authorizationCheck.authorizationErrors.length > 0) {
+                    context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
+                }
+                //check Errors returned by the model layer (time-outs, unreachable, etc...)
+                if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
+                    context.benignErrors = context.benignErrors.concat(countObj.errors)
+                    delete countObj['errors']
+                }
+                return countObj.sum;
             } else { //adapters not auth || errors
                 // else new Error
                 if (authorizationCheck.authorizationErrors.length > 0) {

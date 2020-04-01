@@ -17,7 +17,7 @@ module.exports = class people_server_b {
     }
 
     static get adapterType() {
-        return 'remote';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -286,7 +286,7 @@ module.exports = class people_server_b {
     }
 
     static bulkAddCsv(context) {
-        throw Error("Person.bulkAddCsv is not implemented.")
+        throw new Error("Person.bulkAddCsv is not implemented.")
     }
 
     static csvTableTemplate() {

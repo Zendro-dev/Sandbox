@@ -123,11 +123,14 @@ module.exports = class Person {
 
         let authAdapters = [];
         /**
-         * Cases
-         *   authorizedAdapters : called from resolved
-         *      - will contains only those authorized adapters.
-         *  !authorizedAdapters : called internally 
-         *      - will be null, and will be set to registered adapters.
+         * Differentiated cases:
+         *    if authorizedAdapters is defined: 
+         *      - called from resolver.
+         *      - authorizedAdapters will no be modified.
+         * 
+         *    if authorizedAdapters is not defined: 
+         *      - called internally 
+         *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
             authAdapters = Object.values(this.registeredAdapters);
@@ -138,70 +141,44 @@ module.exports = class Person {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   local: resolve with current parameters.
-             *   remote: add exclusions to search.excludeAdapterNames
+             *   sql-adapter: 
+             *      resolve with current parameters.
+             *   
+             *   ddm-adapter:
+             *   cenzontle-webservice-adapter:
+             *   generic-adapter:
+             *      add exclusions to search.excludeAdapterNames parameter.
              */
-            if (adapter.adapterType === 'local') {
-                return adapter.countRecords(search);
-            } else if (adapter.adapterType === 'remote') {
-                //check: @search.excludeAdapterNames
-                let nsearch = {};
+            switch (adapter.adapterType) {
+                case 'ddm-adapter':
+                case 'generic-adapter':
+                    let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
+                    return adapter.countRecords(nsearch);
 
-                if ((!search || typeof search !== 'object')) { //has not search object
-                    nsearch.excludeAdapterNames = [];
+                case 'sql-adapter':
+                case 'cenzontle-webservice-adapter':
+                    return adapter.countRecords(search);
 
-                } else {
-                    if (search.excludeAdapterNames === undefined) { //search object has not exclusions
-                        nsearch = {
-                            ...search
-                        };
-                        nsearch.excludeAdapterNames = [];
-
-                    } else { //exclusions are defined
-
-                        if (!Array.isArray(search.excludeAdapterNames)) { //defined but invalid
-                            throw new Error('Illegal excludeAdapterNames parameter in search object, it should be an array.');
-                        } //else
-
-                        nsearch = {
-                            ...search
-                        };
-                    }
-                }
-
-                /*
-                 * append all registeredAdapters, except the current <adapter>, 
-                 * to search.excludeAdapterNames array.
-                 */
-                Object.values(this.registeredAdapters).forEach(a => {
-                    if (a.adapterName !== adapter.adapterName && !nsearch.excludeAdapterNames.includes(a.adapterName)) {
-                        //add adapter name to exclude list
-                        nsearch.excludeAdapterNames.push(a.adapterName);
-                    }
-                });
-                //use new search
-                return adapter.countRecords(nsearch).then(r => {
-                    /**
-                     * Debug
-                     */
-                    console.log("-@@-------- ddm: rx:\nremote.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
-                    return r;
-                });
-            } else {
-
-                throw Error(`Adapter of type '${adapter.type}' is not supported.`);
+                case 'default':
+                    throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
             }
         });
 
         return Promise.all(promises).then(results => {
             return results.reduce((total, current) => {
-                //check current result
-                if (current) {
-                    return total + current;
-                } else {
-                    return total;
+                //check if current is Error
+                if (current instanceof Error) {
+                    total.errors.push(current);
                 }
-            }, 0);
+                //check current result
+                else if (current) {
+                    total.sum += current;
+                }
+                return total;
+            }, {
+                sum: 0,
+                errors: []
+            });
         });
     }
 
@@ -213,11 +190,14 @@ module.exports = class Person {
 
         let authAdapters = [];
         /**
-         * Cases
-         *   authorizedAdapters : called from resolved
-         *      - will contains only those authorized adapters.
-         *  !authorizedAdapters : called internally 
-         *      - will be null, and will be set to registered adapters.
+         * Differentiated cases:
+         *    if authorizedAdapters is defined: 
+         *      - called from resolver.
+         *      - authorizedAdapters will no be modified.
+         * 
+         *    if authorizedAdapters is not defined: 
+         *      - called internally 
+         *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
             authAdapters = Object.values(this.registeredAdapters);
@@ -235,59 +215,26 @@ module.exports = class Person {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   local: resolve with current parameters.
-             *   remote: add exclusions to search.excludeAdapterNames parameter.
+             *   sql-adapter: 
+             *      resolve with current parameters.
+             *   
+             *   ddm-adapter:
+             *   cenzontle-webservice-adapter:
+             *   generic-adapter:
+             *      add exclusions to search.excludeAdapterNames parameter.
              */
-            if (adapter.adapterType === 'local') {
+            switch (adapter.adapterType) {
+                case 'ddm-adapter':
+                case 'generic-adapter':
+                    let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
+                    return adapter.readAllCursor(nsearch, order, pagination);
 
-                return adapter.readAllCursor(search, order, pagination).then(r => {
-                    /**
-                     * Debug
-                     */
-                    console.log("-@@-------- ddm: rx:\nlocal.adapter: ", adapter.adapterName, "\n result[", typeof r, "]: \n\n", r, "\n---------- @@@");
-                    return r;
-                });
-            } else if (adapter.adapterType === 'remote') {
-                //check: @search.excludeAdapterNames
-                let nsearch = {};
+                case 'sql-adapter':
+                case 'cenzontle-webservice-adapter':
+                    return adapter.readAllCursor(search, order, pagination);
 
-                if ((!search || typeof search !== 'object')) { //has not search object
-                    nsearch.excludeAdapterNames = [];
-
-                } else {
-                    if (search.excludeAdapterNames === undefined) { //search object has not exclusions
-                        nsearch = {
-                            ...search
-                        };
-                        nsearch.excludeAdapterNames = [];
-
-                    } else { //exclusions are defined
-
-                        if (!Array.isArray(search.excludeAdapterNames)) { //defined but invalid
-                            throw new Error('Illegal excludeAdapterNames parameter in search object, it should be an array.');
-                        } //else
-
-                        nsearch = {
-                            ...search
-                        };
-                    }
-                }
-
-                /*
-                 * append all registeredAdapters, except the current <adapter>, 
-                 * to search.excludeAdapterNames array.
-                 */
-                Object.values(this.registeredAdapters).forEach(a => {
-                    if (a.adapterName !== adapter.adapterName && !nsearch.excludeAdapterNames.includes(a.adapterName)) {
-                        //add adapter name to exclude list
-                        nsearch.excludeAdapterNames.push(a.adapterName);
-                    }
-                });
-                //use new search
-                return adapter.readAllCursor(nsearch, order, pagination);
-            } else {
-
-                throw Error(`Adapter of type '${adapter.adapterType}' is not supported.`)
+                case 'default':
+                    throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
             }
         });
         let someHasNextPage = false;
@@ -301,22 +248,31 @@ module.exports = class Person {
                 console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
 
                 return results.reduce((total, current) => {
-                    //check
-                    if (current && current.pageInfo && current.edges) {
+                    //check if current is Error
+                    if (current instanceof Error) {
+                        total.errors.push(current);
+                    }
+                    //check current
+                    else if (current && current.pageInfo && current.edges) {
                         someHasNextPage |= current.pageInfo.hasNextPage;
                         someHasPreviousPage |= current.pageInfo.hasPreviousPage;
-                        return total.concat(current.edges.map(e => e.node));
-                    } else {
-                        return total;
+                        total.nodes = total.nodes.concat(current.edges.map(e => e.node));
                     }
-                }, []);
+                    return total;
+                }, {
+                    nodes: [],
+                    errors: []
+                });
             })
             //phase 2: order & paginate
-            .then(nodes => {
+            .then(nodesAndErrors => {
                 /**
                  * Debug
                  */
-                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodes, "]", "\n---------- @@@");
+                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodesAndErrors.nodes, "]", "\n---------- @@@");
+
+                let nodes = nodesAndErrors.nodes;
+                let errors = nodesAndErrors.errors;
 
                 if (order === undefined) {
                     order = [{
@@ -342,7 +298,9 @@ module.exports = class Person {
                 let hasNextPage = ordered_records.length > pagination.first || someHasNextPage;
                 let hasPreviousPage = ordered_records.length > pagination.last || someHasPreviousPage;
 
-                return helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
+                let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
+                graphQLConnection['errors'] = errors;
+                return graphQLConnection;
             });
     }
 
@@ -496,7 +454,7 @@ module.exports = class Person {
     }
 
     static bulkAddCsv(context) {
-        throw Error("Person.bulkAddCsv is not implemented.")
+        throw new Error("Person.bulkAddCsv is not implemented.")
     }
 
     static csvTableTemplate() {

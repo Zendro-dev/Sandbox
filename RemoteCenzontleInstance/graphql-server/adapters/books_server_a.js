@@ -17,7 +17,7 @@ module.exports = class books_server_a {
     }
 
     static get adapterType() {
-        return 'remote';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -274,7 +274,7 @@ module.exports = class books_server_a {
     }
 
     static bulkAddCsv(context) {
-        throw Error("Book.bulkAddCsv is not implemented.")
+        throw new Error("Book.bulkAddCsv is not implemented.")
     }
 
     static csvTableTemplate() {

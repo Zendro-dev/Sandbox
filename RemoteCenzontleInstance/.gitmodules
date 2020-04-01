@@ -5,3 +5,5 @@
 [submodule "graphql-server"]
 	path = graphql-server
 	url = https://github.com/ScienceDb/graphql-server.git
+  branch = Distributed-Data-Models
+

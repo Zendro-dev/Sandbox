@@ -1,8 +1,7 @@
 {
   "model": "Book",
-  "storageType": "cenzontle-web-service-adapter",
+  "storageType": "ddm-adapter",
   "adapterName": "books_server_b",
-  "adapterType": "remote",
   "regex": "_server_b",
   "url": "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql",
   "attributes": {
@@ -17,7 +16,7 @@
       "target": "Person",
       "targetKey": "internalPersonId",
       "keyIn": "Book",
-      "targetStorageType": "cenz_server",
+      "targetStorageType": "cenz-server",
       "label": "email"
     }
   },

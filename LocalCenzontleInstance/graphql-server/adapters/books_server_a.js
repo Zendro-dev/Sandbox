@@ -9,6 +9,12 @@ const validatorUtil = require('../utils/validatorUtil');
 const helper = require('../utils/helper');
 const searchArg = require('../utils/search-argument');
 const path = require('path');
+const fileTools = require('../utils/file-tools');
+const helpersAcl = require('../utils/helpers-acl');
+const email = require('../utils/email');
+const fs = require('fs');
+const os = require('os');
+const uuidv4 = require('uuidv4');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 const remoteCenzontleURL = "http://localhost:3000/graphql";
@@ -17,9 +23,8 @@ const iriRegex = new RegExp('_server_a');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Book',
-    storageType: 'cenzontle-web-service-adapter',
+    storageType: 'sql-adapter',
     adapterName: 'books_server_a',
-    adapterType: 'local',
     regex: '_server_a',
     url: 'http://localhost:3000/graphql',
     attributes: {
@@ -34,7 +39,7 @@ const definition = {
             target: 'Person',
             targetKey: 'internalPersonId',
             keyIn: 'Book',
-            targetStorageType: 'cenz_server',
+            targetStorageType: 'cenz-server',
             label: 'email',
             name: 'author',
             name_lc: 'author',
@@ -94,7 +99,7 @@ module.exports = class books_server_a extends Sequelize.Model {
     }
 
     static get adapterType() {
-        return 'local';
+        return 'sql-adapter';
     }
 
     static recognizeId(iri) {
@@ -321,12 +326,12 @@ module.exports = class books_server_a extends Sequelize.Model {
                     });
 
                     if (input.addAuthor) {
-                        let wrong_ids = await helper.checkExistence(input.addAuthor, models.person);
-                        if (wrong_ids.length > 0) {
-                            throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
-                        } else {
-                            await result._addAuthor(input.addAuthor);
-                        }
+                        //let wrong_ids =  await helper.checkExistence(input.addAuthor, models.person);
+                        //if(wrong_ids.length > 0){
+                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
+                        //}else{
+                        await result._addAuthor(input.addAuthor);
+                        //}
                     }
                     return result;
                 } catch (error) {
@@ -383,21 +388,22 @@ module.exports = class books_server_a extends Sequelize.Model {
                     });
 
                     if (input.addAuthor) {
-                        let wrong_ids = await helper.checkExistence(input.addAuthor, models.person);
-                        if (wrong_ids.length > 0) {
-                            throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
-                        } else {
-                            await result._addAuthor(input.addAuthor);
-                        }
+                        //let wrong_ids =  await helper.checkExistence(input.addAuthor, models.person);
+                        //if(wrong_ids.length > 0){
+                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model person were not found.`);
+                        //}else{
+                        await result._addAuthor(input.addAuthor);
+                        //}
                     }
 
                     if (input.removeAuthor) {
-                        let author = await result.authorImpl();
-                        if (author && input.removeAuthor === `${author[models.person.idAttribute()]}`) {
-                            await result._removeAuthor(input.removeAuthor);
-                        } else {
-                            throw new Error("The association you're trying to remove it doesn't exists");
-                        }
+                        //let author = await result.authorImpl();
+                        //if(author && input.removeAuthor === `${author[models.person.idAttribute()]}`){
+                        await result._removeAuthor(input.removeAuthor);
+                        //}
+                        //else{
+                        //  throw new Error("The association you're trying to remove it doesn't exists");
+                        //}
                     }
 
 
