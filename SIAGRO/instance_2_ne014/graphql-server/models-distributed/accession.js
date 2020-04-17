@@ -463,6 +463,32 @@ module.exports = class Accession {
         return await Accession.updateOne(input);
     }
 
+    taxonImpl(search) {
+        if (search === undefined) {
+            return models.taxon.readById(this.taxon_id);
+        } else if (this.taxon_id !== null) {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.taxon.idAttribute(),
+                "value": {
+                    "value": this.taxon_id
+                },
+                "operator": "eq"
+            });
+
+            return models.taxon.readAllCursor(nsearch)
+                .then(found => {
+                    if (found.edges.length > 0) {
+                        return found.edges[0].node;
+                    }
+                    return null;
+                });
+        }
+    }
+
+
     async set_locationId(value) {
         let input = {
             [Accession.idAttribute()]: this.getIdValue(),
@@ -470,6 +496,109 @@ module.exports = class Accession {
         };
 
         return await Accession.updateOne(input);
+    }
+
+    locationImpl(search) {
+        if (search === undefined) {
+            return models.location.readById(this.locationId);
+        } else if (this.locationId !== null) {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.location.idAttribute(),
+                "value": {
+                    "value": this.locationId
+                },
+                "operator": "eq"
+            });
+
+            return models.location.readAllCursor(nsearch)
+                .then(found => {
+                    if (found.edges.length > 0) {
+                        return found.edges[0].node;
+                    }
+                    return null;
+                });
+        }
+    }
+
+
+
+
+
+    countFilteredIndividualsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.individual.countRecords(nsearch);
+    }
+
+    individualsConnectionImpl({
+        search,
+        order,
+        pagination,
+        authorizedAdapters
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.individual.readAllCursor(nsearch, order, pagination, authorizedAdapters);
+    }
+
+    countFilteredMeasurementsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.countRecords(nsearch);
+    }
+
+    measurementsConnectionImpl({
+        search,
+        order,
+        pagination,
+        authorizedAdapters
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.readAllCursor(nsearch, order, pagination, authorizedAdapters);
     }
 
 

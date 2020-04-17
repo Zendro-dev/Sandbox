@@ -580,6 +580,32 @@ module.exports = class Measurement extends Sequelize.Model {
         return this.set_individual_id(null);
     }
 
+    individualImpl(search) {
+        if (search === undefined) {
+            return models.individual.readById(this.individual_id);
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.individual.idAttribute(),
+                "value": {
+                    "value": this.individual_id
+                },
+                "operator": "eq"
+            });
+
+            return models.individual.readAll(nsearch)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
+    }
+
     set_accession_id(value) {
         this.accession_id = value;
         return super.save();
@@ -592,6 +618,32 @@ module.exports = class Measurement extends Sequelize.Model {
 
     _removeAccession(id) {
         return this.set_accession_id(null);
+    }
+
+    accessionImpl(search) {
+        if (search === undefined) {
+            return models.accession.readById(this.accession_id);
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.accession.idAttribute(),
+                "value": {
+                    "value": this.accession_id
+                },
+                "operator": "eq"
+            });
+
+            return models.accession.readAll(nsearch)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
     }
 
 

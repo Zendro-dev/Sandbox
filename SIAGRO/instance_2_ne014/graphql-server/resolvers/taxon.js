@@ -11,8 +11,7 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -35,21 +34,11 @@ taxon.prototype.accessionsFilter = function({
     pagination
 }, context) {
     try {
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "taxon_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
+        return this.accessionsFilterImpl({
+            search,
+            order,
+            pagination
         });
-
-        return resolvers.accessions({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -67,20 +56,9 @@ taxon.prototype.countFilteredAccessions = function({
     search
 }, context) {
     try {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "taxon_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
+        return this.countFilteredAccessionsImpl({
+            search
         });
-
-        return resolvers.countAccessions({
-            search: nsearch
-        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -105,26 +83,62 @@ taxon.prototype.accessionsConnection = function({
     pagination
 }, context) {
     try {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "taxon_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
+        return this.accessionsConnectionImpl({
+            search,
+            order,
+            pagination
         });
-
-        return resolvers.accessionsConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
     };
+}
+
+/**
+ * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
+ *
+ * @param {string} query The query that failed
+ */
+function errorMessageForRecordsLimit(query) {
+    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
+}
+
+/**
+ * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} search  Search argument for filtering records
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {string} query The query that makes this check
+ */
+async function checkCount(search, context, query) {
+    if (await taxon.countRecords(search) > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+}
+
+/**
+ * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * 
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+function checkCountForOne(context) {
+    if (1 > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit("readOneTaxon"));
+    }
+}
+
+/**
+ * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
+ * @param {string} query The query that makes this check
+ */
+function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
+    if (numberOfFoundItems > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+    context.recordsLimit -= numberOfFoundItems;
 }
 
 
@@ -147,9 +161,12 @@ module.exports = {
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
+        return checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                return taxon.readAll(search, order, pagination);
+                await checkCount(search, context, "taxons");
+                let resultRecords = await taxon.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "taxons");
+                return resultRecords;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -174,8 +191,11 @@ module.exports = {
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
+        return checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
+                await checkCount(search, context, "taxonsConnection");
+                let resultRecords = await taxon.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "taxonsConnection");
                 return taxon.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -199,7 +219,11 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
             if (authorization === true) {
-                return taxon.readById(id);
+                checkCountForOne(context);
+                let resultRecords = taxon.readById(id);
+                checkCountForOne(context);
+                context.recordsLimit = context.recordsLimit - 1;
+                return resultRecords;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

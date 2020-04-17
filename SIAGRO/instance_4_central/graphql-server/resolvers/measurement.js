@@ -11,7 +11,6 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 
@@ -23,32 +22,11 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-measurement.prototype.individual = async function({
+measurement.prototype.individual = function({
     search
 }, context) {
     try {
-        if (search === undefined) {
-            return resolvers.readOneIndividual({
-                [models.individual.idAttribute()]: this.individual_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.individual.idAttribute(),
-                "value": {
-                    "value": this.individual_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.individuals({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
+        return this.individualImpl(search);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -61,32 +39,11 @@ measurement.prototype.individual = async function({
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-measurement.prototype.accession = async function({
+measurement.prototype.accession = function({
     search
 }, context) {
     try {
-        if (search === undefined) {
-            return resolvers.readOneAccession({
-                [models.accession.idAttribute()]: this.accession_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.accession.idAttribute(),
-                "value": {
-                    "value": this.accession_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.accessions({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
+        return this.accessionImpl(search);
     } catch (error) {
         console.error(error);
         handleError(error);

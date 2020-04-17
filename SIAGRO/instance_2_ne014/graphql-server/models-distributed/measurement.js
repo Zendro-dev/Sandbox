@@ -370,6 +370,32 @@ module.exports = class Measurement {
         return await Measurement.updateOne(input);
     }
 
+    individualImpl(search) {
+        if (search === undefined) {
+            return models.individual.readById(this.individual_id);
+        } else if (this.individual_id !== null) {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.individual.idAttribute(),
+                "value": {
+                    "value": this.individual_id
+                },
+                "operator": "eq"
+            });
+
+            return models.individual.readAllCursor(nsearch)
+                .then(found => {
+                    if (found.edges.length > 0) {
+                        return found.edges[0].node;
+                    }
+                    return null;
+                });
+        }
+    }
+
+
     async set_accession_id(value) {
         let input = {
             [Measurement.idAttribute()]: this.getIdValue(),
@@ -378,6 +404,35 @@ module.exports = class Measurement {
 
         return await Measurement.updateOne(input);
     }
+
+    accessionImpl(search) {
+        if (search === undefined) {
+            return models.accession.readById(this.accession_id);
+        } else if (this.accession_id !== null) {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.accession.idAttribute(),
+                "value": {
+                    "value": this.accession_id
+                },
+                "operator": "eq"
+            });
+
+            return models.accession.readAllCursor(nsearch)
+                .then(found => {
+                    if (found.edges.length > 0) {
+                        return found.edges[0].node;
+                    }
+                    return null;
+                });
+        }
+    }
+
+
+
+
 
 
     /**

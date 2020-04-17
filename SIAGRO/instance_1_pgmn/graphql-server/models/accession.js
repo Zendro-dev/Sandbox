@@ -753,6 +753,32 @@ module.exports = class Accession extends Sequelize.Model {
         return this.set_taxon_id(null);
     }
 
+    taxonImpl(search) {
+        if (search === undefined) {
+            return models.taxon.readById(this.taxon_id);
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.taxon.idAttribute(),
+                "value": {
+                    "value": this.taxon_id
+                },
+                "operator": "eq"
+            });
+
+            return models.taxon.readAll(nsearch)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
+    }
+
     set_locationId(value) {
         this.locationId = value;
         return super.save();
@@ -765,6 +791,32 @@ module.exports = class Accession extends Sequelize.Model {
 
     _removeLocation(id) {
         return this.set_locationId(null);
+    }
+
+    locationImpl(search) {
+        if (search === undefined) {
+            return models.location.readById(this.locationId);
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.location.idAttribute(),
+                "value": {
+                    "value": this.locationId
+                },
+                "operator": "eq"
+            });
+
+            return models.location.readAll(nsearch)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
     }
 
 
@@ -784,6 +836,61 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
+    individualsFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.individual.readAll(nsearch, order, pagination);
+    }
+
+    countFilteredIndividualsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.individual.countRecords(nsearch);
+    }
+
+    individualsConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.individual.readAllCursor(nsearch, order, pagination);
+    }
+
     async _removeMeasurements(ids) {
         await helper.asyncForEach(ids, async id => {
             let record = await models.measurement.readById(id);
@@ -796,6 +903,61 @@ module.exports = class Accession extends Sequelize.Model {
             let record = await models.measurement.readById(id);
             await record.set_accession_id(this.getIdValue());
         });
+    }
+
+    measurementsFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.readAll(nsearch, order, pagination);
+    }
+
+    countFilteredMeasurementsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.countRecords(nsearch);
+    }
+
+    measurementsConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.readAllCursor(nsearch, order, pagination);
     }
 
 

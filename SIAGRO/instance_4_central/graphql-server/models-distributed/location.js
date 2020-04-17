@@ -365,6 +365,46 @@ module.exports = class Location {
 
 
 
+
+
+    countFilteredAccessionsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "locationId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.countRecords(nsearch);
+    }
+
+    accessionsConnectionImpl({
+        search,
+        order,
+        pagination,
+        authorizedAdapters
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "locationId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.readAllCursor(nsearch, order, pagination, authorizedAdapters);
+    }
+
+
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

@@ -550,6 +550,61 @@ module.exports = class Location extends Sequelize.Model {
         });
     }
 
+    accessionsFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "locationId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.readAll(nsearch, order, pagination);
+    }
+
+    countFilteredAccessionsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "locationId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.countRecords(nsearch);
+    }
+
+    accessionsConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "locationId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.readAllCursor(nsearch, order, pagination);
+    }
+
 
 
 

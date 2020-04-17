@@ -181,6 +181,62 @@ module.exports = class Taxon {
         throw new Error('_removeAccessions is not implemented in the model');
     }
 
+    accessionsFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.readAll(nsearch, order, pagination);
+    }
+
+    countFilteredAccessionsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.countRecords(nsearch);
+    }
+
+    accessionsConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.accession.readAllCursor(nsearch, order, pagination);
+    }
+
+
 
 
     static get definition() {

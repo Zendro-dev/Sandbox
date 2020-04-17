@@ -11,8 +11,7 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -23,32 +22,11 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-measurement.prototype.individual = async function({
+measurement.prototype.individual = function({
     search
 }, context) {
     try {
-        if (search === undefined) {
-            return resolvers.readOneIndividual({
-                [models.individual.idAttribute()]: this.individual_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.individual.idAttribute(),
-                "value": {
-                    "value": this.individual_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.individuals({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
+        return this.individualImpl(search);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -61,38 +39,64 @@ measurement.prototype.individual = async function({
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-measurement.prototype.accession = async function({
+measurement.prototype.accession = function({
     search
 }, context) {
     try {
-        if (search === undefined) {
-            return resolvers.readOneAccession({
-                [models.accession.idAttribute()]: this.accession_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.accession.idAttribute(),
-                "value": {
-                    "value": this.accession_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.accessions({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
+        return this.accessionImpl(search);
     } catch (error) {
         console.error(error);
         handleError(error);
     };
 }
 
+
+/**
+ * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
+ *
+ * @param {string} query The query that failed
+ */
+function errorMessageForRecordsLimit(query) {
+    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
+}
+
+/**
+ * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} search  Search argument for filtering records
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {string} query The query that makes this check
+ */
+async function checkCount(search, context, query) {
+    if (await measurement.countRecords(search) > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+}
+
+/**
+ * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * 
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+function checkCountForOne(context) {
+    if (1 > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit("readOneMeasurement"));
+    }
+}
+
+/**
+ * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
+ * @param {string} query The query that makes this check
+ */
+function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
+    if (numberOfFoundItems > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+    context.recordsLimit -= numberOfFoundItems;
+}
 
 
 
@@ -114,9 +118,12 @@ module.exports = {
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
+        return checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
-                return measurement.readAll(search, order, pagination);
+                await checkCount(search, context, "measurements");
+                let resultRecords = await measurement.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "measurements");
+                return resultRecords;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -141,8 +148,11 @@ module.exports = {
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
+        return checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
+                await checkCount(search, context, "measurementsConnection");
+                let resultRecords = await measurement.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "measurementsConnection");
                 return measurement.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -166,7 +176,11 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
             if (authorization === true) {
-                return measurement.readById(measurement_id);
+                checkCountForOne(context);
+                let resultRecords = measurement.readById(measurement_id);
+                checkCountForOne(context);
+                context.recordsLimit = context.recordsLimit - 1;
+                return resultRecords;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

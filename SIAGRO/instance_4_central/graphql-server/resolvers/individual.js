@@ -11,7 +11,6 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 
@@ -23,32 +22,11 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-individual.prototype.accession = async function({
+individual.prototype.accession = function({
     search
 }, context) {
     try {
-        if (search === undefined) {
-            return resolvers.readOneAccession({
-                [models.accession.idAttribute()]: this.accession_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.accession.idAttribute(),
-                "value": {
-                    "value": this.accession_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.accessions({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
+        return this.accessionImpl(search);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -63,24 +41,28 @@ individual.prototype.accession = async function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-individual.prototype.countFilteredMeasurements = function({
+individual.prototype.countFilteredMeasurements = async function({
     search
 }, context) {
     try {
+        let registeredAdapters = Object.values(models.measurement.registeredAdapters);
 
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "individual_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+        let authorizationCheck = await helper.authorizedAdapters(context, registeredAdapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            let countFilteredMeasurementsObj = await this.countFilteredMeasurementsImpl({
+                search
+            });
+            [countFilteredMeasurementsObj, context] = helper.writeBenignErrors(authorizationCheck, context, countFilteredMeasurementsObj);
+            return countFilteredMeasurementsObj.sum;
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "Book"');
+            }
+        }
 
-        return resolvers.countMeasurements({
-            search: nsearch
-        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -99,28 +81,35 @@ individual.prototype.countFilteredMeasurements = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-individual.prototype.measurementsConnection = function({
+individual.prototype.measurementsConnection = async function({
     search,
     order,
     pagination
 }, context) {
     try {
+        let registeredAdapters = Object.values(models.measurement.registeredAdapters);
 
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "individual_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+        let authorizationCheck = await helper.authorizedAdapters(context, registeredAdapters, 'read');
+        let authorizedAdapters = authorizationCheck.authorizedAdapters;
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            let measurementsConnectionObj = await this.measurementsConnectionImpl({
+                search,
+                order,
+                pagination,
+                authorizedAdapters
+            });
+            //check adapter authorization Errors
+            [measurementsConnectionObj, context] = helper.writeBenignErrors(authorizationCheck, context, measurementsConnectionObj)
+            return measurementsConnectionObj;
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "Book" ');
+            }
+        }
 
-        return resolvers.measurementsConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);

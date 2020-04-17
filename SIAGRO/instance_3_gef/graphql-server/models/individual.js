@@ -555,6 +555,32 @@ module.exports = class Individual extends Sequelize.Model {
         return this.set_accession_id(null);
     }
 
+    accessionImpl(search) {
+        if (search === undefined) {
+            return models.accession.readById(this.accession_id);
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.accession.idAttribute(),
+                "value": {
+                    "value": this.accession_id
+                },
+                "operator": "eq"
+            });
+
+            return models.accession.readAll(nsearch)
+                .then(found => {
+                    if (found) {
+                        return found[0]
+                    }
+                    return found;
+                });
+
+        }
+    }
+
 
 
 
@@ -570,6 +596,61 @@ module.exports = class Individual extends Sequelize.Model {
             let record = await models.measurement.readById(id);
             await record.set_individual_id(this.getIdValue());
         });
+    }
+
+    measurementsFilterImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.readAll(nsearch, order, pagination);
+    }
+
+    countFilteredMeasurementsImpl({
+        search
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.countRecords(nsearch);
+    }
+
+    measurementsConnectionImpl({
+        search,
+        order,
+        pagination
+    }) {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return models.measurement.readAllCursor(nsearch, order, pagination);
     }
 
 
