@@ -11,7 +11,12 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const globals = require('../config/globals');
+const resolvers = require(path.join(__dirname, 'index.js'));
+const models = require(path.join(__dirname, '..', 'models_index.js'));
+
+const associationArgsDef = {
+    'addUsers': 'User'
+}
 
 
 /**

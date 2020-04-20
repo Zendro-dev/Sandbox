@@ -370,28 +370,8 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
-                    if (input.addIndividual) {
-                        //let wrong_ids =  await helper.checkExistence(input.addIndividual, models.individual);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model individual were not found.`);
-                        //}else{
-                        await result._addIndividual(input.addIndividual);
-                        //}
-                    }
-                    if (input.addAccession) {
-                        //let wrong_ids =  await helper.checkExistence(input.addAccession, models.accession);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                        //}else{
-                        await result._addAccession(input.addAccession);
-                        //}
-                    }
                     return result;
                 } catch (error) {
                     throw error;
@@ -434,58 +414,14 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
                         let updated = await item.update(input, {
                             transaction: t
                         });
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-                    if (input.addIndividual) {
-                        //let wrong_ids =  await helper.checkExistence(input.addIndividual, models.individual);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model individual were not found.`);
-                        //}else{
-                        await result._addIndividual(input.addIndividual);
-                        //}
-                    }
-
-                    if (input.removeIndividual) {
-                        //let individual = await result.individualImpl();
-                        //if(individual && input.removeIndividual === `${individual[models.individual.idAttribute()]}`){
-                        await result._removeIndividual(input.removeIndividual);
-                        //}
-                        //else{
-                        //  throw new Error("The association you're trying to remove it doesn't exists");
-                        //}
-                    }
-                    if (input.addAccession) {
-                        //let wrong_ids =  await helper.checkExistence(input.addAccession, models.accession);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                        //}else{
-                        await result._addAccession(input.addAccession);
-                        //}
-                    }
-
-                    if (input.removeAccession) {
-                        //let accession = await result.accessionImpl();
-                        //if(accession && input.removeAccession === `${accession[models.accession.idAttribute()]}`){
-                        await result._removeAccession(input.removeAccession);
-                        //}
-                        //else{
-                        //  throw new Error("The association you're trying to remove it doesn't exists");
-                        //}
-                    }
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -546,37 +482,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(Measurement);
     }
-
-
-    set_individual_id(value) {
-        this.individual_id = value;
-        return super.save();
-    }
-
-    _addIndividual(id) {
-        return this.set_individual_id(id);
-    }
-
-    _removeIndividual(id) {
-        return this.set_individual_id(null);
-    }
-
-    set_accession_id(value) {
-        this.accession_id = value;
-        return super.save();
-    }
-
-    _addAccession(id) {
-        return this.set_accession_id(id);
-    }
-
-    _removeAccession(id) {
-        return this.set_accession_id(null);
-    }
-
-
-
-
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

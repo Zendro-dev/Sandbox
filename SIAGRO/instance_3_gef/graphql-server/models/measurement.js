@@ -137,10 +137,12 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     static associate(models) {
+
         Measurement.belongsTo(models.individual, {
             as: 'individual',
             foreignKey: 'individual_id'
         });
+
         Measurement.belongsTo(models.accession, {
             as: 'accession',
             foreignKey: 'accession_id'
@@ -378,33 +380,8 @@ module.exports = class Measurement extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-
-                        if (input.addIndividual) {
-                            //let wrong_ids =  await helper.checkExistence(input.addIndividual, models.individual);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model individual were not found.`);
-                            //}else{
-                            promises_associations.push(item.setIndividual(input.addIndividual, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-                        if (input.addAccession) {
-                            //let wrong_ids =  await helper.checkExistence(input.addAccession, models.accession);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                            //}else{
-                            promises_associations.push(item.setAccession(input.addAccession, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -444,66 +421,8 @@ module.exports = class Measurement extends Sequelize.Model {
                         let updated = await item.update(input, {
                             transaction: t
                         });
-                        if (input.addIndividual) {
-                            //let wrong_ids =  await helper.checkExistence(input.addIndividual, models.individual);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model individual were not found.`);
-                            //}else{
-                            promises_associations.push(updated.setIndividual(input.addIndividual, {
-                                transaction: t
-                            }));
-                            //}
-                        } else if (input.addIndividual === null) {
-                            promises_associations.push(updated.setIndividual(input.addIndividual, {
-                                transaction: t
-                            }));
-                        }
-
-                        if (input.removeIndividual) {
-                            let individual = await item.getIndividual();
-                            if (individual && input.removeIndividual === `${individual[models.individual.idAttribute()]}`) {
-                                promises_associations.push(updated.setIndividual(null, {
-                                    transaction: t
-                                }));
-                            } else {
-                                throw new Error("The association you're trying to remove it doesn't exists");
-                            }
-                        }
-                        if (input.addAccession) {
-                            //let wrong_ids =  await helper.checkExistence(input.addAccession, models.accession);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                            //}else{
-                            promises_associations.push(updated.setAccession(input.addAccession, {
-                                transaction: t
-                            }));
-                            //}
-                        } else if (input.addAccession === null) {
-                            promises_associations.push(updated.setAccession(input.addAccession, {
-                                transaction: t
-                            }));
-                        }
-
-                        if (input.removeAccession) {
-                            let accession = await item.getAccession();
-                            if (accession && input.removeAccession === `${accession[models.accession.idAttribute()]}`) {
-                                promises_associations.push(updated.setAccession(null, {
-                                    transaction: t
-                                }));
-                            } else {
-                                throw new Error("The association you're trying to remove it doesn't exists");
-                            }
-                        }
-
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -564,92 +483,6 @@ module.exports = class Measurement extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(Measurement);
     }
-
-
-    set_individual_id(value) {
-        this.individual_id = value;
-        return super.save();
-    }
-
-
-    _addIndividual(id) {
-        return this.set_individual_id(id);
-    }
-
-    _removeIndividual(id) {
-        return this.set_individual_id(null);
-    }
-
-    individualImpl(search) {
-        if (search === undefined) {
-            return models.individual.readById(this.individual_id);
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.individual.idAttribute(),
-                "value": {
-                    "value": this.individual_id
-                },
-                "operator": "eq"
-            });
-
-            return models.individual.readAll(nsearch)
-                .then(found => {
-                    if (found) {
-                        return found[0]
-                    }
-                    return found;
-                });
-
-        }
-    }
-
-    set_accession_id(value) {
-        this.accession_id = value;
-        return super.save();
-    }
-
-
-    _addAccession(id) {
-        return this.set_accession_id(id);
-    }
-
-    _removeAccession(id) {
-        return this.set_accession_id(null);
-    }
-
-    accessionImpl(search) {
-        if (search === undefined) {
-            return models.accession.readById(this.accession_id);
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.accession.idAttribute(),
-                "value": {
-                    "value": this.accession_id
-                },
-                "operator": "eq"
-            });
-
-            return models.accession.readAll(nsearch)
-                .then(found => {
-                    if (found) {
-                        return found[0]
-                    }
-                    return found;
-                });
-
-        }
-    }
-
-
-
-
-
 
 
     /**

@@ -291,13 +291,8 @@ module.exports = class role_to_user extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -337,16 +332,8 @@ module.exports = class role_to_user extends Sequelize.Model {
                         let updated = await item.update(input, {
                             transaction: t
                         });
-
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -407,12 +394,6 @@ module.exports = class role_to_user extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(role_to_user);
     }
-
-
-
-
-
-
 
 
     /**

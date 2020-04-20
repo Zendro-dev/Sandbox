@@ -11,7 +11,12 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const globals = require('../config/globals');
+const resolvers = require(path.join(__dirname, 'index.js'));
+const models = require(path.join(__dirname, '..', 'models_index.js'));
+
+const associationArgsDef = {
+    'addAccessions': 'Accession'
+}
 
 
 
@@ -34,11 +39,21 @@ taxon.prototype.accessionsFilter = function({
     pagination
 }, context) {
     try {
-        return this.accessionsFilterImpl({
-            search,
-            order,
-            pagination
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.accessions({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -56,9 +71,20 @@ taxon.prototype.countFilteredAccessions = function({
     search
 }, context) {
     try {
-        return this.countFilteredAccessionsImpl({
-            search
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.countAccessions({
+            search: nsearch
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -83,11 +109,22 @@ taxon.prototype.accessionsConnection = function({
     pagination
 }, context) {
     try {
-        return this.accessionsConnectionImpl({
-            search,
-            order,
-            pagination
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "taxon_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.accessionsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);

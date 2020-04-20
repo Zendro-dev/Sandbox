@@ -378,20 +378,8 @@ module.exports = class LOCATION_YOLANDAPROJECT extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
-                    if (input.addAccessions) {
-                        //let wrong_ids =  await helper.checkExistence(input.addAccessions, models.accession);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                        //}else{
-                        await result._addAccessions(input.addAccessions);
-                        //}
-                    }
                     return result;
                 } catch (error) {
                     throw error;
@@ -434,40 +422,14 @@ module.exports = class LOCATION_YOLANDAPROJECT extends Sequelize.Model {
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
                         let updated = await item.update(input, {
                             transaction: t
                         });
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-                    if (input.addAccessions) {
-                        //let wrong_ids =  await helper.checkExistence(input.addAccessions, models.accession);
-                        //if(wrong_ids.length > 0){
-                        //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                        //}else{
-                        await result._addAccessions(input.addAccessions);
-                        //}
-                    }
-
-                    if (input.removeAccessions) {
-                        //let ids_associated = await result.accessionsImpl().map(t => `${t[models.accession.idAttribute()]}`);
-                        //await helper.asyncForEach(input.removeAccessions, async id =>{
-                        //  if(!ids_associated.includes(id)){
-                        //    throw new Error(`The association with id ${id} that you're trying to remove desn't exist`);
-                        //  }
-                        //});
-                        await result._removeAccessions(input.removeAccessions);
-                    }
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -528,25 +490,6 @@ module.exports = class LOCATION_YOLANDAPROJECT extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(Location);
     }
-
-
-
-
-    async _removeAccessions(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let record = await models.accession.readById(id);
-            await record.set_locationId(null);
-        });
-    }
-
-    async _addAccessions(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let record = await models.accession.readById(id);
-            await record.set_locationId(this.getIdValue());
-        });
-    }
-
-
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

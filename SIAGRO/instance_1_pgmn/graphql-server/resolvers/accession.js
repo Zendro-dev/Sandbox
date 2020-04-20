@@ -11,7 +11,15 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const globals = require('../config/globals');
+const resolvers = require(path.join(__dirname, 'index.js'));
+const models = require(path.join(__dirname, '..', 'models_index.js'));
+
+const associationArgsDef = {
+    'addTaxon': 'Taxon',
+    'addLocation': 'Location',
+    'addIndividuals': 'Individual',
+    'addMeasurements': 'Measurement'
+}
 
 
 
@@ -22,11 +30,32 @@ const globals = require('../config/globals');
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-accession.prototype.taxon = function({
+accession.prototype.taxon = async function({
     search
 }, context) {
     try {
-        return this.taxonImpl(search);
+        if (search === undefined) {
+            return resolvers.readOneTaxon({
+                [models.taxon.idAttribute()]: this.taxon_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.taxon.idAttribute(),
+                "value": {
+                    "value": this.taxon_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.taxons({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
+        }
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -39,11 +68,32 @@ accession.prototype.taxon = function({
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-accession.prototype.location = function({
+accession.prototype.location = async function({
     search
 }, context) {
     try {
-        return this.locationImpl(search);
+        if (search === undefined) {
+            return resolvers.readOneLocation({
+                [models.location.idAttribute()]: this.locationId
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.location.idAttribute(),
+                "value": {
+                    "value": this.locationId
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.locations({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
+        }
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -68,11 +118,21 @@ accession.prototype.individualsFilter = function({
     pagination
 }, context) {
     try {
-        return this.individualsFilterImpl({
-            search,
-            order,
-            pagination
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.individuals({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -90,9 +150,20 @@ accession.prototype.countFilteredIndividuals = function({
     search
 }, context) {
     try {
-        return this.countFilteredIndividualsImpl({
-            search
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.countIndividuals({
+            search: nsearch
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -117,11 +188,22 @@ accession.prototype.individualsConnection = function({
     pagination
 }, context) {
     try {
-        return this.individualsConnectionImpl({
-            search,
-            order,
-            pagination
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.individualsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -145,11 +227,21 @@ accession.prototype.measurementsFilter = function({
     pagination
 }, context) {
     try {
-        return this.measurementsFilterImpl({
-            search,
-            order,
-            pagination
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.measurements({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -167,9 +259,20 @@ accession.prototype.countFilteredMeasurements = function({
     search
 }, context) {
     try {
-        return this.countFilteredMeasurementsImpl({
-            search
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.countMeasurements({
+            search: nsearch
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -194,11 +297,22 @@ accession.prototype.measurementsConnection = function({
     pagination
 }, context) {
     try {
-        return this.measurementsConnectionImpl({
-            search,
-            order,
-            pagination
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accession_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.measurementsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);

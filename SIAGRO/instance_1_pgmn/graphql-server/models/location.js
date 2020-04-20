@@ -145,6 +145,7 @@ module.exports = class Location extends Sequelize.Model {
     }
 
     static associate(models) {
+
         Location.hasMany(models.accession, {
             as: 'accessions',
             foreignKey: 'locationId'
@@ -382,23 +383,8 @@ module.exports = class Location extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-                        if (input.addAccessions) {
-                            //let wrong_ids =  await helper.checkExistence(input.addAccessions, models.accession);
-                            //if(wrong_ids.length > 0){
-                            //    throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                            //}else{
-                            promises_associations.push(item.setAccessions(input.addAccessions, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -438,39 +424,8 @@ module.exports = class Location extends Sequelize.Model {
                         let updated = await item.update(input, {
                             transaction: t
                         });
-
-                        if (input.addAccessions) {
-                            //let wrong_ids =  await helper.checkExistence(input.addAccessions, models.accession);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model accession were not found.`);
-                            //}else{
-                            promises_associations.push(updated.addAccessions(input.addAccessions, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-
-                        if (input.removeAccessions) {
-                            //let ids_associated = await item.getAccessions().map(t => `${t[models.accession.idAttribute()]}`);
-                            //await helper.asyncForEach(input.removeAccessions, id =>{
-                            //  if(!ids_associated.includes(id)){
-                            //    throw new Error(`The association with id ${id} that you're trying to remove desn't exists`);
-                            //  }
-                            //});
-                            promises_associations.push(updated.removeAccessions(input.removeAccessions, {
-                                transaction: t
-                            }));
-                        }
-
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -531,81 +486,6 @@ module.exports = class Location extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(Location);
     }
-
-
-
-
-
-    async _removeAccessions(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let record = await models.accession.readById(id);
-            await record.set_locationId(null);
-        });
-    }
-
-    async _addAccessions(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let record = await models.accession.readById(id);
-            await record.set_locationId(this.getIdValue());
-        });
-    }
-
-    accessionsFilterImpl({
-        search,
-        order,
-        pagination
-    }) {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return models.accession.readAll(nsearch, order, pagination);
-    }
-
-    countFilteredAccessionsImpl({
-        search
-    }) {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return models.accession.countRecords(nsearch);
-    }
-
-    accessionsConnectionImpl({
-        search,
-        order,
-        pagination
-    }) {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return models.accession.readAllCursor(nsearch, order, pagination);
-    }
-
-
 
 
     /**

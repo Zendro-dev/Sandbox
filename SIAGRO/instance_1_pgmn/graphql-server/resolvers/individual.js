@@ -11,7 +11,13 @@ const {
     handleError
 } = require('../utils/errors');
 const os = require('os');
-const globals = require('../config/globals');
+const resolvers = require(path.join(__dirname, 'index.js'));
+const models = require(path.join(__dirname, '..', 'models_index.js'));
+
+const associationArgsDef = {
+    'addAccession': 'Accession',
+    'addMeasurements': 'Measurement'
+}
 
 
 
@@ -22,11 +28,32 @@ const globals = require('../config/globals');
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-individual.prototype.accession = function({
+individual.prototype.accession = async function({
     search
 }, context) {
     try {
-        return this.accessionImpl(search);
+        if (search === undefined) {
+            return resolvers.readOneAccession({
+                [models.accession.idAttribute()]: this.accession_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.accession.idAttribute(),
+                "value": {
+                    "value": this.accession_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.accessions({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
+        }
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -51,11 +78,21 @@ individual.prototype.measurementsFilter = function({
     pagination
 }, context) {
     try {
-        return this.measurementsFilterImpl({
-            search,
-            order,
-            pagination
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.measurements({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -73,9 +110,20 @@ individual.prototype.countFilteredMeasurements = function({
     search
 }, context) {
     try {
-        return this.countFilteredMeasurementsImpl({
-            search
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.countMeasurements({
+            search: nsearch
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
@@ -100,11 +148,22 @@ individual.prototype.measurementsConnection = function({
     pagination
 }, context) {
     try {
-        return this.measurementsConnectionImpl({
-            search,
-            order,
-            pagination
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "individual_id",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
         });
+
+        return resolvers.measurementsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
     } catch (error) {
         console.error(error);
         handleError(error);
