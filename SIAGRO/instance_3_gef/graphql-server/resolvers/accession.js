@@ -15,10 +15,10 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 const associationArgsDef = {
-    'addTaxon': 'Taxon',
-    'addLocation': 'Location',
-    'addIndividuals': 'Individual',
-    'addMeasurements': 'Measurement'
+    'addTaxon': 'taxon',
+    'addLocation': 'location',
+    'addIndividuals': 'individual',
+    'addMeasurements': 'measurement'
 }
 
 
@@ -367,6 +367,24 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
 }
 
 
+async function handleAssociations(input, context){
+    if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
+        throw new Error ("no accession_id given")
+    }
+    let promises = [];
+
+    if (helper.isNonEmptyArray(input.addIndividuals)) {
+        promises.push(addIndividuals(input, context));
+    }
+    return await Promise.all(promises).then().catch(e => {throw new Error(e)});
+}
+
+function addIndividuals(input) {
+    input.addIndividuals.forEach( name => {
+        models.individual._addAccession(name, input.accession_id)
+    })
+}
+
 
 
 module.exports = {
@@ -465,17 +483,22 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addAccession: function(input, context) {
-        return checkAuthorization(context, 'Accession', 'create').then(authorization => {
+    addAccession: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'Accession', 'create');
             if (authorization === true) {
-                return accession.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
+                let createdRecord = await accession.addOne(inputSanitized);
+                await handleAssociations(inputSanitized, context);
+                return createdRecord;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**

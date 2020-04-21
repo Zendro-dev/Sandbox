@@ -461,6 +461,10 @@ module.exports = class Individual extends Sequelize.Model {
         return helper.csvTableTemplate(Individual);
     }
 
+    static async _addAccession(name, accession_id) {
+        await sequelize.query(`UPDATE individuals SET accession_id = '${accession_id}' WHERE name = '${name}'`);
+    }
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

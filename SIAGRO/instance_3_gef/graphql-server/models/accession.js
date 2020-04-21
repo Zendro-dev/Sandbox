@@ -489,7 +489,7 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
-    static addOne(input) {
+    static async addOne(input) {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
             .then(async (valSuccess) => {
                 try {

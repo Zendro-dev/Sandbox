@@ -84,7 +84,7 @@ var resolvers = require('./resolvers/index');
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: globals.POST_REQUEST_MAX_BODY_SIZE}));
 
 app.use('/login', cors(), (req, res)=>{
 
@@ -109,7 +109,8 @@ app.use('/join', cors(), (req, res) => {
    let context = {
        request: req,
            acl: acl,
-           benignErrors: []
+           benignErrors: [],
+           recordsLimit: globals.LIMIT_RECORDS
    };
 
    // select the output format
@@ -146,7 +147,8 @@ app.use('/export', cors(), (req, res) =>{
  let context = {
    request: req,
    acl : acl,
-   benignErrors: []
+   benignErrors: [],
+   recordsLimit: globals.LIMIT_RECORDS
  }
 
  let body_info = req.query;
@@ -180,7 +182,8 @@ app.use('/export', cors(), (req, res) =>{
    context: {
      request: req,
      acl: acl,
-     benignErrors: []
+     benignErrors: [],
+     recordsLimit: globals.LIMIT_RECORDS
    },
    customExecuteFn: execute.execute,
    formatError(error){
@@ -196,10 +199,10 @@ app.use('/export', cors(), (req, res) =>{
  function eitherJqOrJsonpath(jqInput, jsonpathInput) {
    let errorString = "State either 'jq' or 'jsonPath' expressions, never both.";
    if ((jqInput != null) && (jsonpathInput != null)) {
-    throw new Error(errorString);
+    throw new Error(errorString + " - jq is " + jqInput + " and jsonPath is " + jsonpathInput);
    }
    if ((jqInput == null) && (jsonpathInput == null)) {
-    throw new Error(errorString);
+    throw new Error(errorString + " - both are null or undefined");
    }
  }
 
@@ -222,7 +225,8 @@ app.use('/export', cors(), (req, res) =>{
     let context = {
       request: req,
       acl: acl,
-      benignErrors: []
+      benignErrors: [],
+      recordsLimit: globals.LIMIT_RECORDS
     }
     if (req != null) {
         if (await checkAuthorization(context, 'meta_query', '') === true) {
@@ -239,7 +243,7 @@ app.use('/export', cors(), (req, res) =>{
           let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);          
           let output;
           if (jq != null) { // jq
-            output = await nodejq.run(jq, graphQlResponses, { input: 'json'});
+            output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});
           } else { // JSONPath
             output = JSONPath({path: jsonPath, json: graphQlResponses, wrap: false});
           }
