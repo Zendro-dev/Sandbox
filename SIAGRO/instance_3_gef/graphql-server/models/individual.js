@@ -461,8 +461,18 @@ module.exports = class Individual extends Sequelize.Model {
         return helper.csvTableTemplate(Individual);
     }
 
-    static async _addAccession(name, accession_id) {
-        await sequelize.query(`UPDATE individuals SET accession_id = '${accession_id}' WHERE name = '${name}'`);
+    static _addAccession(name, accession_id) {
+
+        /*let result = sequelize.transaction(async transaction => {
+            try {
+               return await sequelize.query(`UPDATE individuals SET "accession_id" = '${accession_id}' WHERE 'name' = '${name}'`, {transaction: transaction});
+            } catch (error) {
+                throw error;
+            }
+        });
+        return result;*/
+        return sequelize.query(`UPDATE individuals SET "accession_id" = '${accession_id}' WHERE "name" = '${name}'`);
+       
     }
 
 

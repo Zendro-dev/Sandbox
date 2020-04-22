@@ -68,9 +68,12 @@ accession.prototype.taxon = async function({
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-accession.prototype.location = async function({
-    search
-}, context) {
+accession.prototype.location = async function(parent, search , context, ...args) {
+    console.log("location search: " + Object.keys(search))
+    console.log("location context: " + Object.keys(context))
+    console.log("location args: " + Object.keys(args))
+    console.log("location parent: " + Object.keys(parent))
+
     try {
         if (search === undefined) {
             return resolvers.readOneLocation({
@@ -366,23 +369,40 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     context.recordsLimit -= numberOfFoundItems;
 }
 
-
 async function handleAssociations(input, context){
-    if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
-        throw new Error ("no accession_id given")
-    }
-    let promises = [];
+    // if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
+    //     throw new Error ("no accession_id given")
+    // }
+    console.log("input: " + JSON.stringify(input));
+    try {
+        let promises = [];
 
-    if (helper.isNonEmptyArray(input.addIndividuals)) {
-        promises.push(addIndividuals(input, context));
+        if (helper.isNonEmptyArray(input.addIndividuals)) {
+            promises = promises.concat(addIndividuals(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
+            promises.push(addLocation(input, context));
+        }
+        console.log("promises1: " + promises)
+        console.log("promises2: " + JSON.stringify(promises))
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
     }
-    return await Promise.all(promises).then().catch(e => {throw new Error(e)});
+    
 }
 
 function addIndividuals(input) {
-    input.addIndividuals.forEach( name => {
-        models.individual._addAccession(name, input.accession_id)
+    //let result = [];
+    input.addIndividuals.forEach(name => {
+       return models.individual._addAccession(name, input.accession_id)
     })
+}
+
+async function addLocation(input) {
+    let result = await accession._addLocation(input.accession_id, input.addLocation);
+    this.locationId = input.addLocation;
+    return result;
 }
 
 
@@ -490,7 +510,10 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
                 let createdRecord = await accession.addOne(inputSanitized);
-                await handleAssociations(inputSanitized, context);
+                console.log(`locationID ${createdRecord.locationId}`);
+                handleAssociations(inputSanitized, context);
+                // createdRecord = accession.readById(createdRecord.getIdValue());
+                //console.log("assocs: "+ JSON.stringify(assocs));
                 return createdRecord;
             } else {
                 throw new Error("You don't have authorization to perform this action");

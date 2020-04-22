@@ -601,6 +601,22 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
+    static async _addLocation(accession_id, locationId) {
+
+        /*let result = sequelize.transaction(async transaction => {
+            try {
+              return await sequelize.query(`UPDATE accessions SET "locationId" = '${locationId}' WHERE 'accession_id' = '${accession_id}'`, {transaction: transaction});
+            } catch (error) {
+                throw error;
+            }
+        });
+       return result;*/
+        // let [result,metadata] = await sequelize.query(`UPDATE accessions SET "locationId" = '${locationId}' WHERE "accession_id" = '${accession_id}'`);
+        let result = await Accession.update({locationId: locationId},{where: {accession_id: accession_id}})
+        console.log("RESULT _addLocation: " + JSON.stringify(result))
+        // console.log("metadata _addLocation: " + JSON.stringify(metadata))
+    }
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
