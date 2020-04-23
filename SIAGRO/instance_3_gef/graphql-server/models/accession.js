@@ -531,13 +531,13 @@ module.exports = class Accession extends Sequelize.Model {
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
                         let updated = await item.update(input, {
                             transaction: t
                         });
+                        console.log("U: " + JSON.stringify(updated))
                         return updated;
                     });
                     return result;
@@ -601,21 +601,32 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
-    static async _addLocation(accession_id, locationId) {
+    static _addLocation(accession_id, locationId) {
 
-        /*let result = sequelize.transaction(async transaction => {
+        sequelize.transaction(async transaction => {
             try {
-              return await sequelize.query(`UPDATE accessions SET "locationId" = '${locationId}' WHERE 'accession_id' = '${accession_id}'`, {transaction: transaction});
+              Accession.update({locationId: locationId},{where: {accession_id: accession_id}, transaction: transaction})
             } catch (error) {
                 throw error;
             }
         });
-       return result;*/
         // let [result,metadata] = await sequelize.query(`UPDATE accessions SET "locationId" = '${locationId}' WHERE "accession_id" = '${accession_id}'`);
-        let result = await Accession.update({locationId: locationId},{where: {accession_id: accession_id}})
-        console.log("RESULT _addLocation: " + JSON.stringify(result))
+        
+        //console.log("RESULT _addLocation: " + JSON.stringify(result))
         // console.log("metadata _addLocation: " + JSON.stringify(metadata))
     }
+
+    static _removeLocation(accession_id, locationId) {
+        let result = sequelize.transaction(async transaction => {
+            try {
+              return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
+            } catch (error) {
+                throw error;
+            }
+        });
+        return result;
+    }
+
 
 
     /**

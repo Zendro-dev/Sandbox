@@ -471,8 +471,29 @@ module.exports = class Individual extends Sequelize.Model {
             }
         });
         return result;*/
-        return sequelize.query(`UPDATE individuals SET "accession_id" = '${accession_id}' WHERE "name" = '${name}'`);
+
+        let result = sequelize.transaction(async transaction => {
+            try {
+              return Individual.update({accession_id: accession_id},{where: {name: name}, transaction: transaction})
+            } catch (error) {
+                throw error;
+            }
+        });
+        return result;
+
+        //return sequelize.query(`UPDATE individuals SET "accession_id" = '${accession_id}' WHERE "name" = '${name}'`);
        
+    }
+
+    static _removeAccession(name, accession_id) {
+
+        sequelize.transaction(async transaction => {
+            try {
+              return Individual.update({accession_id: null},{where: {name: name}, transaction: transaction})
+            } catch (error) {
+                throw error;
+            }
+        });
     }
 
 

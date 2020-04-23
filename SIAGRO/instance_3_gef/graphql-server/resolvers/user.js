@@ -96,7 +96,36 @@ user.prototype.countFilteredRoles = function({
     };
 }
 
+user.prototype.handleAssociations = async function(input, context) {
+    // if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
+    //     throw new Error ("no accession_id given")
+    // }
+    console.log("input: " + JSON.stringify(input));
+    try {
+        let promises = [];
 
+        if (helper.isNonEmptyArray(input.addUsers)) {
+            promises.push(...this.addRoles(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeIndividuals)) {
+            promises.push(...this.removeRolse(input, context));
+        }
+        console.log("promises1: " + promises)
+        console.log("promises2: " + JSON.stringify(promises))
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+    
+}
+
+user.prototype.addRoles = function(input, context) {
+        let results = []
+        input.addRoles.forEach(id => {
+           results.push(models.user._addRoles(id, input.roleId));
+        })
+        return results;
+}
 
 
 /**
