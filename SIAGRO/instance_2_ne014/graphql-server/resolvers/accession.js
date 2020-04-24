@@ -15,10 +15,10 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 const associationArgsDef = {
-    'addTaxon': 'Taxon',
-    'addLocation': 'Location',
-    'addIndividuals': 'Individual',
-    'addMeasurements': 'Measurement'
+    'addTaxon': 'taxon',
+    'addLocation': 'location',
+    'addIndividuals': 'individual',
+    'addMeasurements': 'measurement'
 }
 
 /**

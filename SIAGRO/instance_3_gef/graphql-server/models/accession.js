@@ -601,23 +601,20 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
-    static _addLocation(accession_id, locationId) {
+    static async _addLocation(accession_id, locationId) {
 
-        sequelize.transaction(async transaction => {
+        let result = await sequelize.transaction(async transaction => {
             try {
-              Accession.update({locationId: locationId},{where: {accession_id: accession_id}, transaction: transaction})
+              return Accession.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
             } catch (error) {
                 throw error;
             }
         });
-        // let [result,metadata] = await sequelize.query(`UPDATE accessions SET "locationId" = '${locationId}' WHERE "accession_id" = '${accession_id}'`);
-        
-        //console.log("RESULT _addLocation: " + JSON.stringify(result))
-        // console.log("metadata _addLocation: " + JSON.stringify(metadata))
+        return result;
     }
 
-    static _removeLocation(accession_id, locationId) {
-        let result = sequelize.transaction(async transaction => {
+    static async _removeLocation(accession_id, locationId) {
+        let result = await sequelize.transaction(async transaction => {
             try {
               return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
             } catch (error) {

@@ -15,8 +15,8 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 const associationArgsDef = {
-    'addIndividual': 'Individual',
-    'addAccession': 'Accession'
+    'addIndividual': 'individual',
+    'addAccession': 'accession'
 }
 
 

@@ -328,10 +328,10 @@ accession.prototype.handleAssociations = async function(input, context){
         let promises = [];
 
         if (helper.isNonEmptyArray(input.addIndividuals)) {
-            promises.push(...this.addIndividuals(input, context));
+            promises.push(this.addIndividuals(input, context));
         }
         if (helper.isNonEmptyArray(input.removeIndividuals)) {
-            promises.push(...this.removeIndividuals(input, context));
+            promises.push(this.removeIndividuals(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
             promises.push(this.addLocation(input, context));
@@ -339,8 +339,7 @@ accession.prototype.handleAssociations = async function(input, context){
         if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
             promises.push(this.removeLocation(input, context));
         }
-        console.log("promises1: " + promises)
-        console.log("promises2: " + JSON.stringify(promises))
+        
         await Promise.all(promises);
     } catch (error) {
         throw error
@@ -348,34 +347,8 @@ accession.prototype.handleAssociations = async function(input, context){
     
 }
 
-/*accession.prototype.handleAssociations = function(input, context){
-    // if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
-    //     throw new Error ("no accession_id given")
-    // }
-    console.log("input: " + JSON.stringify(input));
-    try {
-       
-        if (helper.isNonEmptyArray(input.addIndividuals)) {
-            this.addIndividuals(input, context);
-        }
-        if (helper.isNonEmptyArray(input.removeIndividuals)) {
-            this.removeIndividuals(input, context);
-        }
-        if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
-            this.addLocation(input, context);
-        }
-        if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
-            this.removeLocation(input, context);
-        }
-    } catch (error) {
-        throw error
-    }
-    
-}*/
-
-
-accession.prototype.addLocation = function(input) {
-    accession._addLocation(input.accession_id, input.addLocation);
+accession.prototype.addLocation = async function(input) {
+    await accession._addLocation(input.accession_id, input.addLocation);
     this.locationId = input.addLocation;
 }
 
@@ -384,20 +357,20 @@ accession.prototype.removeLocation = async function(input) {
     this.locationId = input.addLocation;
 }
 
-accession.prototype.addIndividuals = function(input) {
-    let results = []
+accession.prototype.addIndividuals = async function(input) {
+    let results = [];
     input.addIndividuals.forEach(name => {
        results.push(models.individual._addAccession(name, input.accession_id));
     })
-    return results;
+    await Promise.all(results);
 }
 
-accession.prototype.removeIndividuals = function(input) {
+accession.prototype.removeIndividuals = async function(input) {
     let results = []
     input.removeIndividuals.forEach(name => {
        results.push(models.individual._removeAccession(name, input.accession_id));
     });
-    return results
+    await Promise.all(results);
 }
 
 /**
