@@ -319,6 +319,44 @@ accession.prototype.measurementsConnection = function({
     };
 }
 
+accession.prototype.handleAssociations = async function(input, context){
+    // if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
+    //     throw new Error ("no accession_id given")
+    // }
+    console.log("input: " + JSON.stringify(input));
+    try {
+        let promises = [];
+
+        if (helper.isNonEmptyArray(input.addIndividuals)) {
+            promises.push(this.addIndividuals(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeIndividuals)) {
+            promises.push(this.removeIndividuals(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
+            promises.push(this.addLocation(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
+            promises.push(this.removeLocation(input, context));
+        }
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+  }
+
+accession.prototype.addLocation = async function(input) {
+    await accession._addLocation(input.accession_id, input.addLocation);
+    this.locationId = input.addLocation;
+}
+
+accession.prototype.removeLocation = async function(input) {
+    await accession._removeLocation(input.accession_id, input.removeLocation);
+    this.locationId = input.addLocation;
+}
+
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -343,7 +381,7 @@ async function checkCount(search, context, query) {
 
 /**
  * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
- * 
+ *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOne(context) {
@@ -465,18 +503,27 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addAccession: function(input, context) {
-        return checkAuthorization(context, 'Accession', 'create').then(authorization => {
-            if (authorization === true) {
-                return accession.addOne(input);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
+     addAccession: async function(input, context) {
+         try {
+             let authorization = await checkAuthorization(context, 'Accession', 'create');
+             if (authorization === true) {
+                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                 helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
+                 let createdRecord = await accession.addOne(inputSanitized);
+                 //console.log("R1: " + JSON.stringify(createdRecord));
+                 await createdRecord.handleAssociations(inputSanitized, context);
+                 //console.log("R2: " + JSON.stringify(createdRecord));
+                 // createdRecord = accession.readById(createdRecord.getIdValue());
+                 //console.log("assocs: "+ JSON.stringify(assocs));
+                 return createdRecord;
+             } else {
+                 throw new Error("You don't have authorization to perform this action");
+             }
+         } catch (error) {
+             console.error(error);
+             handleError(error);
+         }
+     },
 
     /**
      * bulkAddAccessionCsv - Load csv file of records

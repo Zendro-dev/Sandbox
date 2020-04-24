@@ -206,7 +206,7 @@ module.exports = class Accession {
 
     /**
      * registeredAdapters - Returns an object which has a key for each
-     * adapter on adapter/index.js. Each key of the object will have 
+     * adapter on adapter/index.js. Each key of the object will have
      *
      * @return {string}     baseUrl from request.
      */
@@ -255,12 +255,12 @@ module.exports = class Accession {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -272,9 +272,9 @@ module.exports = class Accession {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -322,12 +322,12 @@ module.exports = class Accession {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -346,9 +346,9 @@ module.exports = class Accession {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -524,6 +524,13 @@ module.exports = class Accession {
         console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
 
         return adapters[responsibleAdapter].updateOne(input).then(result => new Accession(result));
+    }
+
+    static async _addLocation(accession_id, locationId) {
+      console.log("MODEL");
+      let responsibleAdapter = this.adapterForIri(accession_id);
+      return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
+
     }
 
     static bulkAddCsv(context) {

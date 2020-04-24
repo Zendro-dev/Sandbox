@@ -1,133 +1,85 @@
-'use strict';
-
 const _ = require('lodash');
+const globals = require('../config/globals');
+const {
+    handleError
+} = require('../utils/errors');
 const Sequelize = require('sequelize');
 const dict = require('../utils/graphql-sequelize-types');
-const searchArg = require('../utils/search-argument');
-const globals = require('../config/globals');
 const validatorUtil = require('../utils/validatorUtil');
+const helper = require('../utils/helper');
+const searchArg = require('../utils/search-argument');
+const path = require('path');
 const fileTools = require('../utils/file-tools');
 const helpersAcl = require('../utils/helpers-acl');
 const email = require('../utils/email');
 const fs = require('fs');
-const path = require('path');
 const os = require('os');
 const uuidv4 = require('uuidv4');
-const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
-const moment = require('moment');
+
+const remoteCenzontleURL = "http://localhost:4050/graphql";
+const iriRegex = new RegExp('NE014');
+
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Accession',
-    storageType: 'sql',
+    model: 'Measurement',
+    storageType: 'sql-adapter',
+    adapterName: 'MEASUREMENT_YOLANDAPROJECT',
+    regex: 'NE014',
+    url: 'http://localhost:4050/graphql',
     attributes: {
-        accession_id: 'String',
-        collectors_name: 'String',
-        collectors_initials: 'String',
-        sampling_date: 'Date',
-        sampling_number: 'String',
-        catalog_number: 'String',
-        institution_deposited: 'String',
-        collection_name: 'String',
-        collection_acronym: 'String',
-        identified_by: 'String',
-        identification_date: 'Date',
-        abundance: 'String',
-        habitat: 'String',
-        observations: 'String',
-        family: 'String',
-        genus: 'String',
-        species: 'String',
-        subspecies: 'String',
-        variety: 'String',
-        race: 'String',
-        form: 'String',
-        taxon_id: 'String',
-        collection_deposit: 'String',
-        collect_number: 'String',
-        collect_source: 'String',
-        collected_seeds: 'Int',
-        collected_plants: 'Int',
-        collected_other: 'String',
-        habit: 'String',
-        local_name: 'String',
-        locationId: 'String'
+        measurement_id: 'String',
+        name: 'String',
+        method: 'String',
+        reference: 'String',
+        reference_link: 'String',
+        value: 'Float',
+        unit: 'String',
+        short_name: 'String',
+        comments: 'String',
+        field_unit_id: 'Int',
+        individual_id: 'String',
+        accession_id: 'String'
     },
     associations: {
-        individuals: {
-            type: 'to_many',
+        individual: {
+            type: 'to_one',
             target: 'Individual',
-            targetKey: 'accession_id',
-            keyIn: 'Individual',
+            targetKey: 'individual_id',
+            keyIn: 'Measurement',
             targetStorageType: 'sql',
             label: 'name',
-            name: 'individuals',
-            name_lc: 'individuals',
-            name_cp: 'Individuals',
+            name: 'individual',
+            name_lc: 'individual',
+            name_cp: 'Individual',
             target_lc: 'individual',
             target_lc_pl: 'individuals',
             target_pl: 'Individuals',
             target_cp: 'Individual',
             target_cp_pl: 'Individuals',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'measurement'
         },
-        taxon: {
+        accession: {
             type: 'to_one',
-            target: 'Taxon',
-            targetKey: 'taxon_id',
-            keyIn: 'Accession',
-            targetStorageType: 'webservice',
-            label: 'scientificName',
-            sublabel: 'taxonRank',
-            name: 'taxon',
-            name_lc: 'taxon',
-            name_cp: 'Taxon',
-            target_lc: 'taxon',
-            target_lc_pl: 'taxons',
-            target_pl: 'Taxons',
-            target_cp: 'Taxon',
-            target_cp_pl: 'Taxons',
-            keyIn_lc: 'accession'
-        },
-        location: {
-            type: 'to_one',
-            target: 'Location',
-            targetKey: 'locationId',
-            keyIn: 'Accession',
-            targetStorageType: 'sql',
-            label: 'country',
-            sublabel: 'state',
-            name: 'location',
-            name_lc: 'location',
-            name_cp: 'Location',
-            target_lc: 'location',
-            target_lc_pl: 'locations',
-            target_pl: 'Locations',
-            target_cp: 'Location',
-            target_cp_pl: 'Locations',
-            keyIn_lc: 'accession'
-        },
-        measurements: {
-            type: 'to_many',
-            target: 'Measurement',
+            target: 'Accession',
             targetKey: 'accession_id',
             keyIn: 'Measurement',
             targetStorageType: 'sql',
-            label: 'name',
-            name: 'measurements',
-            name_lc: 'measurements',
-            name_cp: 'Measurements',
-            target_lc: 'measurement',
-            target_lc_pl: 'measurements',
-            target_pl: 'Measurements',
-            target_cp: 'Measurement',
-            target_cp_pl: 'Measurements',
+            label: 'accession_id',
+            name: 'accession',
+            name_lc: 'accession',
+            name_cp: 'Accession',
+            target_lc: 'accession',
+            target_lc_pl: 'accessions',
+            target_pl: 'Accessions',
+            target_cp: 'Accession',
+            target_cp_pl: 'Accessions',
             keyIn_lc: 'measurement'
         }
     },
-    internalId: 'accession_id',
+    internalId: 'measurement_id',
     id: {
-        name: 'accession_id',
+        name: 'measurement_id',
         type: 'String'
     }
 };
@@ -140,141 +92,92 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class Accession extends Sequelize.Model {
+module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            accession_id: {
+            measurement_id: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            collectors_name: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            collectors_initials: {
+            method: {
                 type: Sequelize[dict['String']]
             },
-            sampling_date: {
-                type: Sequelize[dict['Date']]
-            },
-            sampling_number: {
+            reference: {
                 type: Sequelize[dict['String']]
             },
-            catalog_number: {
+            reference_link: {
                 type: Sequelize[dict['String']]
             },
-            institution_deposited: {
+            value: {
+                type: Sequelize[dict['Float']]
+            },
+            unit: {
                 type: Sequelize[dict['String']]
             },
-            collection_name: {
+            short_name: {
                 type: Sequelize[dict['String']]
             },
-            collection_acronym: {
+            comments: {
                 type: Sequelize[dict['String']]
             },
-            identified_by: {
-                type: Sequelize[dict['String']]
-            },
-            identification_date: {
-                type: Sequelize[dict['Date']]
-            },
-            abundance: {
-                type: Sequelize[dict['String']]
-            },
-            habitat: {
-                type: Sequelize[dict['String']]
-            },
-            observations: {
-                type: Sequelize[dict['String']]
-            },
-            family: {
-                type: Sequelize[dict['String']]
-            },
-            genus: {
-                type: Sequelize[dict['String']]
-            },
-            species: {
-                type: Sequelize[dict['String']]
-            },
-            subspecies: {
-                type: Sequelize[dict['String']]
-            },
-            variety: {
-                type: Sequelize[dict['String']]
-            },
-            race: {
-                type: Sequelize[dict['String']]
-            },
-            form: {
-                type: Sequelize[dict['String']]
-            },
-            taxon_id: {
-                type: Sequelize[dict['String']]
-            },
-            collection_deposit: {
-                type: Sequelize[dict['String']]
-            },
-            collect_number: {
-                type: Sequelize[dict['String']]
-            },
-            collect_source: {
-                type: Sequelize[dict['String']]
-            },
-            collected_seeds: {
+            field_unit_id: {
                 type: Sequelize[dict['Int']]
             },
-            collected_plants: {
-                type: Sequelize[dict['Int']]
-            },
-            collected_other: {
+            individual_id: {
                 type: Sequelize[dict['String']]
             },
-            habit: {
-                type: Sequelize[dict['String']]
-            },
-            local_name: {
-                type: Sequelize[dict['String']]
-            },
-            locationId: {
+            accession_id: {
                 type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "accession",
-            tableName: "accessions",
+            modelName: "measurement",
+            tableName: "measurements",
             sequelize
         });
     }
 
-    static associate(models) {
+    static get adapterName() {
+        return 'MEASUREMENT_YOLANDAPROJECT';
+    }
 
-        Accession.belongsTo(models.location, {
-            as: 'location',
-            foreignKey: 'locationId'
-        });
+    static get adapterType() {
+        return 'sql-adapter';
+    }
 
-        Accession.hasMany(models.individual, {
-            as: 'individuals',
-            foreignKey: 'accession_id'
-        });
-
-        Accession.hasMany(models.measurement, {
-            as: 'measurements',
-            foreignKey: 'accession_id'
-        });
+    static recognizeId(iri) {
+        return iriRegex.test(iri);
     }
 
     static readById(id) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \nid: ", id);
+
+
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return Accession.findOne(options);
+        return MEASUREMENT_YOLANDAPROJECT.findOne(options);
     }
 
     static countRecords(search) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords: search: ", search);
         let options = {};
+
+        /*
+         * Search conditions
+         */
         if (search !== undefined) {
 
             //check
@@ -289,47 +192,12 @@ module.exports = class Accession extends Sequelize.Model {
         return super.count(options);
     }
 
-    static readAll(search, order, pagination) {
-        let options = {};
-        if (search !== undefined) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
-        return super.count(options).then(items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["accession_id", "ASC"]
-                ];
-            }
-
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total accessions exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            return super.findAll(options);
-        });
-    }
-
     static readAllCursor(search, order, pagination) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor: search: ", search, "  order: ", order, "  pagination: ", pagination);
+
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -372,9 +240,9 @@ module.exports = class Accession extends Sequelize.Model {
             }
             if (!options['order'].map(orderItem => {
                     return orderItem[0]
-                }).includes("accession_id")) {
+                }).includes("measurement_id")) {
                 options['order'] = [...options['order'], ...[
-                    ["accession_id", "ASC"]
+                    ["measurement_id", "ASC"]
                 ]];
             }
 
@@ -388,7 +256,7 @@ module.exports = class Accession extends Sequelize.Model {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "accession_id", pagination.includeCursor)
+                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "measurement_id", pagination.includeCursor)
                         };
                     }
                 } else { //backward
@@ -396,15 +264,14 @@ module.exports = class Accession extends Sequelize.Model {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "accession_id", pagination.includeCursor)
+                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "measurement_id", pagination.includeCursor)
                         };
                     }
                 }
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -429,7 +296,7 @@ module.exports = class Accession extends Sequelize.Model {
                 }
                 //check: limit
                 if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total accessions exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                    throw new Error(`Request of total measurements exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
                 }
 
                 /*
@@ -490,6 +357,11 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static addOne(input) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne: \n- input: ", input);
+
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
             .then(async (valSuccess) => {
                 try {
@@ -507,6 +379,11 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static deleteOne(id) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne: id: ", id);
+
         return super.findByPk(id)
             .then(item => {
 
@@ -527,11 +404,15 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static updateOne(input) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne: input: ", input);
+
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
@@ -598,32 +479,8 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static csvTableTemplate() {
-        return helper.csvTableTemplate(Accession);
+        return helper.csvTableTemplate(Measurement);
     }
-
-    static async _addLocation(accession_id, locationId) {
-
-        let result = await sequelize.transaction(async transaction => {
-            try {
-              return Accession.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
-            } catch (error) {
-                throw error;
-            }
-        });
-        return result;
-    }
-
-    static async _removeLocation(accession_id, locationId) {
-        let result = await sequelize.transaction(async transaction => {
-            try {
-              return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
-            } catch (error) {
-                throw error;
-            }
-        });
-        return result;
-    }
-
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
@@ -632,7 +489,7 @@ module.exports = class Accession extends Sequelize.Model {
      */
 
     static idAttribute() {
-        return Accession.definition.id.name;
+        return MEASUREMENT_YOLANDAPROJECT.definition.id.name;
     }
 
     /**
@@ -642,17 +499,17 @@ module.exports = class Accession extends Sequelize.Model {
      */
 
     static idAttributeType() {
-        return Accession.definition.id.type;
+        return MEASUREMENT_YOLANDAPROJECT.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Accession.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Measurement.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[Accession.idAttribute()]
+        return this[MEASUREMENT_YOLANDAPROJECT.idAttribute()]
     }
 
     static get definition() {
@@ -668,7 +525,7 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Accession.definition.attributes);
+        let attributes = Object.keys(MEASUREMENT_YOLANDAPROJECT.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

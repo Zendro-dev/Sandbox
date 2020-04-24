@@ -31,42 +31,42 @@ module.exports = class ACCESSION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          query 
+          query
             readOneAccession
             {
               readOneAccession(accession_id:"${iri}")
-              { 
-                accession_id 
-                collectors_name 
-                collectors_initials 
-                sampling_date 
-                sampling_number 
-                catalog_number 
-                institution_deposited 
-                collection_name 
-                collection_acronym 
-                identified_by 
-                identification_date 
-                abundance 
-                habitat 
-                observations 
-                family 
-                genus 
-                species 
-                subspecies 
-                variety 
-                race 
-                form 
-                taxon_id 
-                collection_deposit 
-                collect_number 
-                collect_source 
-                collected_seeds 
-                collected_plants 
-                collected_other 
-                habit 
-                local_name 
-                locationId 
+              {
+                accession_id
+                collectors_name
+                collectors_initials
+                sampling_date
+                sampling_number
+                catalog_number
+                institution_deposited
+                collection_name
+                collection_acronym
+                identified_by
+                identification_date
+                abundance
+                habitat
+                observations
+                family
+                genus
+                species
+                subspecies
+                variety
+                race
+                form
+                taxon_id
+                collection_deposit
+                collect_number
+                collect_source
+                collected_seeds
+                collected_plants
+                collected_other
+                habit
+                local_name
+                locationId
               }
             }`;
 
@@ -207,7 +207,7 @@ module.exports = class ACCESSION_PGMN {
 
         let query = `
         mutation addAccession(
-          $accession_id:ID!  
+          $accession_id:ID!
           $collectors_name:String
           $collectors_initials:String
           $sampling_date:Date
@@ -235,16 +235,16 @@ module.exports = class ACCESSION_PGMN {
           $collected_plants:Int
           $collected_other:String
           $habit:String
-          $local_name:String 
-          $addTaxon:ID 
-          $addLocation:ID 
+          $local_name:String
+          $addTaxon:ID
+
           $addIndividuals:[ID]
- 
+
           $addMeasurements:[ID]
- 
+
         ){
-          addAccession( 
-          accession_id:$accession_id  
+          addAccession(
+          accession_id:$accession_id
           collectors_name:$collectors_name
           collectors_initials:$collectors_initials
           sampling_date:$sampling_date
@@ -272,10 +272,10 @@ module.exports = class ACCESSION_PGMN {
           collected_plants:$collected_plants
           collected_other:$collected_other
           habit:$habit
-          local_name:$local_name  
-          addTaxon:$addTaxon 
-          addLocation:$addLocation  addIndividuals:$addIndividuals addMeasurements:$addMeasurements){
-            accession_id 
+          local_name:$local_name
+          addTaxon:$addTaxon
+            addIndividuals:$addIndividuals addMeasurements:$addMeasurements){
+            accession_id
             collectors_name
             collectors_initials
             sampling_date
@@ -337,8 +337,8 @@ module.exports = class ACCESSION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          mutation 
-            deleteAccession{ 
+          mutation
+            deleteAccession{
               deleteAccession(
                 accession_id: "${id}" )}`;
 
@@ -369,116 +369,116 @@ module.exports = class ACCESSION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          mutation 
+          mutation
             updateAccession(
-              $accession_id:ID! 
-              $collectors_name:String 
-              $collectors_initials:String 
-              $sampling_date:Date 
-              $sampling_number:String 
-              $catalog_number:String 
-              $institution_deposited:String 
-              $collection_name:String 
-              $collection_acronym:String 
-              $identified_by:String 
-              $identification_date:Date 
-              $abundance:String 
-              $habitat:String 
-              $observations:String 
-              $family:String 
-              $genus:String 
-              $species:String 
-              $subspecies:String 
-              $variety:String 
-              $race:String 
-              $form:String 
-              $collection_deposit:String 
-              $collect_number:String 
-              $collect_source:String 
-              $collected_seeds:Int 
-              $collected_plants:Int 
-              $collected_other:String 
-              $habit:String 
-              $local_name:String  
-              $addTaxon:ID 
+              $accession_id:ID!
+              $collectors_name:String
+              $collectors_initials:String
+              $sampling_date:Date
+              $sampling_number:String
+              $catalog_number:String
+              $institution_deposited:String
+              $collection_name:String
+              $collection_acronym:String
+              $identified_by:String
+              $identification_date:Date
+              $abundance:String
+              $habitat:String
+              $observations:String
+              $family:String
+              $genus:String
+              $species:String
+              $subspecies:String
+              $variety:String
+              $race:String
+              $form:String
+              $collection_deposit:String
+              $collect_number:String
+              $collect_source:String
+              $collected_seeds:Int
+              $collected_plants:Int
+              $collected_other:String
+              $habit:String
+              $local_name:String
+              $addTaxon:ID
               $removeTaxon:ID
-              $addLocation:ID 
-              $removeLocation:ID  
-              $addIndividuals:[ID] 
-              $removeIndividuals:[ID] 
-              $addMeasurements:[ID] 
-              $removeMeasurements:[ID] 
+
+              $removeLocation:ID
+              $addIndividuals:[ID]
+              $removeIndividuals:[ID]
+              $addMeasurements:[ID]
+              $removeMeasurements:[ID]
             ){
               updateAccession(
-                accession_id:$accession_id 
-                collectors_name:$collectors_name 
-                collectors_initials:$collectors_initials 
-                sampling_date:$sampling_date 
-                sampling_number:$sampling_number 
-                catalog_number:$catalog_number 
-                institution_deposited:$institution_deposited 
-                collection_name:$collection_name 
-                collection_acronym:$collection_acronym 
-                identified_by:$identified_by 
-                identification_date:$identification_date 
-                abundance:$abundance 
-                habitat:$habitat 
-                observations:$observations 
-                family:$family 
-                genus:$genus 
-                species:$species 
-                subspecies:$subspecies 
-                variety:$variety 
-                race:$race 
-                form:$form 
-                collection_deposit:$collection_deposit 
-                collect_number:$collect_number 
-                collect_source:$collect_source 
-                collected_seeds:$collected_seeds 
-                collected_plants:$collected_plants 
-                collected_other:$collected_other 
-                habit:$habit 
-                local_name:$local_name   
-                addTaxon:$addTaxon 
-                removeTaxon:$removeTaxon  
-                addLocation:$addLocation 
-                removeLocation:$removeLocation   
-                addIndividuals:$addIndividuals 
-                removeIndividuals:$removeIndividuals  
-                addMeasurements:$addMeasurements 
-                removeMeasurements:$removeMeasurements 
+                accession_id:$accession_id
+                collectors_name:$collectors_name
+                collectors_initials:$collectors_initials
+                sampling_date:$sampling_date
+                sampling_number:$sampling_number
+                catalog_number:$catalog_number
+                institution_deposited:$institution_deposited
+                collection_name:$collection_name
+                collection_acronym:$collection_acronym
+                identified_by:$identified_by
+                identification_date:$identification_date
+                abundance:$abundance
+                habitat:$habitat
+                observations:$observations
+                family:$family
+                genus:$genus
+                species:$species
+                subspecies:$subspecies
+                variety:$variety
+                race:$race
+                form:$form
+                collection_deposit:$collection_deposit
+                collect_number:$collect_number
+                collect_source:$collect_source
+                collected_seeds:$collected_seeds
+                collected_plants:$collected_plants
+                collected_other:$collected_other
+                habit:$habit
+                local_name:$local_name
+                addTaxon:$addTaxon
+                removeTaxon:$removeTaxon
+
+                removeLocation:$removeLocation
+                addIndividuals:$addIndividuals
+                removeIndividuals:$removeIndividuals
+                addMeasurements:$addMeasurements
+                removeMeasurements:$removeMeasurements
               ){
-                accession_id 
-                collectors_name 
-                collectors_initials 
-                sampling_date 
-                sampling_number 
-                catalog_number 
-                institution_deposited 
-                collection_name 
-                collection_acronym 
-                identified_by 
-                identification_date 
-                abundance 
-                habitat 
-                observations 
-                family 
-                genus 
-                species 
-                subspecies 
-                variety 
-                race 
-                form 
-                taxon_id 
-                collection_deposit 
-                collect_number 
-                collect_source 
-                collected_seeds 
-                collected_plants 
-                collected_other 
-                habit 
-                local_name 
-                locationId 
+                accession_id
+                collectors_name
+                collectors_initials
+                sampling_date
+                sampling_number
+                catalog_number
+                institution_deposited
+                collection_name
+                collection_acronym
+                identified_by
+                identification_date
+                abundance
+                habitat
+                observations
+                family
+                genus
+                species
+                subspecies
+                variety
+                race
+                form
+                taxon_id
+                collection_deposit
+                collect_number
+                collect_source
+                collected_seeds
+                collected_plants
+                collected_other
+                habit
+                local_name
+                locationId
               }
             }`
 
@@ -502,6 +502,39 @@ module.exports = class ACCESSION_PGMN {
             handleError(error);
         });
     }
+
+    static _addLocation(accession_id, locationId){
+
+
+      let query = `
+        mutation
+          updateAccession{
+            updateAccession(
+              accession_id:"${accession_id}"
+              addLocation:"${locationId}"
+            ){
+              accession_id
+              locationId
+            }
+          }`
+
+          console.log("ADAPTER");
+          return axios.post(remoteCenzontleURL, {
+              query: query
+          }).then(res => {
+              //check
+              if (res && res.data && res.data.data) {
+                  console.log(res.data.data.updateAccession);
+                  return res.data.data.updateAccession;
+              } else {
+                  throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+              }
+          }).catch(error => {
+              error['url'] = remoteCenzontleURL;
+              handleError(error);
+          });
+    }
+
 
     static bulkAddCsv(context) {
         throw new Error("Accession.bulkAddCsv is not implemented.")

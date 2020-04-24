@@ -1,25 +1,32 @@
-'use strict';
-
 const _ = require('lodash');
+const globals = require('../config/globals');
+const {
+    handleError
+} = require('../utils/errors');
 const Sequelize = require('sequelize');
 const dict = require('../utils/graphql-sequelize-types');
-const searchArg = require('../utils/search-argument');
-const globals = require('../config/globals');
 const validatorUtil = require('../utils/validatorUtil');
+const helper = require('../utils/helper');
+const searchArg = require('../utils/search-argument');
+const path = require('path');
 const fileTools = require('../utils/file-tools');
 const helpersAcl = require('../utils/helpers-acl');
 const email = require('../utils/email');
 const fs = require('fs');
-const path = require('path');
 const os = require('os');
 const uuidv4 = require('uuidv4');
-const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
-const moment = require('moment');
+
+const remoteCenzontleURL = "http://localhost:4050/graphql";
+const iriRegex = new RegExp('NE014');
+
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Accession',
-    storageType: 'sql',
+    storageType: 'sql-adapter',
+    adapterName: 'ACCESSION_YOLANDAPROJECT',
+    regex: 'NE014',
+    url: 'http://localhost:4050/graphql',
     attributes: {
         accession_id: 'String',
         collectors_name: 'String',
@@ -140,7 +147,7 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class Accession extends Sequelize.Model {
+module.exports = class ACCESSION_YOLANDAPROJECT extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
@@ -248,33 +255,41 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
-    static associate(models) {
+    static get adapterName() {
+        return 'ACCESSION_YOLANDAPROJECT';
+    }
 
-        Accession.belongsTo(models.location, {
-            as: 'location',
-            foreignKey: 'locationId'
-        });
+    static get adapterType() {
+        return 'sql-adapter';
+    }
 
-        Accession.hasMany(models.individual, {
-            as: 'individuals',
-            foreignKey: 'accession_id'
-        });
-
-        Accession.hasMany(models.measurement, {
-            as: 'measurements',
-            foreignKey: 'accession_id'
-        });
+    static recognizeId(iri) {
+        return iriRegex.test(iri);
     }
 
     static readById(id) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \nid: ", id);
+
+
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return Accession.findOne(options);
+        return ACCESSION_YOLANDAPROJECT.findOne(options);
     }
 
     static countRecords(search) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords: search: ", search);
         let options = {};
+
+        /*
+         * Search conditions
+         */
         if (search !== undefined) {
 
             //check
@@ -289,47 +304,12 @@ module.exports = class Accession extends Sequelize.Model {
         return super.count(options);
     }
 
-    static readAll(search, order, pagination) {
-        let options = {};
-        if (search !== undefined) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
-        return super.count(options).then(items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["accession_id", "ASC"]
-                ];
-            }
-
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total accessions exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            return super.findAll(options);
-        });
-    }
-
     static readAllCursor(search, order, pagination) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor: search: ", search, "  order: ", order, "  pagination: ", pagination);
+
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -403,8 +383,7 @@ module.exports = class Accession extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -490,6 +469,11 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static addOne(input) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne: \n- input: ", input);
+
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
             .then(async (valSuccess) => {
                 try {
@@ -507,6 +491,11 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static deleteOne(id) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne: id: ", id);
+
         return super.findByPk(id)
             .then(item => {
 
@@ -527,11 +516,15 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static updateOne(input) {
+        /**
+         * Debug
+         */
+        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne: input: ", input);
+
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
@@ -601,30 +594,6 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
-    static async _addLocation(accession_id, locationId) {
-
-        let result = await sequelize.transaction(async transaction => {
-            try {
-              return Accession.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
-            } catch (error) {
-                throw error;
-            }
-        });
-        return result;
-    }
-
-    static async _removeLocation(accession_id, locationId) {
-        let result = await sequelize.transaction(async transaction => {
-            try {
-              return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
-            } catch (error) {
-                throw error;
-            }
-        });
-        return result;
-    }
-
-
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *
@@ -632,7 +601,7 @@ module.exports = class Accession extends Sequelize.Model {
      */
 
     static idAttribute() {
-        return Accession.definition.id.name;
+        return ACCESSION_YOLANDAPROJECT.definition.id.name;
     }
 
     /**
@@ -642,7 +611,7 @@ module.exports = class Accession extends Sequelize.Model {
      */
 
     static idAttributeType() {
-        return Accession.definition.id.type;
+        return ACCESSION_YOLANDAPROJECT.definition.id.type;
     }
 
     /**
@@ -652,7 +621,7 @@ module.exports = class Accession extends Sequelize.Model {
      */
 
     getIdValue() {
-        return this[Accession.idAttribute()]
+        return this[ACCESSION_YOLANDAPROJECT.idAttribute()]
     }
 
     static get definition() {
@@ -668,7 +637,7 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Accession.definition.attributes);
+        let attributes = Object.keys(ACCESSION_YOLANDAPROJECT.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
