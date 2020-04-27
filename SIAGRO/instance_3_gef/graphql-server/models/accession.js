@@ -489,7 +489,7 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
-    static async addOne(input) {
+    static addOne(input) {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
             .then(async (valSuccess) => {
                 try {
@@ -531,13 +531,13 @@ module.exports = class Accession extends Sequelize.Model {
             .then(async (valSuccess) => {
                 try {
                     let result = await sequelize.transaction(async (t) => {
+                        let promises_associations = [];
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
                         let updated = await item.update(input, {
                             transaction: t
                         });
-                        console.log("U: " + JSON.stringify(updated))
                         return updated;
                     });
                     return result;
@@ -601,29 +601,80 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
+
+    static async _addTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
     static async _addLocation(accession_id, locationId) {
-
-        let result = await sequelize.transaction(async transaction => {
+        let updated = await sequelize.transaction(async transaction => {
             try {
-              return Accession.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
             } catch (error) {
                 throw error;
             }
         });
-        return result;
+        return updated;
     }
 
+    static async _removeTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
     static async _removeLocation(accession_id, locationId) {
-        let result = await sequelize.transaction(async transaction => {
+        let updated = await sequelize.transaction(async transaction => {
             try {
-              return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
             } catch (error) {
                 throw error;
             }
         });
-        return result;
+        return updated;
     }
-
 
 
     /**

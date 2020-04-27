@@ -626,6 +626,9 @@ module.exports = class role extends Sequelize.Model {
         return this.countUsers(options);
     }
 
+
+
+
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

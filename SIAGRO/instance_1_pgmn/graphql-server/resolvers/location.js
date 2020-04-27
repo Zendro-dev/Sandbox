@@ -131,6 +131,63 @@ location.prototype.accessionsConnection = function({
     };
 }
 
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+location.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+
+        if (helper.isNonEmptyArray(input.addAccessions)) {
+            promises.push(this.addAccessions(input, context));
+        }
+
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
+
+
+
+/**
+ * addAccessions - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+location.prototype.addAccessions = async function(input) {
+    let results = [];
+    input.addAccessions.forEach(associatedRecordId => {
+        results.push(models.accession._addLocation(associatedRecordId, input.locationId));
+    })
+    await Promise.all(results);
+}
+
+
+
+
+
+
+/**
+ * removeAccessions - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+location.prototype.removeAccessions = async function(input) {
+    let results = [];
+    input.removeAccessions.forEach(associatedRecordId => {
+        results.push(models.accession._removeLocation(associatedRecordId, input.locationId));
+    })
+    await Promise.all(results);
+}
+
+
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -271,23 +328,32 @@ module.exports = {
     },
 
     /**
-     * addLocation - Check user authorization and creates a new record with data specified in the input argument
+     * addLocation - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addLocation: function(input, context) {
-        return checkAuthorization(context, 'Location', 'create').then(authorization => {
+    addLocation: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'Location', 'create');
             if (authorization === true) {
-                return location.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let createdLocation = await location.addOne(inputSanitized);
+                await createdLocation.handleAssociations(inputSanitized, context);
+                return createdLocation;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**
@@ -333,22 +399,31 @@ module.exports = {
 
     /**
      * updateLocation - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateLocation: function(input, context) {
-        return checkAuthorization(context, 'Location', 'update').then(authorization => {
+    updateLocation: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'Location', 'update');
             if (authorization === true) {
-                return location.updateOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let updatedLocation = await location.updateOne(inputSanitized);
+                await updatedLocation.handleAssociations(inputSanitized, context);
+                return updatedLocation;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**

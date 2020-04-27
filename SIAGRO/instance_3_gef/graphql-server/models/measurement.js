@@ -485,6 +485,81 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
 
+    static async _addIndividual(measurement_id, individual_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Measurement.update({
+                    individual_id: individual_id
+                }, {
+                    where: {
+                        measurement_id: measurement_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+    static async _addAccession(measurement_id, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Measurement.update({
+                    accession_id: accession_id
+                }, {
+                    where: {
+                        measurement_id: measurement_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    static async _removeIndividual(measurement_id, individual_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Measurement.update({
+                    individual_id: individual_id
+                }, {
+                    where: {
+                        measurement_id: measurement_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+    static async _removeAccession(measurement_id, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Measurement.update({
+                    accession_id: accession_id
+                }, {
+                    where: {
+                        measurement_id: measurement_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

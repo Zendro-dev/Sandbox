@@ -319,58 +319,132 @@ accession.prototype.measurementsConnection = function({
     };
 }
 
-accession.prototype.handleAssociations = async function(input, context){
-    // if (!helper.isNotUndefinedAndNotNull(input.accession_id)) {
-    //     throw new Error ("no accession_id given")
-    // }
-    console.log("input: " + JSON.stringify(input));
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+accession.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
 
         if (helper.isNonEmptyArray(input.addIndividuals)) {
             promises.push(this.addIndividuals(input, context));
         }
-        if (helper.isNonEmptyArray(input.removeIndividuals)) {
-            promises.push(this.removeIndividuals(input, context));
+        if (helper.isNonEmptyArray(input.addMeasurements)) {
+            promises.push(this.addMeasurements(input, context));
+        }
+
+        if (helper.isNotUndefinedAndNotNull(input.addTaxon)) {
+            promises.push(this.addTaxon(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
             promises.push(this.addLocation(input, context));
         }
-        if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
-            promises.push(this.removeLocation(input, context));
-        }
-        
+
         await Promise.all(promises);
     } catch (error) {
         throw error
     }
-    
 }
 
+
+
+/**
+ * addIndividuals - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.addIndividuals = async function(input) {
+    let results = [];
+    input.addIndividuals.forEach(associatedRecordId => {
+        results.push(models.individual._addAccession(associatedRecordId, input.accession_id));
+    })
+    await Promise.all(results);
+}
+
+/**
+ * addMeasurements - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.addMeasurements = async function(input) {
+    let results = [];
+    input.addMeasurements.forEach(associatedRecordId => {
+        results.push(models.measurement._addAccession(associatedRecordId, input.accession_id));
+    })
+    await Promise.all(results);
+}
+
+
+/**
+ * addTaxon - field Mutation for to_one associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.addTaxon = async function(input) {
+    await accession._addTaxon(input.accession_id, input.addTaxon);
+    this.taxon_id = input.addTaxon;
+}
+/**
+ * addLocation - field Mutation for to_one associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
 accession.prototype.addLocation = async function(input) {
     await accession._addLocation(input.accession_id, input.addLocation);
     this.locationId = input.addLocation;
 }
 
-accession.prototype.removeLocation = async function(input) {
-    await accession._removeLocation(input.accession_id, input.removeLocation);
-    this.locationId = input.addLocation;
-}
 
-accession.prototype.addIndividuals = async function(input) {
+
+
+/**
+ * removeIndividuals - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.removeIndividuals = async function(input) {
     let results = [];
-    input.addIndividuals.forEach(name => {
-       results.push(models.individual._addAccession(name, input.accession_id));
+    input.removeIndividuals.forEach(associatedRecordId => {
+        results.push(models.individual._removeAccession(associatedRecordId, input.accession_id));
     })
     await Promise.all(results);
 }
 
-accession.prototype.removeIndividuals = async function(input) {
-    let results = []
-    input.removeIndividuals.forEach(name => {
-       results.push(models.individual._removeAccession(name, input.accession_id));
-    });
+/**
+ * removeMeasurements - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.removeMeasurements = async function(input) {
+    let results = [];
+    input.removeMeasurements.forEach(associatedRecordId => {
+        results.push(models.measurement._removeAccession(associatedRecordId, input.accession_id));
+    })
     await Promise.all(results);
+}
+
+
+/**
+ * removeTaxon - field Mutation for to_one associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.removeTaxon = async function(input) {
+    await accession._removeTaxon(input.accession_id, input.removeTaxon);
+    this.taxon_id = input.removeTaxon;
+}
+/**
+ * removeLocation - field Mutation for to_one associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.removeLocation = async function(input) {
+    await accession._removeLocation(input.accession_id, input.removeLocation);
+    this.locationId = input.removeLocation;
 }
 
 /**
@@ -419,6 +493,7 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     }
     context.recordsLimit -= numberOfFoundItems;
 }
+
 
 
 
@@ -512,7 +587,9 @@ module.exports = {
     },
 
     /**
-     * addAccession - Check user authorization and creates a new record with data specified in the input argument
+     * addAccession - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
@@ -523,14 +600,12 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Accession', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
-                let createdRecord = await accession.addOne(inputSanitized);
-                //console.log("R1: " + JSON.stringify(createdRecord));
-                await createdRecord.handleAssociations(inputSanitized, context);
-                //console.log("R2: " + JSON.stringify(createdRecord));
-                // createdRecord = accession.readById(createdRecord.getIdValue());
-                //console.log("assocs: "+ JSON.stringify(assocs));
-                return createdRecord;
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let createdAccession = await accession.addOne(inputSanitized);
+                await createdAccession.handleAssociations(inputSanitized, context);
+                return createdAccession;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -583,6 +658,8 @@ module.exports = {
 
     /**
      * updateAccession - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
@@ -593,12 +670,12 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Accession', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
-                let updatedRecord = await accession.updateOne(inputSanitized);
-                //console.log("R1: " + JSON.stringify(updatedRecord));
-                await updatedRecord.handleAssociations(inputSanitized, context);
-                //console.log("R2: " + JSON.stringify(updatedRecord));
-                return updatedRecord;
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let updatedAccession = await accession.updateOne(inputSanitized);
+                await updatedAccession.handleAssociations(inputSanitized, context);
+                return updatedAccession;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

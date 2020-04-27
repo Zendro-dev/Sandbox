@@ -170,6 +170,84 @@ individual.prototype.measurementsConnection = function({
     };
 }
 
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+individual.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+
+        if (helper.isNonEmptyArray(input.addMeasurements)) {
+            promises.push(this.addMeasurements(input, context));
+        }
+
+        if (helper.isNotUndefinedAndNotNull(input.addAccession)) {
+            promises.push(this.addAccession(input, context));
+        }
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
+
+
+
+/**
+ * addMeasurements - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+individual.prototype.addMeasurements = async function(input) {
+    let results = [];
+    input.addMeasurements.forEach(associatedRecordId => {
+        results.push(models.measurement._addIndividual(associatedRecordId, input.name));
+    })
+    await Promise.all(results);
+}
+
+
+/**
+ * addAccession - field Mutation for to_one associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+individual.prototype.addAccession = async function(input) {
+    await individual._addAccession(input.name, input.addAccession);
+    this.accession_id = input.addAccession;
+}
+
+
+
+
+/**
+ * removeMeasurements - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+individual.prototype.removeMeasurements = async function(input) {
+    let results = [];
+    input.removeMeasurements.forEach(associatedRecordId => {
+        results.push(models.measurement._removeIndividual(associatedRecordId, input.name));
+    })
+    await Promise.all(results);
+}
+
+
+/**
+ * removeAccession - field Mutation for to_one associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+individual.prototype.removeAccession = async function(input) {
+    await individual._removeAccession(input.name, input.removeAccession);
+    this.accession_id = input.removeAccession;
+}
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -310,23 +388,32 @@ module.exports = {
     },
 
     /**
-     * addIndividual - Check user authorization and creates a new record with data specified in the input argument
+     * addIndividual - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addIndividual: function(input, context) {
-        return checkAuthorization(context, 'Individual', 'create').then(authorization => {
+    addIndividual: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'Individual', 'create');
             if (authorization === true) {
-                return individual.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let createdIndividual = await individual.addOne(inputSanitized);
+                await createdIndividual.handleAssociations(inputSanitized, context);
+                return createdIndividual;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**
@@ -372,22 +459,31 @@ module.exports = {
 
     /**
      * updateIndividual - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateIndividual: function(input, context) {
-        return checkAuthorization(context, 'Individual', 'update').then(authorization => {
+    updateIndividual: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'Individual', 'update');
             if (authorization === true) {
-                return individual.updateOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let updatedIndividual = await individual.updateOne(inputSanitized);
+                await updatedIndividual.handleAssociations(inputSanitized, context);
+                return updatedIndividual;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**

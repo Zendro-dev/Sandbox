@@ -462,6 +462,45 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
 
+    static async _addAccession(name, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Individual.update({
+                    accession_id: accession_id
+                }, {
+                    where: {
+                        name: name
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    static async _removeAccession(name, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Individual.update({
+                    accession_id: accession_id
+                }, {
+                    where: {
+                        name: name
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

@@ -602,6 +602,81 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
 
+    static async _addTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+    static async _addLocation(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    static async _removeTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+    static async _removeLocation(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

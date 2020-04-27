@@ -99,6 +99,34 @@ user.prototype.countFilteredRoles = function({
 
 
 
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+user.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+
+
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
+
+
+
+
+
+
+
+
+
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -239,23 +267,32 @@ module.exports = {
     },
 
     /**
-     * addUser - Check user authorization and creates a new record with data specified in the input argument
+     * addUser - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addUser: function(input, context) {
-        return checkAuthorization(context, 'user', 'create').then(authorization => {
+    addUser: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'user', 'create');
             if (authorization === true) {
-                return user.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let createdUser = await user.addOne(inputSanitized);
+                await createdUser.handleAssociations(inputSanitized, context);
+                return createdUser;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**
@@ -301,22 +338,31 @@ module.exports = {
 
     /**
      * updateUser - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateUser: function(input, context) {
-        return checkAuthorization(context, 'user', 'update').then(authorization => {
+    updateUser: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'user', 'update');
             if (authorization === true) {
-                return user.updateOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let updatedUser = await user.updateOne(inputSanitized);
+                await updatedUser.handleAssociations(inputSanitized, context);
+                return updatedUser;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        }).catch(error => {
+        } catch (error) {
             console.error(error);
             handleError(error);
-        })
+        }
     },
 
     /**
