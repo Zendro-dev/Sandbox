@@ -127,7 +127,7 @@ module.exports = class Location {
     }
 
     static adapterForIri(iri) {
-        console.log(JSON.stringify(adapters));
+        console.log("ADAPTERS:", JSON.stringify(adapters));
         let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(iri));
         if (responsibleAdapter.length > 1) {
             throw new Error("IRI has no unique match");
@@ -141,7 +141,7 @@ module.exports = class Location {
         /**
          * Debug
          */
-        console.log("-@@---- ddm.readById \nid: ", id);
+        console.log("-@@---- ddm.readById LOCATION \nid: ", id);
 
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));

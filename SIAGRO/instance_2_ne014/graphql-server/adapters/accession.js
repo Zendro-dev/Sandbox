@@ -524,7 +524,38 @@ module.exports = class ACCESSION_PGMN {
           }).then(res => {
               //check
               if (res && res.data && res.data.data) {
-                  console.log(res.data.data.updateAccession);
+                  console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
+                  return res.data.data.updateAccession;
+              } else {
+                  throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+              }
+          }).catch(error => {
+              error['url'] = remoteCenzontleURL;
+              handleError(error);
+          });
+    }
+
+
+    static _removeLocation(accession_id, locationId){
+
+
+      let query = `
+        mutation
+          updateAccession{
+            updateAccession(
+              accession_id:"${accession_id}"
+              removeLocation:"${locationId}"
+            ){
+              accession_id
+              locationId
+            }
+          }`
+          return axios.post(remoteCenzontleURL, {
+              query: query
+          }).then(res => {
+              //check
+              if (res && res.data && res.data.data) {
+                  console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
                   return res.data.data.updateAccession;
               } else {
                   throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);

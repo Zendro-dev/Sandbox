@@ -21,6 +21,7 @@ module.exports = class LOCATION_PGMN {
     }
 
     static recognizeId(iri) {
+      console.log("IRI in PGMN:", iri);
         return iriRegex.test(iri);
     }
 
@@ -31,29 +32,29 @@ module.exports = class LOCATION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          query 
+          query
             readOneLocation
             {
               readOneLocation(locationId:"${iri}")
-              { 
-                locationId 
-                country 
-                state 
-                municipality 
-                locality 
-                latitude 
-                longitude 
-                altitude 
-                natural_area 
-                natural_area_name 
-                georeference_method 
-                georeference_source 
-                datum 
-                vegetation 
-                stoniness 
-                sewer 
-                topography 
-                slope 
+              {
+                locationId
+                country
+                state
+                municipality
+                locality
+                latitude
+                longitude
+                altitude
+                natural_area
+                natural_area_name
+                georeference_method
+                georeference_source
+                datum
+                vegetation
+                stoniness
+                sewer
+                topography
+                slope
               }
             }`;
 
@@ -181,7 +182,7 @@ module.exports = class LOCATION_PGMN {
 
         let query = `
         mutation addLocation(
-          $locationId:ID!  
+          $locationId:ID!
           $country:String
           $state:String
           $municipality:String
@@ -198,12 +199,12 @@ module.exports = class LOCATION_PGMN {
           $stoniness:String
           $sewer:String
           $topography:String
-          $slope:Float 
+          $slope:Float
           $addAccessions:[ID]
- 
+
         ){
-          addLocation( 
-          locationId:$locationId  
+          addLocation(
+          locationId:$locationId
           country:$country
           state:$state
           municipality:$municipality
@@ -221,7 +222,7 @@ module.exports = class LOCATION_PGMN {
           sewer:$sewer
           topography:$topography
           slope:$slope   addAccessions:$addAccessions){
-            locationId 
+            locationId
             country
             state
             municipality
@@ -270,8 +271,8 @@ module.exports = class LOCATION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          mutation 
-            deleteLocation{ 
+          mutation
+            deleteLocation{
               deleteLocation(
                 locationId: "${id}" )}`;
 
@@ -302,69 +303,69 @@ module.exports = class LOCATION_PGMN {
         console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
 
         let query = `
-          mutation 
+          mutation
             updateLocation(
-              $locationId:ID! 
-              $country:String 
-              $state:String 
-              $municipality:String 
-              $locality:String 
-              $latitude:Float 
-              $longitude:Float 
-              $altitude:Float 
-              $natural_area:String 
-              $natural_area_name:String 
-              $georeference_method:String 
-              $georeference_source:String 
-              $datum:String 
-              $vegetation:String 
-              $stoniness:String 
-              $sewer:String 
-              $topography:String 
-              $slope:Float    
-              $addAccessions:[ID] 
-              $removeAccessions:[ID] 
+              $locationId:ID!
+              $country:String
+              $state:String
+              $municipality:String
+              $locality:String
+              $latitude:Float
+              $longitude:Float
+              $altitude:Float
+              $natural_area:String
+              $natural_area_name:String
+              $georeference_method:String
+              $georeference_source:String
+              $datum:String
+              $vegetation:String
+              $stoniness:String
+              $sewer:String
+              $topography:String
+              $slope:Float
+              $addAccessions:[ID]
+              $removeAccessions:[ID]
             ){
               updateLocation(
-                locationId:$locationId 
-                country:$country 
-                state:$state 
-                municipality:$municipality 
-                locality:$locality 
-                latitude:$latitude 
-                longitude:$longitude 
-                altitude:$altitude 
-                natural_area:$natural_area 
-                natural_area_name:$natural_area_name 
-                georeference_method:$georeference_method 
-                georeference_source:$georeference_source 
-                datum:$datum 
-                vegetation:$vegetation 
-                stoniness:$stoniness 
-                sewer:$sewer 
-                topography:$topography 
-                slope:$slope    
-                addAccessions:$addAccessions 
-                removeAccessions:$removeAccessions 
+                locationId:$locationId
+                country:$country
+                state:$state
+                municipality:$municipality
+                locality:$locality
+                latitude:$latitude
+                longitude:$longitude
+                altitude:$altitude
+                natural_area:$natural_area
+                natural_area_name:$natural_area_name
+                georeference_method:$georeference_method
+                georeference_source:$georeference_source
+                datum:$datum
+                vegetation:$vegetation
+                stoniness:$stoniness
+                sewer:$sewer
+                topography:$topography
+                slope:$slope
+                addAccessions:$addAccessions
+                removeAccessions:$removeAccessions
               ){
-                locationId 
-                country 
-                state 
-                municipality 
-                locality 
-                latitude 
-                longitude 
-                altitude 
-                natural_area 
-                natural_area_name 
-                georeference_method 
-                georeference_source 
-                datum 
-                vegetation 
-                stoniness 
-                sewer 
-                topography 
-                slope 
+                locationId
+                country
+                state
+                municipality
+                locality
+                latitude
+                longitude
+                altitude
+                natural_area
+                natural_area_name
+                georeference_method
+                georeference_source
+                datum
+                vegetation
+                stoniness
+                sewer
+                topography
+                slope
               }
             }`
 

@@ -529,8 +529,14 @@ module.exports = class Accession {
     static async _addLocation(accession_id, locationId) {
       console.log("MODEL");
       let responsibleAdapter = this.adapterForIri(accession_id);
+      console.log("MODEL RESPONSIBLE ADAPTER: ", responsibleAdapter.adapterName);
       return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
 
+    }
+
+    static async _removeLocation(accession_id, locationId) {
+      let responsibleAdapter = this.adapterForIri(accession_id);
+      return await adapters[responsibleAdapter]._removeLocation(accession_id, locationId);
     }
 
     static bulkAddCsv(context) {

@@ -160,6 +160,7 @@ module.exports = class LOCATION_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static recognizeId(iri) {
+      console.log("IRI in NE014:", iri);
         return iriRegex.test(iri);
     }
 

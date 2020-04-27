@@ -353,7 +353,7 @@ accession.prototype.addLocation = async function(input) {
 
 accession.prototype.removeLocation = async function(input) {
     await accession._removeLocation(input.accession_id, input.removeLocation);
-    this.locationId = input.addLocation;
+    this.locationId = input.removeLocation;
 }
 
 
@@ -573,18 +573,25 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateAccession: function(input, context) {
-        return checkAuthorization(context, 'Accession', 'update').then(authorization => {
-            if (authorization === true) {
-                return accession.updateOne(input);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
+     updateAccession: async function(input, context) {
+           try {
+               let authorization = await checkAuthorization(context, 'Accession', 'update');
+               if (authorization === true) {
+                   let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                   helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                   helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                   /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                   let updatedAccession = await accession.updateOne(inputSanitized);
+                   await updatedAccession.handleAssociations(inputSanitized, context);
+                   return updatedAccession;
+               } else {
+                   throw new Error("You don't have authorization to perform this action");
+               }
+           } catch (error) {
+               console.error(error);
+               handleError(error);
+           }
+       },
 
     /**
      * countAccessions - Counts number of records that holds the conditions specified in the search argument

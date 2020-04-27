@@ -280,9 +280,14 @@ accession.prototype.handleAssociations = async function(input, context){
     }
   }
 
-  accession.prototype.removeLocation = async function(input) {
+  accession.prototype.removeLocation = async function(input,context) {
+    let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(this.accession_id), 'update');
+    if (authorizationCheck === true) {
       await accession._removeLocation(input.accession_id, input.removeLocation);
-      this.locationId = input.addLocation;
+      this.locationId = input.removeLocation;
+    } else { //adapter not auth
+        throw new Error("You don't have authorization to perform this action on adapter");
+    }
   }
 
 
@@ -476,30 +481,25 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateAccession: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: updateAccession");
-
-        //check: input has idAttribute
-        if (!input.accession_id) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
-        }
-
-        //check: adapters auth
-        try {
-            let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'update');
-            if (authorizationCheck === true) {
-                return accession.updateOne(input);
-            } else { //adapter not auth
-                throw new Error("You don't have authorization to perform this action on adapter");
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        }
-    },
+     updateAccession: async function(input, context) {
+           try {
+               let authorization = await checkAuthorization(context, 'Accession', 'update');
+               if (authorization === true) {
+                   let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                   helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                   helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                   /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                   let updatedAccession = await accession.updateOne(inputSanitized);
+                   await updatedAccession.handleAssociations(inputSanitized, context);
+                   return updatedAccession;
+               } else {
+                   throw new Error("You don't have authorization to perform this action");
+               }
+           } catch (error) {
+               console.error(error);
+               handleError(error);
+           }
+       },
 
     /**
      * countAccessions - Counts number of records that holds the conditions specified in the search argument
