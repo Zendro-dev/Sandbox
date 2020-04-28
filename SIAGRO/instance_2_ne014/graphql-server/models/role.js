@@ -40,7 +40,8 @@ const definition = {
             target_lc_pl: 'users',
             target_pl: 'users',
             target_cp: 'User',
-            target_cp_pl: 'Users'
+            target_cp_pl: 'Users',
+            holdsForeignKey: false
         }
     },
     id: {
@@ -624,6 +625,9 @@ module.exports = class role extends Sequelize.Model {
         }
         return this.countUsers(options);
     }
+
+
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

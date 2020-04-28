@@ -14,8 +14,32 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
+
+
 const associationArgsDef = {}
 
+
+
+
+
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+role_to_user.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+
+
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
 
 
 
@@ -44,7 +68,7 @@ async function checkCount(search, context, query) {
 
 /**
  * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
- * 
+ *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOne(context) {
@@ -67,11 +91,48 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     context.recordsLimit -= numberOfFoundItems;
 }
 
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
+
+    let role_to_user = await resolvers.readOneRole_to_user({
+        id: id
+    }, context);
+    //check that record actually exists
+    if (role_to_user === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
 
 
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+    return true;
+}
 
 module.exports = {
-
     /**
      * role_to_users - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
@@ -132,7 +193,6 @@ module.exports = {
         })
     },
 
-
     /**
      * readOneRole_to_user - Check user authorization and return one record with the specified id in the id argument.
      *
@@ -150,87 +210,6 @@ module.exports = {
                 checkCountForOne(context);
                 context.recordsLimit = context.recordsLimit - 1;
                 return resultRecords;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * addRole_to_user - Check user authorization and creates a new record with data specified in the input argument
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         New record created
-     */
-    addRole_to_user: function(input, context) {
-        return checkAuthorization(context, 'role_to_user', 'create').then(authorization => {
-            if (authorization === true) {
-                return role_to_user.addOne(input);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * bulkAddRole_to_userCsv - Load csv file of records
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     */
-    bulkAddRole_to_userCsv: function(_, context) {
-        return checkAuthorization(context, 'role_to_user', 'create').then(authorization => {
-            if (authorization === true) {
-                return role_to_user.bulkAddCsv(context);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * deleteRole_to_user - Check user authorization and delete a record with the specified id in the id argument.
-     *
-     * @param  {number} {id}    id of the record to delete
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string}         Message indicating if deletion was successfull.
-     */
-    deleteRole_to_user: function({
-        id
-    }, context) {
-        return checkAuthorization(context, 'role_to_user', 'delete').then(authorization => {
-            if (authorization === true) {
-                return role_to_user.deleteOne(id);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * updateRole_to_user - Check user authorization and update the record specified in the input argument
-     *
-     * @param  {object} input   record to update and new info to update
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Updated record
-     */
-    updateRole_to_user: function(input, context) {
-        return checkAuthorization(context, 'role_to_user', 'update').then(authorization => {
-            if (authorization === true) {
-                return role_to_user.updateOne(input);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -280,6 +259,107 @@ module.exports = {
             console.error(error);
             handleError(error);
         })
+    },
+
+    /**
+     * addRole_to_user - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         New record created
+     */
+    addRole_to_user: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'role_to_user', 'create');
+            if (authorization === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let createdRole_to_user = await role_to_user.addOne(inputSanitized);
+                await createdRole_to_user.handleAssociations(inputSanitized, context);
+                return createdRole_to_user;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        }
+    },
+
+    /**
+     * bulkAddRole_to_userCsv - Load csv file of records
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     */
+    bulkAddRole_to_userCsv: function(_, context) {
+        return checkAuthorization(context, 'role_to_user', 'create').then(authorization => {
+            if (authorization === true) {
+                return role_to_user.bulkAddCsv(context);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * deleteRole_to_user - Check user authorization and delete a record with the specified id in the id argument.
+     *
+     * @param  {number} {id}    id of the record to delete
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string}         Message indicating if deletion was successfull.
+     */
+    deleteRole_to_user: function({
+        id
+    }, context) {
+        return checkAuthorization(context, 'role_to_user', 'delete').then(async authorization => {
+            if (authorization === true) {
+                if (await role_to_user.validForDeletion(id, context)) {
+                    return role_to_user.deleteOne(id);
+                }
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * updateRole_to_user - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
+     *
+     * @param  {object} input   record to update and new info to update
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         Updated record
+     */
+    updateRole_to_user: async function(input, context) {
+        try {
+            let authorization = await checkAuthorization(context, 'role_to_user', 'update');
+            if (authorization === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let updatedRole_to_user = await role_to_user.updateOne(inputSanitized);
+                await updatedRole_to_user.handleAssociations(inputSanitized, context);
+                return updatedRole_to_user;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        }
     },
 
     /**

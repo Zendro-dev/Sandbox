@@ -57,7 +57,8 @@ const definition = {
             target_pl: 'Accessions',
             target_cp: 'Accession',
             target_cp_pl: 'Accessions',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: false
         }
     },
     internalId: 'locationId',
@@ -486,6 +487,9 @@ module.exports = class Location extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(Location);
     }
+
+
+
 
 
     /**
