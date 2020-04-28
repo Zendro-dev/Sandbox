@@ -1,6 +1,11 @@
-const expect = require('chai').expect;
+const chai = require('chai');
+const expect = chai.expect;
 const rewire = require('rewire');
 const helper = rewire('../utils/helper');
+const resolvers = require('../resolvers/index');
+const _ = require('lodash');
+
+chai.use(require('chai-as-promised'));
 
 describe('Non-empty array', function() {
     it('1. Undefined', function() {
@@ -267,4 +272,113 @@ describe('Check authorization on association args', function() {
         let context = null;
         expect(await helper.checkAuthorizationOnAssocArgs(input, context, associationArgsDef)).to.throw;
     })
+})
+
+describe('Validate existence', function() {
+    let model = {
+        adapterForIri: id => 'theAdapter',
+        registeredAdapters: {
+            theAdapter: "adapterReturn"
+        },
+        idAttribute: function() {return "ID"},
+        countRecords: (search, responsibleAdapter) => {
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            if (!_.isEqual(responsibleAdapter, ['adapterReturn'])) {
+                throw new Error(`Wrong adapter given: ` + JSON.stringify(responsibleAdapter));
+            }
+            switch (search.value.value) {
+                case 1: return 1;
+                case 2: return 3;
+                case 3: return 0;
+                case 4: return 3;
+                default: throw new Error('ID unknown');
+            }
+        },
+        definition: {model: 'Testmodel'}
+    }
+
+    let localModel = {
+        idAttribute: function() {return "ID"},
+        countRecords: (search) => {
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            switch (search.value.value) {
+                case 1: return 0;
+                case 2: return 1;
+                case 3: return 2;
+                default: throw new Error('ID unknown');
+            }
+        },
+        definition: {model: 'Testmodel-lokal'}
+    }
+
+    let noCountModel = {
+        readById: async id => {
+            switch (id) {
+                case 1: return 1;
+                case 2: return 2;
+                case 3: return 3;
+                case 4: return null;
+                case 5: return 5;
+                default: throw new Error('ID unknown');
+            }
+        }
+    }
+
+    it('1. ID 1 should exist', async function() {
+        expect(helper.validateExistence(1, model)).to.be.fulfilled;
+    })
+
+    it('2. ID 3 should not exist', async function() {
+        expect(helper.validateExistence(3, model)).to.be.rejectedWith(Error);
+    })
+
+    it('3. ID 1, 2 and 4 should exist', function() {
+        expect(helper.validateExistence([1, 2, 4], model)).to.be.fulfilled;
+    })
+
+    it('4. ID 1, 2 and 3 should throw an Error', function() {
+        expect(helper.validateExistence([1, 2, 3], model)).to.be.rejectedWith(Error);
+    })
+
+    it('5. Local ID 1 should not exist', async function() {
+        expect(helper.validateExistence(1, localModel)).to.be.rejectedWith(Error);
+    })
+
+    it('6. Local ID 2 should exist', async function() {
+        expect(helper.validateExistence(2, localModel)).to.be.fulfilled;
+    })
+
+    it('7. Local ID 2 and 3 should exist', function() {
+        expect(helper.validateExistence([2, 3], localModel)).to.be.fulfilled;
+    })
+
+    it('8. Local ID 1 and 2 should throw an error', function() {
+        expect(helper.validateExistence([1, 2], localModel)).to.be.rejectedWith(Error);
+    })
+
+    it('9. Local ID 4 should not exist', function() {
+        expect(helper.validateExistence(4, localModel)).to.be.rejectedWith(Error);
+    })
+
+    it('10. NCM ID 1 should exist', function() {
+        expect(helper.validateExistence(1, noCountModel)).to.be.fulfilled;
+    })
+
+    it('11. NCM ID 4 should not exist', function() {
+        expect(helper.validateExistence(4, noCountModel)).to.be.rejectedWith(Error);
+    })
+
+    it('12. NCM ID 1, 2, 3 should all exist', function() {
+        expect(helper.validateExistence([1, 2, 3], noCountModel)).to.be.fulfilled;
+    })
+
+    it('13. NCM ID 1, 2, 4 should throw', function() {
+        expect(helper.validateExistence([1, 2, 4], noCountModel)).to.be.rejectedWith(Error);
+    })
+
+
 })

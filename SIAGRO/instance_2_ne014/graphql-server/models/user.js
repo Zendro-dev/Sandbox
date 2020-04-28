@@ -40,7 +40,8 @@ const definition = {
             target_lc_pl: 'roles',
             target_pl: 'roles',
             target_cp: 'Role',
-            target_cp_pl: 'Roles'
+            target_cp_pl: 'Roles',
+            holdsForeignKey: false
         }
     },
     id: {

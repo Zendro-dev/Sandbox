@@ -29,33 +29,35 @@ const associationArgsDef = {
 individual.prototype.accession = async function({
     search
 }, context) {
-    try {
-        if (search === undefined) {
-            return resolvers.readOneAccession({
-                [models.accession.idAttribute()]: this.accession_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.accession.idAttribute(),
-                "value": {
-                    "value": this.accession_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.accessionsConnection({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+    if (helper.isNotUndefinedAndNotNull(this.accession_id)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneAccession({
+                    [models.accession.idAttribute()]: this.accession_id
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.accession.idAttribute(),
+                    "value": {
+                        "value": this.accession_id
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.accessionsConnection({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
 }
 
 
@@ -128,6 +130,55 @@ individual.prototype.measurementsConnection = function({
         console.error(error);
         handleError(error);
     };
+}
+
+
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
+
+    let individual = await resolvers.readOneIndividual({
+        name: id
+    }, context);
+    //check that record actually exists
+    if (individual === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
+
+    promises_to_many.push(individual.countFilteredMeasurements({}, context));
+    promises_to_one.push(individual.accession({}, context));
+
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+
+    if (context.benignErrors.length > 0) {
+        throw new Error('Errors occurred when counting associated records. No deletion permitted for reasons of security.');
+    }
+
+    return true;
 }
 
 module.exports = {
@@ -294,7 +345,9 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, individual.adapterForIri(name), 'delete');
             if (authorizationCheck === true) {
-                return individual.deleteOne(name);
+                if (await individual.validForDeletion(name, context)) {
+                    return individual.deleteOne(name);
+                }
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }

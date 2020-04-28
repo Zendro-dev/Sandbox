@@ -14,10 +14,11 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
+
+
 const associationArgsDef = {
     'addAccessions': 'accession'
 }
-
 
 
 
@@ -91,7 +92,6 @@ location.prototype.countFilteredAccessions = function({
     };
 }
 
-
 /**
  * location.prototype.accessionsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
@@ -141,11 +141,12 @@ location.prototype.accessionsConnection = function({
 location.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
-
         if (helper.isNonEmptyArray(input.addAccessions)) {
             promises.push(this.addAccessions(input, context));
         }
-
+        if (helper.isNonEmptyArray(input.removeAccessions)) {
+            promises.push(this.removeAccessions(input, context));
+        }
 
         await Promise.all(promises);
     } catch (error) {
@@ -153,39 +154,33 @@ location.prototype.handleAssociations = async function(input, context) {
     }
 }
 
-
-
 /**
- * addAccessions - field Mutation for to_many associations to add 
+ * addAccessions - field Mutation for to_many associationsArguments to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 location.prototype.addAccessions = async function(input) {
     let results = [];
     input.addAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._addLocation(associatedRecordId, input.locationId));
+        results.push(models.accession._addLocation(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
 
 
 
-
-
-
 /**
- * removeAccessions - field Mutation for to_many associations to remove 
+ * removeAccessions - field Mutation for to_many associationsArguments to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 location.prototype.removeAccessions = async function(input) {
     let results = [];
     input.removeAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._removeLocation(associatedRecordId, input.locationId));
+        results.push(models.accession._removeLocation(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
-
 
 
 /**
@@ -212,7 +207,7 @@ async function checkCount(search, context, query) {
 
 /**
  * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
- * 
+ *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOne(context) {
@@ -235,11 +230,49 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     context.recordsLimit -= numberOfFoundItems;
 }
 
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
 
+    let location = await resolvers.readOneLocation({
+        locationId: id
+    }, context);
+    //check that record actually exists
+    if (location === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
 
+    promises_to_many.push(location.countFilteredAccessions({}, context));
+
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+    return true;
+}
 
 module.exports = {
-
     /**
      * locations - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
@@ -300,7 +333,6 @@ module.exports = {
         })
     },
 
-
     /**
      * readOneLocation - Check user authorization and return one record with the specified locationId in the locationId argument.
      *
@@ -318,6 +350,48 @@ module.exports = {
                 checkCountForOne(context);
                 context.recordsLimit = context.recordsLimit - 1;
                 return resultRecords;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * countLocations - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+    countLocations: function({
+        search
+    }, context) {
+        return checkAuthorization(context, 'Location', 'read').then(authorization => {
+            if (authorization === true) {
+                return location.countRecords(search);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * vueTableLocation - Return table of records as needed for displaying a vuejs table
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         Records with format as needed for displaying a vuejs table
+     */
+    vueTableLocation: function(_, context) {
+        return checkAuthorization(context, 'Location', 'read').then(authorization => {
+            if (authorization === true) {
+                return helper.vueTable(context.request, location, ["id", "locationId", "country", "state", "municipality", "locality", "natural_area", "natural_area_name", "georeference_method", "georeference_source", "datum", "vegetation", "stoniness", "sewer", "topography"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -385,9 +459,11 @@ module.exports = {
     deleteLocation: function({
         locationId
     }, context) {
-        return checkAuthorization(context, 'Location', 'delete').then(authorization => {
+        return checkAuthorization(context, 'Location', 'delete').then(async authorization => {
             if (authorization === true) {
-                return location.deleteOne(locationId);
+                if (await location.validForDeletion(locationId, context)) {
+                    return location.deleteOne(locationId);
+                }
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -424,48 +500,6 @@ module.exports = {
             console.error(error);
             handleError(error);
         }
-    },
-
-    /**
-     * countLocations - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countLocations: function({
-        search
-    }, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
-            if (authorization === true) {
-                return location.countRecords(search);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * vueTableLocation - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableLocation: function(_, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, location, ["id", "locationId", "country", "state", "municipality", "locality", "natural_area", "natural_area_name", "georeference_method", "georeference_source", "datum", "vegetation", "stoniness", "sewer", "topography"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
     },
 
     /**

@@ -31,33 +31,35 @@ const associationArgsDef = {
 accession.prototype.taxon = async function({
     search
 }, context) {
-    try {
-        if (search === undefined) {
-            return resolvers.readOneTaxon({
-                [models.taxon.idAttribute()]: this.taxon_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.taxon.idAttribute(),
-                "value": {
-                    "value": this.taxon_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.taxonsConnection({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+    if (helper.isNotUndefinedAndNotNull(this.taxon_id)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneTaxon({
+                    [models.taxon.idAttribute()]: this.taxon_id
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.taxon.idAttribute(),
+                    "value": {
+                        "value": this.taxon_id
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.taxonsConnection({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
 }
 /**
  * accession.prototype.location - Return associated record
@@ -69,33 +71,35 @@ accession.prototype.taxon = async function({
 accession.prototype.location = async function({
     search
 }, context) {
-    try {
-        if (search === undefined) {
-            return resolvers.readOneLocation({
-                [models.location.idAttribute()]: this.locationId
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.location.idAttribute(),
-                "value": {
-                    "value": this.locationId
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.locationsConnection({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+    if (helper.isNotUndefinedAndNotNull(this.locationId)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneLocation({
+                    [models.location.idAttribute()]: this.locationId
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.location.idAttribute(),
+                    "value": {
+                        "value": this.locationId
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.locationsConnection({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
 }
 
 
@@ -239,6 +243,57 @@ accession.prototype.measurementsConnection = function({
         console.error(error);
         handleError(error);
     };
+}
+
+
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
+
+    let accession = await resolvers.readOneAccession({
+        accession_id: id
+    }, context);
+    //check that record actually exists
+    if (accession === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
+
+    promises_to_many.push(accession.countFilteredIndividuals({}, context));
+    promises_to_many.push(accession.countFilteredMeasurements({}, context));
+    promises_to_one.push(accession.taxon({}, context));
+    promises_to_one.push(accession.location({}, context));
+
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+
+    if (context.benignErrors.length > 0) {
+        throw new Error('Errors occurred when counting associated records. No deletion permitted for reasons of security.');
+    }
+
+    return true;
 }
 
 module.exports = {
@@ -405,7 +460,9 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(accession_id), 'delete');
             if (authorizationCheck === true) {
-                return accession.deleteOne(accession_id);
+                if (await accession.validForDeletion(accession_id, context)) {
+                    return accession.deleteOne(accession_id);
+                }
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }

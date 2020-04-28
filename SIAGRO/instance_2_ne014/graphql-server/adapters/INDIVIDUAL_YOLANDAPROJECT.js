@@ -52,7 +52,8 @@ const definition = {
             target_pl: 'Accessions',
             target_cp: 'Accession',
             target_cp_pl: 'Accessions',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'individual',
+            holdsForeignKey: true
         },
         measurements: {
             type: 'to_many',
@@ -69,7 +70,8 @@ const definition = {
             target_pl: 'Measurements',
             target_cp: 'Measurement',
             target_cp_pl: 'Measurements',
-            keyIn_lc: 'measurement'
+            keyIn_lc: 'measurement',
+            holdsForeignKey: false
         }
     },
     internalId: 'name',

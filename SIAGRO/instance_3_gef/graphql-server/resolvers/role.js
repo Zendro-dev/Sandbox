@@ -14,6 +14,8 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
+
+
 const associationArgsDef = {
     'addUsers': 'user'
 }
@@ -99,7 +101,6 @@ role.prototype.countFilteredUsers = function({
 
 
 
-
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -109,20 +110,18 @@ role.prototype.countFilteredUsers = function({
 role.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
-
-
+        if (helper.isNonEmptyArray(input.addUsers)) {
+            promises.push(this.addUsers(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeUsers)) {
+            promises.push(this.removeUsers(input, context));
+        }
 
         await Promise.all(promises);
     } catch (error) {
         throw error
     }
 }
-
-
-
-
-
-
 
 
 
@@ -151,7 +150,7 @@ async function checkCount(search, context, query) {
 
 /**
  * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
- * 
+ *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOne(context) {
@@ -174,11 +173,48 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     context.recordsLimit -= numberOfFoundItems;
 }
 
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
+
+    let role = await resolvers.readOneRole({
+        id: id
+    }, context);
+    //check that record actually exists
+    if (role === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
 
 
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+    return true;
+}
 
 module.exports = {
-
     /**
      * roles - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
@@ -239,7 +275,6 @@ module.exports = {
         })
     },
 
-
     /**
      * readOneRole - Check user authorization and return one record with the specified id in the id argument.
      *
@@ -257,6 +292,48 @@ module.exports = {
                 checkCountForOne(context);
                 context.recordsLimit = context.recordsLimit - 1;
                 return resultRecords;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * countRoles - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+    countRoles: function({
+        search
+    }, context) {
+        return checkAuthorization(context, 'role', 'read').then(authorization => {
+            if (authorization === true) {
+                return role.countRecords(search);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * vueTableRole - Return table of records as needed for displaying a vuejs table
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         Records with format as needed for displaying a vuejs table
+     */
+    vueTableRole: function(_, context) {
+        return checkAuthorization(context, 'role', 'read').then(authorization => {
+            if (authorization === true) {
+                return helper.vueTable(context.request, role, ["id", "name", "description"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -324,9 +401,11 @@ module.exports = {
     deleteRole: function({
         id
     }, context) {
-        return checkAuthorization(context, 'role', 'delete').then(authorization => {
+        return checkAuthorization(context, 'role', 'delete').then(async authorization => {
             if (authorization === true) {
-                return role.deleteOne(id);
+                if (await role.validForDeletion(id, context)) {
+                    return role.deleteOne(id);
+                }
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -363,48 +442,6 @@ module.exports = {
             console.error(error);
             handleError(error);
         }
-    },
-
-    /**
-     * countRoles - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countRoles: function({
-        search
-    }, context) {
-        return checkAuthorization(context, 'role', 'read').then(authorization => {
-            if (authorization === true) {
-                return role.countRecords(search);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * vueTableRole - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableRole: function(_, context) {
-        return checkAuthorization(context, 'role', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, role, ["id", "name", "description"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
     },
 
     /**

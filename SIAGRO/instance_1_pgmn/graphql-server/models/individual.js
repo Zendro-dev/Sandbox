@@ -45,7 +45,8 @@ const definition = {
             target_pl: 'Accessions',
             target_cp: 'Accession',
             target_cp_pl: 'Accessions',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'individual',
+            holdsForeignKey: true
         },
         measurements: {
             type: 'to_many',
@@ -62,7 +63,8 @@ const definition = {
             target_pl: 'Measurements',
             target_cp: 'Measurement',
             target_cp_pl: 'Measurements',
-            keyIn_lc: 'measurement'
+            keyIn_lc: 'measurement',
+            holdsForeignKey: false
         }
     },
     internalId: 'name',
@@ -462,6 +464,12 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
 
+    /**
+     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
     static async _addAccession(name, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
@@ -481,11 +489,17 @@ module.exports = class Individual extends Sequelize.Model {
         return updated;
     }
 
+    /**
+     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
     static async _removeAccession(name, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
-                    accession_id: accession_id
+                    accession_id: null
                 }, {
                     where: {
                         name: name

@@ -76,7 +76,8 @@ const definition = {
             target_pl: 'Individuals',
             target_cp: 'Individual',
             target_cp_pl: 'Individuals',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'individual',
+            holdsForeignKey: false
         },
         taxon: {
             type: 'to_one',
@@ -94,7 +95,8 @@ const definition = {
             target_pl: 'Taxons',
             target_cp: 'Taxon',
             target_cp_pl: 'Taxons',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         location: {
             type: 'to_one',
@@ -112,7 +114,8 @@ const definition = {
             target_pl: 'Locations',
             target_cp: 'Location',
             target_cp_pl: 'Locations',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         measurements: {
             type: 'to_many',
@@ -129,7 +132,8 @@ const definition = {
             target_pl: 'Measurements',
             target_cp: 'Measurement',
             target_cp_pl: 'Measurements',
-            keyIn_lc: 'measurement'
+            keyIn_lc: 'measurement',
+            holdsForeignKey: false
         }
     },
     internalId: 'accession_id',

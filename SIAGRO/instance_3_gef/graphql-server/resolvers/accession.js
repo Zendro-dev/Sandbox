@@ -14,6 +14,8 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
+
+
 const associationArgsDef = {
     'addTaxon': 'taxon',
     'addLocation': 'location',
@@ -33,33 +35,35 @@ const associationArgsDef = {
 accession.prototype.taxon = async function({
     search
 }, context) {
-    try {
-        if (search === undefined) {
-            return resolvers.readOneTaxon({
-                [models.taxon.idAttribute()]: this.taxon_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.taxon.idAttribute(),
-                "value": {
-                    "value": this.taxon_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.taxons({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+    if (helper.isNotUndefinedAndNotNull(this.taxon_id)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneTaxon({
+                    [models.taxon.idAttribute()]: this.taxon_id
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.taxon.idAttribute(),
+                    "value": {
+                        "value": this.taxon_id
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.taxons({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
 }
 /**
  * accession.prototype.location - Return associated record
@@ -71,35 +75,36 @@ accession.prototype.taxon = async function({
 accession.prototype.location = async function({
     search
 }, context) {
-    try {
-        if (search === undefined) {
-            return resolvers.readOneLocation({
-                [models.location.idAttribute()]: this.locationId
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.location.idAttribute(),
-                "value": {
-                    "value": this.locationId
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.locations({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+    if (helper.isNotUndefinedAndNotNull(this.locationId)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneLocation({
+                    [models.location.idAttribute()]: this.locationId
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.location.idAttribute(),
+                    "value": {
+                        "value": this.locationId
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.locations({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
 }
-
 
 /**
  * accession.prototype.individualsFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -170,7 +175,6 @@ accession.prototype.countFilteredIndividuals = function({
     };
 }
 
-
 /**
  * accession.prototype.individualsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
@@ -209,7 +213,6 @@ accession.prototype.individualsConnection = function({
         handleError(error);
     };
 }
-
 /**
  * accession.prototype.measurementsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
@@ -279,7 +282,6 @@ accession.prototype.countFilteredMeasurements = function({
     };
 }
 
-
 /**
  * accession.prototype.measurementsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
@@ -329,19 +331,29 @@ accession.prototype.measurementsConnection = function({
 accession.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
-
         if (helper.isNonEmptyArray(input.addIndividuals)) {
             promises.push(this.addIndividuals(input, context));
         }
         if (helper.isNonEmptyArray(input.addMeasurements)) {
             promises.push(this.addMeasurements(input, context));
         }
-
         if (helper.isNotUndefinedAndNotNull(input.addTaxon)) {
             promises.push(this.addTaxon(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
             promises.push(this.addLocation(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeIndividuals)) {
+            promises.push(this.removeIndividuals(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeMeasurements)) {
+            promises.push(this.removeMeasurements(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeTaxon)) {
+            promises.push(this.removeTaxon(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
+            promises.push(this.removeLocation(input, context));
         }
 
         await Promise.all(promises);
@@ -350,102 +362,104 @@ accession.prototype.handleAssociations = async function(input, context) {
     }
 }
 
-
-
 /**
- * addIndividuals - field Mutation for to_many associations to add 
+ * addIndividuals - field Mutation for to_many associationsArguments to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.addIndividuals = async function(input) {
     let results = [];
     input.addIndividuals.forEach(associatedRecordId => {
-        results.push(models.individual._addAccession(associatedRecordId, input.accession_id));
+        results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
 
 /**
- * addMeasurements - field Mutation for to_many associations to add 
+ * addMeasurements - field Mutation for to_many associationsArguments to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.addMeasurements = async function(input) {
     let results = [];
     input.addMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._addAccession(associatedRecordId, input.accession_id));
+        results.push(models.measurement._addAccession(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
 
-
 /**
- * addTaxon - field Mutation for to_one associations to add 
+ * addTaxon - field Mutation for to_one associationsArguments to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.addTaxon = async function(input) {
-    await accession._addTaxon(input.accession_id, input.addTaxon);
+    await accession._addTaxon(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
+
 /**
- * addLocation - field Mutation for to_one associations to add 
+ * addLocation - field Mutation for to_one associationsArguments to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.addLocation = async function(input) {
-    await accession._addLocation(input.accession_id, input.addLocation);
+    await accession._addLocation(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
 
 
 
-
 /**
- * removeIndividuals - field Mutation for to_many associations to remove 
+ * removeIndividuals - field Mutation for to_many associationsArguments to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.removeIndividuals = async function(input) {
     let results = [];
     input.removeIndividuals.forEach(associatedRecordId => {
-        results.push(models.individual._removeAccession(associatedRecordId, input.accession_id));
+        results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
 
 /**
- * removeMeasurements - field Mutation for to_many associations to remove 
+ * removeMeasurements - field Mutation for to_many associationsArguments to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.removeMeasurements = async function(input) {
     let results = [];
     input.removeMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._removeAccession(associatedRecordId, input.accession_id));
+        results.push(models.measurement._removeAccession(associatedRecordId, this.getIdValue()));
     })
     await Promise.all(results);
 }
 
-
 /**
- * removeTaxon - field Mutation for to_one associations to remove 
+ * removeTaxon - field Mutation for to_one associationsArguments to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.removeTaxon = async function(input) {
-    await accession._removeTaxon(input.accession_id, input.removeTaxon);
-    this.taxon_id = input.removeTaxon;
+    if (input.removeTaxon === this.taxon_id) {
+        await accession._removeTaxon(this.getIdValue(), input.removeTaxon);
+        this.taxon_id = null;
+    }
 }
+
 /**
- * removeLocation - field Mutation for to_one associations to remove 
+ * removeLocation - field Mutation for to_one associationsArguments to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.removeLocation = async function(input) {
-    await accession._removeLocation(input.accession_id, input.removeLocation);
-    this.locationId = input.removeLocation;
+    if (input.removeLocation === this.locationId) {
+        await accession._removeLocation(this.getIdValue(), input.removeLocation);
+        this.locationId = null;
+    }
 }
+
 
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
@@ -471,7 +485,7 @@ async function checkCount(search, context, query) {
 
 /**
  * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
- * 
+ *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOne(context) {
@@ -494,11 +508,52 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     context.recordsLimit -= numberOfFoundItems;
 }
 
+/**
+ * countAllAssociatedRecords - Count records associated with another given record
+ *
+ * @param  {ID} id      Id of the record which the associations will be counted
+ * @param  {objec} context Default context by resolver
+ * @return {Int}         Number of associated records
+ */
+async function countAllAssociatedRecords(id, context) {
 
+    let accession = await resolvers.readOneAccession({
+        accession_id: id
+    }, context);
+    //check that record actually exists
+    if (accession === null) throw new Error(`Record with ID = ${id} does not exist`);
+    let promises_to_many = [];
+    let promises_to_one = [];
 
+    promises_to_many.push(accession.countFilteredIndividuals({}, context));
+    promises_to_many.push(accession.countFilteredMeasurements({}, context));
+    promises_to_one.push(accession.taxon({}, context));
+    promises_to_one.push(accession.location({}, context));
+
+    let result_to_many = await Promise.all(promises_to_many);
+    let result_to_one = await Promise.all(promises_to_one);
+
+    let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+
+    return get_to_one_associated + get_to_many_associated;
+}
+
+/**
+ * validForDeletion - Checks wether a record is allowed to be deleted
+ *
+ * @param  {ID} id      Id of record to check if it can be deleted
+ * @param  {object} context Default context by resolver
+ * @return {boolean}         True if it is allowed to be deleted and false otherwise
+ */
+async function validForDeletion(id, context) {
+    if (await countAllAssociatedRecords(id, context) > 0) {
+        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+    }
+    return true;
+}
 
 module.exports = {
-
     /**
      * accessions - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
@@ -559,7 +614,6 @@ module.exports = {
         })
     },
 
-
     /**
      * readOneAccession - Check user authorization and return one record with the specified accession_id in the accession_id argument.
      *
@@ -577,6 +631,48 @@ module.exports = {
                 checkCountForOne(context);
                 context.recordsLimit = context.recordsLimit - 1;
                 return resultRecords;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * countAccessions - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+    countAccessions: function({
+        search
+    }, context) {
+        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+            if (authorization === true) {
+                return accession.countRecords(search);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
+    },
+
+    /**
+     * vueTableAccession - Return table of records as needed for displaying a vuejs table
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         Records with format as needed for displaying a vuejs table
+     */
+    vueTableAccession: function(_, context) {
+        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+            if (authorization === true) {
+                return helper.vueTable(context.request, accession, ["id", "accession_id", "collectors_name", "collectors_initials", "sampling_number", "catalog_number", "institution_deposited", "collection_name", "collection_acronym", "identified_by", "abundance", "habitat", "observations", "family", "genus", "species", "subspecies", "variety", "race", "form", "taxon_id", "collection_deposit", "collect_number", "collect_source", "collected_other", "habit", "local_name", "locationId"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -644,9 +740,11 @@ module.exports = {
     deleteAccession: function({
         accession_id
     }, context) {
-        return checkAuthorization(context, 'Accession', 'delete').then(authorization => {
+        return checkAuthorization(context, 'Accession', 'delete').then(async authorization => {
             if (authorization === true) {
-                return accession.deleteOne(accession_id);
+                if (await accession.validForDeletion(accession_id, context)) {
+                    return accession.deleteOne(accession_id);
+                }
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -683,48 +781,6 @@ module.exports = {
             console.error(error);
             handleError(error);
         }
-    },
-
-    /**
-     * countAccessions - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countAccessions: function({
-        search
-    }, context) {
-        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
-            if (authorization === true) {
-                return accession.countRecords(search);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
-    },
-
-    /**
-     * vueTableAccession - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableAccession: function(_, context) {
-        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, accession, ["id", "accession_id", "collectors_name", "collectors_initials", "sampling_number", "catalog_number", "institution_deposited", "collection_name", "collection_acronym", "identified_by", "abundance", "habitat", "observations", "family", "genus", "species", "subspecies", "variety", "race", "form", "taxon_id", "collection_deposit", "collect_number", "collect_source", "collected_other", "habit", "local_name", "locationId"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
     },
 
     /**

@@ -41,7 +41,8 @@ const definition = {
             target_lc_pl: 'users',
             target_pl: 'users',
             target_cp: 'User',
-            target_cp_pl: 'Users'
+            target_cp_pl: 'Users',
+            holdsForeignKey: false
         }
     },
     id: {
