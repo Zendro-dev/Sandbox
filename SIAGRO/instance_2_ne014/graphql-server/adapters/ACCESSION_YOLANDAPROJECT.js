@@ -545,6 +545,31 @@ module.exports = class ACCESSION_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
+    static async _addLocation(accession_id, locationId) {
+
+        let result = await sequelize.transaction(async transaction => {
+            try {
+              return super.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
+            } catch (error) {
+                throw error;
+            }
+        });
+        return result;
+    }
+
+    static async _removeLocation(accession_id, locationId) {
+        let result = await sequelize.transaction(async transaction => {
+            try {
+              return super.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
+            } catch (error) {
+                throw error;
+            }
+        });
+        return result;
+    }
+
+
+
     static bulkAddCsv(context) {
 
         let delim = context.request.body.delim;
