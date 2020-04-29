@@ -24,7 +24,7 @@ const definition = {
         name: 'String',
         origin: 'String',
         description: 'String',
-        accession_id: 'String',
+        accessionId: 'String',
         genotypeId: 'Int',
         field_unit_id: 'Int'
     },
@@ -32,7 +32,7 @@ const definition = {
         accession: {
             type: 'to_one',
             target: 'Accession',
-            targetKey: 'accession_id',
+            targetKey: 'accessionId',
             keyIn: 'Individual',
             targetStorageType: 'sql',
             label: 'accession_id',
@@ -97,7 +97,7 @@ module.exports = class Individual extends Sequelize.Model {
             description: {
                 type: Sequelize[dict['String']]
             },
-            accession_id: {
+            accessionId: {
                 type: Sequelize[dict['String']]
             },
             genotypeId: {
@@ -119,7 +119,7 @@ module.exports = class Individual extends Sequelize.Model {
 
         Individual.belongsTo(models.accession, {
             as: 'accession',
-            foreignKey: 'accession_id'
+            foreignKey: 'accessionId'
         });
 
         Individual.hasMany(models.measurement, {
@@ -265,8 +265,7 @@ module.exports = class Individual extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -372,7 +371,7 @@ module.exports = class Individual extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -397,6 +396,9 @@ module.exports = class Individual extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
@@ -468,13 +470,13 @@ module.exports = class Individual extends Sequelize.Model {
      * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addAccession(name, accession_id) {
+    static async _addAccession(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
-                    accession_id: accession_id
+                    accessionId: accessionId
                 }, {
                     where: {
                         name: name
@@ -493,13 +495,13 @@ module.exports = class Individual extends Sequelize.Model {
      * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeAccession(name, accession_id) {
+    static async _removeAccession(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
-                    accession_id: null
+                    accessionId: null
                 }, {
                     where: {
                         name: name

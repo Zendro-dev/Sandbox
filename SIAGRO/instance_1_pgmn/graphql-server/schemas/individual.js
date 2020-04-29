@@ -21,7 +21,7 @@ module.exports = `
     @original-field
     
     """
-    accession_id: String
+    accessionId: String
 
     """
     @original-field
@@ -80,7 +80,7 @@ type IndividualEdge{
     name
     origin
     description
-    accession_id
+    accessionId
     genotypeId
     field_unit_id
   }

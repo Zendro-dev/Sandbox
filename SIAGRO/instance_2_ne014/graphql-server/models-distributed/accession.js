@@ -49,7 +49,7 @@ const definition = {
         individuals: {
             type: 'to_many',
             target: 'Individual',
-            targetKey: 'accession_id',
+            targetKey: 'accessionId',
             keyIn: 'Individual',
             targetStorageType: 'distributed-data-model',
             label: 'name',
@@ -61,7 +61,8 @@ const definition = {
             target_pl: 'Individuals',
             target_cp: 'Individual',
             target_cp_pl: 'Individuals',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'individual',
+            holdsForeignKey: false
         },
         taxon: {
             type: 'to_one',
@@ -79,7 +80,8 @@ const definition = {
             target_pl: 'Taxons',
             target_cp: 'Taxon',
             target_cp_pl: 'Taxons',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         location: {
             type: 'to_one',
@@ -97,7 +99,8 @@ const definition = {
             target_pl: 'Locations',
             target_cp: 'Location',
             target_cp_pl: 'Locations',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         measurements: {
             type: 'to_many',
@@ -114,7 +117,8 @@ const definition = {
             target_pl: 'Measurements',
             target_cp: 'Measurement',
             target_cp_pl: 'Measurements',
-            keyIn_lc: 'measurement'
+            keyIn_lc: 'measurement',
+            holdsForeignKey: false
         }
     },
     internalId: 'accession_id',
@@ -228,11 +232,6 @@ module.exports = class Accession {
     }
 
     static readById(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readById \nid: ", id);
-
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
 
@@ -247,11 +246,6 @@ module.exports = class Accession {
     }
 
     static countRecords(search, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.countRecords");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -314,11 +308,6 @@ module.exports = class Accession {
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readAllCursor");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -373,11 +362,6 @@ module.exports = class Accession {
         return Promise.all(promises)
             //phase 1: reduce
             .then(results => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
-
                 return results.reduce((total, current) => {
                     //check if current is Error
                     if (current instanceof Error) {
@@ -397,11 +381,6 @@ module.exports = class Accession {
             })
             //phase 2: order & paginate
             .then(nodesAndErrors => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodesAndErrors.nodes, "]", "\n---------- @@@");
-
                 let nodes = nodesAndErrors.nodes;
                 let errors = nodesAndErrors.errors;
 
@@ -494,50 +473,32 @@ module.exports = class Accession {
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.accession_id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.addOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].addOne(input).then(result => new Accession(result));
     }
 
     static deleteOne(id) {
         let responsibleAdapter = this.adapterForIri(id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.deleteOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].deleteOne(id);
     }
 
     static updateOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.accession_id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].updateOne(input).then(result => new Accession(result));
     }
 
     static async _addLocation(accession_id, locationId) {
-      console.log("MODEL");
-      let responsibleAdapter = this.adapterForIri(accession_id);
-      console.log("MODEL RESPONSIBLE ADAPTER: ", responsibleAdapter.adapterName);
-      return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
+  console.log("MODEL");
+  let responsibleAdapter = this.adapterForIri(accession_id);
+  console.log("MODEL RESPONSIBLE ADAPTER: ", responsibleAdapter.adapterName);
+  return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
 
-    }
+}
 
-    static async _removeLocation(accession_id, locationId) {
-      let responsibleAdapter = this.adapterForIri(accession_id);
-      return await adapters[responsibleAdapter]._removeLocation(accession_id, locationId);
-    }
+static async _removeLocation(accession_id, locationId) {
+  let responsibleAdapter = this.adapterForIri(accession_id);
+  return await adapters[responsibleAdapter]._removeLocation(accession_id, locationId);
+}
 
     static bulkAddCsv(context) {
         throw new Error("Accession.bulkAddCsv is not implemented.")

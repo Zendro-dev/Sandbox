@@ -25,30 +25,20 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static readById(iri) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
-          query 
+          query
             readOneIndividual
             {
               readOneIndividual(name:"${iri}")
-              { 
-                name 
-                origin 
-                description 
-                accession_id 
-                genotypeId 
-                field_unit_id 
+              {
+                name
+                origin
+                description
+                accessionId
+                genotypeId
+                field_unit_id
               }
             }`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -66,22 +56,10 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static countRecords(search) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords \nsearch: ", search, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
       query countIndividuals($search: searchIndividualInput){
         countIndividuals(search: $search)
       }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -102,11 +80,6 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static readAllCursor(search, order, pagination) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor \search: ", search, "\norder: ", order, "\npagination: ", pagination, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -115,19 +88,10 @@ module.exports = class INDIVIDUAL_PGMN {
         let query = `query individualsConnection($search: searchIndividualInput $pagination: paginationCursorInput $order: [orderIndividualInput]){
       individualsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  name  origin
          description
-         accession_id
+         accessionId
          genotypeId
          field_unit_id
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search,
-            order: order,
-            pagination: pagination
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -150,42 +114,32 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static addOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
         mutation addIndividual(
-          $name:ID!  
+          $name:ID!
           $origin:String
           $description:String
           $genotypeId:Int
-          $field_unit_id:Int 
-          $addAccession:ID 
+          $field_unit_id:Int
+          $addAccession:ID
           $addMeasurements:[ID]
- 
+
         ){
-          addIndividual( 
-          name:$name  
+          addIndividual(
+          name:$name
           origin:$origin
           description:$description
           genotypeId:$genotypeId
-          field_unit_id:$field_unit_id  
+          field_unit_id:$field_unit_id
           addAccession:$addAccession  addMeasurements:$addMeasurements){
-            name 
+            name
             origin
             description
-            accession_id
+            accessionId
             genotypeId
             field_unit_id
           }
         }`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -204,21 +158,11 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static deleteOne(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
-          mutation 
-            deleteIndividual{ 
+          mutation
+            deleteIndividual{
               deleteIndividual(
                 name: "${id}" )}`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: \n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -236,48 +180,38 @@ module.exports = class INDIVIDUAL_PGMN {
     }
 
     static updateOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
-          mutation 
+          mutation
             updateIndividual(
-              $name:ID! 
-              $origin:String 
-              $description:String 
-              $genotypeId:Int 
-              $field_unit_id:Int  
-              $addAccession:ID 
-              $removeAccession:ID  
-              $addMeasurements:[ID] 
-              $removeMeasurements:[ID] 
+              $name:ID!
+              $origin:String
+              $description:String
+              $genotypeId:Int
+              $field_unit_id:Int
+              $addAccession:ID
+              $removeAccession:ID
+              $addMeasurements:[ID]
+              $removeMeasurements:[ID]
             ){
               updateIndividual(
-                name:$name 
-                origin:$origin 
-                description:$description 
-                genotypeId:$genotypeId 
-                field_unit_id:$field_unit_id   
-                addAccession:$addAccession 
-                removeAccession:$removeAccession   
-                addMeasurements:$addMeasurements 
-                removeMeasurements:$removeMeasurements 
+                name:$name
+                origin:$origin
+                description:$description
+                genotypeId:$genotypeId
+                field_unit_id:$field_unit_id
+                addAccession:$addAccession
+                removeAccession:$removeAccession
+                addMeasurements:$addMeasurements
+                removeMeasurements:$removeMeasurements
               ){
-                name 
-                origin 
-                description 
-                accession_id 
-                genotypeId 
-                field_unit_id 
+                name
+                origin
+                description
+                accessionId
+                genotypeId
+                field_unit_id
               }
             }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -294,6 +228,67 @@ module.exports = class INDIVIDUAL_PGMN {
             handleError(error);
         });
     }
+
+    static async _addAccession(name, accessionId) {
+      let query = `
+        mutation
+          updateIndividual{
+            updateIndividual(
+              name:"${name}"
+              addAccession: "${accessionId}"
+            ){
+              name
+              accessionId
+            }
+          }`
+
+      return axios.post(remoteCenzontleURL, {
+          query: query
+      }).then(res => {
+          //check
+          if (res && res.data && res.data.data) {
+              return res.data.data.updateIndividual;
+          } else {
+              throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+          }
+      }).catch(error => {
+          error['url'] = remoteCenzontleURL;
+          handleError(error);
+      });
+
+    }
+
+
+    static async _removeAccession(name, accessionId) {
+      let query = `
+        mutation
+          updateIndividual{
+            updateIndividual(
+              name:"${name}"
+              removeAccession: "${accessionId}"
+            ){
+              name
+              accessionId
+            }
+          }`
+
+      return axios.post(remoteCenzontleURL, {
+          query: query
+      }).then(res => {
+          //check
+          if (res && res.data && res.data.data) {
+              return res.data.data.updateIndividual;
+          } else {
+              throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+          }
+      }).catch(error => {
+          error['url'] = remoteCenzontleURL;
+          handleError(error);
+      });
+
+    }
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Individual.bulkAddCsv is not implemented.")

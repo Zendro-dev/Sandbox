@@ -158,12 +158,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static readById(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \nid: ", id);
-
-
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
@@ -171,10 +165,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static countRecords(search) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords: search: ", search);
         let options = {};
 
         /*
@@ -195,11 +185,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static readAllCursor(search, order, pagination) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor: search: ", search, "  order: ", order, "  pagination: ", pagination);
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -273,8 +258,7 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -360,11 +344,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static addOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne: \n- input: ", input);
-
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
             .then(async (valSuccess) => {
                 try {
@@ -382,11 +361,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static deleteOne(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne: id: ", id);
-
         return super.findByPk(id)
             .then(item => {
 
@@ -407,11 +381,6 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT extends Sequelize.Model {
     }
 
     static updateOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne: input: ", input);
-
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
             .then(async (valSuccess) => {
                 try {

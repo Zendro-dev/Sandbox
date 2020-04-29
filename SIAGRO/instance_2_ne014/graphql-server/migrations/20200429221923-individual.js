@@ -35,7 +35,7 @@ module.exports = {
             description: {
                 type: Sequelize[dict['String']]
             },
-            accession_id: {
+            accessionId: {
                 type: Sequelize[dict['String']]
             },
             genotypeId: {

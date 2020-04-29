@@ -20,7 +20,7 @@ module.exports.validator_patch = function(individual) {
             "description": {
                 "type": ["string", "null"]
             },
-            "accession_id": {
+            "accessionId": {
                 "type": ["string", "null"]
             },
             "genotypeId": {

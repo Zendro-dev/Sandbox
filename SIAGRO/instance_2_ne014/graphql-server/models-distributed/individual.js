@@ -16,7 +16,7 @@ const definition = {
         name: 'String',
         origin: 'String',
         description: 'String',
-        accession_id: 'String',
+        accessionId: 'String',
         genotypeId: 'Int',
         field_unit_id: 'Int'
     },
@@ -24,7 +24,7 @@ const definition = {
         accession: {
             type: 'to_one',
             target: 'Accession',
-            targetKey: 'accession_id',
+            targetKey: 'accessionId',
             keyIn: 'Individual',
             targetStorageType: 'distributed-data-model',
             label: 'accession_id',
@@ -80,14 +80,14 @@ module.exports = class Individual {
         name,
         origin,
         description,
-        accession_id,
+        accessionId,
         genotypeId,
         field_unit_id
     }) {
         this.name = name;
         this.origin = origin;
         this.description = description;
-        this.accession_id = accession_id;
+        this.accessionId = accessionId;
         this.genotypeId = genotypeId;
         this.field_unit_id = field_unit_id;
     }
@@ -98,7 +98,7 @@ module.exports = class Individual {
 
     /**
      * registeredAdapters - Returns an object which has a key for each
-     * adapter on adapter/index.js. Each key of the object will have 
+     * adapter on adapter/index.js. Each key of the object will have
      *
      * @return {string}     baseUrl from request.
      */
@@ -120,11 +120,6 @@ module.exports = class Individual {
     }
 
     static readById(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readById \nid: ", id);
-
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
 
@@ -139,20 +134,15 @@ module.exports = class Individual {
     }
 
     static countRecords(search, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.countRecords");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -164,9 +154,9 @@ module.exports = class Individual {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -206,20 +196,15 @@ module.exports = class Individual {
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readAllCursor");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -238,9 +223,9 @@ module.exports = class Individual {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -265,11 +250,6 @@ module.exports = class Individual {
         return Promise.all(promises)
             //phase 1: reduce
             .then(results => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
-
                 return results.reduce((total, current) => {
                     //check if current is Error
                     if (current instanceof Error) {
@@ -289,11 +269,6 @@ module.exports = class Individual {
             })
             //phase 2: order & paginate
             .then(nodesAndErrors => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodesAndErrors.nodes, "]", "\n---------- @@@");
-
                 let nodes = nodesAndErrors.nodes;
                 let errors = nodesAndErrors.errors;
 
@@ -386,37 +361,33 @@ module.exports = class Individual {
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.name);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.addOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].addOne(input).then(result => new Individual(result));
     }
 
     static deleteOne(id) {
         let responsibleAdapter = this.adapterForIri(id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.deleteOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].deleteOne(id);
     }
 
     static updateOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.name);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].updateOne(input).then(result => new Individual(result));
     }
+
+    static async _addAccession(name, accessionId) {
+      console.log("MODEL");
+      let responsibleAdapter = this.adapterForIri(name);
+      console.log("MODEL RESPONSIBLE ADAPTER: ", name, JSON.stringify(responsibleAdapter)  ,responsibleAdapter.adapterName);
+      return await adapters[responsibleAdapter]._addAccession(name, accessionId);
+
+    }
+
+  static async _removeAccession(name, accessionId) {
+    let responsibleAdapter = this.adapterForIri(name);
+    return await adapters[responsibleAdapter]._removeAccession(name, accessionId);
+  }
+
 
     static bulkAddCsv(context) {
         throw new Error("Individual.bulkAddCsv is not implemented.")

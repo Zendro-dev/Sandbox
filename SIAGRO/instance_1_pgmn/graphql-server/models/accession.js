@@ -57,7 +57,7 @@ const definition = {
         individuals: {
             type: 'to_many',
             target: 'Individual',
-            targetKey: 'accession_id',
+            targetKey: 'accessionId',
             keyIn: 'Individual',
             targetStorageType: 'sql',
             label: 'name',
@@ -69,7 +69,8 @@ const definition = {
             target_pl: 'Individuals',
             target_cp: 'Individual',
             target_cp_pl: 'Individuals',
-            keyIn_lc: 'individual'
+            keyIn_lc: 'individual',
+            holdsForeignKey: false
         },
         taxon: {
             type: 'to_one',
@@ -87,7 +88,8 @@ const definition = {
             target_pl: 'Taxons',
             target_cp: 'Taxon',
             target_cp_pl: 'Taxons',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         location: {
             type: 'to_one',
@@ -105,7 +107,8 @@ const definition = {
             target_pl: 'Locations',
             target_cp: 'Location',
             target_cp_pl: 'Locations',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: true
         },
         measurements: {
             type: 'to_many',
@@ -122,7 +125,8 @@ const definition = {
             target_pl: 'Measurements',
             target_cp: 'Measurement',
             target_cp_pl: 'Measurements',
-            keyIn_lc: 'measurement'
+            keyIn_lc: 'measurement',
+            holdsForeignKey: false
         }
     },
     internalId: 'accession_id',
@@ -257,7 +261,7 @@ module.exports = class Accession extends Sequelize.Model {
 
         Accession.hasMany(models.individual, {
             as: 'individuals',
-            foreignKey: 'accession_id'
+            foreignKey: 'accessionId'
         });
 
         Accession.hasMany(models.measurement, {
@@ -403,8 +407,7 @@ module.exports = class Accession extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -510,7 +513,7 @@ module.exports = class Accession extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -535,6 +538,9 @@ module.exports = class Accession extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
@@ -601,27 +607,103 @@ module.exports = class Accession extends Sequelize.Model {
         return helper.csvTableTemplate(Accession);
     }
 
-    static async _addLocation(accession_id, locationId) {
 
-        let result = await sequelize.transaction(async transaction => {
+    /**
+     * _addTaxon - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
             try {
-              return Accession.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
+                return Accession.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
             } catch (error) {
                 throw error;
             }
         });
-        return result;
+        return updated;
+    }
+    /**
+     * _addLocation - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addLocation(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
     }
 
-    static async _removeLocation(accession_id, locationId) {
-        let result = await sequelize.transaction(async transaction => {
+    /**
+     * _removeTaxon - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeTaxon(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
             try {
-              return Accession.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
+                return Accession.update({
+                    taxon_id: null
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
             } catch (error) {
                 throw error;
             }
         });
-        return result;
+        return updated;
+    }
+    /**
+     * _removeLocation - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeLocation(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Accession.update({
+                    locationId: null
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
     }
 
 

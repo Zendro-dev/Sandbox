@@ -5,7 +5,7 @@
     "name": "String",
     "origin": "String",
     "description": "String",
-    "accession_id": "String",
+    "accessionId": "String",
     "genotypeId": "Int",
     "field_unit_id": "Int"
   },
@@ -14,7 +14,7 @@
     "accession":{
       "type": "to_one",
       "target": "Accession",
-      "targetKey": "accession_id",
+      "targetKey": "accessionId",
       "keyIn" : "Individual",
       "targetStorageType": "sql",
       "label": "accession_id",

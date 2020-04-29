@@ -117,17 +117,17 @@ measurement.prototype.handleAssociations = async function(input, context) {
         let promises = [];
 
         if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
-            promises.push(this.addIndividual(input, context));
+            promises.push(this.add_individual(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addAccession)) {
-            promises.push(this.addAccession(input, context));
+            promises.push(this.add_accession(input, context));
         }
 
         if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
-            promises.push(this.removeIndividual(input, context));
+            promises.push(this.remove_individual(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeAccession)) {
-            promises.push(this.removeAccession(input, context));
+            promises.push(this.remove_accession(input, context));
         }
 
         await Promise.all(promises);
@@ -137,21 +137,21 @@ measurement.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * addIndividual - field Mutation for to_one associationsArguments to add 
+ * add_individual - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-measurement.prototype.addIndividual = async function(input) {
+measurement.prototype.add_individual = async function(input) {
     await measurement._addIndividual(this.getIdValue(), input.addIndividual);
     this.individual_id = input.addIndividual;
 }
 
 /**
- * addAccession - field Mutation for to_one associationsArguments to add 
+ * add_accession - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-measurement.prototype.addAccession = async function(input) {
+measurement.prototype.add_accession = async function(input) {
     await measurement._addAccession(this.getIdValue(), input.addAccession);
     this.accession_id = input.addAccession;
 }
@@ -159,11 +159,11 @@ measurement.prototype.addAccession = async function(input) {
 
 
 /**
- * removeIndividual - field Mutation for to_one associationsArguments to remove 
+ * remove_individual - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-measurement.prototype.removeIndividual = async function(input) {
+measurement.prototype.remove_individual = async function(input) {
     if (input.removeIndividual === this.individual_id) {
         await measurement._removeIndividual(this.getIdValue(), input.removeIndividual);
         this.individual_id = null;
@@ -171,11 +171,11 @@ measurement.prototype.removeIndividual = async function(input) {
 }
 
 /**
- * removeAccession - field Mutation for to_one associationsArguments to remove 
+ * remove_accession - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-measurement.prototype.removeAccession = async function(input) {
+measurement.prototype.remove_accession = async function(input) {
     if (input.removeAccession === this.accession_id) {
         await measurement._removeAccession(this.getIdValue(), input.removeAccession);
         this.accession_id = null;

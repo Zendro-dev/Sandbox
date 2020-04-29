@@ -33,11 +33,11 @@ const associationArgsDef = {
 individual.prototype.accession = async function({
     search
 }, context) {
-    if (helper.isNotUndefinedAndNotNull(this.accession_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.accessionId)) {
         try {
             if (search === undefined) {
                 return resolvers.readOneAccession({
-                    [models.accession.idAttribute()]: this.accession_id
+                    [models.accession.idAttribute()]: this.accessionId
                 }, context)
             } else {
                 //build new search filter
@@ -45,7 +45,7 @@ individual.prototype.accession = async function({
                     "search": search,
                     "field": models.accession.idAttribute(),
                     "value": {
-                        "value": this.accession_id
+                        "value": this.accessionId
                     },
                     "operator": "eq"
                 });
@@ -183,16 +183,16 @@ individual.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addMeasurements)) {
-            promises.push(this.addMeasurements(input, context));
+            promises.push(this.add_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addAccession)) {
-            promises.push(this.addAccession(input, context));
+            promises.push(this.add_accession(input, context));
         }
         if (helper.isNonEmptyArray(input.removeMeasurements)) {
-            promises.push(this.removeMeasurements(input, context));
+            promises.push(this.remove_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeAccession)) {
-            promises.push(this.removeAccession(input, context));
+            promises.push(this.remove_accession(input, context));
         }
 
         await Promise.all(promises);
@@ -202,11 +202,11 @@ individual.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * addMeasurements - field Mutation for to_many associationsArguments to add 
+ * add_measurements - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-individual.prototype.addMeasurements = async function(input) {
+individual.prototype.add_measurements = async function(input) {
     let results = [];
     input.addMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._addIndividual(associatedRecordId, this.getIdValue()));
@@ -215,23 +215,23 @@ individual.prototype.addMeasurements = async function(input) {
 }
 
 /**
- * addAccession - field Mutation for to_one associationsArguments to add 
+ * add_accession - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-individual.prototype.addAccession = async function(input) {
+individual.prototype.add_accession = async function(input) {
     await individual._addAccession(this.getIdValue(), input.addAccession);
-    this.accession_id = input.addAccession;
+    this.accessionId = input.addAccession;
 }
 
 
 
 /**
- * removeMeasurements - field Mutation for to_many associationsArguments to remove 
+ * remove_measurements - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-individual.prototype.removeMeasurements = async function(input) {
+individual.prototype.remove_measurements = async function(input) {
     let results = [];
     input.removeMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._removeIndividual(associatedRecordId, this.getIdValue()));
@@ -240,14 +240,14 @@ individual.prototype.removeMeasurements = async function(input) {
 }
 
 /**
- * removeAccession - field Mutation for to_one associationsArguments to remove 
+ * remove_accession - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-individual.prototype.removeAccession = async function(input) {
-    if (input.removeAccession === this.accession_id) {
+individual.prototype.remove_accession = async function(input) {
+    if (input.removeAccession === this.accessionId) {
         await individual._removeAccession(this.getIdValue(), input.removeAccession);
-        this.accession_id = null;
+        this.accessionId = null;
     }
 }
 
@@ -461,7 +461,7 @@ module.exports = {
     vueTableIndividual: function(_, context) {
         return checkAuthorization(context, 'Individual', 'read').then(authorization => {
             if (authorization === true) {
-                return helper.vueTable(context.request, individual, ["id", "name", "origin", "description", "accession_id"]);
+                return helper.vueTable(context.request, individual, ["id", "name", "origin", "description", "accessionId"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

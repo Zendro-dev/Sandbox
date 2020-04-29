@@ -40,7 +40,7 @@
     "individuals": {
       "type": "to_many",
       "target": "Individual",
-      "targetKey": "accession_id",
+      "targetKey": "accessionId",
       "keyIn" : "Individual",
       "targetStorageType": "sql",
       "label": "name"

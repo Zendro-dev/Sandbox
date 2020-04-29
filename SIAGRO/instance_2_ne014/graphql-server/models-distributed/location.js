@@ -49,7 +49,8 @@ const definition = {
             target_pl: 'Accessions',
             target_cp: 'Accession',
             target_cp_pl: 'Accessions',
-            keyIn_lc: 'accession'
+            keyIn_lc: 'accession',
+            holdsForeignKey: false
         }
     },
     internalId: 'locationId',
@@ -115,7 +116,7 @@ module.exports = class Location {
 
     /**
      * registeredAdapters - Returns an object which has a key for each
-     * adapter on adapter/index.js. Each key of the object will have
+     * adapter on adapter/index.js. Each key of the object will have 
      *
      * @return {string}     baseUrl from request.
      */
@@ -127,7 +128,6 @@ module.exports = class Location {
     }
 
     static adapterForIri(iri) {
-        console.log("ADAPTERS:", JSON.stringify(adapters));
         let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(iri));
         if (responsibleAdapter.length > 1) {
             throw new Error("IRI has no unique match");
@@ -138,11 +138,6 @@ module.exports = class Location {
     }
 
     static readById(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readById LOCATION \nid: ", id);
-
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
 
@@ -157,20 +152,15 @@ module.exports = class Location {
     }
 
     static countRecords(search, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.countRecords");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined:
+         *    if authorizedAdapters is defined: 
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         *
-         *    if authorizedAdapters is not defined:
-         *      - called internally
+         * 
+         *    if authorizedAdapters is not defined: 
+         *      - called internally 
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -182,9 +172,9 @@ module.exports = class Location {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter:
+             *   sql-adapter: 
              *      resolve with current parameters.
-             *
+             *   
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -224,20 +214,15 @@ module.exports = class Location {
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readAllCursor");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined:
+         *    if authorizedAdapters is defined: 
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         *
-         *    if authorizedAdapters is not defined:
-         *      - called internally
+         * 
+         *    if authorizedAdapters is not defined: 
+         *      - called internally 
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -256,9 +241,9 @@ module.exports = class Location {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter:
+             *   sql-adapter: 
              *      resolve with current parameters.
-             *
+             *   
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -283,11 +268,6 @@ module.exports = class Location {
         return Promise.all(promises)
             //phase 1: reduce
             .then(results => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
-
                 return results.reduce((total, current) => {
                     //check if current is Error
                     if (current instanceof Error) {
@@ -307,11 +287,6 @@ module.exports = class Location {
             })
             //phase 2: order & paginate
             .then(nodesAndErrors => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodesAndErrors.nodes, "]", "\n---------- @@@");
-
                 let nodes = nodesAndErrors.nodes;
                 let errors = nodesAndErrors.errors;
 
@@ -404,35 +379,17 @@ module.exports = class Location {
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.locationId);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.addOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].addOne(input).then(result => new Location(result));
     }
 
     static deleteOne(id) {
         let responsibleAdapter = this.adapterForIri(id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.deleteOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].deleteOne(id);
     }
 
     static updateOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.locationId);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].updateOne(input).then(result => new Location(result));
     }
 

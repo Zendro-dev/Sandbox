@@ -25,11 +25,6 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static readById(iri) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           query
             readOneAccession
@@ -70,11 +65,6 @@ module.exports = class ACCESSION_PGMN {
               }
             }`;
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n");
-
         return axios.post(remoteCenzontleURL, {
             query: query
         }).then(res => {
@@ -91,22 +81,10 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static countRecords(search) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords \nsearch: ", search, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
       query countAccessions($search: searchAccessionInput){
         countAccessions(search: $search)
       }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -127,11 +105,6 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static readAllCursor(search, order, pagination) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor \search: ", search, "\norder: ", order, "\npagination: ", pagination, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -170,15 +143,6 @@ module.exports = class ACCESSION_PGMN {
          locationId
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search,
-            order: order,
-            pagination: pagination
-        });
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: {
@@ -200,11 +164,6 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static addOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
         mutation addAccession(
           $accession_id:ID!
@@ -236,12 +195,6 @@ module.exports = class ACCESSION_PGMN {
           $collected_other:String
           $habit:String
           $local_name:String
-          $addTaxon:ID
-
-          $addIndividuals:[ID]
-
-          $addMeasurements:[ID]
-
         ){
           addAccession(
           accession_id:$accession_id
@@ -272,9 +225,7 @@ module.exports = class ACCESSION_PGMN {
           collected_plants:$collected_plants
           collected_other:$collected_other
           habit:$habit
-          local_name:$local_name
-          addTaxon:$addTaxon
-            addIndividuals:$addIndividuals addMeasurements:$addMeasurements){
+          local_name:$local_name){
             accession_id
             collectors_name
             collectors_initials
@@ -309,11 +260,6 @@ module.exports = class ACCESSION_PGMN {
           }
         }`;
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: input
@@ -331,21 +277,11 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static deleteOne(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation
             deleteAccession{
               deleteAccession(
                 accession_id: "${id}" )}`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: \n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -363,11 +299,6 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static updateOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation
             updateAccession(
@@ -400,14 +331,7 @@ module.exports = class ACCESSION_PGMN {
               $collected_other:String
               $habit:String
               $local_name:String
-              $addTaxon:ID
-              $removeTaxon:ID
 
-              $removeLocation:ID
-              $addIndividuals:[ID]
-              $removeIndividuals:[ID]
-              $addMeasurements:[ID]
-              $removeMeasurements:[ID]
             ){
               updateAccession(
                 accession_id:$accession_id
@@ -439,14 +363,6 @@ module.exports = class ACCESSION_PGMN {
                 collected_other:$collected_other
                 habit:$habit
                 local_name:$local_name
-                addTaxon:$addTaxon
-                removeTaxon:$removeTaxon
-
-                removeLocation:$removeLocation
-                addIndividuals:$addIndividuals
-                removeIndividuals:$removeIndividuals
-                addMeasurements:$addMeasurements
-                removeMeasurements:$removeMeasurements
               ){
                 accession_id
                 collectors_name
@@ -482,11 +398,6 @@ module.exports = class ACCESSION_PGMN {
               }
             }`
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: input
@@ -506,65 +417,65 @@ module.exports = class ACCESSION_PGMN {
     static _addLocation(accession_id, locationId){
 
 
-      let query = `
-        mutation
-          updateAccession{
-            updateAccession(
-              accession_id:"${accession_id}"
-              addLocation:"${locationId}"
-            ){
-              accession_id
-              locationId
+    let query = `
+      mutation
+        updateAccession{
+          updateAccession(
+            accession_id:"${accession_id}"
+            addLocation:"${locationId}"
+          ){
+            accession_id
+            locationId
+          }
+        }`
+
+        console.log("ADAPTER");
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
             }
-          }`
-
-          console.log("ADAPTER");
-          return axios.post(remoteCenzontleURL, {
-              query: query
-          }).then(res => {
-              //check
-              if (res && res.data && res.data.data) {
-                  console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
-                  return res.data.data.updateAccession;
-              } else {
-                  throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-              }
-          }).catch(error => {
-              error['url'] = remoteCenzontleURL;
-              handleError(error);
-          });
-    }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+  }
 
 
-    static _removeLocation(accession_id, locationId){
+  static _removeLocation(accession_id, locationId){
 
 
-      let query = `
-        mutation
-          updateAccession{
-            updateAccession(
-              accession_id:"${accession_id}"
-              removeLocation:"${locationId}"
-            ){
-              accession_id
-              locationId
+    let query = `
+      mutation
+        updateAccession{
+          updateAccession(
+            accession_id:"${accession_id}"
+            removeLocation:"${locationId}"
+          ){
+            accession_id
+            locationId
+          }
+        }`
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
             }
-          }`
-          return axios.post(remoteCenzontleURL, {
-              query: query
-          }).then(res => {
-              //check
-              if (res && res.data && res.data.data) {
-                  console.log("ADAPTER RESPONSE:",res.data.data.updateAccession);
-                  return res.data.data.updateAccession;
-              } else {
-                  throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-              }
-          }).catch(error => {
-              error['url'] = remoteCenzontleURL;
-              handleError(error);
-          });
-    }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+  }
 
 
     static bulkAddCsv(context) {

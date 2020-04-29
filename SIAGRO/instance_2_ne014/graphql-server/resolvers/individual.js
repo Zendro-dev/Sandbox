@@ -29,11 +29,11 @@ const associationArgsDef = {
 individual.prototype.accession = async function({
     search
 }, context) {
-    if (helper.isNotUndefinedAndNotNull(this.accession_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.accessionId)) {
         try {
             if (search === undefined) {
                 return resolvers.readOneAccession({
-                    [models.accession.idAttribute()]: this.accession_id
+                    [models.accession.idAttribute()]: this.accessionId
                 }, context)
             } else {
                 //build new search filter
@@ -41,7 +41,7 @@ individual.prototype.accession = async function({
                     "search": search,
                     "field": models.accession.idAttribute(),
                     "value": {
-                        "value": this.accession_id
+                        "value": this.accessionId
                     },
                     "operator": "eq"
                 });
@@ -198,11 +198,6 @@ module.exports = {
         order,
         pagination
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: individualsConnection");
-
         //check: adapters
         let registeredAdapters = Object.values(individual.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -255,11 +250,6 @@ module.exports = {
     readOneIndividual: async function({
         name
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: readOneIndividual");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, individual.adapterForIri(name), 'read');
@@ -282,11 +272,6 @@ module.exports = {
      * @return {object}         New record created
      */
     addIndividual: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: addIndividual");
-
         //check: input has idAttribute
         if (!input.name) {
             throw new Error(`Illegal argument. Provided input requires attribute 'name'.`);
@@ -336,11 +321,6 @@ module.exports = {
     deleteIndividual: async function({
         name
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: deleteIndividual");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, individual.adapterForIri(name), 'delete');
@@ -365,11 +345,6 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateIndividual: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: updateIndividual");
-
         //check: input has idAttribute
         if (!input.name) {
             throw new Error(`Illegal argument. Provided input requires attribute 'name'.`);
@@ -400,11 +375,6 @@ module.exports = {
     countIndividuals: async function({
         search
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: countIndividual");
-
         //check: adapters
         let registeredAdapters = Object.values(individual.registeredAdapters);
         if (registeredAdapters.length === 0) {

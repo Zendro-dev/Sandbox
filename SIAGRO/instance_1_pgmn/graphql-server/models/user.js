@@ -226,8 +226,7 @@ module.exports = class user extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -333,7 +332,7 @@ module.exports = class user extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -358,6 +357,9 @@ module.exports = class user extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
@@ -533,8 +535,7 @@ module.exports = class user extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
 
             /*
@@ -627,7 +628,35 @@ module.exports = class user extends Sequelize.Model {
         return this.countRoles(options);
     }
 
+    /**
+     * _addRoles - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addRoles(record, addRoles) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.setRoles(addRoles, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
 
+    /**
+     * _removeRoles - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeRoles(record, removeRoles) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.removeRoles(removeRoles, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
 
 
     /**
