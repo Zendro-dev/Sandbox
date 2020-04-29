@@ -111,10 +111,10 @@ user.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addRoles)) {
-            promises.push(this.addRoles(input, context));
+            promises.push(this.add_roles(input, context));
         }
         if (helper.isNonEmptyArray(input.removeRoles)) {
-            promises.push(this.removeRoles(input, context));
+            promises.push(this.remove_roles(input, context));
         }
 
         await Promise.all(promises);
@@ -123,7 +123,25 @@ user.prototype.handleAssociations = async function(input, context) {
     }
 }
 
+/**
+ * add_roles - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+user.prototype.add_roles = async function(input) {
+    await models.user._addRoles(this, input.addRoles);
+}
 
+
+
+/**
+ * remove_roles - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+user.prototype.remove_roles = async function(input) {
+    await models.user._removeRoles(this, input.removeRoles);
+}
 
 
 /**

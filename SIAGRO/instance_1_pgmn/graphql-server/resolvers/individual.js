@@ -183,16 +183,16 @@ individual.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addMeasurements)) {
-            promises.push(this.addMeasurements(input, context));
+            promises.push(this.add_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addAccession)) {
-            promises.push(this.addAccession(input, context));
+            promises.push(this.add_accession(input, context));
         }
         if (helper.isNonEmptyArray(input.removeMeasurements)) {
-            promises.push(this.removeMeasurements(input, context));
+            promises.push(this.remove_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeAccession)) {
-            promises.push(this.removeAccession(input, context));
+            promises.push(this.remove_accession(input, context));
         }
 
         await Promise.all(promises);
@@ -202,11 +202,11 @@ individual.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * addMeasurements - field Mutation for to_many associationsArguments to add 
+ * add_measurements - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-individual.prototype.addMeasurements = async function(input) {
+individual.prototype.add_measurements = async function(input) {
     let results = [];
     input.addMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._addIndividual(associatedRecordId, this.getIdValue()));
@@ -215,11 +215,11 @@ individual.prototype.addMeasurements = async function(input) {
 }
 
 /**
- * addAccession - field Mutation for to_one associationsArguments to add 
+ * add_accession - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-individual.prototype.addAccession = async function(input) {
+individual.prototype.add_accession = async function(input) {
     await individual._addAccession(this.getIdValue(), input.addAccession);
     this.accession_id = input.addAccession;
 }
@@ -227,11 +227,11 @@ individual.prototype.addAccession = async function(input) {
 
 
 /**
- * removeMeasurements - field Mutation for to_many associationsArguments to remove 
+ * remove_measurements - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-individual.prototype.removeMeasurements = async function(input) {
+individual.prototype.remove_measurements = async function(input) {
     let results = [];
     input.removeMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._removeIndividual(associatedRecordId, this.getIdValue()));
@@ -240,11 +240,11 @@ individual.prototype.removeMeasurements = async function(input) {
 }
 
 /**
- * removeAccession - field Mutation for to_one associationsArguments to remove 
+ * remove_accession - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-individual.prototype.removeAccession = async function(input) {
+individual.prototype.remove_accession = async function(input) {
     if (input.removeAccession === this.accession_id) {
         await individual._removeAccession(this.getIdValue(), input.removeAccession);
         this.accession_id = null;

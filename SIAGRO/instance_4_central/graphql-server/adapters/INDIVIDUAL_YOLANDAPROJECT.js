@@ -25,11 +25,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static readById(iri) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           query 
             readOneIndividual
@@ -44,11 +39,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
                 field_unit_id 
               }
             }`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -66,22 +56,10 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static countRecords(search) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords \nsearch: ", search, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
       query countIndividuals($search: searchIndividualInput){
         countIndividuals(search: $search)
       }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -102,11 +80,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static readAllCursor(search, order, pagination) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor \search: ", search, "\norder: ", order, "\npagination: ", pagination, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -119,15 +92,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
          genotypeId
          field_unit_id
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search,
-            order: order,
-            pagination: pagination
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -150,11 +114,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static addOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
         mutation addIndividual(
           $name:ID!  
@@ -182,11 +141,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
           }
         }`;
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: input
@@ -204,21 +158,11 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static deleteOne(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation 
             deleteIndividual{ 
               deleteIndividual(
                 name: "${id}" )}`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: \n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -236,11 +180,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
     }
 
     static updateOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation 
             updateIndividual(
@@ -273,11 +212,6 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT {
                 field_unit_id 
               }
             }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
 
         return axios.post(remoteCenzontleURL, {
             query: query,

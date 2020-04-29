@@ -142,10 +142,10 @@ location.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addAccessions)) {
-            promises.push(this.addAccessions(input, context));
+            promises.push(this.add_accessions(input, context));
         }
         if (helper.isNonEmptyArray(input.removeAccessions)) {
-            promises.push(this.removeAccessions(input, context));
+            promises.push(this.remove_accessions(input, context));
         }
 
         await Promise.all(promises);
@@ -155,11 +155,11 @@ location.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * addAccessions - field Mutation for to_many associationsArguments to add 
+ * add_accessions - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-location.prototype.addAccessions = async function(input) {
+location.prototype.add_accessions = async function(input) {
     let results = [];
     input.addAccessions.forEach(associatedRecordId => {
         results.push(models.accession._addLocation(associatedRecordId, this.getIdValue()));
@@ -170,11 +170,11 @@ location.prototype.addAccessions = async function(input) {
 
 
 /**
- * removeAccessions - field Mutation for to_many associationsArguments to remove 
+ * remove_accessions - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-location.prototype.removeAccessions = async function(input) {
+location.prototype.remove_accessions = async function(input) {
     let results = [];
     input.removeAccessions.forEach(associatedRecordId => {
         results.push(models.accession._removeLocation(associatedRecordId, this.getIdValue()));

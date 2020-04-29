@@ -156,11 +156,6 @@ module.exports = {
         order,
         pagination
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: locationsConnection");
-
         //check: adapters
         let registeredAdapters = Object.values(location.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -213,11 +208,6 @@ module.exports = {
     readOneLocation: async function({
         locationId
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: readOneLocation");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, location.adapterForIri(locationId), 'read');
@@ -240,11 +230,6 @@ module.exports = {
      * @return {object}         New record created
      */
     addLocation: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: addLocation");
-
         //check: input has idAttribute
         if (!input.locationId) {
             throw new Error(`Illegal argument. Provided input requires attribute 'locationId'.`);
@@ -294,11 +279,6 @@ module.exports = {
     deleteLocation: async function({
         locationId
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: deleteLocation");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, location.adapterForIri(locationId), 'delete');
@@ -323,11 +303,6 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateLocation: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: updateLocation");
-
         //check: input has idAttribute
         if (!input.locationId) {
             throw new Error(`Illegal argument. Provided input requires attribute 'locationId'.`);
@@ -358,11 +333,6 @@ module.exports = {
     countLocations: async function({
         search
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: countLocation");
-
         //check: adapters
         let registeredAdapters = Object.values(location.registeredAdapters);
         if (registeredAdapters.length === 0) {

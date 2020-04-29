@@ -397,7 +397,7 @@ module.exports = class Location extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -422,6 +422,9 @@ module.exports = class Location extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });

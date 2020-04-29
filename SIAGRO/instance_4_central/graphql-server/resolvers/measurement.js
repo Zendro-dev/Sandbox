@@ -167,11 +167,6 @@ module.exports = {
         order,
         pagination
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: measurementsConnection");
-
         //check: adapters
         let registeredAdapters = Object.values(measurement.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -224,11 +219,6 @@ module.exports = {
     readOneMeasurement: async function({
         measurement_id
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: readOneMeasurement");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, measurement.adapterForIri(measurement_id), 'read');
@@ -251,11 +241,6 @@ module.exports = {
      * @return {object}         New record created
      */
     addMeasurement: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: addMeasurement");
-
         //check: input has idAttribute
         if (!input.measurement_id) {
             throw new Error(`Illegal argument. Provided input requires attribute 'measurement_id'.`);
@@ -305,11 +290,6 @@ module.exports = {
     deleteMeasurement: async function({
         measurement_id
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: deleteMeasurement");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, measurement.adapterForIri(measurement_id), 'delete');
@@ -334,11 +314,6 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateMeasurement: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: updateMeasurement");
-
         //check: input has idAttribute
         if (!input.measurement_id) {
             throw new Error(`Illegal argument. Provided input requires attribute 'measurement_id'.`);
@@ -369,11 +344,6 @@ module.exports = {
     countMeasurements: async function({
         search
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: countMeasurement");
-
         //check: adapters
         let registeredAdapters = Object.values(measurement.registeredAdapters);
         if (registeredAdapters.length === 0) {

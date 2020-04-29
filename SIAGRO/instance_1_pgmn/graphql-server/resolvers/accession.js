@@ -332,28 +332,28 @@ accession.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addIndividuals)) {
-            promises.push(this.addIndividuals(input, context));
+            promises.push(this.add_individuals(input, context));
         }
         if (helper.isNonEmptyArray(input.addMeasurements)) {
-            promises.push(this.addMeasurements(input, context));
+            promises.push(this.add_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addTaxon)) {
-            promises.push(this.addTaxon(input, context));
+            promises.push(this.add_taxon(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
-            promises.push(this.addLocation(input, context));
+            promises.push(this.add_location(input, context));
         }
         if (helper.isNonEmptyArray(input.removeIndividuals)) {
-            promises.push(this.removeIndividuals(input, context));
+            promises.push(this.remove_individuals(input, context));
         }
         if (helper.isNonEmptyArray(input.removeMeasurements)) {
-            promises.push(this.removeMeasurements(input, context));
+            promises.push(this.remove_measurements(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeTaxon)) {
-            promises.push(this.removeTaxon(input, context));
+            promises.push(this.remove_taxon(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
-            promises.push(this.removeLocation(input, context));
+            promises.push(this.remove_location(input, context));
         }
 
         await Promise.all(promises);
@@ -363,11 +363,11 @@ accession.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * addIndividuals - field Mutation for to_many associationsArguments to add 
+ * add_individuals - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-accession.prototype.addIndividuals = async function(input) {
+accession.prototype.add_individuals = async function(input) {
     let results = [];
     input.addIndividuals.forEach(associatedRecordId => {
         results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
@@ -376,11 +376,11 @@ accession.prototype.addIndividuals = async function(input) {
 }
 
 /**
- * addMeasurements - field Mutation for to_many associationsArguments to add 
+ * add_measurements - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-accession.prototype.addMeasurements = async function(input) {
+accession.prototype.add_measurements = async function(input) {
     let results = [];
     input.addMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._addAccession(associatedRecordId, this.getIdValue()));
@@ -389,21 +389,21 @@ accession.prototype.addMeasurements = async function(input) {
 }
 
 /**
- * addTaxon - field Mutation for to_one associationsArguments to add 
+ * add_taxon - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-accession.prototype.addTaxon = async function(input) {
+accession.prototype.add_taxon = async function(input) {
     await accession._addTaxon(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
 
 /**
- * addLocation - field Mutation for to_one associationsArguments to add 
+ * add_location - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-accession.prototype.addLocation = async function(input) {
+accession.prototype.add_location = async function(input) {
     await accession._addLocation(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
@@ -411,11 +411,11 @@ accession.prototype.addLocation = async function(input) {
 
 
 /**
- * removeIndividuals - field Mutation for to_many associationsArguments to remove 
+ * remove_individuals - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-accession.prototype.removeIndividuals = async function(input) {
+accession.prototype.remove_individuals = async function(input) {
     let results = [];
     input.removeIndividuals.forEach(associatedRecordId => {
         results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
@@ -424,11 +424,11 @@ accession.prototype.removeIndividuals = async function(input) {
 }
 
 /**
- * removeMeasurements - field Mutation for to_many associationsArguments to remove 
+ * remove_measurements - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-accession.prototype.removeMeasurements = async function(input) {
+accession.prototype.remove_measurements = async function(input) {
     let results = [];
     input.removeMeasurements.forEach(associatedRecordId => {
         results.push(models.measurement._removeAccession(associatedRecordId, this.getIdValue()));
@@ -437,11 +437,11 @@ accession.prototype.removeMeasurements = async function(input) {
 }
 
 /**
- * removeTaxon - field Mutation for to_one associationsArguments to remove 
+ * remove_taxon - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-accession.prototype.removeTaxon = async function(input) {
+accession.prototype.remove_taxon = async function(input) {
     if (input.removeTaxon === this.taxon_id) {
         await accession._removeTaxon(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
@@ -449,11 +449,11 @@ accession.prototype.removeTaxon = async function(input) {
 }
 
 /**
- * removeLocation - field Mutation for to_one associationsArguments to remove 
+ * remove_location - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-accession.prototype.removeLocation = async function(input) {
+accession.prototype.remove_location = async function(input) {
     if (input.removeLocation === this.locationId) {
         await accession._removeLocation(this.getIdValue(), input.removeLocation);
         this.locationId = null;

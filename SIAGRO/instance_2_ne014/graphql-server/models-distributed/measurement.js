@@ -137,11 +137,6 @@ module.exports = class Measurement {
     }
 
     static readById(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readById \nid: ", id);
-
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
 
@@ -156,11 +151,6 @@ module.exports = class Measurement {
     }
 
     static countRecords(search, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.countRecords");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -223,11 +213,6 @@ module.exports = class Measurement {
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.readAllCursor");
-
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -282,11 +267,6 @@ module.exports = class Measurement {
         return Promise.all(promises)
             //phase 1: reduce
             .then(results => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase1:\n", "\n results[", typeof results, "]", "\n---------- @@@");
-
                 return results.reduce((total, current) => {
                     //check if current is Error
                     if (current instanceof Error) {
@@ -306,11 +286,6 @@ module.exports = class Measurement {
             })
             //phase 2: order & paginate
             .then(nodesAndErrors => {
-                /**
-                 * Debug
-                 */
-                console.log("@@---------- phase2:\n", "\n nodes[", typeof nodesAndErrors.nodes, "]", "\n---------- @@@");
-
                 let nodes = nodesAndErrors.nodes;
                 let errors = nodesAndErrors.errors;
 
@@ -403,35 +378,17 @@ module.exports = class Measurement {
     static addOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.measurement_id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.addOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].addOne(input).then(result => new Measurement(result));
     }
 
     static deleteOne(id) {
         let responsibleAdapter = this.adapterForIri(id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.deleteOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].deleteOne(id);
     }
 
     static updateOne(input) {
         this.assertInputHasId(input);
         let responsibleAdapter = this.adapterForIri(input.measurement_id);
-
-        /**
-         * Debug
-         */
-        console.log("-@@---- ddm.updateOne: \nresponsibleAdapter: ", responsibleAdapter);
-
         return adapters[responsibleAdapter].updateOne(input).then(result => new Measurement(result));
     }
 

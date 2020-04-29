@@ -313,11 +313,6 @@ module.exports = {
         order,
         pagination
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: accessionsConnection");
-
         //check: adapters
         let registeredAdapters = Object.values(accession.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -370,11 +365,6 @@ module.exports = {
     readOneAccession: async function({
         accession_id
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: readOneAccession");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(accession_id), 'read');
@@ -397,11 +387,6 @@ module.exports = {
      * @return {object}         New record created
      */
     addAccession: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: addAccession");
-
         //check: input has idAttribute
         if (!input.accession_id) {
             throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
@@ -451,11 +436,6 @@ module.exports = {
     deleteAccession: async function({
         accession_id
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: deleteAccession");
-
         //check: adapters auth
         try {
             let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(accession_id), 'delete');
@@ -480,11 +460,6 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateAccession: async function(input, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: updateAccession");
-
         //check: input has idAttribute
         if (!input.accession_id) {
             throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
@@ -515,11 +490,6 @@ module.exports = {
     countAccessions: async function({
         search
     }, context) {
-        /**
-         * Debug
-         */
-        console.log("\n-@--resolver: on: countAccession");
-
         //check: adapters
         let registeredAdapters = Object.values(accession.registeredAdapters);
         if (registeredAdapters.length === 0) {

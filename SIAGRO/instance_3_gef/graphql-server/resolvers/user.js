@@ -15,9 +15,11 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 
+
 const associationArgsDef = {
     'addRoles': 'role'
 }
+
 
 /**
  * user.prototype.rolesFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -109,10 +111,10 @@ user.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
         if (helper.isNonEmptyArray(input.addRoles)) {
-            promises.push(this.addRoles(input, context));
+            promises.push(this.add_roles(input, context));
         }
         if (helper.isNonEmptyArray(input.removeRoles)) {
-            promises.push(this.removeRoles(input, context));
+            promises.push(this.remove_roles(input, context));
         }
 
         await Promise.all(promises);
@@ -121,25 +123,25 @@ user.prototype.handleAssociations = async function(input, context) {
     }
 }
 
-
-user.prototype.addRoles = async function(input) {
-    console.log("input:" + JSON.stringify(input))
-    console.log("id+ " + this.id);
-    let results = [];
-
-    input.addRoles.forEach(roleId => {
-        results.push(models.role_to_user.addOne({userId: this.id, roleId: parseInt(roleId)}));
-    })
-    await Promise.all(results);
-    
-    // await models.user._addRoles(input.id, input.addRoles);
+/**
+ * add_roles - field Mutation for to_many associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+user.prototype.add_roles = async function(input) {
+    await models.user._addRoles(this, input.addRoles);
 }
 
 
 
-
-
-
+/**
+ * remove_roles - field Mutation for to_many associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+user.prototype.remove_roles = async function(input) {
+    await models.user._removeRoles(this, input.removeRoles);
+}
 
 
 /**

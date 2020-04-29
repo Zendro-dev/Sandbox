@@ -25,11 +25,6 @@ module.exports = class LOCATION_PGMN {
     }
 
     static readById(iri) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readById \niri: ", iri, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           query 
             readOneLocation
@@ -57,11 +52,6 @@ module.exports = class LOCATION_PGMN {
               }
             }`;
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n");
-
         return axios.post(remoteCenzontleURL, {
             query: query
         }).then(res => {
@@ -78,22 +68,10 @@ module.exports = class LOCATION_PGMN {
     }
 
     static countRecords(search) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: countRecords \nsearch: ", search, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
       query countLocations($search: searchLocationInput){
         countLocations(search: $search)
       }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search
-        });
 
         return axios.post(remoteCenzontleURL, {
             query: query,
@@ -114,11 +92,6 @@ module.exports = class LOCATION_PGMN {
     }
 
     static readAllCursor(search, order, pagination) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: readAllCursor \search: ", search, "\norder: ", order, "\npagination: ", pagination, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -144,15 +117,6 @@ module.exports = class LOCATION_PGMN {
          slope
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", {
-            search: search,
-            order: order,
-            pagination: pagination
-        });
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: {
@@ -174,11 +138,6 @@ module.exports = class LOCATION_PGMN {
     }
 
     static addOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: addOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
         mutation addLocation(
           $locationId:ID!  
@@ -242,11 +201,6 @@ module.exports = class LOCATION_PGMN {
           }
         }`;
 
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
-
         return axios.post(remoteCenzontleURL, {
             query: query,
             variables: input
@@ -264,21 +218,11 @@ module.exports = class LOCATION_PGMN {
     }
 
     static deleteOne(id) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: deleteOne \nid: ", id, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation 
             deleteLocation{ 
               deleteLocation(
                 locationId: "${id}" )}`;
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: \n");
 
         return axios.post(remoteCenzontleURL, {
             query: query
@@ -296,11 +240,6 @@ module.exports = class LOCATION_PGMN {
     }
 
     static updateOne(input) {
-        /**
-         * Debug
-         */
-        console.log("-@@@------ adapter: (", this.adapterType, ") : ", this.adapterName, "\n- on: updateOne \ninput: ", input, "\nremoteCenzontleURL: ", remoteCenzontleURL);
-
         let query = `
           mutation 
             updateLocation(
@@ -367,11 +306,6 @@ module.exports = class LOCATION_PGMN {
                 slope 
               }
             }`
-
-        /**
-         * Debug
-         */
-        console.log("\nquery: gql:\n", query, "\nvariables: gql:\n", input);
 
         return axios.post(remoteCenzontleURL, {
             query: query,

@@ -332,7 +332,7 @@ module.exports = class role extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -357,6 +357,9 @@ module.exports = class role extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
@@ -626,7 +629,35 @@ module.exports = class role extends Sequelize.Model {
         return this.countUsers(options);
     }
 
+    /**
+     * _addUsers - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addUsers(record, addUsers) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.setUsers(addUsers, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
 
+    /**
+     * _removeUsers - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeUsers(record, removeUsers) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.removeUsers(removeUsers, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
 
 
     /**

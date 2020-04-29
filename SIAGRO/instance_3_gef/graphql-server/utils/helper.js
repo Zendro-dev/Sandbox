@@ -1017,12 +1017,12 @@ module.exports.vueTable = function(req, model, strAttributes) {
       let currAssocIds = input[curr];
 
       //check: if empty array or undefined or null --> return true
-      if(isEmptyArray() || !isNotUndefinedAndNotNull()) {
+      if(isEmptyArray() || !module.exports.isNotUndefinedAndNotNull()) {
         return acc; //equivalent to: acc && true
       } //else...
 
       //if not array make it one
-      if(!isNonEmptyArray(currAssocIds)) {
+      if(!module.exports.isNonEmptyArray(currAssocIds)) {
         currAssocIds = [currAssocIds];
       }
 
