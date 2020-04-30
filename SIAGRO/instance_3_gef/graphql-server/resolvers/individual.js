@@ -208,9 +208,9 @@ individual.prototype.handleAssociations = async function(input, context) {
  */
 individual.prototype.add_measurements = async function(input) {
     let results = [];
-    input.addMeasurements.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.addMeasurements) {
         results.push(models.measurement._addIndividual(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -233,9 +233,9 @@ individual.prototype.add_accession = async function(input) {
  */
 individual.prototype.remove_measurements = async function(input) {
     let results = [];
-    input.removeMeasurements.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.removeMeasurements) {
         results.push(models.measurement._removeIndividual(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -485,9 +485,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Individual', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdIndividual = await individual.addOne(inputSanitized);
                 await createdIndividual.handleAssociations(inputSanitized, context);
                 return createdIndividual;
@@ -557,9 +557,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Individual', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedIndividual = await individual.updateOne(inputSanitized);
                 await updatedIndividual.handleAssociations(inputSanitized, context);
                 return updatedIndividual;

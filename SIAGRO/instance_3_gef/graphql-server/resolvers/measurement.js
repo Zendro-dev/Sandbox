@@ -416,9 +416,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Measurement', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdMeasurement = await measurement.addOne(inputSanitized);
                 await createdMeasurement.handleAssociations(inputSanitized, context);
                 return createdMeasurement;
@@ -488,9 +488,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Measurement', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedMeasurement = await measurement.updateOne(inputSanitized);
                 await updatedMeasurement.handleAssociations(inputSanitized, context);
                 return updatedMeasurement;

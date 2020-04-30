@@ -143,8 +143,9 @@ module.exports = class Individual extends Sequelize.Model {
             if (typeof search !== 'object') {
                 throw new Error('Illegal "search" argument type, it must be an object.');
             }
-
+            console.log("searchCount: " + JSON.stringify(search));
             let arg = new searchArg(search);
+            console.log("arg: " + JSON.stringify(arg))
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }

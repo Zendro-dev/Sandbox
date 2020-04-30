@@ -2,7 +2,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const rewire = require('rewire');
 const helper = rewire('../utils/helper');
-const resolvers = require('../resolvers/index');
 const _ = require('lodash');
 
 chai.use(require('chai-as-promised'));
@@ -276,56 +275,75 @@ describe('Check authorization on association args', function() {
 
 describe('Validate existence', function() {
     let model = {
-        adapterForIri: id => 'theAdapter',
+        adapterForIri: id => { return 'theAdapter'},
         registeredAdapters: {
             theAdapter: "adapterReturn"
         },
         idAttribute: function() {return "ID"},
-        countRecords: (search, responsibleAdapter) => {
+        readById: async function() {return {}},
+        countRecords: async (search, responsibleAdapter) => {
+            let idsPresent = [1, 2, 4];
             if (search.field !== 'ID') {
-                throw new Error('Wrong ID field');
+                throw new Error('Wrong ID field: ' + search.field);
+            }
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
+            }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
             }
             if (!_.isEqual(responsibleAdapter, ['adapterReturn'])) {
                 throw new Error(`Wrong adapter given: ` + JSON.stringify(responsibleAdapter));
             }
-            switch (search.value.value) {
-                case 1: return 1;
-                case 2: return 3;
-                case 3: return 0;
-                case 4: return 3;
-                default: throw new Error('ID unknown');
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
             }
+            return numberOfPresentIds;
         },
         definition: {model: 'Testmodel'}
     }
 
     let localModel = {
         idAttribute: function() {return "ID"},
-        countRecords: (search) => {
+        readById: function() {return {}},
+        countRecords: async (search) => {
+            let idsPresent = [2, 3];
             if (search.field !== 'ID') {
-                throw new Error('Wrong ID field');
+                throw new Error('Wrong ID field: ' + search.field);
             }
-            switch (search.value.value) {
-                case 1: return 0;
-                case 2: return 1;
-                case 3: return 2;
-                default: throw new Error('ID unknown');
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
             }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
+            }
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
+            }
+            return numberOfPresentIds;
         },
         definition: {model: 'Testmodel-lokal'}
     }
 
     let noCountModel = {
-        readById: async id => {
+        idAttribute: function() {return "ID"},
+        readById: async (id) => {
             switch (id) {
                 case 1: return 1;
                 case 2: return 2;
                 case 3: return 3;
-                case 4: return null;
+                case 4: return undefined;
                 case 5: return 5;
-                default: throw new Error('ID unknown');
+                default: throw new Error('ID unknown: ' + id);
             }
-        }
+        },
+        definition: {model: 'Testmodel without count'}
     }
 
     it('1. ID 1 should exist', async function() {
@@ -380,5 +398,162 @@ describe('Validate existence', function() {
         expect(helper.validateExistence([1, 2, 4], noCountModel)).to.be.rejectedWith(Error);
     })
 
+})
 
+describe('Validate association arguments\' existence', function() {
+    
+
+    let Dog = {
+        idAttribute: function() {return "ID"},
+        readById: function() {return {}},
+        countRecords: async (search) => {
+            let idsPresent = [2, 3];
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
+            }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
+            }
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
+            }
+            return numberOfPresentIds;
+        },
+        definition: {model: 'Dog'}
+    }
+
+    let Cat = {
+        idAttribute: function() {return "ID"},
+        readById: function() {return {}},
+        countRecords: async (search) => {
+            let idsPresent = [2, 3, 4];
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
+            }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
+            }
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
+            }
+            return numberOfPresentIds;
+        },
+        definition: {model: 'Cat'}
+    }
+
+    let Hamster = {
+        idAttribute: function() {return "ID"},
+        readById: function() {return {}},
+        countRecords: async (search) => {
+            let idsPresent = [2, 3, 4, 5];
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
+            }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
+            }
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
+            }
+            return numberOfPresentIds;
+        },
+        definition: {model: 'Hamster'}
+    }
+
+    let Employer = {
+        idAttribute: function() {return "ID"},
+        readById: function() {return {}},
+        countRecords: async (search) => {
+            let idsPresent = [1, 2, 3, 5];
+            if (search.field !== 'ID') {
+                throw new Error('Wrong ID field');
+            }
+            if (search.operator !== 'in') {
+                throw new Error('Only operator \'in\' is supported');
+            }
+            if (search.value.type !== 'Array') {
+                throw new Error('An Array must be given as search value');
+            }
+            let numberOfPresentIds = 0;
+            for (let id of search.value.value) {
+                if (idsPresent.includes(id)) {
+                    numberOfPresentIds++;
+                }
+            }
+            return numberOfPresentIds;
+        },
+        definition: {model: 'Employer'}
+    }
+
+    const associationArgsDef = {
+        'addDogs': 'Dog',
+        'removeDogs': 'Dog',
+        'addCats': 'Cat',
+        'removeCats': 'Cat',
+        'addHamsters': 'Hamster',
+        'removeHamsters': 'Hamster',
+        'addEmployer': 'Employer',
+        'removeEmployer': 'Employer'
+    }
+
+    before(function() {
+        setOldModelIndex = helper.__set__('models_index', {
+            Dog: Dog,
+            Cat: Cat,
+            Hamster: Hamster,
+            Employer: Employer
+        });
+    })
+
+    after(function() {
+        setOldModelIndex();
+    })
+
+    it('01. Single existing dog', function() {
+        let input = {addDogs: 2};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.fulfilled;
+    })
+
+    it('02. Single non-existing dog', function() {
+        let input = {addDogs: 1};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.rejectedWith(Error);
+    })
+
+    it('03. Single existing cat', function() {
+        let input = {addCats: 4};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.fulfilled;
+    })
+
+    it('04. Existing records from all types', function() {
+        let input = {addDogs: [2, 3], addCats: 4, addHamsters: 5, addEmployer: 1};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.fulfilled;
+    })
+
+    it('05. Non-existing records from all types', function() {
+        let input = {addDogs: 1, addCats: [5, 6], addHamsters: 1, addEmployer: 4};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.rejectedWith(Error);
+    })
+
+    it('06. Mixing existing and non-existing records from all types', function() {
+        let input = {addDogs: 2, addCats: [5, 6], addHamsters: 1, addEmployer: 4};
+        expect(helper.validateAssociationArgsExistence(input, null, associationArgsDef)).to.be.rejectedWith(Error);
+    })
 })

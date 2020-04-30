@@ -369,9 +369,9 @@ accession.prototype.handleAssociations = async function(input, context) {
  */
 accession.prototype.add_individuals = async function(input) {
     let results = [];
-    input.addIndividuals.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.addIndividuals) {
         results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -382,9 +382,9 @@ accession.prototype.add_individuals = async function(input) {
  */
 accession.prototype.add_measurements = async function(input) {
     let results = [];
-    input.addMeasurements.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.addMeasurements) {
         results.push(models.measurement._addAccession(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -417,9 +417,9 @@ accession.prototype.add_location = async function(input) {
  */
 accession.prototype.remove_individuals = async function(input) {
     let results = [];
-    input.removeIndividuals.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.removeIndividuals) {
         results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -430,9 +430,9 @@ accession.prototype.remove_individuals = async function(input) {
  */
 accession.prototype.remove_measurements = async function(input) {
     let results = [];
-    input.removeMeasurements.forEach(associatedRecordId => {
+    for await (associatedRecordId of input.removeMeasurements) {
         results.push(models.measurement._removeAccession(associatedRecordId, this.getIdValue()));
-    })
+    }
     await Promise.all(results);
 }
 
@@ -696,9 +696,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Accession', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdAccession = await accession.addOne(inputSanitized);
                 await createdAccession.handleAssociations(inputSanitized, context);
                 return createdAccession;
@@ -768,9 +768,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Accession', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedAccession = await accession.updateOne(inputSanitized);
                 await updatedAccession.handleAssociations(inputSanitized, context);
                 return updatedAccession;
