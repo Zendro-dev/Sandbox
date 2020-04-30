@@ -286,24 +286,16 @@ accession.prototype.handleAssociations = async function(input, context) {
 }
 
 accession.prototype.add_location = async function(input, context) {
-  let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(this.accession_id), 'update');
-  if (authorizationCheck === true) {
 
     await accession._addLocation(input.accession_id, input.addLocation);
     this.locationId = input.addLocation;
-  } else { //adapter not auth
-      throw new Error("You don't have authorization to perform this action on adapter");
-  }
+
 }
 
 accession.prototype.remove_location = async function(input,context) {
-  let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(this.accession_id), 'update');
-  if (authorizationCheck === true) {
     await accession._removeLocation(input.accession_id, input.removeLocation);
     this.locationId = null;
-  } else { //adapter not auth
-      throw new Error("You don't have authorization to perform this action on adapter");
-  }
+
 }
 
 
@@ -315,15 +307,9 @@ accession.prototype.remove_location = async function(input,context) {
 accession.prototype.add_individuals = async function(input, context) {
 
     let results = [];
-    input.addIndividuals.forEach(async associatedRecordId => {
-      let authorizationCheck = await checkAuthorization(context, models.individual.adapterForIri(associatedRecordId), 'update');
-      if (authorizationCheck === true) {
-        results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
-       }
-       //else { //adapter not auth
-      //     throw new Error("You don't have authorization to perform this action on adapter");
-      // }
-    })
+    for await (associatedRecordId of input.addIndividuals) {
+      results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 
 }
@@ -336,12 +322,9 @@ accession.prototype.add_individuals = async function(input, context) {
  */
 accession.prototype.remove_individuals = async function(input,context) {
     let results = [];
-    input.removeIndividuals.forEach(async associatedRecordId => {
-      let authorizationCheck = await checkAuthorization(context, models.individual.adapterForIri(associatedRecordId), 'update');
-      if (authorizationCheck === true) {
+    for await (associatedRecordId of input.removeIndividuals) {
         results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
-      }
-    })
+    }
     await Promise.all(results);
 }
 

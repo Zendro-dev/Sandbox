@@ -377,6 +377,57 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
+    /**
+     * _addAccession - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async _addAccession(name, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    accessionId: accession_id
+                }, {
+                    where: {
+                        name: name
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * _removeAccession - field Mutation (adpater-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async _removeAccession(name, accession_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    accessionId: null
+                }, {
+                    where: {
+                        name: name
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+
     static bulkAddCsv(context) {
 
         let delim = context.request.body.delim;
