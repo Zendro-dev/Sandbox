@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 const associationArgsDef = {
     'addIndividual': 'individual',
@@ -103,6 +104,52 @@ measurement.prototype.accession = async function({
 
 
 /**
+ * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
+ *
+ * @param {string} query The query that failed
+ */
+function errorMessageForRecordsLimit(query) {
+    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
+}
+
+/**
+ * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} search  Search argument for filtering records
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {string} query The query that makes this check
+ */
+async function checkCount(search, context, query) {
+    if (await measurement.countRecords(search) > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+}
+
+/**
+ * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ *
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+function checkCountForOne(context) {
+    if (1 > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit("readOneMeasurement"));
+    }
+}
+
+/**
+ * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
+ * @param {string} query The query that makes this check
+ */
+function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
+    if (numberOfFoundItems > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+    context.recordsLimit -= numberOfFoundItems;
+}
+/**
  * countAllAssociatedRecords - Count records associated with another given record
  *
  * @param  {ID} id      Id of the record which the associations will be counted
@@ -126,7 +173,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -140,7 +187,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`Measurement with measurement_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
 
     if (context.benignErrors.length > 0) {
@@ -294,7 +341,7 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, measurement.adapterForIri(measurement_id), 'delete');
             if (authorizationCheck === true) {
-                if (await measurement.validForDeletion(measurement_id, context)) {
+                if (await validForDeletion(measurement_id, context)) {
                     return measurement.deleteOne(measurement_id);
                 }
             } else { //adapter not auth

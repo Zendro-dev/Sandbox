@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -144,6 +145,7 @@ user.prototype.remove_roles = async function(input) {
 }
 
 
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -190,7 +192,6 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
     }
     context.recordsLimit -= numberOfFoundItems;
 }
-
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -213,7 +214,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -227,7 +228,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`user with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -421,7 +422,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'user', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await user.validForDeletion(id, context)) {
+                if (await validForDeletion(id, context)) {
                     return user.deleteOne(id);
                 }
             } else {
