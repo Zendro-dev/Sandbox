@@ -1,0 +1,23 @@
+{
+  "model": "Book",
+  "storageType": "cenz-server",
+  "url": "http://localhost:3030/graphql",
+  "attributes": {
+    "title": "String",
+    "genre": "String",
+    "internalBId": "String",
+    "internalPId": "String"
+  },
+  "associations": {
+    "Authors": {
+      "type": "to_one",
+      "target": "Person",
+      "targetKey": "internalPId",
+      "keyIn": "Book",
+      "targetStorageType": "cenz_server",
+      "label": "firstName",
+      "sublabel": "email"
+    }
+  },
+  "internalId": "internalBId"
+}

@@ -27,7 +27,7 @@ services:
       - ./graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
     networks:
       - backend
-      - cenzontle
+      - cenzontle-web
     # Await POSTGRES role and DB creation, migrate schema, then start web
     # server:
     command:
@@ -55,7 +55,7 @@ services:
 #    volumes:
 #      - .:/usr/ScienceDbStarterPack
 #    networks:
-#      - cenzontle
+#      - cenzontle-web
 #    # Install dependencies and start single-page-app-server in development
 #    # mode.
 #    command:
@@ -70,5 +70,5 @@ volumes:
 
 networks:
   backend:
-  cenzontle:
+  cenzontle-web:
     external: true

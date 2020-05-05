@@ -1,0 +1,23 @@
+{
+  "model" : "Person",
+  "storageType" : "cenz-server",
+  "url": "http://localhost:3030/graphql",
+  "attributes" : {
+    "firstName" : "String",
+    "lastName" : "String",
+    "email" : "String",
+    "companyId": "Int",
+    "internalPId": "String"
+  },
+  "associations":{
+    "works":{
+      "type" : "to_many",
+      "target" : "Book",
+      "keyIn": "Book",
+      "targetKey" : "internalPId",
+      "targetStorageType" : "cenz_server",
+      "label" : "title"
+    }
+  },
+  "internalId": "internalPId"
+}

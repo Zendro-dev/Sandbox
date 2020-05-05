@@ -3,7 +3,7 @@ module.exports = `
     """
     @original-field
     """
-    internalPersonId: ID
+    internalPId: ID
 
     """
     @original-field
@@ -70,7 +70,7 @@ type PersonEdge{
   }
 
   enum PersonField {
-    internalPersonId
+    internalPId
     firstName
     lastName
     email
@@ -81,7 +81,6 @@ type PersonEdge{
     field: PersonField
     value: typeValue
     operator: Operator
-    excludeAdapterNames: [String]
     search: [searchPersonInput]
   }
 
@@ -92,7 +91,7 @@ type PersonEdge{
 
   type Query {
     people(search: searchPersonInput, order: [ orderPersonInput ], pagination: paginationInput ): [Person]
-    readOnePerson(internalPersonId: ID!): Person
+    readOnePerson(internalPId: ID!): Person
     countPeople(search: searchPersonInput ): Int
     vueTablePerson : VueTablePerson    csvTableTemplatePerson: [String]
 
@@ -100,9 +99,9 @@ type PersonEdge{
   }
 
     type Mutation {
-    addPerson(internalPersonId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID] ): Person!
-    updatePerson(internalPersonId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID], removeWorks:[ID] ): Person!
-  deletePerson(internalPersonId: ID!): String!
+    addPerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID] ): Person!
+    updatePerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID], removeWorks:[ID] ): Person!
+  deletePerson(internalPId: ID!): String!
   bulkAddPersonCsv: [Person] }
 
 `;

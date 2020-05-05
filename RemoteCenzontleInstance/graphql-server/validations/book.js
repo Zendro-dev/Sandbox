@@ -17,10 +17,10 @@ module.exports.validator_patch = function(book) {
             "genre": {
                 "type": ["string", "null"]
             },
-            "internalPersonId": {
+            "internalBId": {
                 "type": ["string", "null"]
             },
-            "internalBookId": {
+            "internalPId": {
                 "type": ["string", "null"]
             }
         }

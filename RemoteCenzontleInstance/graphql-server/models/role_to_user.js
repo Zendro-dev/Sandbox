@@ -70,6 +70,12 @@ module.exports = class role_to_user extends Sequelize.Model {
     static countRecords(search) {
         let options = {};
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -80,6 +86,12 @@ module.exports = class role_to_user extends Sequelize.Model {
     static readAll(search, order, pagination) {
         let options = {};
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -126,6 +138,12 @@ module.exports = class role_to_user extends Sequelize.Model {
          * Search conditions
          */
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -273,13 +291,8 @@ module.exports = class role_to_user extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -291,7 +304,7 @@ module.exports = class role_to_user extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -316,19 +329,14 @@ module.exports = class role_to_user extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
-
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -389,9 +397,6 @@ module.exports = class role_to_user extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(role_to_user);
     }
-
-
-
 
 
 

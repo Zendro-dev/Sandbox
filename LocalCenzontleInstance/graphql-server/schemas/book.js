@@ -3,7 +3,7 @@ module.exports = `
     """
     @original-field
     """
-    internalBookId: ID
+    internalBId: ID
 
     """
     @original-field
@@ -21,9 +21,9 @@ module.exports = `
     @original-field
     
     """
-    internalPersonId: String
+    internalPId: String
 
-    author(search: searchPersonInput): Person
+    Authors(search: searchPersonInput): Person
     }
 
 type BookConnection{
@@ -49,17 +49,16 @@ type BookEdge{
   }
 
   enum BookField {
-    internalBookId
+    internalBId
     title
     genre
-    internalPersonId
+    internalPId
   }
 
   input searchBookInput {
     field: BookField
     value: typeValue
     operator: Operator
-    excludeAdapterNames: [String]
     search: [searchBookInput]
   }
 
@@ -70,7 +69,7 @@ type BookEdge{
 
   type Query {
     books(search: searchBookInput, order: [ orderBookInput ], pagination: paginationInput ): [Book]
-    readOneBook(internalBookId: ID!): Book
+    readOneBook(internalBId: ID!): Book
     countBooks(search: searchBookInput ): Int
     vueTableBook : VueTableBook    csvTableTemplateBook: [String]
 
@@ -78,9 +77,9 @@ type BookEdge{
   }
 
     type Mutation {
-    addBook(internalBookId: ID!, title: String, genre: String , addAuthor:ID  ): Book!
-    updateBook(internalBookId: ID!, title: String, genre: String , addAuthor:ID, removeAuthor:ID  ): Book!
-  deleteBook(internalBookId: ID!): String!
+    addBook(internalBId: ID!, title: String, genre: String , addAuthors:ID  ): Book!
+    updateBook(internalBId: ID!, title: String, genre: String , addAuthors:ID, removeAuthors:ID  ): Book!
+  deleteBook(internalBId: ID!): String!
   bulkAddBookCsv: [Book] }
 
 `;

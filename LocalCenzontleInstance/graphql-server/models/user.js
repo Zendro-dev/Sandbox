@@ -26,7 +26,7 @@ const definition = {
     },
     associations: {
         roles: {
-            type: 'to_many',
+            type: 'to_many_through_sql_cross_table',
             target: 'role',
             targetKey: 'roleId',
             sourceKey: 'userId',
@@ -41,7 +41,8 @@ const definition = {
             target_lc_pl: 'roles',
             target_pl: 'roles',
             target_cp: 'Role',
-            target_cp_pl: 'Roles'
+            target_cp_pl: 'Roles',
+            holdsForeignKey: false
         }
     },
     id: {
@@ -79,6 +80,7 @@ module.exports = class user extends Sequelize.Model {
     }
 
     static associate(models) {
+
         user.belongsToMany(models.role, {
             as: 'roles',
             foreignKey: 'userId',
@@ -97,6 +99,12 @@ module.exports = class user extends Sequelize.Model {
     static countRecords(search) {
         let options = {};
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -107,6 +115,12 @@ module.exports = class user extends Sequelize.Model {
     static readAll(search, order, pagination) {
         let options = {};
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -153,6 +167,12 @@ module.exports = class user extends Sequelize.Model {
          * Search conditions
          */
         if (search !== undefined) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
             let arg = new searchArg(search);
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
@@ -300,23 +320,8 @@ module.exports = class user extends Sequelize.Model {
                         let item = await super.create(input, {
                             transaction: t
                         });
-                        let promises_associations = [];
-                        if (input.addRoles) {
-                            //let wrong_ids =  await helper.checkExistence(input.addRoles, models.role);
-                            //if(wrong_ids.length > 0){
-                            //    throw new Error(`Ids ${wrong_ids.join(",")} in model role were not found.`);
-                            //}else{
-                            promises_associations.push(item.setRoles(input.addRoles, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-
-                        return Promise.all(promises_associations).then(() => {
-                            return item
-                        });
+                        return item;
                     });
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -328,7 +333,7 @@ module.exports = class user extends Sequelize.Model {
         return super.findByPk(id)
             .then(item => {
 
-                if (item === null) return new Error(`Record with ID = ${id} not exist`);
+                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
                 return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
                     .then((valSuccess) => {
@@ -353,42 +358,14 @@ module.exports = class user extends Sequelize.Model {
                         let item = await super.findByPk(input[this.idAttribute()], {
                             transaction: t
                         });
+                        if (item === null) {
+                            throw new Error(`Record with ID = ${id} does not exist`);
+                        }
                         let updated = await item.update(input, {
                             transaction: t
                         });
-
-                        if (input.addRoles) {
-                            //let wrong_ids =  await helper.checkExistence(input.addRoles, models.role);
-                            //if(wrong_ids.length > 0){
-                            //  throw new Error(`Ids ${wrong_ids.join(",")} in model role were not found.`);
-                            //}else{
-                            promises_associations.push(updated.addRoles(input.addRoles, {
-                                transaction: t
-                            }));
-                            //}
-                        }
-
-                        if (input.removeRoles) {
-                            //let ids_associated = await item.getRoles().map(t => `${t[models.role.idAttribute()]}`);
-                            //await helper.asyncForEach(input.removeRoles, id =>{
-                            //  if(!ids_associated.includes(id)){
-                            //    throw new Error(`The association with id ${id} that you're trying to remove desn't exists`);
-                            //  }
-                            //});
-                            promises_associations.push(updated.removeRoles(input.removeRoles, {
-                                transaction: t
-                            }));
-                        }
-
-                        return Promise.all(promises_associations).then(() => {
-                            return updated;
-                        });
+                        return updated;
                     });
-
-
-
-
-
                     return result;
                 } catch (error) {
                     throw error;
@@ -451,54 +428,11 @@ module.exports = class user extends Sequelize.Model {
     }
 
 
-
-
-
-
-
-
-    async _addRoles(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let input = {
-                userId: this.getIdValue(),
-                roleId: id
-            }
-            await models.role_to_user.addOne(input);
-        });
-    }
-
-    async _removeRoles(ids) {
-        await helper.asyncForEach(ids, async id => {
-            let search_a = {
-                "field": "userId",
-                "value": {
-                    "value": this.getIdValue()
-                },
-                "operator": "eq"
-
-            }
-
-            let search_b = {
-                "field": "roleId",
-                "value": {
-                    "value": id
-                },
-                "operator": "eq"
-            }
-            let record = await models.role_to_user.readAll({
-                operator: "and",
-                search: [search_a, search_b]
-            });
-            await models.role_to_user.deleteOne(record[0][models.role_to_user.idAttribute()]);
-        });
-    }
-
     rolesFilterImpl({
         search,
         order,
         pagination
     }) {
-
         let options = {};
 
         if (search !== undefined) {
@@ -537,7 +471,6 @@ module.exports = class user extends Sequelize.Model {
         order,
         pagination
     }) {
-
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -683,13 +616,11 @@ module.exports = class user extends Sequelize.Model {
         }).catch(error => {
             throw error;
         });
-
     }
 
     countFilteredRolesImpl({
         search
     }) {
-
         let options = {};
         if (search !== undefined) {
             let arg = new searchArg(search);
@@ -698,6 +629,37 @@ module.exports = class user extends Sequelize.Model {
         }
         return this.countRoles(options);
     }
+
+    /**
+     * _addRole - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addRole(record, addRoles) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.setRoles(addRoles, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
+
+    /**
+     * _removeRole - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeRole(record, removeRoles) {
+        const updated = await sequelize.transaction(async (transaction) => {
+            return await record.removeRoles(removeRoles, {
+                transaction: transaction
+            });
+        });
+        return updated;
+    }
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

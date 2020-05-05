@@ -1,0 +1,22 @@
+{
+  "model": "Book",
+  "storageType": "sql",
+  "attributes": {
+    "title": "String",
+    "genre": "String",
+    "internalBId": "String",
+    "internalPId": "String"
+  },
+  "associations": {
+    "Authors": {
+      "type": "to_one",
+      "target": "Person",
+      "targetKey": "internalPId",
+      "keyIn": "Book",
+      "targetStorageType": "sql",
+      "label": "firstName",
+      "sublabel": "email"
+    }
+  },
+  "internalId": "internalBId"
+}

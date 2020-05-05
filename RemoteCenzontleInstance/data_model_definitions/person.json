@@ -1,0 +1,22 @@
+{
+  "model" : "Person",
+  "storageType" : "sql",
+  "attributes" : {
+    "firstName" : "String",
+    "lastName" : "String",
+    "email" : "String",
+    "companyId": "Int",
+    "internalPId": "String"
+  },
+  "associations":{
+    "works":{
+      "type" : "to_many",
+      "target" : "Book",
+      "keyIn": "Book",
+      "targetKey" : "internalPId",
+      "targetStorageType" : "sql",
+      "label" : "title"
+    }
+  },
+  "internalId": "internalPId"
+}

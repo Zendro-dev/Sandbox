@@ -23,7 +23,7 @@ module.exports.validator_patch = function(person) {
             "companyId": {
                 "type": ["integer", "null"]
             },
-            "internalPersonId": {
+            "internalPId": {
                 "type": ["string", "null"]
             }
         }
