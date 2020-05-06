@@ -1,0 +1,18 @@
+{
+    "model": "Employer",
+    "storageType": "sql",
+    "attributes": {
+      "employer": "String"
+    },
+    "associations": {
+      "employees": {
+        "type": "to_many",
+        "target": "Person",
+        "targetKey": "internalEId",
+        "keyIn": "Person",
+        "targetStorageType": "sql",
+        "label": "firstName",
+        "sublabel": "email"
+      }
+    }
+  }

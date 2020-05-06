@@ -25,7 +25,8 @@ const definition = {
         lastName: 'String',
         email: 'String',
         companyId: 'Int',
-        internalPId: 'String'
+        internalPId: 'String',
+        internalEId: 'String'
     },
     associations: {
         works: {
@@ -45,6 +46,24 @@ const definition = {
             target_cp_pl: 'Books',
             keyIn_lc: 'book',
             holdsForeignKey: false
+        },
+        employer: {
+            type: 'to_one',
+            target: 'Employer',
+            keyIn: 'Person',
+            targetKey: 'internalEId',
+            targetStorageType: 'sql',
+            label: 'employer',
+            name: 'employer',
+            name_lc: 'employer',
+            name_cp: 'Employer',
+            target_lc: 'employer',
+            target_lc_pl: 'employers',
+            target_pl: 'Employers',
+            target_cp: 'Employer',
+            target_cp_pl: 'Employers',
+            keyIn_lc: 'person',
+            holdsForeignKey: true
         }
     },
     internalId: 'internalPId',
@@ -82,6 +101,9 @@ module.exports = class Person extends Sequelize.Model {
             },
             companyId: {
                 type: Sequelize[dict['Int']]
+            },
+            internalEId: {
+                type: Sequelize[dict['String']]
             }
 
 
@@ -93,6 +115,11 @@ module.exports = class Person extends Sequelize.Model {
     }
 
     static associate(models) {
+
+        Person.belongsTo(models.employer, {
+            as: 'employer',
+            foreignKey: 'internalEId'
+        });
 
         Person.hasMany(models.book, {
             as: 'works',
@@ -439,7 +466,55 @@ module.exports = class Person extends Sequelize.Model {
     }
 
 
+    /**
+     * _addEmployer - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   internalPId   IdAttribute of the root model to be updated
+     * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _addEmployer(internalPId, internalEId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Person.update({
+                    internalEId: internalEId
+                }, {
+                    where: {
+                        internalPId: internalPId
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
 
+    /**
+     * _removeEmployer - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   internalPId   IdAttribute of the root model to be updated
+     * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async _removeEmployer(internalPId, internalEId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return Person.update({
+                    internalEId: null
+                }, {
+                    where: {
+                        internalPId: internalPId
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
 
 
     /**

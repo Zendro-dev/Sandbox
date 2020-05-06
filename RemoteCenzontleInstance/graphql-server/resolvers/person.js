@@ -18,11 +18,52 @@ const globals = require('../config/globals');
 
 
 const associationArgsDef = {
+    'addEmployer': 'employer',
     'addWorks': 'book'
 }
 
 
 
+/**
+ * person.prototype.employer - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+person.prototype.employer = async function({
+    search
+}, context) {
+    if (helper.isNotUndefinedAndNotNull(this.internalEId)) {
+        try {
+            if (search === undefined) {
+                return resolvers.readOneEmployer({
+                    [models.employer.idAttribute()]: this.internalEId
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.employer.idAttribute(),
+                    "value": {
+                        "value": this.internalEId
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.employers({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
+            }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
+    }
+}
 
 /**
  * person.prototype.worksFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -145,8 +186,14 @@ person.prototype.handleAssociations = async function(input, context) {
         if (helper.isNonEmptyArray(input.addWorks)) {
             promises.push(this.add_works(input, context));
         }
+        if (helper.isNotUndefinedAndNotNull(input.addEmployer)) {
+            promises.push(this.add_employer(input, context));
+        }
         if (helper.isNonEmptyArray(input.removeWorks)) {
             promises.push(this.remove_works(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeEmployer)) {
+            promises.push(this.remove_employer(input, context));
         }
 
         await Promise.all(promises);
@@ -168,6 +215,16 @@ person.prototype.add_works = async function(input) {
     await Promise.all(results);
 }
 
+/**
+ * add_employer - field Mutation for to_one associations to add 
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+person.prototype.add_employer = async function(input) {
+    await person._addEmployer(this.getIdValue(), input.addEmployer);
+    this.internalEId = input.addEmployer;
+}
+
 
 
 /**
@@ -181,6 +238,18 @@ person.prototype.remove_works = async function(input) {
         results.push(models.book._removePerson(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
+}
+
+/**
+ * remove_employer - field Mutation for to_one associations to remove 
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+person.prototype.remove_employer = async function(input) {
+    if (input.removeEmployer === this.internalEId) {
+        await person._removeEmployer(this.getIdValue(), input.removeEmployer);
+        this.internalEId = null;
+    }
 }
 
 
@@ -249,6 +318,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(person.countFilteredWorks({}, context));
+    promises_to_one.push(person.employer({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -392,7 +462,7 @@ module.exports = {
     vueTablePerson: function(_, context) {
         return checkAuthorization(context, 'Person', 'read').then(authorization => {
             if (authorization === true) {
-                return helper.vueTable(context.request, person, ["id", "firstName", "lastName", "email", "internalPId"]);
+                return helper.vueTable(context.request, person, ["id", "firstName", "lastName", "email", "internalPId", "internalEId"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

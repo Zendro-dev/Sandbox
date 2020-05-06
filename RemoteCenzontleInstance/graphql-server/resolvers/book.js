@@ -18,19 +18,19 @@ const globals = require('../config/globals');
 
 
 const associationArgsDef = {
-    'addAuthors': 'person'
+    'addAuthor': 'person'
 }
 
 
 
 /**
- * book.prototype.Authors - Return associated record
+ * book.prototype.Author - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-book.prototype.Authors = async function({
+book.prototype.Author = async function({
     search
 }, context) {
     if (helper.isNotUndefinedAndNotNull(this.internalPId)) {
@@ -76,12 +76,12 @@ book.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
 
-        if (helper.isNotUndefinedAndNotNull(input.addAuthors)) {
-            promises.push(this.add_authors(input, context));
+        if (helper.isNotUndefinedAndNotNull(input.addAuthor)) {
+            promises.push(this.add_author(input, context));
         }
 
-        if (helper.isNotUndefinedAndNotNull(input.removeAuthors)) {
-            promises.push(this.remove_authors(input, context));
+        if (helper.isNotUndefinedAndNotNull(input.removeAuthor)) {
+            promises.push(this.remove_author(input, context));
         }
 
         await Promise.all(promises);
@@ -91,25 +91,25 @@ book.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * add_authors - field Mutation for to_one associations to add 
+ * add_author - field Mutation for to_one associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-book.prototype.add_authors = async function(input) {
-    await book._addAuthors(this.getIdValue(), input.addAuthors);
-    this.internalPId = input.addAuthors;
+book.prototype.add_author = async function(input) {
+    await book._addPerson(this.getIdValue(), input.addAuthor);
+    this.internalPId = input.addAuthor;
 }
 
 
 
 /**
- * remove_authors - field Mutation for to_one associations to remove 
+ * remove_author - field Mutation for to_one associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-book.prototype.remove_authors = async function(input) {
-    if (input.removeAuthors === this.internalPId) {
-        await book._removeAuthors(this.getIdValue(), input.removeAuthors);
+book.prototype.remove_author = async function(input) {
+    if (input.removeAuthor === this.internalPId) {
+        await book._removePerson(this.getIdValue(), input.removeAuthor);
         this.internalPId = null;
     }
 }
@@ -179,7 +179,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(book.Authors({}, context));
+    promises_to_one.push(book.Author({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

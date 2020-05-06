@@ -10,59 +10,36 @@ const globals = require('../config/globals');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Person',
+    model: 'Employer',
     storageType: 'cenz-server',
     url: 'http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql',
     attributes: {
-        firstName: 'String',
-        lastName: 'String',
-        email: 'String',
-        companyId: 'Int',
-        internalPId: 'String',
-        internalEId: 'String'
+        employer: 'String'
     },
     associations: {
-        works: {
+        employees: {
             type: 'to_many',
-            target: 'Book',
-            keyIn: 'Book',
-            targetKey: 'internalPId',
-            targetStorageType: 'cenz_server',
-            label: 'title',
-            name: 'works',
-            name_lc: 'works',
-            name_cp: 'Works',
-            target_lc: 'book',
-            target_lc_pl: 'books',
-            target_pl: 'Books',
-            target_cp: 'Book',
-            target_cp_pl: 'Books',
-            keyIn_lc: 'book',
-            holdsForeignKey: false
-        },
-        employer: {
-            type: 'to_one',
-            target: 'Employer',
-            keyIn: 'Person',
+            target: 'Person',
             targetKey: 'internalEId',
+            keyIn: 'Person',
             targetStorageType: 'cenz_server',
-            label: 'employer',
-            name: 'employer',
-            name_lc: 'employer',
-            name_cp: 'Employer',
-            target_lc: 'employer',
-            target_lc_pl: 'employers',
-            target_pl: 'Employers',
-            target_cp: 'Employer',
-            target_cp_pl: 'Employers',
+            label: 'firstName',
+            sublabel: 'email',
+            name: 'employees',
+            name_lc: 'employees',
+            name_cp: 'Employees',
+            target_lc: 'person',
+            target_lc_pl: 'people',
+            target_pl: 'People',
+            target_cp: 'Person',
+            target_cp_pl: 'People',
             keyIn_lc: 'person',
-            holdsForeignKey: true
+            holdsForeignKey: false
         }
     },
-    internalId: 'internalPId',
     id: {
-        name: 'internalPId',
-        type: 'String'
+        name: 'id',
+        type: 'Int'
     }
 };
 
@@ -70,7 +47,7 @@ const url = "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-module.exports = class Person {
+module.exports = class Employer {
 
     /**
      * constructor - Creates an instance of the model stored in webservice
@@ -79,38 +56,26 @@ module.exports = class Person {
      */
 
     constructor({
-        internalPId,
-        firstName,
-        lastName,
-        email,
-        companyId,
-        internalEId
+        id,
+        employer
     }) {
-        this.internalPId = internalPId;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.companyId = companyId;
-        this.internalEId = internalEId;
+        this.id = id;
+        this.employer = employer;
     }
 
     static get name() {
-        return "person";
+        return "employer";
     }
 
     static readById(id) {
-        let query = `query readOnePerson{ readOnePerson(internalPId: "${id}"){internalPId        firstName
-            lastName
-            email
-            companyId
-            internalEId
+        let query = `query readOneEmployer{ readOneEmployer(id: "${id}"){id        employer
       } }`
 
         return axios.post(url, {
             query: query
         }).then(res => {
-            let data = res.data.data.readOnePerson;
-            return new Person(data);
+            let data = res.data.data.readOneEmployer;
+            return new Employer(data);
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -118,8 +83,8 @@ module.exports = class Person {
     }
 
     static countRecords(search) {
-        let query = `query countPeople($search: searchPersonInput){
-      countPeople(search: $search)
+        let query = `query countEmployers($search: searchEmployerInput){
+      countEmployers(search: $search)
     }`
 
         return axios.post(url, {
@@ -128,7 +93,7 @@ module.exports = class Person {
                 search: search
             }
         }).then(res => {
-            return res.data.data.countPeople;
+            return res.data.data.countEmployers;
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -136,12 +101,8 @@ module.exports = class Person {
     }
 
     static readAll(search, order, pagination) {
-        let query = `query people($search: searchPersonInput $pagination: paginationInput $order: [orderPersonInput]){
-      people(search:$search pagination:$pagination order:$order){internalPId          firstName
-                lastName
-                email
-                companyId
-                internalEId
+        let query = `query employers($search: searchEmployerInput $pagination: paginationInput $order: [orderEmployerInput]){
+      employers(search:$search pagination:$pagination order:$order){id          employer
         } }`
 
         return axios.post(url, {
@@ -152,9 +113,9 @@ module.exports = class Person {
                 pagination: pagination
             }
         }).then(res => {
-            let data = res.data.data.people;
+            let data = res.data.data.employers;
             return data.map(item => {
-                return new Person(item)
+                return new Employer(item)
             });
         }).catch(error => {
             error['url'] = url;
@@ -170,13 +131,9 @@ module.exports = class Person {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
 
-        let query = `query peopleConnection($search: searchPersonInput $pagination: paginationCursorInput $order: [orderPersonInput]){
+        let query = `query employersConnection($search: searchEmployerInput $pagination: paginationCursorInput $order: [orderEmployerInput]){
 
-      peopleConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  internalPId  firstName
-        lastName
-        email
-        companyId
-        internalEId
+      employersConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  id  employer
        } } pageInfo{startCursor endCursor hasPreviousPage hasNextPage  } } }`
 
         return axios.post(url, {
@@ -187,12 +144,12 @@ module.exports = class Person {
                 pagination: pagination
             }
         }).then(res => {
-            let data_edges = res.data.data.peopleConnection.edges;
-            let pageInfo = res.data.data.peopleConnection.pageInfo;
+            let data_edges = res.data.data.employersConnection.edges;
+            let pageInfo = res.data.data.employersConnection.pageInfo;
 
             let edges = data_edges.map(e => {
                 return {
-                    node: new Person(e.node),
+                    node: new Employer(e.node),
                     cursor: e.cursor
                 }
             })
@@ -209,21 +166,11 @@ module.exports = class Person {
 
     static addOne(input) {
 
-        let query = `mutation addPerson( $internalPId:ID         $firstName:String
-            $lastName:String
-            $email:String
-            $companyId:Int
-       $addEmployer:ID  $addWorks:[ID] ){
-       addPerson( internalPId:$internalPId            firstName:$firstName
-                  lastName:$lastName
-                  email:$email
-                  companyId:$companyId
-          addEmployer:$addEmployer  addWorks:$addWorks){
-          internalPId            firstName
-                    lastName
-                    email
-                    companyId
-                    internalEId
+        let query = `mutation addEmployer(        $employer:String
+        $addEmployees:[ID] ){
+       addEmployer(           employer:$employer
+           addEmployees:$addEmployees){
+          id            employer
          }
      }`;
 
@@ -231,8 +178,8 @@ module.exports = class Person {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.addPerson;
-            return new Person(data);
+            let data = res.data.data.addEmployer;
+            return new Employer(data);
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -240,12 +187,12 @@ module.exports = class Person {
     }
 
     static deleteOne(id) {
-        let query = `mutation deletePerson{ deletePerson(internalPId: ${id}) }`;
+        let query = `mutation deleteEmployer{ deleteEmployer(id: ${id}) }`;
 
         return axios.post(url, {
             query: query
         }).then(res => {
-            return res.data.data.deletePerson;
+            return res.data.data.deleteEmployer;
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -254,21 +201,11 @@ module.exports = class Person {
     }
 
     static updateOne(input) {
-        let query = `mutation updatePerson($internalPId:ID!        $firstName:String
-            $lastName:String
-            $email:String
-            $companyId:Int
-       $addEmployer:ID $removeEmployer:ID  $addWorks:[ID] $removeWorks:[ID] ){
-       updatePerson(internalPId:$internalPId           firstName:$firstName
-                  lastName:$lastName
-                  email:$email
-                  companyId:$companyId
-          addEmployer:$addEmployer removeEmployer:$removeEmployer   addWorks:$addWorks removeWorks:$removeWorks ){
-          internalPId            firstName
-                    lastName
-                    email
-                    companyId
-                    internalEId
+        let query = `mutation updateEmployer($id:ID!        $employer:String
+        $addEmployees:[ID] $removeEmployees:[ID] ){
+       updateEmployer(id:$id           employer:$employer
+           addEmployees:$addEmployees removeEmployees:$removeEmployees ){
+          id            employer
          }
      }`
 
@@ -276,8 +213,8 @@ module.exports = class Person {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.updatePerson;
-            return new Person(data);
+            let data = res.data.data.updateEmployer;
+            return new Employer(data);
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -288,7 +225,7 @@ module.exports = class Person {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
         return context.request.files.csv_file.mv(tmpFile).then(() => {
-            let query = `mutation {bulkAddPersonCsv{internalPId}}`;
+            let query = `mutation {bulkAddEmployerCsv{id}}`;
             let formData = new FormData();
             formData.append('csv_file', fs.createReadStream(tmpFile));
             formData.append('query', query);
@@ -296,7 +233,7 @@ module.exports = class Person {
             return axios.post(url, formData, {
                 headers: formData.getHeaders()
             }).then(res => {
-                return res.data.data.bulkAddPersonCsv;
+                return res.data.data.bulkAddEmployerCsv;
             });
 
         }).catch(error => {
@@ -306,11 +243,11 @@ module.exports = class Person {
     }
 
     static csvTableTemplate() {
-        let query = `query { csvTableTemplatePerson }`;
+        let query = `query { csvTableTemplateEmployer }`;
         return axios.post(url, {
             query: query
         }).then(res => {
-            return res.data.data.csvTableTemplatePerson;
+            return res.data.data.csvTableTemplateEmployer;
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -330,7 +267,8 @@ module.exports = class Person {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Person.definition.attributes);
+        let attributes = Object.keys(Employer.definition.attributes);
+        attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }
@@ -342,7 +280,7 @@ module.exports = class Person {
      */
 
     static idAttribute() {
-        return Person.definition.id.name;
+        return Employer.definition.id.name;
     }
 
     /**
@@ -352,16 +290,16 @@ module.exports = class Person {
      */
 
     static idAttributeType() {
-        return Person.definition.id.type;
+        return Employer.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Person.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Employer.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[Person.idAttribute()]
+        return this[Employer.idAttribute()]
     }
 };

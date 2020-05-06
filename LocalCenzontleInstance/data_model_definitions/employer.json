@@ -1,23 +1,19 @@
 {
-  "model": "Book",
+  "model": "Employer",
   "storageType": "cenz-server",
   "url": "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql",
   "attributes": {
-    "title": "String",
-    "genre": "String",
-    "internalBId": "String",
-    "internalPId": "String"
+    "employer": "String"
   },
   "associations": {
-    "Author": {
-      "type": "to_one",
+    "employees": {
+      "type": "to_many",
       "target": "Person",
-      "targetKey": "internalPId",
-      "keyIn": "Book",
+      "targetKey": "internalEId",
+      "keyIn": "Person",
       "targetStorageType": "cenz_server",
       "label": "firstName",
       "sublabel": "email"
     }
-  },
-  "internalId": "internalBId"
+  }
 }

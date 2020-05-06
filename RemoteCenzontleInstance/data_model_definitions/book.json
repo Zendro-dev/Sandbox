@@ -8,7 +8,7 @@
     "internalPId": "String"
   },
   "associations": {
-    "Authors": {
+    "Author": {
       "type": "to_one",
       "target": "Person",
       "targetKey": "internalPId",

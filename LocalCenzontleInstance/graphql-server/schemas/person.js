@@ -29,7 +29,14 @@ module.exports = `
     """
     companyId: Int
 
-      
+    """
+    @original-field
+    
+    """
+    internalEId: String
+
+    employer(search: searchEmployerInput): Employer
+    
     """
     @search-request
     """
@@ -75,6 +82,7 @@ type PersonEdge{
     lastName
     email
     companyId
+    internalEId
   }
 
   input searchPersonInput {
@@ -99,8 +107,8 @@ type PersonEdge{
   }
 
     type Mutation {
-    addPerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID] ): Person!
-    updatePerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int  , addWorks:[ID], removeWorks:[ID] ): Person!
+    addPerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID , addWorks:[ID] ): Person!
+    updatePerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID, removeEmployer:ID  , addWorks:[ID], removeWorks:[ID] ): Person!
   deletePerson(internalPId: ID!): String!
   bulkAddPersonCsv: [Person] }
 

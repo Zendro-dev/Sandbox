@@ -27,7 +27,7 @@ const definition = {
         internalPId: 'String'
     },
     associations: {
-        Authors: {
+        Author: {
             type: 'to_one',
             target: 'Person',
             targetKey: 'internalPId',
@@ -35,9 +35,9 @@ const definition = {
             targetStorageType: 'sql',
             label: 'firstName',
             sublabel: 'email',
-            name: 'Authors',
-            name_lc: 'authors',
-            name_cp: 'Authors',
+            name: 'Author',
+            name_lc: 'author',
+            name_cp: 'Author',
             target_lc: 'person',
             target_lc_pl: 'people',
             target_pl: 'People',
@@ -92,7 +92,7 @@ module.exports = class Book extends Sequelize.Model {
     static associate(models) {
 
         Book.belongsTo(models.person, {
-            as: 'Authors',
+            as: 'Author',
             foreignKey: 'internalPId'
         });
     }

@@ -1,13 +1,14 @@
 {
   "model" : "Person",
   "storageType" : "cenz-server",
-  "url": "http://localhost:3030/graphql",
+  "url": "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql",
   "attributes" : {
     "firstName" : "String",
     "lastName" : "String",
     "email" : "String",
     "companyId": "Int",
-    "internalPId": "String"
+    "internalPId": "String",
+    "internalEId": "String"
   },
   "associations":{
     "works":{
@@ -17,6 +18,14 @@
       "targetKey" : "internalPId",
       "targetStorageType" : "cenz_server",
       "label" : "title"
+    },
+    "employer":{
+      "type" : "to_one",
+      "target" : "Employer",
+      "keyIn": "Person",
+      "targetKey" : "internalEId",
+      "targetStorageType" : "cenz_server",
+      "label" : "employer"
     }
   },
   "internalId": "internalPId"

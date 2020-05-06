@@ -6,7 +6,8 @@
     "lastName" : "String",
     "email" : "String",
     "companyId": "Int",
-    "internalPId": "String"
+    "internalPId": "String",
+    "internalEId": "String"
   },
   "associations":{
     "works":{
@@ -16,6 +17,14 @@
       "targetKey" : "internalPId",
       "targetStorageType" : "sql",
       "label" : "title"
+    },
+    "employer":{
+      "type" : "to_one",
+      "target" : "Employer",
+      "keyIn": "Person",
+      "targetKey" : "internalEId",
+      "targetStorageType" : "sql",
+      "label" : "employer"
     }
   },
   "internalId": "internalPId"

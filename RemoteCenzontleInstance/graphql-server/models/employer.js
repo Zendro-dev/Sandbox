@@ -18,30 +18,29 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const moment = require('moment');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'role',
-    storageType: 'SQL',
+    model: 'Employer',
+    storageType: 'sql',
     attributes: {
-        name: 'String',
-        description: 'String'
+        employer: 'String'
     },
     associations: {
-        users: {
-            type: 'to_many_through_sql_cross_table',
-            target: 'user',
-            targetKey: 'userId',
-            sourceKey: 'roleId',
-            keysIn: 'role_to_user',
+        employees: {
+            type: 'to_many',
+            target: 'Person',
+            targetKey: 'internalEId',
+            keyIn: 'Person',
             targetStorageType: 'sql',
-            label: 'email',
-            sublabel: 'id',
-            name: 'users',
-            name_lc: 'users',
-            name_cp: 'Users',
-            target_lc: 'user',
-            target_lc_pl: 'users',
-            target_pl: 'users',
-            target_cp: 'User',
-            target_cp_pl: 'Users',
+            label: 'firstName',
+            sublabel: 'email',
+            name: 'employees',
+            name_lc: 'employees',
+            name_cp: 'Employees',
+            target_lc: 'person',
+            target_lc_pl: 'people',
+            target_pl: 'People',
+            target_cp: 'Person',
+            target_cp_pl: 'People',
+            keyIn_lc: 'person',
             holdsForeignKey: false
         }
     },
@@ -59,33 +58,28 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class role extends Sequelize.Model {
+module.exports = class Employer extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            name: {
-                type: Sequelize[dict['String']]
-            },
-            description: {
+            employer: {
                 type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "role",
-            tableName: "roles",
+            modelName: "employer",
+            tableName: "employers",
             sequelize
         });
     }
 
     static associate(models) {
 
-        role.belongsToMany(models.user, {
-            as: 'users',
-            foreignKey: 'roleId',
-            through: 'role_to_user',
-            onDelete: 'CASCADE'
+        Employer.hasMany(models.person, {
+            as: 'employees',
+            foreignKey: 'internalEId'
         });
     }
 
@@ -93,7 +87,7 @@ module.exports = class role extends Sequelize.Model {
         let options = {};
         options['where'] = {};
         options['where'][this.idAttribute()] = id;
-        return role.findOne(options);
+        return Employer.findOne(options);
     }
 
     static countRecords(search) {
@@ -146,7 +140,7 @@ module.exports = class role extends Sequelize.Model {
             }
 
             if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total roles exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                throw new Error(`Request of total employers exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
             return super.findAll(options);
         });
@@ -252,7 +246,7 @@ module.exports = class role extends Sequelize.Model {
                 }
                 //check: limit
                 if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total roles exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                    throw new Error(`Request of total employers exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
                 }
 
                 /*
@@ -424,241 +418,11 @@ module.exports = class role extends Sequelize.Model {
     }
 
     static csvTableTemplate() {
-        return helper.csvTableTemplate(role);
+        return helper.csvTableTemplate(Employer);
     }
 
 
-    usersFilterImpl({
-        search,
-        order,
-        pagination
-    }) {
-        let options = {};
 
-        if (search !== undefined) {
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
-        return this.countUsers(options).then(items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    [models.user.idAttribute(), "ASC"]
-                ];
-            }
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total usersFilter exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            return this.getUsers(options);
-        });
-    }
-
-
-    usersConnectionImpl({
-        search,
-        order,
-        pagination
-    }) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-        let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let options = {};
-        options['where'] = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined) {
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
-        /*
-         * Count
-         */
-        return this.countUsers(options).then(countA => {
-            options['offset'] = 0;
-            options['order'] = [];
-            options['limit'] = countA;
-            /*
-             * Order conditions
-             */
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            }
-            if (!options['order'].map(orderItem => {
-                    return orderItem[0]
-                }).includes(models.user.idAttribute())) {
-                options['order'] = [...options['order'], ...[
-                    [models.user.idAttribute(), "ASC"]
-                ]];
-            }
-            /*
-             * Pagination conditions
-             */
-            if (pagination) {
-                //forward
-                if (isForwardPagination) {
-                    if (pagination.after) {
-                        let decoded_cursor = JSON.parse(role.base64Decode(pagination.after));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, models.user.idAttribute(), pagination.includeCursor)
-                        };
-                    }
-                } else { //backward
-                    if (pagination.before) {
-                        let decoded_cursor = JSON.parse(role.base64Decode(pagination.before));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, models.user.idAttribute(), pagination.includeCursor)
-                        };
-                    }
-                }
-            }
-            //woptions: copy of {options} with only 'where' options
-            let woptions = {};
-            woptions['where'] = {
-                ...options['where']
-            };
-
-            /*
-             *  Count (with only where-options)
-             */
-            return this.countUsers(woptions).then(countB => {
-                /*
-                 * Limit conditions
-                 */
-                if (pagination) {
-                    //forward
-                    if (isForwardPagination) {
-                        if (pagination.first) {
-                            options['limit'] = pagination.first;
-                        }
-                    } else { //backward
-                        if (pagination.last) {
-                            options['limit'] = pagination.last;
-                            options['offset'] = Math.max((countB - pagination.last), 0);
-                        }
-                    }
-                }
-                //check: limit
-                if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total usersConnection exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-                }
-
-                /*
-                 * Get records
-                 */
-                return this.getUsers(options).then(records => {
-                    let edges = [];
-                    let pageInfo = {
-                        hasPreviousPage: false,
-                        hasNextPage: false,
-                        startCursor: null,
-                        endCursor: null
-                    };
-                    //edges
-                    if (records.length > 0) {
-                        edges = records.map(record => {
-                            return {
-                                node: record,
-                                cursor: record.base64Enconde()
-                            }
-                        });
-                    }
-
-                    //forward
-                    if (isForwardPagination) {
-                        pageInfo = {
-                            hasPreviousPage: ((countA - countB) > 0),
-                            hasNextPage: (pagination && pagination.first ? (countB > pagination.first) : false),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    } else { //backward
-                        pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (countB > pagination.last) : false),
-                            hasNextPage: ((countA - countB) > 0),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    }
-                    return {
-                        edges,
-                        pageInfo
-                    };
-
-                }).catch(error => {
-                    throw error;
-                });
-            }).catch(error => {
-                throw error;
-            });
-        }).catch(error => {
-            throw error;
-        });
-    }
-
-    countFilteredUsersImpl({
-        search
-    }) {
-        let options = {};
-        if (search !== undefined) {
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-        return this.countUsers(options);
-    }
-
-    /**
-     * _addUsers - field Mutation (model-layer) for to_one associationsArguments to add 
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async _addUsers(record, addUsers) {
-        const updated = await sequelize.transaction(async (transaction) => {
-            return await record.setUsers(addUsers, {
-                transaction: transaction
-            });
-        });
-        return updated;
-    }
-
-    /**
-     * _removeUsers - field Mutation (model-layer) for to_one associationsArguments to remove 
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async _removeUsers(record, removeUsers) {
-        const updated = await sequelize.transaction(async (transaction) => {
-            return await record.removeUsers(removeUsers, {
-                transaction: transaction
-            });
-        });
-        return updated;
-    }
 
 
     /**
@@ -668,7 +432,7 @@ module.exports = class role extends Sequelize.Model {
      */
 
     static idAttribute() {
-        return role.definition.id.name;
+        return Employer.definition.id.name;
     }
 
     /**
@@ -678,17 +442,17 @@ module.exports = class role extends Sequelize.Model {
      */
 
     static idAttributeType() {
-        return role.definition.id.type;
+        return Employer.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of role.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Employer.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[role.idAttribute()]
+        return this[Employer.idAttribute()]
     }
 
     static get definition() {
@@ -704,7 +468,7 @@ module.exports = class role extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(role.definition.attributes);
+        let attributes = Object.keys(Employer.definition.attributes);
         attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;

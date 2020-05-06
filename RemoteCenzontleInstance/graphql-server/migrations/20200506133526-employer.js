@@ -14,11 +14,12 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('people', {
+        return queryInterface.createTable('employers', {
 
-            internalPId: {
-                type: Sequelize[dict['String']],
-                primaryKey: true
+            id: {
+                type: Sequelize[dict['Int']],
+                primaryKey: true,
+                autoIncrement: true
             },
 
             createdAt: {
@@ -29,17 +30,8 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            firstName: {
+            employer: {
                 type: Sequelize[dict['String']]
-            },
-            lastName: {
-                type: Sequelize[dict['String']]
-            },
-            email: {
-                type: Sequelize[dict['String']]
-            },
-            companyId: {
-                type: Sequelize[dict['Int']]
             }
 
         });
@@ -53,7 +45,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('people');
+        return queryInterface.dropTable('employers');
     }
 
 };

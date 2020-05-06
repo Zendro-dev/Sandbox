@@ -23,7 +23,7 @@ module.exports = `
     """
     internalPId: String
 
-    Authors(search: searchPersonInput): Person
+    Author(search: searchPersonInput): Person
     }
 
 type BookConnection{
@@ -77,8 +77,8 @@ type BookEdge{
   }
 
     type Mutation {
-    addBook(internalBId: ID!, title: String, genre: String , addAuthors:ID  ): Book!
-    updateBook(internalBId: ID!, title: String, genre: String , addAuthors:ID, removeAuthors:ID  ): Book!
+    addBook(internalBId: ID!, title: String, genre: String , addAuthor:ID  ): Book!
+    updateBook(internalBId: ID!, title: String, genre: String , addAuthor:ID, removeAuthor:ID  ): Book!
   deleteBook(internalBId: ID!): String!
   bulkAddBookCsv: [Book] }
 

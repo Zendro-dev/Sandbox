@@ -12,7 +12,7 @@ const globals = require('../config/globals');
 const definition = {
     model: 'Book',
     storageType: 'cenz-server',
-    url: 'http://localhost:3030/graphql',
+    url: 'http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql',
     attributes: {
         title: 'String',
         genre: 'String',
@@ -20,7 +20,7 @@ const definition = {
         internalPId: 'String'
     },
     associations: {
-        Authors: {
+        Author: {
             type: 'to_one',
             target: 'Person',
             targetKey: 'internalPId',
@@ -28,9 +28,9 @@ const definition = {
             targetStorageType: 'cenz_server',
             label: 'firstName',
             sublabel: 'email',
-            name: 'Authors',
-            name_lc: 'authors',
-            name_cp: 'Authors',
+            name: 'Author',
+            name_lc: 'author',
+            name_cp: 'Author',
             target_lc: 'person',
             target_lc_pl: 'people',
             target_pl: 'People',
@@ -47,7 +47,7 @@ const definition = {
     }
 };
 
-const url = "http://localhost:3030/graphql";
+const url = "http://remotecenzontleinstance_sdb_science_db_graphql_server_1:3030/graphql";
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
@@ -76,7 +76,7 @@ module.exports = class Book {
     }
 
     static readById(id) {
-        let query = `query readOneBook{ readOneBook(internalBId: ${id}){internalBId        title
+        let query = `query readOneBook{ readOneBook(internalBId: "${id}"){internalBId        title
             genre
             internalPId
       } }`
@@ -182,10 +182,10 @@ module.exports = class Book {
 
         let query = `mutation addBook( $internalBId:ID         $title:String
             $genre:String
-       $addAuthors:ID  ){
+       $addAuthor:ID  ){
        addBook( internalBId:$internalBId            title:$title
                   genre:$genre
-          addAuthors:$addAuthors ){
+          addAuthor:$addAuthor ){
           internalBId            title
                     genre
                     internalPId
@@ -221,10 +221,10 @@ module.exports = class Book {
     static updateOne(input) {
         let query = `mutation updateBook($internalBId:ID!        $title:String
             $genre:String
-       $addAuthors:ID $removeAuthors:ID  ){
+       $addAuthor:ID $removeAuthor:ID  ){
        updateBook(internalBId:$internalBId           title:$title
                   genre:$genre
-          addAuthors:$addAuthors removeAuthors:$removeAuthors  ){
+          addAuthor:$addAuthor removeAuthor:$removeAuthor  ){
           internalBId            title
                     genre
                     internalPId

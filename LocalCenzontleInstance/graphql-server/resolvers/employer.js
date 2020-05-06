@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const book = require(path.join(__dirname, '..', 'models_index.js')).book;
+const employer = require(path.join(__dirname, '..', 'models_index.js')).employer;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -18,52 +18,119 @@ const globals = require('../config/globals');
 
 
 const associationArgsDef = {
-    'addAuthor': 'person'
+    'addEmployees': 'person'
 }
+
 
 
 
 /**
- * book.prototype.Author - Return associated record
+ * employer.prototype.employeesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-book.prototype.Author = async function({
-    search
+employer.prototype.employeesFilter = function({
+    search,
+    order,
+    pagination
 }, context) {
-    if (helper.isNotUndefinedAndNotNull(this.internalPId)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOnePerson({
-                    [models.person.idAttribute()]: this.internalPId
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.person.idAttribute(),
-                    "value": {
-                        "value": this.internalPId
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.people({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
-    }
+    try {
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "internalEId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return resolvers.people({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
 }
 
+/**
+ * employer.prototype.countFilteredEmployees - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+employer.prototype.countFilteredEmployees = function({
+    search
+}, context) {
+    try {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "internalEId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return resolvers.countPeople({
+            search: nsearch
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
+}
+
+/**
+ * employer.prototype.employeesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+employer.prototype.employeesConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+    try {
+
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "internalEId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        return resolvers.peopleConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
+}
 
 
 /**
@@ -72,16 +139,14 @@ book.prototype.Author = async function({
  * @param {object} input   Info of each field to create the new record
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-book.prototype.handleAssociations = async function(input, context) {
+employer.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
-
-        if (helper.isNotUndefinedAndNotNull(input.addAuthor)) {
-            promises.push(this.add_author(input, context));
+        if (helper.isNonEmptyArray(input.addEmployees)) {
+            promises.push(this.add_employees(input, context));
         }
-
-        if (helper.isNotUndefinedAndNotNull(input.removeAuthor)) {
-            promises.push(this.remove_author(input, context));
+        if (helper.isNonEmptyArray(input.removeEmployees)) {
+            promises.push(this.remove_employees(input, context));
         }
 
         await Promise.all(promises);
@@ -91,27 +156,31 @@ book.prototype.handleAssociations = async function(input, context) {
 }
 
 /**
- * add_author - field Mutation for to_one associations to add 
+ * add_employees - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
-book.prototype.add_author = async function(input) {
-    await book._addPerson(this.getIdValue(), input.addAuthor);
-    this.internalPId = input.addAuthor;
+employer.prototype.add_employees = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.addEmployees) {
+        results.push(models.person._addEmployer(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
 }
 
 
 
 /**
- * remove_author - field Mutation for to_one associations to remove 
+ * remove_employees - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-book.prototype.remove_author = async function(input) {
-    if (input.removeAuthor === this.internalPId) {
-        await book._removePerson(this.getIdValue(), input.removeAuthor);
-        this.internalPId = null;
+employer.prototype.remove_employees = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.removeEmployees) {
+        results.push(models.person._removeEmployer(associatedRecordId, this.getIdValue()));
     }
+    await Promise.all(results);
 }
 
 
@@ -133,7 +202,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await book.countRecords(search) > context.recordsLimit) {
+    if (await employer.countRecords(search) > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -145,7 +214,7 @@ async function checkCount(search, context, query) {
  */
 function checkCountForOne(context) {
     if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneBook"));
+        throw new Error(errorMessageForRecordsLimit("readOneEmployer"));
     }
 }
 
@@ -171,15 +240,15 @@ function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let book = await resolvers.readOneBook({
-        internalBId: id
+    let employer = await resolvers.readOneEmployer({
+        id: id
     }, context);
     //check that record actually exists
-    if (book === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (employer === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(book.Author({}, context));
+    promises_to_many.push(employer.countFilteredEmployees({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -199,14 +268,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Book with internalBId ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`Employer with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * books - Check user authorization and return certain number, specified in pagination argument, of records that
+     * employers - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -215,16 +284,16 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    books: function({
+    employers: function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Book', 'read').then(async authorization => {
+        return checkAuthorization(context, 'Employer', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "books");
-                let resultRecords = await book.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "books");
+                await checkCount(search, context, "employers");
+                let resultRecords = await employer.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "employers");
                 return resultRecords;
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -236,7 +305,7 @@ module.exports = {
     },
 
     /**
-     * booksConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * employersConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -245,17 +314,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    booksConnection: function({
+    employersConnection: function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Book', 'read').then(async authorization => {
+        return checkAuthorization(context, 'Employer', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "booksConnection");
-                let resultRecords = await book.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "booksConnection");
-                return book.readAllCursor(search, order, pagination);
+                await checkCount(search, context, "employersConnection");
+                let resultRecords = await employer.readAll(search, order, pagination);
+                checkCountAgainAndAdaptLimit(context, resultRecords.length, "employersConnection");
+                return employer.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -266,19 +335,19 @@ module.exports = {
     },
 
     /**
-     * readOneBook - Check user authorization and return one record with the specified internalBId in the internalBId argument.
+     * readOneEmployer - Check user authorization and return one record with the specified id in the id argument.
      *
-     * @param  {number} {internalBId}    internalBId of the record to retrieve
+     * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with internalBId requested
+     * @return {object}         Record with id requested
      */
-    readOneBook: function({
-        internalBId
+    readOneEmployer: function({
+        id
     }, context) {
-        return checkAuthorization(context, 'Book', 'read').then(authorization => {
+        return checkAuthorization(context, 'Employer', 'read').then(authorization => {
             if (authorization === true) {
                 checkCountForOne(context);
-                let resultRecords = book.readById(internalBId);
+                let resultRecords = employer.readById(id);
                 checkCountForOne(context);
                 context.recordsLimit = context.recordsLimit - 1;
                 return resultRecords;
@@ -292,18 +361,18 @@ module.exports = {
     },
 
     /**
-     * countBooks - Counts number of records that holds the conditions specified in the search argument
+     * countEmployers - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countBooks: function({
+    countEmployers: function({
         search
     }, context) {
-        return checkAuthorization(context, 'Book', 'read').then(authorization => {
+        return checkAuthorization(context, 'Employer', 'read').then(authorization => {
             if (authorization === true) {
-                return book.countRecords(search);
+                return employer.countRecords(search);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -314,16 +383,16 @@ module.exports = {
     },
 
     /**
-     * vueTableBook - Return table of records as needed for displaying a vuejs table
+     * vueTableEmployer - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableBook: function(_, context) {
-        return checkAuthorization(context, 'Book', 'read').then(authorization => {
+    vueTableEmployer: function(_, context) {
+        return checkAuthorization(context, 'Employer', 'read').then(authorization => {
             if (authorization === true) {
-                return helper.vueTable(context.request, book, ["id", "title", "genre", "internalBId", "internalPId"]);
+                return helper.vueTable(context.request, employer, ["id", "employer"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -334,7 +403,7 @@ module.exports = {
     },
 
     /**
-     * addBook - Check user authorization and creates a new record with data specified in the input argument.
+     * addEmployer - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -342,17 +411,17 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addBook: async function(input, context) {
+    addEmployer: async function(input, context) {
         try {
-            let authorization = await checkAuthorization(context, 'Book', 'create');
+            let authorization = await checkAuthorization(context, 'Employer', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
-                let createdBook = await book.addOne(inputSanitized);
-                await createdBook.handleAssociations(inputSanitized, context);
-                return createdBook;
+                let createdEmployer = await employer.addOne(inputSanitized);
+                await createdEmployer.handleAssociations(inputSanitized, context);
+                return createdEmployer;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -363,15 +432,15 @@ module.exports = {
     },
 
     /**
-     * bulkAddBookCsv - Load csv file of records
+     * bulkAddEmployerCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddBookCsv: function(_, context) {
-        return checkAuthorization(context, 'Book', 'create').then(authorization => {
+    bulkAddEmployerCsv: function(_, context) {
+        return checkAuthorization(context, 'Employer', 'create').then(authorization => {
             if (authorization === true) {
-                return book.bulkAddCsv(context);
+                return employer.bulkAddCsv(context);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -382,19 +451,19 @@ module.exports = {
     },
 
     /**
-     * deleteBook - Check user authorization and delete a record with the specified internalBId in the internalBId argument.
+     * deleteEmployer - Check user authorization and delete a record with the specified id in the id argument.
      *
-     * @param  {number} {internalBId}    internalBId of the record to delete
+     * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteBook: function({
-        internalBId
+    deleteEmployer: function({
+        id
     }, context) {
-        return checkAuthorization(context, 'Book', 'delete').then(async authorization => {
+        return checkAuthorization(context, 'Employer', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await validForDeletion(internalBId, context)) {
-                    return book.deleteOne(internalBId);
+                if (await validForDeletion(id, context)) {
+                    return employer.deleteOne(id);
                 }
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -406,7 +475,7 @@ module.exports = {
     },
 
     /**
-     * updateBook - Check user authorization and update the record specified in the input argument
+     * updateEmployer - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -414,17 +483,17 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateBook: async function(input, context) {
+    updateEmployer: async function(input, context) {
         try {
-            let authorization = await checkAuthorization(context, 'Book', 'update');
+            let authorization = await checkAuthorization(context, 'Employer', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                let updatedBook = await book.updateOne(inputSanitized);
-                await updatedBook.handleAssociations(inputSanitized, context);
-                return updatedBook;
+                let updatedEmployer = await employer.updateOne(inputSanitized);
+                await updatedEmployer.handleAssociations(inputSanitized, context);
+                return updatedEmployer;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -435,16 +504,16 @@ module.exports = {
     },
 
     /**
-     * csvTableTemplateBook - Returns table's template
+     * csvTableTemplateEmployer - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateBook: function(_, context) {
-        return checkAuthorization(context, 'Book', 'read').then(authorization => {
+    csvTableTemplateEmployer: function(_, context) {
+        return checkAuthorization(context, 'Employer', 'read').then(authorization => {
             if (authorization === true) {
-                return book.csvTableTemplate();
+                return employer.csvTableTemplate();
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
