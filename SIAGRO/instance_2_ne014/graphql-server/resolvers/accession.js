@@ -285,18 +285,29 @@ accession.prototype.handleAssociations = async function(input, context) {
     }
 }
 
-accession.prototype.add_location = async function(input, context) {
+/**
+ * add_location - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+ accession.prototype.add_location = async function(input) {
 
-    await accession._addLocation(input.accession_id, input.addLocation);
-    this.locationId = input.addLocation;
+     await accession._addLocation(this.getIdValue(), input.addLocation);
+     this.locationId = input.addLocation;
 
-}
+ }
 
-accession.prototype.remove_location = async function(input,context) {
-    await accession._removeLocation(input.accession_id, input.removeLocation);
-    this.locationId = null;
-
-}
+/**
+ * remove_location - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+ accession.prototype.remove_location = async function(input) {
+    if (input.removeLocation === this.locationId) {
+       await accession._removeLocation(this.getIdValue(), input.removeLocation);
+       this.locationId = null;
+     }
+ }
 
 
 /**
@@ -470,11 +481,6 @@ module.exports = {
      * @return {object}         New record created
      */
      addAccession: async function(input, context) {
-         /**
-          * Debug
-          */
-         console.log("\n-@--resolver: on: addAccession");
-
          //check: input has idAttribute
          if (!input.accession_id) {
              throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
@@ -484,8 +490,13 @@ module.exports = {
          try {
              let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'create');
              if (authorizationCheck === true) {
+               //let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+               //helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
+
                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-               helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                let createdRecord = await accession.addOne(inputSanitized);
                //console.log("R1: " + JSON.stringify(createdRecord));
                await createdRecord.handleAssociations(inputSanitized, context);
@@ -556,13 +567,19 @@ module.exports = {
      * @return {object}         Updated record
      */
      updateAccession: async function(input, context) {
+       //check: input has idAttribute
+       if (! input.accession_id) {
+         throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
+       }
+
+
            try {
-               let authorization = await checkAuthorization(context, 'Accession', 'update');
+               let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'create');
                if (authorization === true) {
-                   let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                   helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                   helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                   /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                  await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'], models);
+                  await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                    let updatedAccession = await accession.updateOne(inputSanitized);
                    await updatedAccession.handleAssociations(inputSanitized, context);
                    return updatedAccession;

@@ -487,14 +487,25 @@ module.exports = class Accession {
         return adapters[responsibleAdapter].updateOne(input).then(result => new Accession(result));
     }
 
+
+    /**
+ * _addLocation - field Mutation (model-layer) for to_one associationsArguments to add
+ *
+ * @param {Id}   accession_id   IdAttribute of the root model to be updated
+ * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+ */
     static async _addLocation(accession_id, locationId) {
-  console.log("MODEL");
   let responsibleAdapter = this.adapterForIri(accession_id);
-  console.log("MODEL RESPONSIBLE ADAPTER: ", responsibleAdapter.adapterName);
   return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
 
 }
 
+/**
+ * _removeLocation - field Mutation (model-layer) for to_one associationsArguments to remove
+ *
+ * @param {Id}   accession_id   IdAttribute of the root model to be updated
+ * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+ */
 static async _removeLocation(accession_id, locationId) {
   let responsibleAdapter = this.adapterForIri(accession_id);
   return await adapters[responsibleAdapter]._removeLocation(accession_id, locationId);

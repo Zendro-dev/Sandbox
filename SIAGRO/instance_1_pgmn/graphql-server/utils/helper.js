@@ -502,59 +502,48 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
     /**
-   * filterOutIdsNotInUse - Get the IDs (out of a given list) that are not in use in a given model
-   * 
+   * checkExistence - Get the IDs (out of a given list) that are not in use in a given model
+   *
    * @param{Array | object} ids_to_check The IDs that are to be checked, as an array or as a single value
    * @param{object} model The model for which the IDs shall be checked
-   * @returns{Promise<Array>} An Array of the IDs *not* in use as a Promise
+   * @returns{Promise<boolean>} Are all IDs in use?
    */
-  module.exports.filterOutIdsNotInUse = async function(ids_to_check, model){
+  module.exports.checkExistence = async function(ids_to_check, model){
     //check
-    if (ids_to_check === null || ids_to_check === undefined) { 
-      throw new Error(`Invalid arguments on filterOutIdsNotInUse(), 'ids' argument should not be 'null' or 'undefined'`);
+    if (!module.exports.isNotUndefinedAndNotNull(ids_to_check)) {
+      throw new Error(`Invalid arguments on checkExistence(), 'ids' argument should not be 'null' or 'undefined'`);
     }
     //check existence by count
     let ids = Array.isArray(ids_to_check) ? ids_to_check : [ ids_to_check ];
-    let promises = ids.map( id => { 
-      let findCommand = () => model.readById(id);
-      if (model.countRecords !== undefined) {
-        let search =  {field: model.idAttribute(), value:{value: id }, operator: 'eq' };
-        if (module.exports.isNotUndefinedAndNotNull(model.registeredAdapters)) {
-          let responsibleAdapter = model.registeredAdapters[model.adapterForIri(id)];
-          findCommand = () => model.countRecords(search, [responsibleAdapter]);
-        } else {
-          findCommand = () => model.countRecords(search);
-        }
+    let searchArg = {"field":model.idAttribute(),"value":{"type":"Array","value":ids.toString()},"operator":"in"};
+    try {
+      if (module.exports.isNotUndefinedAndNotNull(model.registeredAdapters)) {
+        let allResponsibleAdapters = ids.map(id => model.registeredAdapters[model.adapterForIri(id)]);
+        let allResponsibleAdaptersAsArray = Array.isArray(allResponsibleAdapters) ? allResponsibleAdapters : [allResponsibleAdapters];
+        let countIds = await model.countRecords(searchArg, module.exports.unique(allResponsibleAdaptersAsArray));
+        return countIds === ids.length;
       }
-      return findCommand();
-    });
-
-    return Promise.all(promises).then( results =>{
-      return results.filter( (r, index)=>{
-        if (r === null) {
-          return true;
-        }
-        //check
-        if (typeof r !== 'number') { 
-          throw new Error(`Invalid response from remote cenz-server`);
-        }
-        //filter not found ids
-        return (r === 0); 
-      });
-    })
+      let countIds = await model.countRecords(searchArg);
+      return countIds === ids.length;
+    } catch (err) {
+      return await ids.reduce(async (prev, curr) => {
+        let acc = await prev;
+        return acc && await model.readById(curr) !== undefined
+      }, Promise.resolve(true))
+    }
   }
 
   /**
    * validateExistence - Make sure that all given IDs correspond to existing records in a given model
-   * 
+   *
    * @param{Array | object} idsToExist The IDs that are supposed to exist, as an array or as a single value
    * @param{object} model The model for which the IDs should exist
    * @throws If there is an ID given without a corresponding record in the model, in which case the first ID not to exist is given in the error message
    */
   module.exports.validateExistence = async function(idsToExist, model){
-    let idsNotInUse = await module.exports.filterOutIdsNotInUse(idsToExist, model);
-    if (idsNotInUse.length !== 0) {
-      throw new Error(`ID ${idsNotInUse[0]} has no existing record in data model ${model.definition.model}`);
+    let idsNotInUse = await module.exports.checkExistence(idsToExist, model);
+    if (!idsNotInUse) {
+      throw new Error(`A given ID has no existing record in data model ${model.definition.model}`);
     }
   }
 
@@ -672,10 +661,10 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * Returns a new array instance with the set of adapters that remains after 
+   * Returns a new array instance with the set of adapters that remains after
    * remove all excluded adapters, specified on the search.excludeAdapterNames
-   * input, from the @adapters array. 
-   * 
+   * input, from the @adapters array.
+   *
    * This function does not modify the @adapter param, but instead, returns a new
    * array instance.
    *
@@ -689,20 +678,20 @@ module.exports.vueTable = function(req, model, strAttributes) {
    */
   module.exports.removeExcludedAdapters = function(search, adapters) {
     let result = Array.from(adapters);
-    
+
     //check: @adapters
     if(adapters.length === 0) {
       return [];
     }//else
-    
+
     //check: @search
     if((!search || typeof search !== 'object') //has not search object
       || (!search.excludeAdapterNames //or has search object but has not exclusions
-          || !Array.isArray(search.excludeAdapterNames) 
+          || !Array.isArray(search.excludeAdapterNames)
           || search.excludeAdapterNames.length === 0)) {
       return result;
     }//else
-    
+
     //do: exclusion
     let i = 0;
     while (i < result.length) {
@@ -722,12 +711,12 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * the @excludeAdapterNames on search object.
    *
    * @param {object} search - Search object.
-   * @param {string} currentAdapterName - String of the current adapterName. 
+   * @param {string} currentAdapterName - String of the current adapterName.
    * @param {array} registeredAdapters - Array of registered adapters for the calling ddm.
    *
-   * @return {object} New search object that includes the excluded adapters on the 
+   * @return {object} New search object that includes the excluded adapters on the
    * attribute @excludeAdapterNames. This functions does not modify the @search object,
-   * instead a new one is returned. 
+   * instead a new one is returned.
    */
   module.exports.addExclusions = function(search, currentAdapterName, registeredAdapters) {
     let nsearch = {};
@@ -760,7 +749,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     }
 
     /*
-     * append all @registeredAdapters, except the @currentAdapter, 
+     * append all @registeredAdapters, except the @currentAdapter,
      * to search.excludeAdapterNames array.
      */
     registeredAdapters.forEach(a => {
@@ -781,7 +770,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * @param {object} context - The GraphQL context passed to the resolver.
    * @param {array} resultObj - Connection- or CountObj returned by ddm readMany.
    *
-   * @return {array} Returns the changed resultObj and context with the added benignErrors 
+   * @return {array} Returns the changed resultObj and context with the added benignErrors
    */
   module.exports.writeBenignErrors = function(authorizationCheck, context, resultObj) {
     //check adapter authorization Errors
@@ -799,11 +788,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * addSearchField - Creates a new search object which one will include the new search 
+   * addSearchField - Creates a new search object which one will include the new search
    * instance (@field, @value, @operator) with values passed as arguments.
-   * 
+   *
    * This function preserves the attribute @excludeAdapterNames if exists on the @search argument.
-   * 
+   *
    * This function does not modifies the @search object received, instead creates a new one.
    *
    * @param  {string} field Field to filter. Must be defined.
@@ -824,7 +813,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
     /**
      * Case 1: @search is undefined.
-     * 
+     *
      * Create a new search object with received parameters.
      */
     if(search === undefined) {
@@ -834,20 +823,20 @@ module.exports.vueTable = function(req, model, strAttributes) {
         "operator": operator
       };
     } else {
-      
+
       //check
       if(typeof search !== 'object') {
         throw new Error('Illegal "@search" argument type, it must be an object.');
       }
-      
+
       /**
        * Case 2: @search is defined but has not search-operation attributes defined.
-       * 
+       *
        * Create a new search object with received parameters and preserve @excludeAdapterNames
        * attribute.
        */
       if(search.operator === undefined || (search.value === undefined && search.search === undefined)) {
-        
+
         search = {
           "field": field,
           "value": value,
@@ -857,14 +846,14 @@ module.exports.vueTable = function(req, model, strAttributes) {
       } else {
         /**
          * Case 3: @search is defined and has search-operation attributes defined.
-         * 
+         *
          * Create a new recursive search object with received parameters and preserve @excludeAdapterNames
          * attribute.
          */
         let csearch = {...search};
         let excludeAdapterNames = csearch.excludeAdapterNames;
         delete csearch.excludeAdapterNames;
-        
+
         nsearch = {
           "operator": "and",
           "search": [{
@@ -875,13 +864,13 @@ module.exports.vueTable = function(req, model, strAttributes) {
           "excludeAdapterNames": excludeAdapterNames
         };
       }
-    }  
+    }
     return nsearch;
   }
 
   /**
    * isNonEmtpyArray - Test a value for being a non-empty array
-   * 
+   *
    * @param {any} a value to be tested for being a non-empty array
    * @returns {boolean} result
    */
@@ -898,7 +887,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     return (v !== undefined && v !== null);
   }
 
-  function isEmptyArray(a) {
+  module.exports.isEmptyArray = function(a) {
     return (a !== undefined && Array.isArray(a) && a.length === 0);
   }
 
@@ -969,7 +958,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
         let storageType = targetModel.definition.storageType;
 
         // Look into the definition of the associated data model and ask for its storage type.
-        // TWO CASES: 
+        // TWO CASES:
         // 1) target model storage type: NON distributed (any other)
         if (storageType !== 'distributed-data-model') {
           return await permissions.reduce(async (prev, curr) => {
@@ -992,58 +981,63 @@ module.exports.vueTable = function(req, model, strAttributes) {
           if (module.exports.isNonEmptyArray(newErrors)) {
             throw new Error(newErrors[0]);
           }
-          return acc && newErrors !== []; 
+          return acc && newErrors !== [];
         }, Promise.resolve(true))
       } else {
        return acc
-      
+
       }
     }, Promise.resolve(true));
   }
 
    /** validateAssociationArgsExistence - Receives arrays of ids on @input, and checks if these ids exists. Returns true
    * if all received ids exist, and throws an error if at least one of the ids does not exist.
-   * 
+   *
    * @param  {object} input   Object with sanitized entries of the form: <add>Association:[id1, ..., idn].
    * @param  {object} context Object with mutation context attributes.
-   * @param  {object} associationArgsDef  Object with entries of the form {'<add>Association' : model},
-   *                                      where 'model' is an instance of the association's model.
+   * @param  {object} associationArgsDef  The definition of the association arguments
+   * @param {object} modelsIndex The index of the models
+   * @throws if the association arguments don't exist
+   * @returns {boolean} true, if the associations arguments exist
    */
-  module.exports.validateAssociationArgsExistence = async function(input, context, associationArgsDef) {
+  module.exports.validateAssociationArgsExistence = async function(input, context, associationArgsDef, modelsIndex = models_index) {
     await Object.keys(associationArgsDef).reduce(async function(prev, curr){
       let acc = await prev;
-      
+
       //get ids (Int or Array)
       let currAssocIds = input[curr];
 
       //check: if empty array or undefined or null --> return true
-      if(isEmptyArray() || !isNotUndefinedAndNotNull()) {
+      if(module.exports.isEmptyArray(currAssocIds) || !module.exports.isNotUndefinedAndNotNull(currAssocIds)) {
         return acc; //equivalent to: acc && true
       } //else...
 
       //if not array make it one
-      if(!isNonEmptyArray(currAssocIds)) {
+      if(!module.exports.isNonEmptyArray(currAssocIds)) {
         currAssocIds = [currAssocIds];
       }
 
       //do check
-      let currModel = associationArgsDef[curr];
+      let currModelName = associationArgsDef[curr];
+      let currModel = modelsIndex[`${currModelName}`];
 
       await module.exports.validateExistence( currAssocIds, currModel );
 
-      return acc && idsArePresent
+      return acc
     }, Promise.resolve(true));
+
+    return true;
 
   }
 
   /** checkAndAdjustRecordLimitForCreateUpdate - If the number of records affected by the input
    * exceeds the current value of recordLimit throws an error, otherwise adjusts context.recordLimit
    * and returns totalCount.
-   * 
+   *
    * @param  {object} input   Input Object.
    * @param  {object} context Object with context attributes.
    * @param  {object} associationArgsDef  Object with entries of the form {'<add>Association' : model}
-   * @return {int} If the number of records affected by the input exceeds the current value of 
+   * @return {int} If the number of records affected by the input exceeds the current value of
    * recordLimit throws an error, otherwise adjusts context.recordLimit and returns totalCount.
    */
   module.exports.checkAndAdjustRecordLimitForCreateUpdate = function(input, context, associationArgsDef) {
@@ -1090,7 +1084,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
         let storageType = targetModel.definition.storageType;
 
         // Look into the definition of the associated data model and ask for its storage type.
-        // TWO CASES: 
+        // TWO CASES:
         // 1) target model storage type: NON distributed (any other)
         if (storageType !== 'distributed-data-model') {
           return await permissions.reduce(async (prev, curr) => {
@@ -1113,11 +1107,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
           if (module.exports.isNonEmptyArray(newErrors)) {
             throw new Error(newErrors[0]);
           }
-          return acc && newErrors !== []; 
+          return acc && newErrors !== [];
         }, Promise.resolve(true))
       } else {
        return acc
-      
+
       }
     }, Promise.resolve(true));
   }
@@ -1125,11 +1119,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
   /** checkAndAdjustRecordLimitForCreateUpdate - If the number of records affected by the input
    * exceeds the current value of recordLimit throws an error, otherwise adjusts context.recordLimit
    * and returns totalCount.
-   * 
+   *
    * @param  {object} input   Input Object.
    * @param  {object} context Object with context attributes.
    * @param  {object} associationArgsDef  Object with entries of the form {'<add>Association' : model}
-   * @return {int} If the number of records affected by the input exceeds the current value of 
+   * @return {int} If the number of records affected by the input exceeds the current value of
    * recordLimit throws an error, otherwise adjusts context.recordLimit and returns totalCount.
    */
   module.exports.checkAndAdjustRecordLimitForCreateUpdate = function(input, context, associationArgsDef) {
@@ -1146,11 +1140,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
   /** checkAndAdjustRecordLimitForCreateUpdate - If the number of records affected by the input
    * exceeds the current value of recordLimit throws an error, otherwise adjusts context.recordLimit
    * and returns totalCount.
-   * 
+   *
    * @param  {object} input   Input Object.
    * @param  {object} context Object with context attributes.
    * @param  {object} associationArgsDef  Object with entries of the form {'<add>Association' : model}
-   * @return {int} If the number of records affected by the input exceeds the current value of 
+   * @return {int} If the number of records affected by the input exceeds the current value of
    * recordLimit throws an error, otherwise adjusts context.recordLimit and returns totalCount.
    */
   module.exports.checkAndAdjustRecordLimitForCreateUpdate = function(input, context, associationArgsDef) {
