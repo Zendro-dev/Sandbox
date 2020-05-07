@@ -514,7 +514,7 @@ module.exports = class ACCESSION_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
-    static async _addLocation(accession_id, locationId) {
+    static async add_locationId(accession_id, locationId) {
 
        let result = await sequelize.transaction(async transaction => {
            try {
@@ -526,7 +526,7 @@ module.exports = class ACCESSION_YOLANDAPROJECT extends Sequelize.Model {
        return result;
    }
 
-   static async _removeLocation(accession_id, locationId) {
+   static async remove_locationId(accession_id, locationId) {
        let result = await sequelize.transaction(async transaction => {
            try {
              return super.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})

@@ -494,9 +494,9 @@ module.exports = class Accession {
  * @param {Id}   accession_id   IdAttribute of the root model to be updated
  * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
  */
-    static async _addLocation(accession_id, locationId) {
+    static async add_locationId(accession_id, locationId) {
   let responsibleAdapter = this.adapterForIri(accession_id);
-  return await adapters[responsibleAdapter]._addLocation(accession_id, locationId);
+  return await adapters[responsibleAdapter].add_locationId(accession_id, locationId);
 
 }
 
@@ -506,9 +506,9 @@ module.exports = class Accession {
  * @param {Id}   accession_id   IdAttribute of the root model to be updated
  * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
  */
-static async _removeLocation(accession_id, locationId) {
+static async remove_locationId(accession_id, locationId) {
   let responsibleAdapter = this.adapterForIri(accession_id);
-  return await adapters[responsibleAdapter]._removeLocation(accession_id, locationId);
+  return await adapters[responsibleAdapter].remove_locationId(accession_id, locationId);
 }
 
     static bulkAddCsv(context) {

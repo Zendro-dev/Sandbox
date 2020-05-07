@@ -292,7 +292,7 @@ accession.prototype.handleAssociations = async function(input, context) {
  */
  accession.prototype.add_location = async function(input) {
 
-     await accession._addLocation(this.getIdValue(), input.addLocation);
+     await accession.add_locationId(this.getIdValue(), input.addLocation);
      this.locationId = input.addLocation;
 
  }
@@ -304,7 +304,7 @@ accession.prototype.handleAssociations = async function(input, context) {
  */
  accession.prototype.remove_location = async function(input) {
     if (input.removeLocation === this.locationId) {
-       await accession._removeLocation(this.getIdValue(), input.removeLocation);
+       await accession.remove_locationId(this.getIdValue(), input.removeLocation);
        this.locationId = null;
      }
  }

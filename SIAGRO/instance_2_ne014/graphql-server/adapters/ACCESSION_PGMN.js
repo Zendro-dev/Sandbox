@@ -414,7 +414,7 @@ module.exports = class ACCESSION_PGMN {
         });
     }
 
-    static _addLocation(accession_id, locationId){
+    static add_locationId(accession_id, locationId){
 
 
     let query = `
@@ -423,6 +423,7 @@ module.exports = class ACCESSION_PGMN {
           updateAccession(
             accession_id:"${accession_id}"
             addLocation:"${locationId}"
+            skipAssociationsExistenceChecks: true
           ){
             accession_id
             locationId
@@ -447,7 +448,7 @@ module.exports = class ACCESSION_PGMN {
   }
 
 
-  static _removeLocation(accession_id, locationId){
+  static remove_locationId(accession_id, locationId){
 
 
     let query = `
@@ -456,6 +457,7 @@ module.exports = class ACCESSION_PGMN {
           updateAccession(
             accession_id:"${accession_id}"
             removeLocation:"${locationId}"
+            skipAssociationsExistenceChecks: true
           ){
             accession_id
             locationId
