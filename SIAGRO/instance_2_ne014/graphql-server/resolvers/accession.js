@@ -245,6 +245,7 @@ accession.prototype.measurementsConnection = function({
     };
 }
 
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -284,60 +285,102 @@ accession.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
+/**
+ * add_individuals - field Mutation for to_many associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.add_individuals = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.addIndividuals) {
+        results.push(models.individual.add_accessionId(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
+}
+
+/**
+ * add_measurements - field Mutation for to_many associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.add_measurements = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.addMeasurements) {
+        results.push(models.measurement.add_accession_id(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
+}
+
+/**
+ * add_taxon - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+accession.prototype.add_taxon = async function(input) {
+    await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
+    this.taxon_id = input.addTaxon;
+}
 
 /**
  * add_location - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
- accession.prototype.add_location = async function(input) {
-
-     await accession.add_locationId(this.getIdValue(), input.addLocation);
-     this.locationId = input.addLocation;
-
- }
-
-/**
- * remove_location - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- */
- accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
-       await accession.remove_locationId(this.getIdValue(), input.removeLocation);
-       this.locationId = null;
-     }
- }
-
-
-/**
- * add_individuals - field Mutation for to_many associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- */
-accession.prototype.add_individuals = async function(input, context) {
-
-    let results = [];
-    for await (associatedRecordId of input.addIndividuals) {
-      results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
-    }
-    await Promise.all(results);
-
+accession.prototype.add_location = async function(input) {
+    await accession.add_locationId(this.getIdValue(), input.addLocation);
+    this.locationId = input.addLocation;
 }
-
 
 /**
  * remove_individuals - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
-accession.prototype.remove_individuals = async function(input,context) {
+accession.prototype.remove_individuals = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeIndividuals) {
-        results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
+        results.push(models.individual.remove_accessionId(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
+
+/**
+ * remove_measurements - field Mutation for to_many associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.remove_measurements = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.removeMeasurements) {
+        results.push(models.measurement.remove_accession_id(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
+}
+
+/**
+ * remove_taxon - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.remove_taxon = async function(input) {
+    if (input.removeTaxon === this.taxon_id) {
+        await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
+        this.taxon_id = null;
+    }
+}
+
+/**
+ * remove_location - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+accession.prototype.remove_location = async function(input) {
+    if (input.removeLocation === this.locationId) {
+        await accession.remove_locationId(this.getIdValue(), input.removeLocation);
+        this.locationId = null;
+    }
+}
+
 
 
 /**
@@ -480,38 +523,33 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-     addAccession: async function(input, context) {
-         //check: input has idAttribute
-         if (!input.accession_id) {
-             throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
-         }
+    addAccession: async function(input, context) {
+        //check: input has idAttribute
+        if (!input.accession_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
+        }
 
-         //check: adapters auth
-         try {
-             let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'create');
-             if (authorizationCheck === true) {
-               //let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-               //helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'] ,models);
-
-               let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'create'], models);
+        //check: adapters auth
+        try {
+            let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'create');
+            if (authorizationCheck === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-               let createdRecord = await accession.addOne(inputSanitized);
-               //console.log("R1: " + JSON.stringify(createdRecord));
-               await createdRecord.handleAssociations(inputSanitized, context);
-               //console.log("R2: " + JSON.stringify(createdRecord));
-               // createdRecord = accession.readById(createdRecord.getIdValue());
-               //console.log("assocs: "+ JSON.stringify(assocs));
-               return createdRecord;
-             } else { //adapter not auth
-                 throw new Error("You don't have authorization to perform this action on adapter");
-             }
-         } catch (error) {
-             console.error(error);
-             handleError(error);
-         }
-     },
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let createdRecord = await accession.addOne(inputSanitized);
+                await createdRecord.handleAssociations(inputSanitized, context);
+                return createdRecord;
+            } else { //adapter not auth
+                throw new Error("You don't have authorization to perform this action on adapter");
+            }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        }
+    },
 
 
     /**
@@ -566,31 +604,33 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-     updateAccession: async function(input, context) {
-       //check: input has idAttribute
-       if (! input.accession_id) {
-         throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
-       }
+    updateAccession: async function(input, context) {
+        //check: input has idAttribute
+        if (!input.accession_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'accession_id'.`);
+        }
 
-
-           try {
-               let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'create');
-               if (authorization === true) {
-                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                  await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'update'], models);
-                  await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                   let updatedAccession = await accession.updateOne(inputSanitized);
-                   await updatedAccession.handleAssociations(inputSanitized, context);
-                   return updatedAccession;
-               } else {
-                   throw new Error("You don't have authorization to perform this action");
-               }
-           } catch (error) {
-               console.error(error);
-               handleError(error);
-           }
-       },
+        //check: adapters auth
+        try {
+            let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(input.accession_id), 'update');
+            if (authorizationCheck === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let updatedRecord = await accession.updateOne(inputSanitized);
+                await updatedRecord.handleAssociations(inputSanitized, context);
+                return updatedRecord;
+            } else { //adapter not auth
+                throw new Error("You don't have authorization to perform this action on adapter");
+            }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        }
+    },
 
     /**
      * countAccessions - Counts number of records that holds the conditions specified in the search argument

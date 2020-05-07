@@ -487,29 +487,49 @@ module.exports = class Accession {
         return adapters[responsibleAdapter].updateOne(input).then(result => new Accession(result));
     }
 
+    /**
+     * add_taxon_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_taxon_id(accession_id, taxon_id) {
+        let responsibleAdapter = this.adapterForIri(accession_id);
+        return await adapters[responsibleAdapter].add_taxon_id(accession_id, taxon_id);
+    }
+    /**
+     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_locationId(accession_id, locationId) {
+        let responsibleAdapter = this.adapterForIri(accession_id);
+        return await adapters[responsibleAdapter].add_locationId(accession_id, locationId);
+    }
 
     /**
- * _addLocation - field Mutation (model-layer) for to_one associationsArguments to add
- *
- * @param {Id}   accession_id   IdAttribute of the root model to be updated
- * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
- */
-    static async add_locationId(accession_id, locationId) {
-  let responsibleAdapter = this.adapterForIri(accession_id);
-  return await adapters[responsibleAdapter].add_locationId(accession_id, locationId);
+     * remove_taxon_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_taxon_id(accession_id, taxon_id) {
+        let responsibleAdapter = this.adapterForIri(accession_id);
+        return await adapters[responsibleAdapter].remove_taxon_id(accession_id, taxon_id);
+    }
+    /**
+     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_locationId(accession_id, locationId) {
+        let responsibleAdapter = this.adapterForIri(accession_id);
+        return await adapters[responsibleAdapter].remove_locationId(accession_id, locationId);
+    }
 
-}
 
-/**
- * _removeLocation - field Mutation (model-layer) for to_one associationsArguments to remove
- *
- * @param {Id}   accession_id   IdAttribute of the root model to be updated
- * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
- */
-static async remove_locationId(accession_id, locationId) {
-  let responsibleAdapter = this.adapterForIri(accession_id);
-  return await adapters[responsibleAdapter].remove_locationId(accession_id, locationId);
-}
 
     static bulkAddCsv(context) {
         throw new Error("Accession.bulkAddCsv is not implemented.")

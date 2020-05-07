@@ -375,18 +375,28 @@ module.exports = class Individual {
         return adapters[responsibleAdapter].updateOne(input).then(result => new Individual(result));
     }
 
-    static async _addAccession(name, accessionId) {
-      console.log("MODEL");
-      let responsibleAdapter = this.adapterForIri(name);
-      console.log("MODEL RESPONSIBLE ADAPTER: ", name, JSON.stringify(responsibleAdapter)  ,responsibleAdapter.adapterName);
-      return await adapters[responsibleAdapter]._addAccession(name, accessionId);
-
+    /**
+     * add_accessionId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_accessionId(name, accessionId) {
+        let responsibleAdapter = this.adapterForIri(name);
+        return await adapters[responsibleAdapter].add_accessionId(name, accessionId);
     }
 
-  static async _removeAccession(name, accessionId) {
-    let responsibleAdapter = this.adapterForIri(name);
-    return await adapters[responsibleAdapter]._removeAccession(name, accessionId);
-  }
+    /**
+     * remove_accessionId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_accessionId(name, accessionId) {
+        let responsibleAdapter = this.adapterForIri(name);
+        return await adapters[responsibleAdapter].remove_accessionId(name, accessionId);
+    }
+
 
 
     static bulkAddCsv(context) {

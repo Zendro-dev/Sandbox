@@ -153,32 +153,30 @@ location.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_accessions - field Mutation for to_many associations to add 
+ * add_accessions - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 location.prototype.add_accessions = async function(input) {
     let results = [];
-    input.addAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._addLocation(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.addAccessions) {
+        results.push(models.accession.add_locationId(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
 
-
 /**
- * remove_accessions - field Mutation for to_many associations to remove 
+ * remove_accessions - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 location.prototype.remove_accessions = async function(input) {
     let results = [];
-    input.removeAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._removeLocation(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.removeAccessions) {
+        results.push(models.accession.remove_locationId(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -415,9 +413,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Location', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdLocation = await location.addOne(inputSanitized);
                 await createdLocation.handleAssociations(inputSanitized, context);
                 return createdLocation;
@@ -487,9 +485,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Location', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedLocation = await location.updateOne(inputSanitized);
                 await updatedLocation.handleAssociations(inputSanitized, context);
                 return updatedLocation;

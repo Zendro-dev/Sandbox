@@ -135,49 +135,47 @@ measurement.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_individual - field Mutation for to_one associations to add 
+ * add_individual - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 measurement.prototype.add_individual = async function(input) {
-    await measurement._addIndividual(this.getIdValue(), input.addIndividual);
+    await measurement.add_individual_id(this.getIdValue(), input.addIndividual);
     this.individual_id = input.addIndividual;
 }
 
 /**
- * add_accession - field Mutation for to_one associations to add 
+ * add_accession - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 measurement.prototype.add_accession = async function(input) {
-    await measurement._addAccession(this.getIdValue(), input.addAccession);
+    await measurement.add_accession_id(this.getIdValue(), input.addAccession);
     this.accession_id = input.addAccession;
 }
 
 
-
 /**
- * remove_individual - field Mutation for to_one associations to remove 
+ * remove_individual - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_individual = async function(input) {
     if (input.removeIndividual === this.individual_id) {
-        await measurement._removeIndividual(this.getIdValue(), input.removeIndividual);
+        await measurement.remove_individual_id(this.getIdValue(), input.removeIndividual);
         this.individual_id = null;
     }
 }
 
 /**
- * remove_accession - field Mutation for to_one associations to remove 
+ * remove_accession - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_accession = async function(input) {
     if (input.removeAccession === this.accession_id) {
-        await measurement._removeAccession(this.getIdValue(), input.removeAccession);
+        await measurement.remove_accession_id(this.getIdValue(), input.removeAccession);
         this.accession_id = null;
     }
 }
@@ -416,9 +414,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Measurement', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdMeasurement = await measurement.addOne(inputSanitized);
                 await createdMeasurement.handleAssociations(inputSanitized, context);
                 return createdMeasurement;
@@ -488,9 +486,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Measurement', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedMeasurement = await measurement.updateOne(inputSanitized);
                 await updatedMeasurement.handleAssociations(inputSanitized, context);
                 return updatedMeasurement;

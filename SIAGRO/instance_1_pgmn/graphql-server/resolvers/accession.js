@@ -361,7 +361,6 @@ accession.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
  * add_individuals - field Mutation for to_many associations to add
  *
@@ -369,9 +368,9 @@ accession.prototype.handleAssociations = async function(input, context) {
  */
 accession.prototype.add_individuals = async function(input) {
     let results = [];
-    input.addIndividuals.forEach(associatedRecordId => {
-        results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.addIndividuals) {
+        results.push(models.individual.add_accessionId(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -382,9 +381,9 @@ accession.prototype.add_individuals = async function(input) {
  */
 accession.prototype.add_measurements = async function(input) {
     let results = [];
-    input.addMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._addAccession(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.addMeasurements) {
+        results.push(models.measurement.add_accession_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -394,7 +393,7 @@ accession.prototype.add_measurements = async function(input) {
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.add_taxon = async function(input) {
-    await accession._addTaxon(this.getIdValue(), input.addTaxon);
+    await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
 
@@ -409,7 +408,6 @@ accession.prototype.add_location = async function(input) {
 }
 
 
-
 /**
  * remove_individuals - field Mutation for to_many associations to remove
  *
@@ -417,9 +415,9 @@ accession.prototype.add_location = async function(input) {
  */
 accession.prototype.remove_individuals = async function(input) {
     let results = [];
-    input.removeIndividuals.forEach(associatedRecordId => {
-        results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.removeIndividuals) {
+        results.push(models.individual.remove_accessionId(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -430,9 +428,9 @@ accession.prototype.remove_individuals = async function(input) {
  */
 accession.prototype.remove_measurements = async function(input) {
     let results = [];
-    input.removeMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._removeAccession(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.removeMeasurements) {
+        results.push(models.measurement.remove_accession_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -443,7 +441,7 @@ accession.prototype.remove_measurements = async function(input) {
  */
 accession.prototype.remove_taxon = async function(input) {
     if (input.removeTaxon === this.taxon_id) {
-        await accession._removeTaxon(this.getIdValue(), input.removeTaxon);
+        await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
     }
 }
@@ -455,7 +453,7 @@ accession.prototype.remove_taxon = async function(input) {
  */
 accession.prototype.remove_location = async function(input) {
     if (input.removeLocation === this.locationId) {
-        await accession._remove_locationId(this.getIdValue(), input.removeLocation);
+        await accession.remove_locationId(this.getIdValue(), input.removeLocation);
         this.locationId = null;
     }
 }
@@ -695,15 +693,12 @@ module.exports = {
         try {
             let authorization = await checkAuthorization(context, 'Accession', 'create');
             if (authorization === true) {
-              console.log("INPUT", input)
-              let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-               await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'create'], models);
-               await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-               if(!input.skipAssociationsExistenceChecks) {
-                 console.log("VALIDATION WILL BE DONE IN CREATE");
-                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-               }
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if(!input.skipAssociationsExistenceChecks) {
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdAccession = await accession.addOne(inputSanitized);
                 await createdAccession.handleAssociations(inputSanitized, context);
                 return createdAccession;
@@ -772,15 +767,12 @@ module.exports = {
         try {
             let authorization = await checkAuthorization(context, 'Accession', 'update');
             if (authorization === true) {
-              console.log("INPUT IN UPDATE", input)
-              let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-               await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef,['read', 'create'], models);
-               await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-               if(!input.skipAssociationsExistenceChecks) {
-                 console.log("VALIDATION WILL BE DONE IN UPDATE");
-                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-               }
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if(!input.skipAssociationsExistenceChecks) {
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedAccession = await accession.updateOne(inputSanitized);
                 await updatedAccession.handleAssociations(inputSanitized, context);
                 return updatedAccession;

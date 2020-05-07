@@ -122,9 +122,8 @@ user.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_roles - field Mutation for to_many associations to add 
+ * add_roles - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
@@ -133,9 +132,8 @@ user.prototype.add_roles = async function(input) {
 }
 
 
-
 /**
- * remove_roles - field Mutation for to_many associations to remove 
+ * remove_roles - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
@@ -375,9 +373,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'user', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdUser = await user.addOne(inputSanitized);
                 await createdUser.handleAssociations(inputSanitized, context);
                 return createdUser;
@@ -447,9 +445,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'user', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedUser = await user.updateOne(inputSanitized);
                 await updatedUser.handleAssociations(inputSanitized, context);
                 return updatedUser;

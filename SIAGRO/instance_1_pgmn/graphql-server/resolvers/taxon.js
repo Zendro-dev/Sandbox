@@ -153,32 +153,30 @@ taxon.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_accessions - field Mutation for to_many associations to add 
+ * add_accessions - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 taxon.prototype.add_accessions = async function(input) {
     let results = [];
-    input.addAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._addTaxon(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.addAccessions) {
+        results.push(models.accession.add_taxon_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
 
-
 /**
- * remove_accessions - field Mutation for to_many associations to remove 
+ * remove_accessions - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 taxon.prototype.remove_accessions = async function(input) {
     let results = [];
-    input.removeAccessions.forEach(associatedRecordId => {
-        results.push(models.accession._removeTaxon(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.removeAccessions) {
+        results.push(models.accession.remove_taxon_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
@@ -415,9 +413,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Taxon', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdTaxon = await taxon.addOne(inputSanitized);
                 await createdTaxon.handleAssociations(inputSanitized, context);
                 return createdTaxon;
@@ -487,9 +485,9 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Taxon', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedTaxon = await taxon.updateOne(inputSanitized);
                 await updatedTaxon.handleAssociations(inputSanitized, context);
                 return updatedTaxon;

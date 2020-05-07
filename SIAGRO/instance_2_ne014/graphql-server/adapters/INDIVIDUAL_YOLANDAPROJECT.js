@@ -377,17 +377,21 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
+
     /**
-     * _addAccession - field Mutation (adapter-layer) for to_one associationsArguments to add
+     * add_accessionId - field Mutation (adapter-layer) for to_one associationsArguments to add
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async _addAccession(name, accession_id) {
+
+
+
+    static async add_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return super.update({
-                    accessionId: accession_id
+                    accessionId: accessionId
                 }, {
                     where: {
                         name: name
@@ -402,13 +406,17 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT extends Sequelize.Model {
         return updated;
     }
 
+
     /**
-     * _removeAccession - field Mutation (adpater-layer) for to_one associationsArguments to remove
+     * remove_accessionId - field Mutation (adapter-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async _removeAccession(name, accession_id) {
+
+
+
+    static async remove_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return super.update({
@@ -426,6 +434,9 @@ module.exports = class INDIVIDUAL_YOLANDAPROJECT extends Sequelize.Model {
         });
         return updated;
     }
+
+
+
 
 
     static bulkAddCsv(context) {

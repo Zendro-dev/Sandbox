@@ -514,28 +514,123 @@ module.exports = class ACCESSION_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
+
+    /**
+     * add_taxon_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
+    static async add_taxon_id(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    taxon_id: taxon_id
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * add_locationId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
     static async add_locationId(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
 
-       let result = await sequelize.transaction(async transaction => {
-           try {
-             return super.update({locationId: locationId},{where: {accession_id: accession_id}}, {transaction: transaction})
-           } catch (error) {
-               throw error;
-           }
-       });
-       return result;
-   }
 
-   static async remove_locationId(accession_id, locationId) {
-       let result = await sequelize.transaction(async transaction => {
-           try {
-             return super.update({locationId: null},{where: {accession_id: accession_id}, transaction: transaction})
-           } catch (error) {
-               throw error;
-           }
-       });
-       return result;
-   }
+    /**
+     * remove_taxon_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
+    static async remove_taxon_id(accession_id, taxon_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    taxon_id: null
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * remove_locationId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
+    static async remove_locationId(accession_id, locationId) {
+        let updated = await sequelize.transaction(async transaction => {
+            try {
+                return super.update({
+                    locationId: null
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
+        });
+        return updated;
+    }
+
+
+
+
 
     static bulkAddCsv(context) {
 

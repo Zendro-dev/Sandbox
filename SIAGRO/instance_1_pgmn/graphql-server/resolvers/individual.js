@@ -200,53 +200,51 @@ individual.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_measurements - field Mutation for to_many associations to add 
+ * add_measurements - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 individual.prototype.add_measurements = async function(input) {
     let results = [];
-    input.addMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._addIndividual(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.addMeasurements) {
+        results.push(models.measurement.add_individual_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
 /**
- * add_accession - field Mutation for to_one associations to add 
+ * add_accession - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 individual.prototype.add_accession = async function(input) {
-    await individual._addAccession(this.getIdValue(), input.addAccession);
+    await individual.add_accessionId(this.getIdValue(), input.addAccession);
     this.accessionId = input.addAccession;
 }
 
 
-
 /**
- * remove_measurements - field Mutation for to_many associations to remove 
+ * remove_measurements - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 individual.prototype.remove_measurements = async function(input) {
     let results = [];
-    input.removeMeasurements.forEach(associatedRecordId => {
-        results.push(models.measurement._removeIndividual(associatedRecordId, this.getIdValue()));
-    })
+    for await (associatedRecordId of input.removeMeasurements) {
+        results.push(models.measurement.remove_individual_id(associatedRecordId, this.getIdValue()));
+    }
     await Promise.all(results);
 }
 
 /**
- * remove_accession - field Mutation for to_one associations to remove 
+ * remove_accession - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 individual.prototype.remove_accession = async function(input) {
     if (input.removeAccession === this.accessionId) {
-        await individual._removeAccession(this.getIdValue(), input.removeAccession);
+        await individual.remove_accessionId(this.getIdValue(), input.removeAccession);
         this.accessionId = null;
     }
 }
@@ -485,9 +483,11 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Individual', 'create');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if(!input.skipAssociationsExistenceChecks) {
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdIndividual = await individual.addOne(inputSanitized);
                 await createdIndividual.handleAssociations(inputSanitized, context);
                 return createdIndividual;
@@ -557,9 +557,11 @@ module.exports = {
             let authorization = await checkAuthorization(context, 'Individual', 'update');
             if (authorization === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                /*helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)*/
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if(!input.skipAssociationsExistenceChecks) {
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedIndividual = await individual.updateOne(inputSanitized);
                 await updatedIndividual.handleAssociations(inputSanitized, context);
                 return updatedIndividual;

@@ -467,12 +467,12 @@ module.exports = class Individual extends Sequelize.Model {
 
 
     /**
-     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add 
+     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async _addAccession(name, accessionId) {
+    static async add_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
@@ -492,12 +492,12 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
     /**
-     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async _removeAccession(name, accessionId) {
+    static async remove_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
