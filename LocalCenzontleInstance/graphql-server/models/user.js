@@ -631,12 +631,12 @@ module.exports = class user extends Sequelize.Model {
     }
 
     /**
-     * _addRoles - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_roleId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addRoles(record, addRoles) {
+    static async add_roleId(record, addRoles) {
         const updated = await sequelize.transaction(async (transaction) => {
             return await record.setRoles(addRoles, {
                 transaction: transaction
@@ -646,12 +646,12 @@ module.exports = class user extends Sequelize.Model {
     }
 
     /**
-     * _removeRoles - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_roleId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   roleId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeRoles(record, removeRoles) {
+    static async remove_roleId(record, removeRoles) {
         const updated = await sequelize.transaction(async (transaction) => {
             return await record.removeRoles(removeRoles, {
                 transaction: transaction

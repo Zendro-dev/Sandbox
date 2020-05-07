@@ -33,7 +33,7 @@ module.exports = `
     @original-field
     
     """
-    internalEId: String
+    internalEId: Int
 
     employer(search: searchEmployerInput): Employer
     

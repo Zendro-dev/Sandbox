@@ -210,7 +210,7 @@ person.prototype.handleAssociations = async function(input, context) {
 person.prototype.add_works = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addWorks) {
-        results.push(models.book._addPerson(associatedRecordId, this.getIdValue()));
+        results.push(models.book.add_internalPId(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
@@ -221,7 +221,7 @@ person.prototype.add_works = async function(input) {
  * @param {object} input   Info of input Ids to add  the association
  */
 person.prototype.add_employer = async function(input) {
-    await person._addEmployer(this.getIdValue(), input.addEmployer);
+    await person.add_internalEId(this.getIdValue(), input.addEmployer);
     this.internalEId = input.addEmployer;
 }
 
@@ -235,7 +235,7 @@ person.prototype.add_employer = async function(input) {
 person.prototype.remove_works = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeWorks) {
-        results.push(models.book._removePerson(associatedRecordId, this.getIdValue()));
+        results.push(models.book.remove_internalPId(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
@@ -246,8 +246,8 @@ person.prototype.remove_works = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 person.prototype.remove_employer = async function(input) {
-    if (input.removeEmployer === this.internalEId) {
-        await person._removeEmployer(this.getIdValue(), input.removeEmployer);
+    if (input.removeEmployer == this.internalEId) {
+        await person.remove_internalEId(this.getIdValue(), input.removeEmployer);
         this.internalEId = null;
     }
 }
@@ -462,7 +462,7 @@ module.exports = {
     vueTablePerson: function(_, context) {
         return checkAuthorization(context, 'Person', 'read').then(authorization => {
             if (authorization === true) {
-                return helper.vueTable(context.request, person, ["id", "firstName", "lastName", "email", "internalPId", "internalEId"]);
+                return helper.vueTable(context.request, person, ["id", "firstName", "lastName", "email", "internalPId"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

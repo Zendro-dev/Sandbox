@@ -25,6 +25,9 @@ module.exports.validator_patch = function(person) {
             },
             "internalPId": {
                 "type": ["string", "null"]
+            },
+            "internalEId": {
+                "type": ["integer", "null"]
             }
         }
     }

@@ -74,8 +74,12 @@ module.exports = class Employer {
         return axios.post(url, {
             query: query
         }).then(res => {
-            let data = res.data.data.readOneEmployer;
-            return new Employer(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Employer(res.data.data.readOneEmployer);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -93,7 +97,12 @@ module.exports = class Employer {
                 search: search
             }
         }).then(res => {
-            return res.data.data.countEmployers;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.countEmployers;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -113,10 +122,15 @@ module.exports = class Employer {
                 pagination: pagination
             }
         }).then(res => {
-            let data = res.data.data.employers;
-            return data.map(item => {
-                return new Employer(item)
-            });
+            //check
+            if (res && res.data && res.data.data) {
+                let data = res.data.data.employers;
+                return data.map(item => {
+                    return new Employer(item)
+                });
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -144,20 +158,25 @@ module.exports = class Employer {
                 pagination: pagination
             }
         }).then(res => {
-            let data_edges = res.data.data.employersConnection.edges;
-            let pageInfo = res.data.data.employersConnection.pageInfo;
+            //check
+            if (res && res.data && res.data.data) {
+                let data_edges = res.data.data.employersConnection.edges;
+                let pageInfo = res.data.data.employersConnection.pageInfo;
 
-            let edges = data_edges.map(e => {
+                let edges = data_edges.map(e => {
+                    return {
+                        node: new Employer(e.node),
+                        cursor: e.cursor
+                    }
+                })
+
                 return {
-                    node: new Employer(e.node),
-                    cursor: e.cursor
-                }
-            })
-
-            return {
-                edges,
-                pageInfo
-            };
+                    edges,
+                    pageInfo
+                };
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -165,21 +184,26 @@ module.exports = class Employer {
     }
 
     static addOne(input) {
-
-        let query = `mutation addEmployer(        $employer:String
-        $addEmployees:[ID] ){
-       addEmployer(           employer:$employer
-           addEmployees:$addEmployees){
-          id            employer
-         }
-     }`;
+        let query = `
+        mutation addEmployer(
+ 
+          $employer:String        ){
+          addEmployer( 
+          employer:$employer){
+            id            employer
+          }
+        }`;
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.addEmployer;
-            return new Employer(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Employer(res.data.data.addEmployer);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -187,39 +211,59 @@ module.exports = class Employer {
     }
 
     static deleteOne(id) {
-        let query = `mutation deleteEmployer{ deleteEmployer(id: ${id}) }`;
+        let query = `
+          mutation
+            deleteEmployer{
+              deleteEmployer(
+                id: "${id}" )}`;
 
         return axios.post(url, {
             query: query
         }).then(res => {
-            return res.data.data.deleteEmployer;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.deleteEmployer;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
-
     }
 
     static updateOne(input) {
-        let query = `mutation updateEmployer($id:ID!        $employer:String
-        $addEmployees:[ID] $removeEmployees:[ID] ){
-       updateEmployer(id:$id           employer:$employer
-           addEmployees:$addEmployees removeEmployees:$removeEmployees ){
-          id            employer
-         }
-     }`
+        let query = `
+          mutation
+            updateEmployer(
+              $id:ID! 
+              $employer:String             ){
+              updateEmployer(
+                id:$id 
+                employer:$employer               ){
+                id 
+                employer 
+              }
+            }`
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.updateEmployer;
-            return new Employer(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Employer(res.data.data.updateEmployer);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+
+
 
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');

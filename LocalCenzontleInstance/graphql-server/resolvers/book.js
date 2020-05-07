@@ -96,7 +96,7 @@ book.prototype.handleAssociations = async function(input, context) {
  * @param {object} input   Info of input Ids to add  the association
  */
 book.prototype.add_author = async function(input) {
-    await book._addPerson(this.getIdValue(), input.addAuthor);
+    await book.add_internalPId(this.getIdValue(), input.addAuthor);
     this.internalPId = input.addAuthor;
 }
 
@@ -108,8 +108,8 @@ book.prototype.add_author = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 book.prototype.remove_author = async function(input) {
-    if (input.removeAuthor === this.internalPId) {
-        await book._removePerson(this.getIdValue(), input.removeAuthor);
+    if (input.removeAuthor == this.internalPId) {
+        await book.remove_internalPId(this.getIdValue(), input.removeAuthor);
         this.internalPId = null;
     }
 }

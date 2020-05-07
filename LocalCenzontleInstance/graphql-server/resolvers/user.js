@@ -130,7 +130,7 @@ user.prototype.handleAssociations = async function(input, context) {
  * @param {object} input   Info of input Ids to add  the association
  */
 user.prototype.add_roles = async function(input) {
-    await models.user._addRoles(this, input.addRoles);
+    await models.user.add_roleId(this, input.addRoles);
 }
 
 
@@ -141,7 +141,7 @@ user.prototype.add_roles = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 user.prototype.remove_roles = async function(input) {
-    await models.user._removeRoles(this, input.removeRoles);
+    await models.user.remove_roleId(this, input.removeRoles);
 }
 
 

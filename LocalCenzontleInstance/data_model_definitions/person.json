@@ -8,7 +8,7 @@
     "email" : "String",
     "companyId": "Int",
     "internalPId": "String",
-    "internalEId": "String"
+    "internalEId": "Int"
   },
   "associations":{
     "works":{

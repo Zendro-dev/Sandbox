@@ -437,12 +437,12 @@ module.exports = class Book extends Sequelize.Model {
 
 
     /**
-     * _addPerson - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_internalPId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   internalBId   IdAttribute of the root model to be updated
      * @param {Id}   internalPId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addPerson(internalBId, internalPId) {
+    static async add_internalPId(internalBId, internalPId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Book.update({
@@ -462,12 +462,12 @@ module.exports = class Book extends Sequelize.Model {
     }
 
     /**
-     * _removePerson - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_internalPId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   internalBId   IdAttribute of the root model to be updated
      * @param {Id}   internalPId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removePerson(internalBId, internalPId) {
+    static async remove_internalPId(internalBId, internalPId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Book.update({

@@ -26,7 +26,7 @@ const definition = {
         email: 'String',
         companyId: 'Int',
         internalPId: 'String',
-        internalEId: 'String'
+        internalEId: 'Int'
     },
     associations: {
         works: {
@@ -103,7 +103,7 @@ module.exports = class Person extends Sequelize.Model {
                 type: Sequelize[dict['Int']]
             },
             internalEId: {
-                type: Sequelize[dict['String']]
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -467,12 +467,12 @@ module.exports = class Person extends Sequelize.Model {
 
 
     /**
-     * _addEmployer - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_internalEId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   internalPId   IdAttribute of the root model to be updated
      * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addEmployer(internalPId, internalEId) {
+    static async add_internalEId(internalPId, internalEId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Person.update({
@@ -492,12 +492,12 @@ module.exports = class Person extends Sequelize.Model {
     }
 
     /**
-     * _removeEmployer - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_internalEId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   internalPId   IdAttribute of the root model to be updated
      * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeEmployer(internalPId, internalEId) {
+    static async remove_internalEId(internalPId, internalEId) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Person.update({

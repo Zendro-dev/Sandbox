@@ -42,7 +42,7 @@ module.exports = {
                 type: Sequelize[dict['Int']]
             },
             internalEId: {
-                type: Sequelize[dict['String']]
+                type: Sequelize[dict['Int']]
             }
 
         });

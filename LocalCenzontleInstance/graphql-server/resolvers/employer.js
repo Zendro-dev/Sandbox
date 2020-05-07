@@ -163,7 +163,7 @@ employer.prototype.handleAssociations = async function(input, context) {
 employer.prototype.add_employees = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addEmployees) {
-        results.push(models.person._addEmployer(associatedRecordId, this.getIdValue()));
+        results.push(models.person.add_internalEId(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
@@ -178,7 +178,7 @@ employer.prototype.add_employees = async function(input) {
 employer.prototype.remove_employees = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeEmployees) {
-        results.push(models.person._removeEmployer(associatedRecordId, this.getIdValue()));
+        results.push(models.person.remove_internalEId(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }

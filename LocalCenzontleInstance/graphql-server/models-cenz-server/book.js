@@ -84,8 +84,12 @@ module.exports = class Book {
         return axios.post(url, {
             query: query
         }).then(res => {
-            let data = res.data.data.readOneBook;
-            return new Book(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Book(res.data.data.readOneBook);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -103,7 +107,12 @@ module.exports = class Book {
                 search: search
             }
         }).then(res => {
-            return res.data.data.countBooks;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.countBooks;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -125,10 +134,15 @@ module.exports = class Book {
                 pagination: pagination
             }
         }).then(res => {
-            let data = res.data.data.books;
-            return data.map(item => {
-                return new Book(item)
-            });
+            //check
+            if (res && res.data && res.data.data) {
+                let data = res.data.data.books;
+                return data.map(item => {
+                    return new Book(item)
+                });
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -158,20 +172,25 @@ module.exports = class Book {
                 pagination: pagination
             }
         }).then(res => {
-            let data_edges = res.data.data.booksConnection.edges;
-            let pageInfo = res.data.data.booksConnection.pageInfo;
+            //check
+            if (res && res.data && res.data.data) {
+                let data_edges = res.data.data.booksConnection.edges;
+                let pageInfo = res.data.data.booksConnection.pageInfo;
 
-            let edges = data_edges.map(e => {
+                let edges = data_edges.map(e => {
+                    return {
+                        node: new Book(e.node),
+                        cursor: e.cursor
+                    }
+                })
+
                 return {
-                    node: new Book(e.node),
-                    cursor: e.cursor
-                }
-            })
-
-            return {
-                edges,
-                pageInfo
-            };
+                    edges,
+                    pageInfo
+                };
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -179,25 +198,30 @@ module.exports = class Book {
     }
 
     static addOne(input) {
-
-        let query = `mutation addBook( $internalBId:ID         $title:String
-            $genre:String
-       $addAuthor:ID  ){
-       addBook( internalBId:$internalBId            title:$title
-                  genre:$genre
-          addAuthor:$addAuthor ){
-          internalBId            title
-                    genre
-                    internalPId
-         }
-     }`;
+        let query = `
+        mutation addBook(
+          $internalBId:ID!  
+          $title:String
+          $genre:String        ){
+          addBook(          internalBId:$internalBId  
+          title:$title
+          genre:$genre){
+            internalBId            title
+            genre
+            internalPId
+          }
+        }`;
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.addBook;
-            return new Book(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Book(res.data.data.addBook);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -205,43 +229,123 @@ module.exports = class Book {
     }
 
     static deleteOne(id) {
-        let query = `mutation deleteBook{ deleteBook(internalBId: ${id}) }`;
+        let query = `
+          mutation
+            deleteBook{
+              deleteBook(
+                internalBId: "${id}" )}`;
 
         return axios.post(url, {
             query: query
         }).then(res => {
-            return res.data.data.deleteBook;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.deleteBook;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
-
     }
 
     static updateOne(input) {
-        let query = `mutation updateBook($internalBId:ID!        $title:String
-            $genre:String
-       $addAuthor:ID $removeAuthor:ID  ){
-       updateBook(internalBId:$internalBId           title:$title
-                  genre:$genre
-          addAuthor:$addAuthor removeAuthor:$removeAuthor  ){
-          internalBId            title
-                    genre
-                    internalPId
-         }
-     }`
+        let query = `
+          mutation
+            updateBook(
+              $internalBId:ID! 
+              $title:String 
+              $genre:String             ){
+              updateBook(
+                internalBId:$internalBId 
+                title:$title 
+                genre:$genre               ){
+                internalBId 
+                title 
+                genre 
+                internalPId 
+              }
+            }`
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.updateBook;
-            return new Book(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Book(res.data.data.updateBook);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+    /**
+     * add_internalPId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   internalBId   IdAttribute of the root model to be updated
+     * @param {Id}   internalPId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static add_internalPId(internalBId, internalPId) {
+        let query = `
+            mutation
+              updateBook{
+                updateBook(
+                  internalBId:"${internalBId}"
+                  addAuthor:"${internalPId}"
+                ){
+                  internalBId                  internalPId                }
+              }`
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return new Book(res.data.data.updateBook);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+    /**
+     * remove_internalPId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   internalBId   IdAttribute of the root model to be updated
+     * @param {Id}   internalPId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static remove_internalPId(internalBId, internalPId) {
+        let query = `
+            mutation
+              updateBook{
+                updateBook(
+                  internalBId:"${internalBId}"
+                  removeAuthor:"${internalPId}"
+                ){
+                  internalBId                  internalPId                }
+              }`
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return new Book(res.data.data.updateBook);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
 
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');

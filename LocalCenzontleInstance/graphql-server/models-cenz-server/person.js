@@ -19,7 +19,7 @@ const definition = {
         email: 'String',
         companyId: 'Int',
         internalPId: 'String',
-        internalEId: 'String'
+        internalEId: 'Int'
     },
     associations: {
         works: {
@@ -109,8 +109,12 @@ module.exports = class Person {
         return axios.post(url, {
             query: query
         }).then(res => {
-            let data = res.data.data.readOnePerson;
-            return new Person(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Person(res.data.data.readOnePerson);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -128,7 +132,12 @@ module.exports = class Person {
                 search: search
             }
         }).then(res => {
-            return res.data.data.countPeople;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.countPeople;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -152,10 +161,15 @@ module.exports = class Person {
                 pagination: pagination
             }
         }).then(res => {
-            let data = res.data.data.people;
-            return data.map(item => {
-                return new Person(item)
-            });
+            //check
+            if (res && res.data && res.data.data) {
+                let data = res.data.data.people;
+                return data.map(item => {
+                    return new Person(item)
+                });
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -187,20 +201,25 @@ module.exports = class Person {
                 pagination: pagination
             }
         }).then(res => {
-            let data_edges = res.data.data.peopleConnection.edges;
-            let pageInfo = res.data.data.peopleConnection.pageInfo;
+            //check
+            if (res && res.data && res.data.data) {
+                let data_edges = res.data.data.peopleConnection.edges;
+                let pageInfo = res.data.data.peopleConnection.pageInfo;
 
-            let edges = data_edges.map(e => {
+                let edges = data_edges.map(e => {
+                    return {
+                        node: new Person(e.node),
+                        cursor: e.cursor
+                    }
+                })
+
                 return {
-                    node: new Person(e.node),
-                    cursor: e.cursor
-                }
-            })
-
-            return {
-                edges,
-                pageInfo
-            };
+                    edges,
+                    pageInfo
+                };
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -208,31 +227,36 @@ module.exports = class Person {
     }
 
     static addOne(input) {
-
-        let query = `mutation addPerson( $internalPId:ID         $firstName:String
-            $lastName:String
-            $email:String
-            $companyId:Int
-       $addEmployer:ID  $addWorks:[ID] ){
-       addPerson( internalPId:$internalPId            firstName:$firstName
-                  lastName:$lastName
-                  email:$email
-                  companyId:$companyId
-          addEmployer:$addEmployer  addWorks:$addWorks){
-          internalPId            firstName
-                    lastName
-                    email
-                    companyId
-                    internalEId
-         }
-     }`;
+        let query = `
+        mutation addPerson(
+          $internalPId:ID!  
+          $firstName:String
+          $lastName:String
+          $email:String
+          $companyId:Int        ){
+          addPerson(          internalPId:$internalPId  
+          firstName:$firstName
+          lastName:$lastName
+          email:$email
+          companyId:$companyId){
+            internalPId            firstName
+            lastName
+            email
+            companyId
+            internalEId
+          }
+        }`;
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.addPerson;
-            return new Person(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Person(res.data.data.addPerson);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
@@ -240,49 +264,129 @@ module.exports = class Person {
     }
 
     static deleteOne(id) {
-        let query = `mutation deletePerson{ deletePerson(internalPId: ${id}) }`;
+        let query = `
+          mutation
+            deletePerson{
+              deletePerson(
+                internalPId: "${id}" )}`;
 
         return axios.post(url, {
             query: query
         }).then(res => {
-            return res.data.data.deletePerson;
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.deletePerson;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
-
     }
 
     static updateOne(input) {
-        let query = `mutation updatePerson($internalPId:ID!        $firstName:String
-            $lastName:String
-            $email:String
-            $companyId:Int
-       $addEmployer:ID $removeEmployer:ID  $addWorks:[ID] $removeWorks:[ID] ){
-       updatePerson(internalPId:$internalPId           firstName:$firstName
-                  lastName:$lastName
-                  email:$email
-                  companyId:$companyId
-          addEmployer:$addEmployer removeEmployer:$removeEmployer   addWorks:$addWorks removeWorks:$removeWorks ){
-          internalPId            firstName
-                    lastName
-                    email
-                    companyId
-                    internalEId
-         }
-     }`
+        let query = `
+          mutation
+            updatePerson(
+              $internalPId:ID! 
+              $firstName:String 
+              $lastName:String 
+              $email:String 
+              $companyId:Int             ){
+              updatePerson(
+                internalPId:$internalPId 
+                firstName:$firstName 
+                lastName:$lastName 
+                email:$email 
+                companyId:$companyId               ){
+                internalPId 
+                firstName 
+                lastName 
+                email 
+                companyId 
+                internalEId 
+              }
+            }`
 
         return axios.post(url, {
             query: query,
             variables: input
         }).then(res => {
-            let data = res.data.data.updatePerson;
-            return new Person(data);
+            //check
+            if (res && res.data && res.data.data) {
+                return new Person(res.data.data.updatePerson);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+    /**
+     * add_internalEId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   internalPId   IdAttribute of the root model to be updated
+     * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static add_internalEId(internalPId, internalEId) {
+        let query = `
+            mutation
+              updatePerson{
+                updatePerson(
+                  internalPId:"${internalPId}"
+                  addEmployer:"${internalEId}"
+                ){
+                  internalPId                  internalEId                }
+              }`
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return new Person(res.data.data.updatePerson);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+    /**
+     * remove_internalEId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   internalPId   IdAttribute of the root model to be updated
+     * @param {Id}   internalEId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static remove_internalEId(internalPId, internalEId) {
+        let query = `
+            mutation
+              updatePerson{
+                updatePerson(
+                  internalPId:"${internalPId}"
+                  removeEmployer:"${internalEId}"
+                ){
+                  internalPId                  internalEId                }
+              }`
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return new Person(res.data.data.updatePerson);
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
+            }
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
 
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
