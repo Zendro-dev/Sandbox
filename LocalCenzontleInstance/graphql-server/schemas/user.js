@@ -85,8 +85,8 @@ type UserEdge{
   }
 
     type Mutation {
-    addUser( email: String, password: String  , addRoles:[ID] ): user!
-    updateUser(id: ID!, email: String, password: String  , addRoles:[ID], removeRoles:[ID] ): user!
+    addUser( email: String, password: String  , addRoles:[ID], skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, email: String, password: String  , addRoles:[ID], removeRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
   deleteUser(id: ID!): String!
   bulkAddUserCsv: [user] }
 

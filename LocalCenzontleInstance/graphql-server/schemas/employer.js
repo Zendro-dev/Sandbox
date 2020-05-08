@@ -78,8 +78,8 @@ type EmployerEdge{
   }
 
     type Mutation {
-    addEmployer( employer: String  , addEmployees:[ID] ): Employer!
-    updateEmployer(id: ID!, employer: String  , addEmployees:[ID], removeEmployees:[ID] ): Employer!
+    addEmployer( employer: String  , addEmployees:[ID], skipAssociationsExistenceChecks:Boolean = false): Employer!
+    updateEmployer(id: ID!, employer: String  , addEmployees:[ID], removeEmployees:[ID] , skipAssociationsExistenceChecks:Boolean = false): Employer!
   deleteEmployer(id: ID!): String!
   bulkAddEmployerCsv: [Employer] }
 

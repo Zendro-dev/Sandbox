@@ -107,8 +107,8 @@ type PersonEdge{
   }
 
     type Mutation {
-    addPerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID , addWorks:[ID] ): Person!
-    updatePerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID, removeEmployer:ID  , addWorks:[ID], removeWorks:[ID] ): Person!
+    addPerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID , addWorks:[ID], skipAssociationsExistenceChecks:Boolean = false): Person!
+    updatePerson(internalPId: ID!, firstName: String, lastName: String, email: String, companyId: Int , addEmployer:ID, removeEmployer:ID  , addWorks:[ID], removeWorks:[ID] , skipAssociationsExistenceChecks:Boolean = false): Person!
   deletePerson(internalPId: ID!): String!
   bulkAddPersonCsv: [Person] }
 

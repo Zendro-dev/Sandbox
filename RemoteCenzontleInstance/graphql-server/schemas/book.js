@@ -77,8 +77,8 @@ type BookEdge{
   }
 
     type Mutation {
-    addBook(internalBId: ID!, title: String, genre: String , addAuthor:ID  ): Book!
-    updateBook(internalBId: ID!, title: String, genre: String , addAuthor:ID, removeAuthor:ID  ): Book!
+    addBook(internalBId: ID!, title: String, genre: String , addAuthor:ID , skipAssociationsExistenceChecks:Boolean = false): Book!
+    updateBook(internalBId: ID!, title: String, genre: String , addAuthor:ID, removeAuthor:ID  , skipAssociationsExistenceChecks:Boolean = false): Book!
   deleteBook(internalBId: ID!): String!
   bulkAddBookCsv: [Book] }
 

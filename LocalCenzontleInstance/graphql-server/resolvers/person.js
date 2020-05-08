@@ -226,7 +226,6 @@ person.prototype.add_employer = async function(input) {
 }
 
 
-
 /**
  * remove_works - field Mutation for to_many associations to remove 
  *
@@ -251,7 +250,6 @@ person.prototype.remove_employer = async function(input) {
         this.internalEId = null;
     }
 }
-
 
 
 /**
@@ -488,7 +486,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdPerson = await person.addOne(inputSanitized);
                 await createdPerson.handleAssociations(inputSanitized, context);
                 return createdPerson;
@@ -560,7 +560,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedPerson = await person.updateOne(inputSanitized);
                 await updatedPerson.handleAssociations(inputSanitized, context);
                 return updatedPerson;

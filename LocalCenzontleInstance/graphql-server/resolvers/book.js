@@ -101,7 +101,6 @@ book.prototype.add_author = async function(input) {
 }
 
 
-
 /**
  * remove_author - field Mutation for to_one associations to remove 
  *
@@ -113,7 +112,6 @@ book.prototype.remove_author = async function(input) {
         this.internalPId = null;
     }
 }
-
 
 
 /**
@@ -349,7 +347,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdBook = await book.addOne(inputSanitized);
                 await createdBook.handleAssociations(inputSanitized, context);
                 return createdBook;
@@ -421,7 +421,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedBook = await book.updateOne(inputSanitized);
                 await updatedBook.handleAssociations(inputSanitized, context);
                 return updatedBook;
