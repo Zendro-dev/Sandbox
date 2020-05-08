@@ -1,5 +1,7 @@
 const globals = require('../config/globals');
 const helper = require('../utils/helper');
+const GenericStorage = require('../generic-storage/GenericStorage');
+const data = new GenericStorage({idName: 'name', dataFileName: 'individual-generic-data.json'});
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -110,7 +112,18 @@ module.exports = class Individual {
         /*
         YOUR CODE GOES HERE
          */
-        throw new Error('readOneIndividual is not implemented');
+        //throw new Error('readOneIndividual is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.readById(id)
+        .then((result) => {
+          return result ? new Individual(result) : null;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -123,10 +136,21 @@ module.exports = class Individual {
      */
     static async countRecords(search) {
 
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('countIndividuals is not implemented');
+      /*
+      YOUR CODE GOES HERE
+      */
+      //throw new Error('countIndividuals is not implemented');
+
+      /**
+       * Custom implementation
+       */
+      return data.countRecords(search)
+      .then((result) => {
+        return result;
+      })
+      .catch((e)=>{
+        throw e;
+      });
     }
 
     /**
@@ -156,7 +180,22 @@ module.exports = class Individual {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('Read all individuals is not implemented');
+        //throw new Error('Read all individuals is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.readAll(search, order, pagination)
+        .then((results) => {
+          let a = [];
+          for(let i=0; i<results.length; ++i) {
+            a.push(new Individual(results[i]));
+          }
+          return a;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -365,7 +404,18 @@ module.exports = class Individual {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('addIndividual is not implemented');
+        //throw new Error('addIndividual is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.addOne(input)
+        .then((result) => {
+          return result ? new Individual(result) : null;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -397,7 +447,18 @@ module.exports = class Individual {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('updateIndividual is not implemented');
+        //throw new Error('updateIndividual is not implemented');
+        
+        /**
+         * Custom implementation
+         */
+        return data.updateOne(input)
+        .then((result) => {
+          return result ? new Individual(result) : null;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -412,7 +473,18 @@ module.exports = class Individual {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('deleteIndividual is not implemented');
+        //throw new Error('deleteIndividual is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.deleteOne(id)
+        .then((result) => {
+          return result;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     static async bulkAddCsv(context) {

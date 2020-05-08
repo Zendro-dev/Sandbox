@@ -487,7 +487,7 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                //await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
                 let createdIndividual = await individual.addOne(inputSanitized);
                 await createdIndividual.handleAssociations(inputSanitized, context);
                 return createdIndividual;
@@ -559,7 +559,7 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                //await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 let updatedIndividual = await individual.updateOne(inputSanitized);
                 await updatedIndividual.handleAssociations(inputSanitized, context);
                 return updatedIndividual;

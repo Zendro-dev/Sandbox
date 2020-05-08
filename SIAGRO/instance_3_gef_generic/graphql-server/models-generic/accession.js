@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const globals = require('../config/globals');
 const helper = require('../utils/helper');
-const AccessionGenericStorage = require('../generic-storage/AccessionGenericStorage');
-const data = new AccessionGenericStorage();
+const GenericStorage = require('../generic-storage/GenericStorage');
+const data = new GenericStorage({idName: 'accession_id', dataFileName: 'accession-generic-data.json'});
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -225,7 +225,18 @@ module.exports = class Accession {
         /*
         YOUR CODE GOES HERE
          */
-        throw new Error('readOneAccession is not implemented');
+        //throw new Error('readOneAccession is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.readById(id)
+        .then((result) => {
+          return result ? new Accession(result) : null;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -246,7 +257,13 @@ module.exports = class Accession {
         /**
          * Custom implementation
          */
-        return data.countRecords(search);
+        return data.countRecords(search)
+        .then((result) => {
+          return result;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -291,7 +308,7 @@ module.exports = class Accession {
         })
         .catch((e)=>{
           throw e;
-        })
+        });
     }
 
     /**
@@ -500,7 +517,18 @@ module.exports = class Accession {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('addAccession is not implemented');
+        //throw new Error('addAccession is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.addOne(input)
+        .then((result) => {
+          return result ? new Accession(result) : null;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     /**
@@ -537,13 +565,13 @@ module.exports = class Accession {
         /**
          * Custom implementation
          */
-        return data.updateOne(input, Accession.idAttribute())
+        return data.updateOne(input)
         .then((result) => {
           return result ? new Accession(result) : null;
         })
         .catch((e)=>{
           throw e;
-        })
+        });
     }
 
     /**
@@ -558,7 +586,18 @@ module.exports = class Accession {
         /*
         YOUR CODE GOES HERE
         */
-        throw new Error('deleteAccession is not implemented');
+        //throw new Error('deleteAccession is not implemented');
+
+        /**
+         * Custom implementation
+         */
+        return data.deleteOne(id)
+        .then((result) => {
+          return result;
+        })
+        .catch((e)=>{
+          throw e;
+        });
     }
 
     static async bulkAddCsv(context) {

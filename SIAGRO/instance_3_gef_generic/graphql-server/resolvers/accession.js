@@ -742,9 +742,9 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Accession', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await validForDeletion(accession_id, context)) {
+                //if (await validForDeletion(accession_id, context)) {
                     return accession.deleteOne(accession_id);
-                }
+                //}
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
