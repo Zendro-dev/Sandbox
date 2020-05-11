@@ -1,0 +1,27 @@
+{
+    "model": "observationUnit_to_event",
+    "storageType": "distributed-data-model",
+    "registry": ["observationUnit_to_event_PHENOMIS", "observationUnit_to_event_PHIS", "observationUnit_to_event_PIPPA"],
+    "attributes":{
+        "observationUnitDbId": "String",
+        "eventDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        },
+        "event": {
+            "type": "to_one",
+            "target": "event",
+            "targetKey": "eventDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "distributed-data-model",
+            "label": "eventType"
+        }
+    }
+}

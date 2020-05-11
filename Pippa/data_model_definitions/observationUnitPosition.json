@@ -1,0 +1,26 @@
+{
+    "model": "observationUnitPosition",
+    "storageType": "distributed-data-model",
+    "registry": ["observationUnitPosition_PHENOMIS", "observationUnitPosition_PHIS", "observationUnitPosition_PIPPA"],
+    "attributes": {
+        "blockNumber": "String",
+        "entryNumber": "String",
+        "positionCoordinateX": "String",
+        "positionCoordinateY": "String",
+        "replicate": "String",
+
+        "observationUnitDbId": "String",
+        "observationUnitPositionDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnitPosition",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "observationUnitPositionDbId"
+}

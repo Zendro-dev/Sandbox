@@ -1,0 +1,23 @@
+{
+    "model": "observationTreatment",
+    "storageType": "distributed-data-model",
+    "registry": ["observationTreatment_PHENOMIS", "observationTreatment_PHIS", "observationTreatment_PIPPA"],
+    "attributes": {
+        "factor": "String",
+        "modality": "String",
+
+        "observationUnitDbId": "String",
+        "observationTreatmentDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationTreatment",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "observationTreatmentDbId"
+}

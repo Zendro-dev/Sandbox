@@ -1,0 +1,26 @@
+{
+    "model": "eventParameter",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "eventParameter_PHIS",
+    "regex": "phis",
+    "url": "http://phis-graphql-container:3001/graphql",
+    "attributes": {
+        "key": "String",
+        "rdfValue": "String",
+        "value": "String",
+
+        "eventDbId": "String",
+        "eventParameterDbId": "String"
+    },
+    "associations": {
+        "event": {
+            "type": "to_one",
+            "target": "event",
+            "targetKey": "eventDbId",
+            "keyIn": "eventParameter",
+            "targetStorageType": "distributed-data-model",
+            "label": "eventType"
+        }
+    },
+    "internalId": "eventParameterDbId"
+}

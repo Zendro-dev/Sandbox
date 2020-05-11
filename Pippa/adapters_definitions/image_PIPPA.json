@@ -1,0 +1,41 @@
+{
+    "model": "image",
+    "storageType": "sql-adapter",
+    "adapterName": "image_PIPPA",
+    "regex": "pippa",
+    
+    "attributes": {
+        "copyright": "String",
+        "description": "String",
+        "imageFileName": "String",
+        "imageFileSize": "Int",
+        "imageHeight": "Int",
+        "imageName": "String",
+        "imageTimeStamp": "DateTime",
+        "imageURL": "String",
+        "imageWidth": "Int",
+        "mimeType": "String",
+        "observationUnitDbId": "String",
+        "imageDbId": "String"
+    },
+    "associations": {
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "imageDbId",
+            "keyIn": "observation",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "image",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "imageDbId"
+}

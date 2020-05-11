@@ -1,0 +1,31 @@
+{
+    "model": "season",
+    "storageType": "sql-adapter",
+    "adapterName": "season_PIPPA",
+    "regex": "pippa",
+    
+    "attributes": {
+        "season": "String",
+        "seasonDbId": "String",
+        "year": "Int"
+    },
+    "associations": {
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "seasonDbId",
+            "keyIn": "observation",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "seasonToStudies": {
+            "type": "to_many",
+            "target": "study_to_season",
+            "targetKey": "seasonDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "seasonDbId"
+}

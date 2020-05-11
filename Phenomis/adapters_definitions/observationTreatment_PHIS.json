@@ -1,0 +1,25 @@
+{
+    "model": "observationTreatment",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "observationTreatment_PHIS",
+    "regex": "phis",
+    "url": "http://phis-graphql-container:3001/graphql",
+    "attributes": {
+        "factor": "String",
+        "modality": "String",
+
+        "observationUnitDbId": "String",
+        "observationTreatmentDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationTreatment",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "observationTreatmentDbId"
+}

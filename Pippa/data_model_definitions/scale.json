@@ -1,0 +1,33 @@
+{
+    "model": "scale",
+    "storageType": "distributed-data-model",
+    "registry": ["scale_PHENOMIS", "scale_PHIS", "scale_PIPPA"],
+    "attributes": {
+        "decimalPlaces": "Int",
+        "scaleName": "String",
+        "xref": "String",
+        "scaleDbId": "String",
+
+        "ontologyDbId": "String"
+
+    },
+    "associations": {
+        "observationVariables": {
+            "type": "to_many",
+            "target": "observationVariable",
+            "targetKey": "scaleDbId",
+            "keyIn": "observationVariable",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName"
+        },
+        "ontologyReference": {
+            "type": "to_one",
+            "target": "ontologyReference",
+            "targetKey": "ontologyDbId",
+            "keyIn": "scale",
+            "targetStorageType": "distributed-data-model",
+            "label": "ontologyName"
+        }
+    },
+    "internalId": "scaleDbId"
+}

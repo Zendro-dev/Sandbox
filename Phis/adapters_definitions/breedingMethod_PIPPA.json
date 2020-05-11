@@ -1,0 +1,24 @@
+{
+    "model": "breedingMethod",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "breedingMethod_PIPPA",
+    "regex": "pippa",
+    "url": "http://pippa-graphql-container:3002/graphql",
+    "attributes": {
+        "abbreviation": "String",
+        "breedingMethodDbId": "String",
+        "breedingMethodName": "String",
+        "description": "String"
+    },
+    "associations": {
+        "germplasm": {
+            "type": "to_many",
+            "target": "germplasm",
+            "targetKey": "breedingMethodDbId",
+            "keyIn": "germplasm",
+            "targetStorageType": "distributed-data-model",
+            "label": "germplasmName"
+        }
+    },
+    "internalId": "breedingMethodDbId"
+}

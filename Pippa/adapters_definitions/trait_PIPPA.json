@@ -1,0 +1,39 @@
+{
+    "model": "trait",
+    "storageType": "sql-adapter",
+    "adapterName": "trait_PIPPA",
+    "regex": "pippa",
+    
+    "attributes": {
+        "attribute": "String",
+        "entity": "String",
+        "mainAbbreviation": "String",
+        "status": "String",
+        "traitClass": "String",
+        "traitDescription": "String",
+        "traitName": "String",
+        "xref": "String",
+        "traitDbId": "String",
+
+        "ontologyDbId": "String"
+    },
+    "associations": {
+        "observationVariables": {
+            "type": "to_many",
+            "target": "observationVariable",
+            "targetKey": "traitDbId",
+            "keyIn": "observationVariable",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName"
+        },
+        "ontologyReference": {
+            "type": "to_one",
+            "target": "ontologyReference",
+            "targetKey": "ontologyDbId",
+            "keyIn": "trait",
+            "targetStorageType": "distributed-data-model",
+            "label": "ontologyName"
+        }
+    },
+    "internalId": "traitDbId"
+}

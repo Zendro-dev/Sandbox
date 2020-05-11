@@ -1,0 +1,24 @@
+{
+    "model": "breedingMethod",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "breedingMethod_PHENOMIS",
+    "regex": "phenomis",
+    "url": "http://phenomis-graphql-container:3000/graphql",
+    "attributes": {
+        "abbreviation": "String",
+        "breedingMethodDbId": "String",
+        "breedingMethodName": "String",
+        "description": "String"
+    },
+    "associations": {
+        "germplasm": {
+            "type": "to_many",
+            "target": "germplasm",
+            "targetKey": "breedingMethodDbId",
+            "keyIn": "germplasm",
+            "targetStorageType": "distributed-data-model",
+            "label": "germplasmName"
+        }
+    },
+    "internalId": "breedingMethodDbId"
+}

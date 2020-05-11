@@ -1,0 +1,29 @@
+{
+    "model": "observationUnit_to_event",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "observationUnit_to_event_PHENOMIS",
+    "regex": "phenomis",
+    "url": "http://phenomis-graphql-container:3000/graphql",
+    "attributes":{
+        "observationUnitDbId": "String",
+        "eventDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        },
+        "event": {
+            "type": "to_one",
+            "target": "event",
+            "targetKey": "eventDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "distributed-data-model",
+            "label": "eventType"
+        }
+    }
+}

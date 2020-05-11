@@ -1,0 +1,22 @@
+{
+    "model": "breedingMethod",
+    "storageType": "distributed-data-model",
+    "registry": ["breedingMethod_PHENOMIS", "breedingMethod_PHIS", "breedingMethod_PIPPA"],
+    "attributes": {
+        "abbreviation": "String",
+        "breedingMethodDbId": "String",
+        "breedingMethodName": "String",
+        "description": "String"
+    },
+    "associations": {
+        "germplasm": {
+            "type": "to_many",
+            "target": "germplasm",
+            "targetKey": "breedingMethodDbId",
+            "keyIn": "germplasm",
+            "targetStorageType": "distributed-data-model",
+            "label": "germplasmName"
+        }
+    },
+    "internalId": "breedingMethodDbId"
+}

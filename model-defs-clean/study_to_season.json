@@ -1,0 +1,26 @@
+{
+    "model": "study_to_season",
+    "storageType": "",
+    "attributes":{
+        "studyDbId": "String",
+        "seasonDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "",
+            "label": "studyName"
+        },
+        "season": {
+            "type": "to_one",
+            "target": "season",
+            "targetKey": "seasonDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "",
+            "label": "season"
+        }
+    }
+}

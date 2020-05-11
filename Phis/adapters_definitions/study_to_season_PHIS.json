@@ -1,0 +1,29 @@
+{
+    "model": "study_to_season",
+    "storageType": "sql-adapter",
+    "adapterName": "study_to_season_PHIS",
+    "regex": "phis",
+    
+    "attributes":{
+        "studyDbId": "String",
+        "seasonDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "distributed-data-model",
+            "label": "studyName"
+        },
+        "season": {
+            "type": "to_one",
+            "target": "season",
+            "targetKey": "seasonDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "distributed-data-model",
+            "label": "season"
+        }
+    }
+}

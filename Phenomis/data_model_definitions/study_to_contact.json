@@ -1,0 +1,27 @@
+{
+    "model": "study_to_contact",
+    "storageType": "distributed-data-model",
+    "registry": ["study_to_contact_PHENOMIS", "study_to_contact_PHIS", "study_to_contact_PIPPA"],
+    "attributes":{
+        "studyDbId": "String",
+        "contactDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "studyName"
+        },
+        "contact": {
+            "type": "to_one",
+            "target": "contact",
+            "targetKey": "contactDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "name"
+        }
+    }
+}

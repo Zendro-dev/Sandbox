@@ -1,0 +1,26 @@
+{
+    "model": "study_to_contact",
+    "storageType": "",
+    "attributes":{
+        "studyDbId": "String",
+        "contactDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "",
+            "label": "studyName"
+        },
+        "contact": {
+            "type": "to_one",
+            "target": "contact",
+            "targetKey": "contactDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "",
+            "label": "name"
+        }
+    }
+}

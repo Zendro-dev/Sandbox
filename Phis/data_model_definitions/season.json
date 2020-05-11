@@ -1,0 +1,29 @@
+{
+    "model": "season",
+    "storageType": "distributed-data-model",
+    "registry": ["season_PHENOMIS", "season_PHIS", "season_PIPPA"],
+    "attributes": {
+        "season": "String",
+        "seasonDbId": "String",
+        "year": "Int"
+    },
+    "associations": {
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "seasonDbId",
+            "keyIn": "observation",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "seasonToStudies": {
+            "type": "to_many",
+            "target": "study_to_season",
+            "targetKey": "seasonDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "seasonDbId"
+}

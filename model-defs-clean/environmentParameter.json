@@ -1,0 +1,27 @@
+{
+    "model": "environmentParameter",
+    "storageType": "",
+    "attributes": {
+        "description": "String",
+        "parameterName": "String",
+        "parameterPUI": "String",
+        "unit": "String",
+        "unitPUI": "String",
+        "value": "String",
+        "valuePUI": "String",
+
+        "studyDbId": "String",
+        "environmentParameterDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "environmentParameter",
+            "targetStorageType": "",
+            "label": "studyName"
+        }
+    },
+    "internalId": "environmentParameterDbId"
+}

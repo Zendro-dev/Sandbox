@@ -1,0 +1,28 @@
+{
+    "model": "observationUnitPosition",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "observationUnitPosition_PIPPA",
+    "regex": "pippa",
+    "url": "http://pippa-graphql-container:3002/graphql",
+    "attributes": {
+        "blockNumber": "String",
+        "entryNumber": "String",
+        "positionCoordinateX": "String",
+        "positionCoordinateY": "String",
+        "replicate": "String",
+
+        "observationUnitDbId": "String",
+        "observationUnitPositionDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnitPosition",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "observationUnitPositionDbId"
+}

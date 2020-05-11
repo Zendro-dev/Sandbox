@@ -1,0 +1,36 @@
+{
+    "model": "method",
+    "storageType": "sql-adapter",
+    "adapterName": "method_PHENOMIS",
+    "regex": "phenomis",
+    
+    "attributes": {
+        "description": "String",
+        "formula": "String",
+        "methodClass": "String",
+        "methodName": "String",
+        "reference": "String",
+        "methodDbId": "String",
+
+        "ontologyDbId": "String"
+    },
+    "associations": {
+        "observationVariables": {
+            "type": "to_many",
+            "target": "observationVariable",
+            "targetKey": "methodDbId",
+            "keyIn": "observationVariable",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName"
+        },
+        "ontologyReference": {
+            "type": "to_one",
+            "target": "ontologyReference",
+            "targetKey": "ontologyDbId",
+            "keyIn": "method",
+            "targetStorageType": "distributed-data-model",
+            "label": "ontologyName"
+        }
+    },
+    "internalId": "methodDbId"
+}

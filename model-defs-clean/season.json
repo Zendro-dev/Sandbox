@@ -1,0 +1,28 @@
+{
+    "model": "season",
+    "storageType": "",
+    "attributes": {
+        "season": "String",
+        "seasonDbId": "String",
+        "year": "Int"
+    },
+    "associations": {
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "seasonDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "seasonToStudies": {
+            "type": "to_many",
+            "target": "study_to_season",
+            "targetKey": "seasonDbId",
+            "keyIn": "study_to_season",
+            "targetStorageType": ""
+        }
+    },
+    "internalId": "seasonDbId"
+}

@@ -1,0 +1,50 @@
+{
+    "model": "trial",
+    "storageType": "",
+    "attributes": {
+        "active": "Boolean",
+        "commonCropName": "String",
+        "documentationURL": "String",
+        "endDate": "DateTime",
+        "programDbId": "String",
+        "startDate": "DateTime",
+        "trialDescription": "String",
+        "trialName": "String",
+        "trialPUI": "String",
+        "trialDbId": "String"
+    },
+    "associations": {
+        "trialToContacts": {
+            "type": "to_many",
+            "target": "trial_to_contact",
+            "targetKey": "trialDbId",
+            "keyIn": "trial_to_contact",
+            "targetStorageType": ""
+        },
+        "program": {
+            "type": "to_one",
+            "target": "program",
+            "targetKey": "programDbId",
+            "keyIn": "trial",
+            "targetStorageType": "",
+            "label": "programName"
+        },
+        "observationUnits": {
+            "type": "to_many",
+            "target": "observationUnit",
+            "targetKey": "trialDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "",
+            "label": "observationUnitName"
+        },
+        "studies": {
+            "type": "to_many",
+            "target": "study",
+            "targetKey": "trialDbId",
+            "keyIn": "study",
+            "targetStorageType": "",
+            "label": "studyName"
+        }
+    },
+    "internalId": "trialDbId"
+}

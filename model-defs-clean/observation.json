@@ -1,0 +1,69 @@
+{
+    "model": "observation",
+    "storageType": "",
+    "attributes": {
+        "collector": "String",
+        "germplasmDbId": "String",
+        "observationTimeStamp": "DateTime",
+        "observationUnitDbId": "String",
+        "observationVariableDbId": "String",
+        "studyDbId": "String",
+        "uploadedBy": "String",
+        "value": "String",
+        "observationDbId": "String",
+
+        "seasonDbId": "String",
+        "imageDbId": "String"
+    },
+    "associations": {
+        "season": {
+            "type": "to_one",
+            "target": "season",
+            "targetKey": "seasonDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "season"
+        },
+        "germplasm": {
+            "type": "to_one",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "germplasmName"
+        },
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "observationUnitName"
+        },
+        "observationVariable": {
+            "type": "to_one",
+            "target": "observationVariable",
+            "targetKey": "observationVariableDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "observationVariableName"
+        },
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "studyName"
+        },
+        "image": {
+            "type": "to_one",
+            "target": "image",
+            "targetKey": "imageDbId",
+            "keyIn": "observation",
+            "targetStorageType": "",
+            "label": "imageName"
+        }
+    },
+    "internalId": "observationDbId"
+}

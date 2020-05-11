@@ -1,0 +1,26 @@
+{
+    "model": "observationUnit_to_event",
+    "storageType": "",
+    "attributes":{
+        "observationUnitDbId": "String",
+        "eventDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "",
+            "label": "observationUnitName"
+        },
+        "event": {
+            "type": "to_one",
+            "target": "event",
+            "targetKey": "eventDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "",
+            "label": "eventType"
+        }
+    }
+}

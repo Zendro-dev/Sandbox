@@ -1,0 +1,34 @@
+{
+    "model": "program",
+    "storageType": "distributed-data-model",
+    "registry": ["program_PHENOMIS", "program_PHIS", "program_PIPPA"],
+    "attributes": {
+        "abbreviation": "String",
+        "commonCropName": "String",
+        "documentationURL": "String",
+        "leadPersonDbId": "String",
+        "leadPersonName": "String",
+        "objective": "String",
+        "programName": "String",
+        "programDbId": "String"
+    },
+    "associations" : {
+        "trials" : {
+            "type": "to_many",
+            "target": "trial",
+            "targetKey": "programDbId",
+            "keyIn": "trial",
+            "targetStorageType": "distributed-data-model",
+            "label": "trialName"
+        },
+        "observationUnits": {
+            "type": "to_many",
+            "target": "observationUnit",
+            "targetKey": "programDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitName"
+        }
+    },
+    "internalId": "programDbId"
+}

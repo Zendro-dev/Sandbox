@@ -1,0 +1,30 @@
+{
+    "model": "contact",
+    "storageType": "distributed-data-model",
+    "registry": ["contact_PHENOMIS", "contact_PHIS", "contact_PIPPA"],
+    "attributes": {
+        "contactDbId": "String",
+        "email": "String",
+        "instituteName": "String",
+        "name": "String",
+        "orcid": "String",
+        "type": "String"
+    },
+    "associations": {
+        "ContactTostudies": {
+            "type": "to_many",
+            "target": "study_to_contact",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "distributed-data-model"
+        },
+        "ContactToTrials": {
+            "type": "to_many",
+            "target": "trial_to_contact",
+            "targetKey": "contactDbId",
+            "keyIn": "trial_to_contact",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "contactDbId"
+}

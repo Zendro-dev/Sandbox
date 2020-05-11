@@ -1,0 +1,24 @@
+{
+    "model": "breedingMethod",
+    "storageType": "sql-adapter",
+    "adapterName": "breedingMethod_PHENOMIS",
+    "regex": "phenomis",
+    
+    "attributes": {
+        "abbreviation": "String",
+        "breedingMethodDbId": "String",
+        "breedingMethodName": "String",
+        "description": "String"
+    },
+    "associations": {
+        "germplasm": {
+            "type": "to_many",
+            "target": "germplasm",
+            "targetKey": "breedingMethodDbId",
+            "keyIn": "germplasm",
+            "targetStorageType": "distributed-data-model",
+            "label": "germplasmName"
+        }
+    },
+    "internalId": "breedingMethodDbId"
+}

@@ -1,0 +1,29 @@
+{
+    "model": "study_to_contact",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "study_to_contact_PHENOMIS",
+    "regex": "phenomis",
+    "url": "http://phenomis-graphql-container:3000/graphql",
+    "attributes":{
+        "studyDbId": "String",
+        "contactDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "studyName"
+        },
+        "contact": {
+            "type": "to_one",
+            "target": "contact",
+            "targetKey": "contactDbId",
+            "keyIn": "study_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "name"
+        }
+    }
+}

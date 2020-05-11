@@ -1,0 +1,29 @@
+{
+    "model": "trial_to_contact",
+    "storageType": "sql-adapter",
+    "adapterName": "trial_to_contact_PHIS",
+    "regex": "phis",
+    
+    "attributes":{
+        "trialDbId": "String",
+        "contactDbId": "String"
+    },
+    "associations": {
+        "trial": {
+            "type": "to_one",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keyIn": "trial_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "trialName"
+        },
+        "contact": {
+            "type": "to_one",
+            "target": "contact",
+            "targetKey": "contactDbId",
+            "keyIn": "trial_to_contact",
+            "targetStorageType": "distributed-data-model",
+            "label": "name"
+        }
+    }
+}

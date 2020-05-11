@@ -1,0 +1,30 @@
+{
+    "model": "environmentParameter",
+    "storageType": "sql-adapter",
+    "adapterName": "environmentParameter_PHENOMIS",
+    "regex": "phenomis",
+    
+    "attributes": {
+        "description": "String",
+        "parameterName": "String",
+        "parameterPUI": "String",
+        "unit": "String",
+        "unitPUI": "String",
+        "value": "String",
+        "valuePUI": "String",
+
+        "studyDbId": "String",
+        "environmentParameterDbId": "String"
+    },
+    "associations": {
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "environmentParameter",
+            "targetStorageType": "distributed-data-model",
+            "label": "studyName"
+        }
+    },
+    "internalId": "environmentParameterDbId"
+}

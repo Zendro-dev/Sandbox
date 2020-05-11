@@ -1,0 +1,103 @@
+{
+    "model": "observationUnit",
+    "storageType": "cenzontle-webservice-adapter",
+    "adapterName": "observationUnit_PHENOMIS",
+    "regex": "phenomis",
+    "url": "http://phenomis-graphql-container:3000/graphql",
+    "attributes": {
+        "germplasmDbId": "String",
+        "locationDbId": "String",
+        "observationLevel": "String",
+        "observationUnitName": "String",
+        "observationUnitPUI": "String",
+        "plantNumber": "String",
+        "plotNumber": "String",
+        "programDbId": "String",
+        "studyDbId": "String",
+        "trialDbId": "String",
+        "observationUnitDbId": "String"
+    },
+    "associations": {
+        "observationTreatments": {
+            "type": "to_many",
+            "target": "observationTreatment",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationTreatment",
+            "targetStorageType": "distributed-data-model",
+            "label": "factor"
+        },
+        "observationUnitPosition": {
+            "type": "to_one",
+            "target": "observationUnitPosition",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnitPosition",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitPositionName"
+        },
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observation",
+            "targetStorageType": "distributed-data-model",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "germplasm": {
+            "type": "to_one",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "germplasmName"
+        },
+        "location": {
+            "type": "to_one",
+            "target": "location",
+            "targetKey": "locationDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "locationName"
+        },
+        "program": {
+            "type": "to_one",
+            "target": "program",
+            "targetKey": "programDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "programName"
+        },
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "studyName"
+        },
+        "trial": {
+            "type": "to_one",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "distributed-data-model",
+            "label": "trialName"
+        },
+        "images": {
+            "type": "to_many",
+            "target": "image",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "image",
+            "targetStorageType": "distributed-data-model",
+            "label": "imageName"
+        },
+        "observationUnitToEvents": {
+            "type": "to_many",
+            "target": "observationUnit_to_event",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnit_to_event",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "observationUnitDbId"
+}

@@ -1,0 +1,24 @@
+{
+    "model": "eventParameter",
+    "storageType": "distributed-data-model",
+    "registry": ["eventParameter_PHENOMIS", "eventParameter_PHIS", "eventParameter_PIPPA"],
+    "attributes": {
+        "key": "String",
+        "rdfValue": "String",
+        "value": "String",
+
+        "eventDbId": "String",
+        "eventParameterDbId": "String"
+    },
+    "associations": {
+        "event": {
+            "type": "to_one",
+            "target": "event",
+            "targetKey": "eventDbId",
+            "keyIn": "eventParameter",
+            "targetStorageType": "distributed-data-model",
+            "label": "eventType"
+        }
+    },
+    "internalId": "eventParameterDbId"
+}
