@@ -44,6 +44,7 @@ const definition = {
             targetKey: 'seasonDbId',
             keyIn: 'study_to_season',
             targetStorageType: 'distributed-data-model',
+            label: 'seasonDbId',
             name: 'seasonToStudies',
             name_lc: 'seasonToStudies',
             name_cp: 'SeasonToStudies',

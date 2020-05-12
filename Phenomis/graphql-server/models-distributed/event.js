@@ -45,6 +45,7 @@ const definition = {
             targetKey: 'eventDbId',
             keyIn: 'observationUnit_to_event',
             targetStorageType: 'distributed-data-model',
+            label: 'eventDbId',
             name: 'eventToObservationUnits',
             name_lc: 'eventToObservationUnits',
             name_cp: 'EventToObservationUnits',

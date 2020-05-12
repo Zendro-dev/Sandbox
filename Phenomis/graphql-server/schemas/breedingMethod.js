@@ -78,7 +78,6 @@ input orderBreedingMethodInput{
 }
 
 type Query {
-  breedingMethods(search: searchBreedingMethodInput, order: [ orderBreedingMethodInput ], pagination: paginationInput ): [breedingMethod]
   readOneBreedingMethod(breedingMethodDbId: ID!): breedingMethod
   countBreedingMethods(search: searchBreedingMethodInput ): Int
   vueTableBreedingMethod : VueTableBreedingMethod  csvTableTemplateBreedingMethod: [String]

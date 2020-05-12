@@ -63,7 +63,6 @@ input orderStudy_to_contactInput{
 }
 
 type Query {
-  study_to_contacts(search: searchStudy_to_contactInput, order: [ orderStudy_to_contactInput ], pagination: paginationInput ): [study_to_contact]
   readOneStudy_to_contact(id: ID!): study_to_contact
   countStudy_to_contacts(search: searchStudy_to_contactInput ): Int
   vueTableStudy_to_contact : VueTableStudy_to_contact  csvTableTemplateStudy_to_contact: [String]

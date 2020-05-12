@@ -121,7 +121,6 @@ input orderTraitInput{
 }
 
 type Query {
-  traits(search: searchTraitInput, order: [ orderTraitInput ], pagination: paginationInput ): [trait]
   readOneTrait(traitDbId: ID!): trait
   countTraits(search: searchTraitInput ): Int
   vueTableTrait : VueTableTrait  csvTableTemplateTrait: [String]

@@ -81,7 +81,6 @@ input orderSeasonInput{
 }
 
 type Query {
-  seasons(search: searchSeasonInput, order: [ orderSeasonInput ], pagination: paginationInput ): [season]
   readOneSeason(seasonDbId: ID!): season
   countSeasons(search: searchSeasonInput ): Int
   vueTableSeason : VueTableSeason  csvTableTemplateSeason: [String]

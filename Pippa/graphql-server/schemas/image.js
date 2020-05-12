@@ -135,7 +135,6 @@ input orderImageInput{
 }
 
 type Query {
-  images(search: searchImageInput, order: [ orderImageInput ], pagination: paginationInput ): [image]
   readOneImage(imageDbId: ID!): image
   countImages(search: searchImageInput ): Int
   vueTableImage : VueTableImage  csvTableTemplateImage: [String]

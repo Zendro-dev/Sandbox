@@ -69,7 +69,6 @@ input orderObservationTreatmentInput{
 }
 
 type Query {
-  observationTreatments(search: searchObservationTreatmentInput, order: [ orderObservationTreatmentInput ], pagination: paginationInput ): [observationTreatment]
   readOneObservationTreatment(observationTreatmentDbId: ID!): observationTreatment
   countObservationTreatments(search: searchObservationTreatmentInput ): Int
   vueTableObservationTreatment : VueTableObservationTreatment  csvTableTemplateObservationTreatment: [String]

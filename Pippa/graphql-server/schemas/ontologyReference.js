@@ -108,7 +108,6 @@ input orderOntologyReferenceInput{
 }
 
 type Query {
-  ontologyReferences(search: searchOntologyReferenceInput, order: [ orderOntologyReferenceInput ], pagination: paginationInput ): [ontologyReference]
   readOneOntologyReference(ontologyDbId: ID!): ontologyReference
   countOntologyReferences(search: searchOntologyReferenceInput ): Int
   vueTableOntologyReference : VueTableOntologyReference  csvTableTemplateOntologyReference: [String]

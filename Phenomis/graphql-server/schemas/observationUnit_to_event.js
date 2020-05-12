@@ -63,7 +63,6 @@ input orderObservationUnit_to_eventInput{
 }
 
 type Query {
-  observationUnit_to_events(search: searchObservationUnit_to_eventInput, order: [ orderObservationUnit_to_eventInput ], pagination: paginationInput ): [observationUnit_to_event]
   readOneObservationUnit_to_event(id: ID!): observationUnit_to_event
   countObservationUnit_to_events(search: searchObservationUnit_to_eventInput ): Int
   vueTableObservationUnit_to_event : VueTableObservationUnit_to_event  csvTableTemplateObservationUnit_to_event: [String]

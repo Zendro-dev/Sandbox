@@ -165,7 +165,6 @@ input orderLocationInput{
 }
 
 type Query {
-  locations(search: searchLocationInput, order: [ orderLocationInput ], pagination: paginationInput ): [location]
   readOneLocation(locationDbId: ID!): location
   countLocations(search: searchLocationInput ): Int
   vueTableLocation : VueTableLocation  csvTableTemplateLocation: [String]

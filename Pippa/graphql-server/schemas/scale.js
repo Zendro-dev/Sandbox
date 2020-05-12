@@ -86,7 +86,6 @@ input orderScaleInput{
 }
 
 type Query {
-  scales(search: searchScaleInput, order: [ orderScaleInput ], pagination: paginationInput ): [scale]
   readOneScale(scaleDbId: ID!): scale
   countScales(search: searchScaleInput ): Int
   vueTableScale : VueTableScale  csvTableTemplateScale: [String]

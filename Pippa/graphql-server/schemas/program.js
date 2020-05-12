@@ -116,7 +116,6 @@ input orderProgramInput{
 }
 
 type Query {
-  programs(search: searchProgramInput, order: [ orderProgramInput ], pagination: paginationInput ): [program]
   readOneProgram(programDbId: ID!): program
   countPrograms(search: searchProgramInput ): Int
   vueTableProgram : VueTableProgram  csvTableTemplateProgram: [String]

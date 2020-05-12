@@ -192,6 +192,32 @@ module.exports = class observationUnit_to_event_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_observationUnitDbId(id, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationUnit_to_event{
+                  updateObservationUnit_to_event(
+                    id:"${id}"
+                    addObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit_to_event;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -202,6 +228,32 @@ module.exports = class observationUnit_to_event_PHENOMIS {
      * @param {Id}   eventDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_eventDbId(id, eventDbId) {
+        let query = `
+              mutation
+                updateObservationUnit_to_event{
+                  updateObservationUnit_to_event(
+                    id:"${id}"
+                    addEvent:"${eventDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    eventDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit_to_event;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -213,6 +265,32 @@ module.exports = class observationUnit_to_event_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_observationUnitDbId(id, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationUnit_to_event{
+                  updateObservationUnit_to_event(
+                    id:"${id}"
+                    removeObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit_to_event;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -223,6 +301,32 @@ module.exports = class observationUnit_to_event_PHENOMIS {
      * @param {Id}   eventDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_eventDbId(id, eventDbId) {
+        let query = `
+              mutation
+                updateObservationUnit_to_event{
+                  updateObservationUnit_to_event(
+                    id:"${id}"
+                    removeEvent:"${eventDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    eventDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit_to_event;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

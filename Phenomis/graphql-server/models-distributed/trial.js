@@ -32,6 +32,7 @@ const definition = {
             targetKey: 'trialDbId',
             keyIn: 'trial_to_contact',
             targetStorageType: 'distributed-data-model',
+            label: 'trialDbId',
             name: 'trialToContacts',
             name_lc: 'trialToContacts',
             name_cp: 'TrialToContacts',

@@ -228,6 +228,32 @@ module.exports = class observationUnitPosition_PHIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_observationUnitDbId(observationUnitPositionDbId, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationUnitPosition{
+                  updateObservationUnitPosition(
+                    observationUnitPositionDbId:"${observationUnitPositionDbId}"
+                    addObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitPositionDbId                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnitPosition;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -239,6 +265,32 @@ module.exports = class observationUnitPosition_PHIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_observationUnitDbId(observationUnitPositionDbId, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationUnitPosition{
+                  updateObservationUnitPosition(
+                    observationUnitPositionDbId:"${observationUnitPositionDbId}"
+                    removeObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitPositionDbId                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnitPosition;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

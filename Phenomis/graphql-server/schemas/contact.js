@@ -102,7 +102,6 @@ input orderContactInput{
 }
 
 type Query {
-  contacts(search: searchContactInput, order: [ orderContactInput ], pagination: paginationInput ): [contact]
   readOneContact(contactDbId: ID!): contact
   countContacts(search: searchContactInput ): Int
   vueTableContact : VueTableContact  csvTableTemplateContact: [String]

@@ -212,6 +212,32 @@ module.exports = class event_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_studyDbId(eventType, studyDbId) {
+        let query = `
+              mutation
+                updateEvent{
+                  updateEvent(
+                    eventType:"${eventType}"
+                    addStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    eventType                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateEvent;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -223,6 +249,32 @@ module.exports = class event_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_studyDbId(eventType, studyDbId) {
+        let query = `
+              mutation
+                updateEvent{
+                  updateEvent(
+                    eventType:"${eventType}"
+                    removeStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    eventType                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateEvent;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

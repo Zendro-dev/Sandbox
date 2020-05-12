@@ -204,6 +204,32 @@ module.exports = class observationTreatment_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_observationUnitDbId(observationTreatmentDbId, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationTreatment{
+                  updateObservationTreatment(
+                    observationTreatmentDbId:"${observationTreatmentDbId}"
+                    addObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationTreatmentDbId                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationTreatment;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -215,6 +241,32 @@ module.exports = class observationTreatment_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_observationUnitDbId(observationTreatmentDbId, observationUnitDbId) {
+        let query = `
+              mutation
+                updateObservationTreatment{
+                  updateObservationTreatment(
+                    observationTreatmentDbId:"${observationTreatmentDbId}"
+                    removeObservationUnit:"${observationUnitDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationTreatmentDbId                    observationUnitDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationTreatment;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

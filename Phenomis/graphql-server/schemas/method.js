@@ -100,7 +100,6 @@ input orderMethodInput{
 }
 
 type Query {
-  methods(search: searchMethodInput, order: [ orderMethodInput ], pagination: paginationInput ): [method]
   readOneMethod(methodDbId: ID!): method
   countMethods(search: searchMethodInput ): Int
   vueTableMethod : VueTableMethod  csvTableTemplateMethod: [String]

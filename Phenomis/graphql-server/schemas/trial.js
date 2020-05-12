@@ -141,7 +141,6 @@ input orderTrialInput{
 }
 
 type Query {
-  trials(search: searchTrialInput, order: [ orderTrialInput ], pagination: paginationInput ): [trial]
   readOneTrial(trialDbId: ID!): trial
   countTrials(search: searchTrialInput ): Int
   vueTableTrial : VueTableTrial  csvTableTemplateTrial: [String]

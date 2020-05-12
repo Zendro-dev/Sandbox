@@ -200,7 +200,6 @@ input orderStudyInput{
 }
 
 type Query {
-  studies(search: searchStudyInput, order: [ orderStudyInput ], pagination: paginationInput ): [study]
   readOneStudy(studyDbId: ID!): study
   countStudies(search: searchStudyInput ): Int
   vueTableStudy : VueTableStudy  csvTableTemplateStudy: [String]

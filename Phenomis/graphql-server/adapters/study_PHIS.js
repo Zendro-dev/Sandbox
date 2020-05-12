@@ -280,6 +280,32 @@ module.exports = class study_PHIS {
      * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_locationDbId(studyDbId, locationDbId) {
+        let query = `
+              mutation
+                updateStudy{
+                  updateStudy(
+                    studyDbId:"${studyDbId}"
+                    addLocation:"${locationDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    studyDbId                    locationDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -290,6 +316,32 @@ module.exports = class study_PHIS {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_trialDbId(studyDbId, trialDbId) {
+        let query = `
+              mutation
+                updateStudy{
+                  updateStudy(
+                    studyDbId:"${studyDbId}"
+                    addTrial:"${trialDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    studyDbId                    trialDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -301,6 +353,32 @@ module.exports = class study_PHIS {
      * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_locationDbId(studyDbId, locationDbId) {
+        let query = `
+              mutation
+                updateStudy{
+                  updateStudy(
+                    studyDbId:"${studyDbId}"
+                    removeLocation:"${locationDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    studyDbId                    locationDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -311,6 +389,32 @@ module.exports = class study_PHIS {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_trialDbId(studyDbId, trialDbId) {
+        let query = `
+              mutation
+                updateStudy{
+                  updateStudy(
+                    studyDbId:"${studyDbId}"
+                    removeTrial:"${trialDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    studyDbId                    trialDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

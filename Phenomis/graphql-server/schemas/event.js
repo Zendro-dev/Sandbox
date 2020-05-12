@@ -96,7 +96,6 @@ input orderEventInput{
 }
 
 type Query {
-  events(search: searchEventInput, order: [ orderEventInput ], pagination: paginationInput ): [event]
   readOneEvent(eventType: ID!): event
   countEvents(search: searchEventInput ): Int
   vueTableEvent : VueTableEvent  csvTableTemplateEvent: [String]

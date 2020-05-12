@@ -192,6 +192,32 @@ module.exports = class study_to_contact_PHENOMIS {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_studyDbId(id, studyDbId) {
+        let query = `
+              mutation
+                updateStudy_to_contact{
+                  updateStudy_to_contact(
+                    id:"${id}"
+                    addStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy_to_contact;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -202,6 +228,32 @@ module.exports = class study_to_contact_PHENOMIS {
      * @param {Id}   contactDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_contactDbId(id, contactDbId) {
+        let query = `
+              mutation
+                updateStudy_to_contact{
+                  updateStudy_to_contact(
+                    id:"${id}"
+                    addContact:"${contactDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    contactDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy_to_contact;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -213,6 +265,32 @@ module.exports = class study_to_contact_PHENOMIS {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_studyDbId(id, studyDbId) {
+        let query = `
+              mutation
+                updateStudy_to_contact{
+                  updateStudy_to_contact(
+                    id:"${id}"
+                    removeStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy_to_contact;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -223,6 +301,32 @@ module.exports = class study_to_contact_PHENOMIS {
      * @param {Id}   contactDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_contactDbId(id, contactDbId) {
+        let query = `
+              mutation
+                updateStudy_to_contact{
+                  updateStudy_to_contact(
+                    id:"${id}"
+                    removeContact:"${contactDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    id                    contactDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateStudy_to_contact;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

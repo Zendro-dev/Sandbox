@@ -244,6 +244,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_germplasmDbId(observationUnitDbId, germplasmDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    addGermplasm:"${germplasmDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    germplasmDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -254,6 +280,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_locationDbId(observationUnitDbId, locationDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    addLocation:"${locationDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    locationDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -264,6 +316,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   programDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_programDbId(observationUnitDbId, programDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    addProgram:"${programDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    programDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -274,6 +352,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_studyDbId(observationUnitDbId, studyDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    addStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -284,6 +388,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_trialDbId(observationUnitDbId, trialDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    addTrial:"${trialDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    trialDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -295,6 +425,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_germplasmDbId(observationUnitDbId, germplasmDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    removeGermplasm:"${germplasmDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    germplasmDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -305,6 +461,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_locationDbId(observationUnitDbId, locationDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    removeLocation:"${locationDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    locationDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -315,6 +497,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   programDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_programDbId(observationUnitDbId, programDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    removeProgram:"${programDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    programDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -325,6 +533,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_studyDbId(observationUnitDbId, studyDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    removeStudy:"${studyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    studyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -335,6 +569,32 @@ module.exports = class observationUnit_PIPPA {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_trialDbId(observationUnitDbId, trialDbId) {
+        let query = `
+              mutation
+                updateObservationUnit{
+                  updateObservationUnit(
+                    observationUnitDbId:"${observationUnitDbId}"
+                    removeTrial:"${trialDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    observationUnitDbId                    trialDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateObservationUnit;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

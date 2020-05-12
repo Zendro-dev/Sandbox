@@ -163,7 +163,6 @@ input orderObservationUnitInput{
 }
 
 type Query {
-  observationUnits(search: searchObservationUnitInput, order: [ orderObservationUnitInput ], pagination: paginationInput ): [observationUnit]
   readOneObservationUnit(observationUnitDbId: ID!): observationUnit
   countObservationUnits(search: searchObservationUnitInput ): Int
   vueTableObservationUnit : VueTableObservationUnit  csvTableTemplateObservationUnit: [String]

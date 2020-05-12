@@ -63,7 +63,6 @@ input orderStudy_to_seasonInput{
 }
 
 type Query {
-  study_to_seasons(search: searchStudy_to_seasonInput, order: [ orderStudy_to_seasonInput ], pagination: paginationInput ): [study_to_season]
   readOneStudy_to_season(id: ID!): study_to_season
   countStudy_to_seasons(search: searchStudy_to_seasonInput ): Int
   vueTableStudy_to_season : VueTableStudy_to_season  csvTableTemplateStudy_to_season: [String]

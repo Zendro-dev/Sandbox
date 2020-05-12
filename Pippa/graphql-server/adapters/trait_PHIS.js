@@ -252,6 +252,32 @@ module.exports = class trait_PHIS {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async add_ontologyDbId(traitDbId, ontologyDbId) {
+        let query = `
+              mutation
+                updateTrait{
+                  updateTrait(
+                    traitDbId:"${traitDbId}"
+                    addOntologyReference:"${ontologyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    traitDbId                    ontologyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateTrait;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 
@@ -263,6 +289,32 @@ module.exports = class trait_PHIS {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
+    static async remove_ontologyDbId(traitDbId, ontologyDbId) {
+        let query = `
+              mutation
+                updateTrait{
+                  updateTrait(
+                    traitDbId:"${traitDbId}"
+                    removeOntologyReference:"${ontologyDbId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    traitDbId                    ontologyDbId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateTrait;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
 
 
 

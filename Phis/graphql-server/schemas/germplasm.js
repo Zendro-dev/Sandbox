@@ -222,7 +222,6 @@ input orderGermplasmInput{
 }
 
 type Query {
-  germplasms(search: searchGermplasmInput, order: [ orderGermplasmInput ], pagination: paginationInput ): [germplasm]
   readOneGermplasm(germplasmDbId: ID!): germplasm
   countGermplasms(search: searchGermplasmInput ): Int
   vueTableGermplasm : VueTableGermplasm  csvTableTemplateGermplasm: [String]

@@ -104,7 +104,6 @@ input orderEnvironmentParameterInput{
 }
 
 type Query {
-  environmentParameters(search: searchEnvironmentParameterInput, order: [ orderEnvironmentParameterInput ], pagination: paginationInput ): [environmentParameter]
   readOneEnvironmentParameter(environmentParameterDbId: ID!): environmentParameter
   countEnvironmentParameters(search: searchEnvironmentParameterInput ): Int
   vueTableEnvironmentParameter : VueTableEnvironmentParameter  csvTableTemplateEnvironmentParameter: [String]

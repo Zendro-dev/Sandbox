@@ -76,7 +76,6 @@ input orderEventParameterInput{
 }
 
 type Query {
-  eventParameters(search: searchEventParameterInput, order: [ orderEventParameterInput ], pagination: paginationInput ): [eventParameter]
   readOneEventParameter(eventParameterDbId: ID!): eventParameter
   countEventParameters(search: searchEventParameterInput ): Int
   vueTableEventParameter : VueTableEventParameter  csvTableTemplateEventParameter: [String]
