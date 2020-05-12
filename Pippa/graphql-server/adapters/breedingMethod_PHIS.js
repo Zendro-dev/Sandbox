@@ -17,7 +17,7 @@ module.exports = class breedingMethod_PHIS {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {

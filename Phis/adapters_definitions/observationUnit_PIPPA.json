@@ -1,6 +1,6 @@
 {
     "model": "observationUnit",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "observationUnit_PIPPA",
     "regex": "pippa",
     "url": "http://pippa-graphql-container:3002/graphql",

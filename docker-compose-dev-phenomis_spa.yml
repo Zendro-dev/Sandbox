@@ -1,0 +1,163 @@
+version: "3.7"
+
+services:
+  
+  ################################
+  # PHENOMIS SERVICES
+  ################################
+  phenomis_postgres:
+    build:
+      context: ./Phenomis
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - phenomis_data:/var/lib/postgresql/data
+    networks:
+      - phenomis
+
+  phenomis_graphql_server:
+    container_name: phenomis-graphql-container
+    depends_on:
+      - phenomis_postgres
+    build:
+      context: ./Phenomis/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./Phenomis:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./Phenomis/graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+    networks:
+      - phenomis
+      - EL-demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+  sdb_science_db_app_server:
+    depends_on:
+      - phenomis_postgres
+      - phenomis_graphql_server
+    build:
+      context: .Phenomis/single-page-app
+      dockerfile: Dockerfile.app
+    ports:
+      - 8080:8080
+    environment:
+      - PORT=8080
+      - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+      - REACT_APP_CENZ_LOGIN_URL=http://localhost:3000/login
+      - REACT_APP_CENZ_EXPORT_URL=http://localhost:3000/export
+      - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
+    volumes:
+      - .Phenomis/:/usr/ScienceDbStarterPack
+    networks:
+      - phenomis
+      - EL-demo
+    # Install dependencies and start single-page-app-server in development
+    # mode.
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
+  ################################
+  # PHIS SERVICES
+  ################################
+  phis_postgres:
+    build:
+      context: ./Phis
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - phis_data:/var/lib/postgresql/data
+    networks:
+      - phis
+
+  phis_graphql_server:
+    container_name: phis-graphql-container
+    depends_on:
+      - phis_postgres
+    build:
+      context: ./Phis/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3001:3001
+    environment:
+      - PORT=3001
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./Phis:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./Phis/graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+    networks:
+      - phis
+      - EL-demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+  ################################
+  # PIPPA SERVICES
+  ################################
+  pippa_postgres:
+    build:
+      context: ./Pippa
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - pippa_data:/var/lib/postgresql/data
+    networks:
+      - pippa
+
+  pippa_graphql_server:
+    container_name: pippa-graphql-container
+    depends_on:
+      - pippa_postgres
+    build:
+      context: ./Pippa/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3002:3002
+    environment:
+      - PORT=3002
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./Pippa:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./Pippa/graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+    networks:
+      - pippa
+      - EL-demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+volumes:
+  phenomis_data:
+  phis_data:
+  pippa_data:
+
+networks:
+  phenomis:
+  phis:
+  pippa:
+  EL-demo:

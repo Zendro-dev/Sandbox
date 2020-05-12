@@ -1,6 +1,6 @@
 {
     "model": "ontologyReference",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "ontologyReference_PHIS",
     "regex": "phis",
     "url": "http://phis-graphql-container:3001/graphql",

@@ -1,6 +1,6 @@
 {
     "model": "eventParameter",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "eventParameter_PHIS",
     "regex": "phis",
     "url": "http://phis-graphql-container:3001/graphql",

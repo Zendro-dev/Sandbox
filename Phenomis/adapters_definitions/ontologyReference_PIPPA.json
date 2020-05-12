@@ -1,6 +1,6 @@
 {
     "model": "ontologyReference",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "ontologyReference_PIPPA",
     "regex": "pippa",
     "url": "http://pippa-graphql-container:3002/graphql",

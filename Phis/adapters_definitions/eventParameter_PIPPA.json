@@ -1,6 +1,6 @@
 {
     "model": "eventParameter",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "eventParameter_PIPPA",
     "regex": "pippa",
     "url": "http://pippa-graphql-container:3002/graphql",

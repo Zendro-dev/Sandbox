@@ -17,7 +17,7 @@ module.exports = class ontologyReference_PIPPA {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {

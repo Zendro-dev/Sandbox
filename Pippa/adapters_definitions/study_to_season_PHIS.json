@@ -1,6 +1,6 @@
 {
     "model": "study_to_season",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "study_to_season_PHIS",
     "regex": "phis",
     "url": "http://phis-graphql-container:3001/graphql",

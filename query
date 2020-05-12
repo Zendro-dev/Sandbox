@@ -1,0 +1,27 @@
+{
+  studiesConnection(search:{field:commonCropName,value:{value:"Tomato",type:"String"},operator:eq}){
+    edges{node{
+      startDate
+      endDate
+      studyName
+      observationsConnection(search:{operator:and,search:[
+        {field:observationVariableDbId,value:{value:"phenomis/observationVariable_0001",type:"String"},operator:eq},
+        {field:value,value:{value:"0.5",type:"String"},operator:gt}
+      ]}) {
+        edges{
+          node{
+            value
+            observationTimeStamp
+            observationVariable{
+              observationVariableName
+              scale{
+                scaleName
+              }
+            }
+          }
+        }
+      }
+      }
+    }
+  }
+}

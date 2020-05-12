@@ -224,15 +224,15 @@ module.exports = class environmentParameter {
              */
             switch (adapter.adapterType) {
                 case 'ddm-adapter':
-                case 'generic-adapter':
                     let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
                     return adapter.readAllCursor(nsearch, order, pagination).catch(benignErrors => benignErrors);
 
+                case 'generic-adapter':
                 case 'sql-adapter':
                 case 'cenzontle-webservice-adapter':
                     return adapter.readAllCursor(search, order, pagination).catch(benignErrors => benignErrors);
 
-                case 'default':
+                default:
                     throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
             }
         });

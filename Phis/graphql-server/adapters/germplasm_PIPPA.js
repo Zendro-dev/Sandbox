@@ -17,7 +17,7 @@ module.exports = class germplasm_PIPPA {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -356,32 +356,6 @@ module.exports = class germplasm_PIPPA {
      * @param {Id}   breedingMethodDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_breedingMethodDbId(germplasmDbId, breedingMethodDbId) {
-        let query = `
-              mutation
-                updateGermplasm{
-                  updateGermplasm(
-                    germplasmDbId:"${germplasmDbId}"
-                    addBreedingMethod:"${breedingMethodDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    germplasmDbId                    breedingMethodDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateGermplasm;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -393,32 +367,6 @@ module.exports = class germplasm_PIPPA {
      * @param {Id}   breedingMethodDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_breedingMethodDbId(germplasmDbId, breedingMethodDbId) {
-        let query = `
-              mutation
-                updateGermplasm{
-                  updateGermplasm(
-                    germplasmDbId:"${germplasmDbId}"
-                    removeBreedingMethod:"${breedingMethodDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    germplasmDbId                    breedingMethodDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateGermplasm;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

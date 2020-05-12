@@ -17,7 +17,7 @@ module.exports = class study_to_season_PIPPA {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -192,32 +192,6 @@ module.exports = class study_to_season_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_studyDbId(id, studyDbId) {
-        let query = `
-              mutation
-                updateStudy_to_season{
-                  updateStudy_to_season(
-                    id:"${id}"
-                    addStudy:"${studyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    studyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateStudy_to_season;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -228,32 +202,6 @@ module.exports = class study_to_season_PIPPA {
      * @param {Id}   seasonDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_seasonDbId(id, seasonDbId) {
-        let query = `
-              mutation
-                updateStudy_to_season{
-                  updateStudy_to_season(
-                    id:"${id}"
-                    addSeason:"${seasonDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    seasonDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateStudy_to_season;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -265,32 +213,6 @@ module.exports = class study_to_season_PIPPA {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_studyDbId(id, studyDbId) {
-        let query = `
-              mutation
-                updateStudy_to_season{
-                  updateStudy_to_season(
-                    id:"${id}"
-                    removeStudy:"${studyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    studyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateStudy_to_season;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -301,32 +223,6 @@ module.exports = class study_to_season_PIPPA {
      * @param {Id}   seasonDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_seasonDbId(id, seasonDbId) {
-        let query = `
-              mutation
-                updateStudy_to_season{
-                  updateStudy_to_season(
-                    id:"${id}"
-                    removeSeason:"${seasonDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    seasonDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateStudy_to_season;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

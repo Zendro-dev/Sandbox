@@ -17,7 +17,7 @@ module.exports = class environmentParameter_PHIS {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -244,32 +244,6 @@ module.exports = class environmentParameter_PHIS {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_studyDbId(environmentParameterDbId, studyDbId) {
-        let query = `
-              mutation
-                updateEnvironmentParameter{
-                  updateEnvironmentParameter(
-                    environmentParameterDbId:"${environmentParameterDbId}"
-                    addStudy:"${studyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    environmentParameterDbId                    studyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateEnvironmentParameter;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -281,32 +255,6 @@ module.exports = class environmentParameter_PHIS {
      * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_studyDbId(environmentParameterDbId, studyDbId) {
-        let query = `
-              mutation
-                updateEnvironmentParameter{
-                  updateEnvironmentParameter(
-                    environmentParameterDbId:"${environmentParameterDbId}"
-                    removeStudy:"${studyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    environmentParameterDbId                    studyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateEnvironmentParameter;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

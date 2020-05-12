@@ -17,7 +17,7 @@ module.exports = class trial_to_contact_PHENOMIS {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -192,32 +192,6 @@ module.exports = class trial_to_contact_PHENOMIS {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_trialDbId(id, trialDbId) {
-        let query = `
-              mutation
-                updateTrial_to_contact{
-                  updateTrial_to_contact(
-                    id:"${id}"
-                    addTrial:"${trialDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    trialDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial_to_contact;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -228,32 +202,6 @@ module.exports = class trial_to_contact_PHENOMIS {
      * @param {Id}   contactDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_contactDbId(id, contactDbId) {
-        let query = `
-              mutation
-                updateTrial_to_contact{
-                  updateTrial_to_contact(
-                    id:"${id}"
-                    addContact:"${contactDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    contactDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial_to_contact;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -265,32 +213,6 @@ module.exports = class trial_to_contact_PHENOMIS {
      * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_trialDbId(id, trialDbId) {
-        let query = `
-              mutation
-                updateTrial_to_contact{
-                  updateTrial_to_contact(
-                    id:"${id}"
-                    removeTrial:"${trialDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    trialDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial_to_contact;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -301,32 +223,6 @@ module.exports = class trial_to_contact_PHENOMIS {
      * @param {Id}   contactDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_contactDbId(id, contactDbId) {
-        let query = `
-              mutation
-                updateTrial_to_contact{
-                  updateTrial_to_contact(
-                    id:"${id}"
-                    removeContact:"${contactDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    id                    contactDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial_to_contact;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

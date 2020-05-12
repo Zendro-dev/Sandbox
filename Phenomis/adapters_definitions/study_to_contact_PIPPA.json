@@ -1,6 +1,6 @@
 {
     "model": "study_to_contact",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "study_to_contact_PIPPA",
     "regex": "pippa",
     "url": "http://pippa-graphql-container:3002/graphql",

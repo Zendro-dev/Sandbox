@@ -22,7 +22,8 @@
             "target": "study_to_season",
             "targetKey": "seasonDbId",
             "keyIn": "study_to_season",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "seasonDbId"
         }
     },
     "internalId": "seasonDbId"

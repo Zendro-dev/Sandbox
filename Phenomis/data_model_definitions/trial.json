@@ -20,7 +20,8 @@
             "target": "trial_to_contact",
             "targetKey": "trialDbId",
             "keyIn": "trial_to_contact",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label":"trialDbId"
         },
         "program": {
             "type": "to_one",

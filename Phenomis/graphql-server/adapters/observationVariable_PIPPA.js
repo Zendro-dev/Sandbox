@@ -17,7 +17,7 @@ module.exports = class observationVariable_PIPPA {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -288,32 +288,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   methodDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_methodDbId(observationVariableDbId, methodDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    addMethod:"${methodDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    methodDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -324,32 +298,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_ontologyDbId(observationVariableDbId, ontologyDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    addOntologyReference:"${ontologyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    ontologyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -360,32 +308,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   scaleDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_scaleDbId(observationVariableDbId, scaleDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    addScale:"${scaleDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    scaleDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -396,32 +318,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   traitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_traitDbId(observationVariableDbId, traitDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    addTrait:"${traitDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    traitDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -433,32 +329,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   methodDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_methodDbId(observationVariableDbId, methodDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    removeMethod:"${methodDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    methodDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -469,32 +339,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_ontologyDbId(observationVariableDbId, ontologyDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    removeOntologyReference:"${ontologyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    ontologyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -505,32 +349,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   scaleDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_scaleDbId(observationVariableDbId, scaleDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    removeScale:"${scaleDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    scaleDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -541,32 +359,6 @@ module.exports = class observationVariable_PIPPA {
      * @param {Id}   traitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_traitDbId(observationVariableDbId, traitDbId) {
-        let query = `
-              mutation
-                updateObservationVariable{
-                  updateObservationVariable(
-                    observationVariableDbId:"${observationVariableDbId}"
-                    removeTrait:"${traitDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    observationVariableDbId                    traitDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateObservationVariable;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

@@ -1,6 +1,6 @@
 {
     "model": "image",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "image_PHENOMIS",
     "regex": "phenomis",
     "url": "http://phenomis-graphql-container:3000/graphql",

@@ -1,6 +1,6 @@
 {
     "model": "location",
-    "storageType": "cenzontle-webservice-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "location_PIPPA",
     "regex": "pippa",
     "url": "http://pippa-graphql-container:3002/graphql",

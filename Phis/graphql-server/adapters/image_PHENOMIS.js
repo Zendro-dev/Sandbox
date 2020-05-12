@@ -17,7 +17,7 @@ module.exports = class image_PHENOMIS {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -268,32 +268,6 @@ module.exports = class image_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_observationUnitDbId(imageDbId, observationUnitDbId) {
-        let query = `
-              mutation
-                updateImage{
-                  updateImage(
-                    imageDbId:"${imageDbId}"
-                    addObservationUnit:"${observationUnitDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    imageDbId                    observationUnitDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateImage;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -305,32 +279,6 @@ module.exports = class image_PHENOMIS {
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_observationUnitDbId(imageDbId, observationUnitDbId) {
-        let query = `
-              mutation
-                updateImage{
-                  updateImage(
-                    imageDbId:"${imageDbId}"
-                    removeObservationUnit:"${observationUnitDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    imageDbId                    observationUnitDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateImage;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

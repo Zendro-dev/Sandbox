@@ -17,7 +17,7 @@ module.exports = class trial_PHIS {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -252,32 +252,6 @@ module.exports = class trial_PHIS {
      * @param {Id}   programDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_programDbId(trialDbId, programDbId) {
-        let query = `
-              mutation
-                updateTrial{
-                  updateTrial(
-                    trialDbId:"${trialDbId}"
-                    addProgram:"${programDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    trialDbId                    programDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -289,32 +263,6 @@ module.exports = class trial_PHIS {
      * @param {Id}   programDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_programDbId(trialDbId, programDbId) {
-        let query = `
-              mutation
-                updateTrial{
-                  updateTrial(
-                    trialDbId:"${trialDbId}"
-                    removeProgram:"${programDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    trialDbId                    programDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateTrial;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

@@ -16,14 +16,16 @@
             "target": "study_to_contact",
             "targetKey": "studyDbId",
             "keyIn": "study_to_contact",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "studyDbId"
         },
         "ContactToTrials": {
             "type": "to_many",
             "target": "trial_to_contact",
             "targetKey": "contactDbId",
             "keyIn": "trial_to_contact",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "contactDbId"
         }
     },
     "internalId": "contactDbId"

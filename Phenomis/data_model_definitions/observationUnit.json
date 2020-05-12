@@ -94,7 +94,8 @@
             "target": "observationUnit_to_event",
             "targetKey": "observationUnitDbId",
             "keyIn": "observationUnit_to_event",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "observationUnitDbId"
         }
     },
     "internalId": "observationUnitDbId"

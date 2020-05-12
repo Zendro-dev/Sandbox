@@ -25,7 +25,8 @@
             "target": "observationUnit_to_event",
             "targetKey": "eventDbId",
             "keyIn": "observationUnit_to_event",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "eventDbId"
         },
         "study": {
             "type": "to_one",

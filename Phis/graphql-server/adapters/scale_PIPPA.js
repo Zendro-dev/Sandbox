@@ -17,7 +17,7 @@ module.exports = class scale_PIPPA {
     }
 
     static get adapterType() {
-        return 'cenzontle-webservice-adapter';
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
@@ -212,32 +212,6 @@ module.exports = class scale_PIPPA {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_ontologyDbId(scaleDbId, ontologyDbId) {
-        let query = `
-              mutation
-                updateScale{
-                  updateScale(
-                    scaleDbId:"${scaleDbId}"
-                    addOntologyReference:"${ontologyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    scaleDbId                    ontologyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateScale;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 
@@ -249,32 +223,6 @@ module.exports = class scale_PIPPA {
      * @param {Id}   ontologyDbId Foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_ontologyDbId(scaleDbId, ontologyDbId) {
-        let query = `
-              mutation
-                updateScale{
-                  updateScale(
-                    scaleDbId:"${scaleDbId}"
-                    removeOntologyReference:"${ontologyDbId}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    scaleDbId                    ontologyDbId                  }
-                }`
-
-        return axios.post(remoteCenzontleURL, {
-            query: query
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateScale;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
-    }
 
 
 

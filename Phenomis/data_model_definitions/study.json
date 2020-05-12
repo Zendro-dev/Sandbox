@@ -25,7 +25,8 @@
             "target": "study_to_contact",
             "targetKey": "studyDbId",
             "keyIn": "study_to_contact",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "studyDbId"
         },
         "environmentParameters": {
             "type": "to_many",
@@ -41,7 +42,8 @@
             "target": "study_to_season",
             "targetKey": "studyDbId",
             "keyIn": "study_to_season",
-            "targetStorageType": "distributed-data-model"
+            "targetStorageType": "distributed-data-model",
+            "label": "studyDbId"
         },
         "location": {
             "type": "to_one",
