@@ -123,25 +123,23 @@ role.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_users - field Mutation for to_many associations to add 
+ * add_users - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 role.prototype.add_users = async function(input) {
-    await models.role._addUsers(this, input.addUsers);
+    await models.role.add_userId(this, input.addUsers);
 }
 
 
-
 /**
- * remove_users - field Mutation for to_many associations to remove 
+ * remove_users - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 role.prototype.remove_users = async function(input) {
-    await models.role._removeUsers(this, input.removeUsers);
+    await models.role.remove_userId(this, input.removeUsers);
 }
 
 
@@ -163,7 +161,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await role.countRecords(search) > context.recordsLimit) {
+    if (await role.countRecords(search).sum > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -327,12 +325,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countRoles: function({
+    countRoles: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'role', 'read').then(authorization => {
+        return await checkAuthorization(context, 'role', 'read').then(async authorization => {
             if (authorization === true) {
-                return role.countRecords(search);
+                return (await role.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -378,7 +376,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdRole = await role.addOne(inputSanitized);
                 await createdRole.handleAssociations(inputSanitized, context);
                 return createdRole;
@@ -450,7 +450,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedRole = await role.updateOne(inputSanitized);
                 await updatedRole.handleAssociations(inputSanitized, context);
                 return updatedRole;

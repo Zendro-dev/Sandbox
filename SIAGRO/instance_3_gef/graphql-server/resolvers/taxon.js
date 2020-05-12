@@ -154,31 +154,29 @@ taxon.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_accessions - field Mutation for to_many associations to add 
+ * add_accessions - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 taxon.prototype.add_accessions = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addAccessions) {
-        results.push(models.accession._addTaxon(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.add_taxon_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 
-
 /**
- * remove_accessions - field Mutation for to_many associations to remove 
+ * remove_accessions - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 taxon.prototype.remove_accessions = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeAccessions) {
-        results.push(models.accession._removeTaxon(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.remove_taxon_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
@@ -202,7 +200,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await taxon.countRecords(search) > context.recordsLimit) {
+    if (await taxon.countRecords(search).sum > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -367,12 +365,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countTaxons: function({
+    countTaxons: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                return taxon.countRecords(search);
+                return (await taxon.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -418,7 +416,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdTaxon = await taxon.addOne(inputSanitized);
                 await createdTaxon.handleAssociations(inputSanitized, context);
                 return createdTaxon;
@@ -490,7 +490,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedTaxon = await taxon.updateOne(inputSanitized);
                 await updatedTaxon.handleAssociations(inputSanitized, context);
                 return updatedTaxon;

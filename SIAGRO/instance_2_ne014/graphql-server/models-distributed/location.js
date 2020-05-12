@@ -116,7 +116,7 @@ module.exports = class Location {
 
     /**
      * registeredAdapters - Returns an object which has a key for each
-     * adapter on adapter/index.js. Each key of the object will have 
+     * adapter on adapter/index.js. Each key of the object will have
      *
      * @return {string}     baseUrl from request.
      */
@@ -155,12 +155,12 @@ module.exports = class Location {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -172,9 +172,9 @@ module.exports = class Location {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -217,12 +217,12 @@ module.exports = class Location {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -241,9 +241,9 @@ module.exports = class Location {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -251,15 +251,15 @@ module.exports = class Location {
              */
             switch (adapter.adapterType) {
                 case 'ddm-adapter':
-                case 'generic-adapter':
                     let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
                     return adapter.readAllCursor(nsearch, order, pagination).catch(benignErrors => benignErrors);
 
+                case 'generic-adapter':
                 case 'sql-adapter':
                 case 'cenzontle-webservice-adapter':
                     return adapter.readAllCursor(search, order, pagination).catch(benignErrors => benignErrors);
 
-                case 'default':
+                default:
                     throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
             }
         });
@@ -392,6 +392,10 @@ module.exports = class Location {
         let responsibleAdapter = this.adapterForIri(input.locationId);
         return adapters[responsibleAdapter].updateOne(input).then(result => new Location(result));
     }
+
+
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Location.bulkAddCsv is not implemented.")

@@ -135,7 +135,7 @@ module.exports = class Individual extends Sequelize.Model {
         return Individual.findOne(options);
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -148,7 +148,10 @@ module.exports = class Individual extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {
@@ -468,12 +471,12 @@ module.exports = class Individual extends Sequelize.Model {
 
 
     /**
-     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_accession_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
      * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addAccession(name, accession_id) {
+    static async add_accession_id(name, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({
@@ -493,12 +496,12 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
     /**
-     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_accession_id - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
      * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeAccession(name, accession_id) {
+    static async remove_accession_id(name, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Individual.update({

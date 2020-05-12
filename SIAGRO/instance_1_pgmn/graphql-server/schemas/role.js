@@ -85,8 +85,8 @@ type RoleEdge{
   }
 
     type Mutation {
-    addRole( name: String, description: String  , addUsers:[ID] ): role!
-    updateRole(id: ID!, name: String, description: String  , addUsers:[ID], removeUsers:[ID] ): role!
+    addRole( name: String, description: String  , addUsers:[ID], skipAssociationsExistenceChecks:Boolean = false): role!
+    updateRole(id: ID!, name: String, description: String  , addUsers:[ID], removeUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
   deleteRole(id: ID!): String!
   bulkAddRoleCsv: [role] }
 

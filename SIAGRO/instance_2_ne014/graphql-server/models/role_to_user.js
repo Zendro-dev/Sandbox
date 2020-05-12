@@ -67,7 +67,7 @@ module.exports = class role_to_user extends Sequelize.Model {
         return role_to_user.findOne(options);
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -80,7 +80,10 @@ module.exports = class role_to_user extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {

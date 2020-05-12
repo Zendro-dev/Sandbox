@@ -44,8 +44,6 @@ role_to_user.prototype.handleAssociations = async function(input, context) {
 
 
 
-
-
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -63,7 +61,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await role_to_user.countRecords(search) > context.recordsLimit) {
+    if (await role_to_user.countRecords(search).sum > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -227,12 +225,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countRole_to_users: function({
+    countRole_to_users: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'role_to_user', 'read').then(authorization => {
+        return await checkAuthorization(context, 'role_to_user', 'read').then(async authorization => {
             if (authorization === true) {
-                return role_to_user.countRecords(search);
+                return (await role_to_user.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -278,7 +276,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdRole_to_user = await role_to_user.addOne(inputSanitized);
                 await createdRole_to_user.handleAssociations(inputSanitized, context);
                 return createdRole_to_user;
@@ -350,7 +350,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedRole_to_user = await role_to_user.updateOne(inputSanitized);
                 await updatedRole_to_user.handleAssociations(inputSanitized, context);
                 return updatedRole_to_user;

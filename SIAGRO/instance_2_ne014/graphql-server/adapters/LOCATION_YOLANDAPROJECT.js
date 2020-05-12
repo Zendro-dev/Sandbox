@@ -408,6 +408,12 @@ module.exports = class LOCATION_YOLANDAPROJECT extends Sequelize.Model {
             });
     }
 
+
+
+
+
+
+
     static bulkAddCsv(context) {
 
         let delim = context.request.body.delim;

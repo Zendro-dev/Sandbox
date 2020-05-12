@@ -26,11 +26,11 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
 
     static readById(iri) {
         let query = `
-          query 
+          query
             readOneMeasurement
             {
               readOneMeasurement(measurement_id:"${iri}")
-              { 
+              {
                 measurement_id 
                 name 
                 method 
@@ -137,12 +137,8 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
           $unit:String
           $short_name:String
           $comments:String
-          $field_unit_id:Int 
-          $addIndividual:ID 
-          $addAccession:ID 
-        ){
-          addMeasurement( 
-          measurement_id:$measurement_id  
+          $field_unit_id:Int        ){
+          addMeasurement(          measurement_id:$measurement_id  
           name:$name
           method:$method
           reference:$reference
@@ -151,11 +147,8 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
           unit:$unit
           short_name:$short_name
           comments:$comments
-          field_unit_id:$field_unit_id  
-          addIndividual:$addIndividual 
-          addAccession:$addAccession ){
-            measurement_id 
-            name
+          field_unit_id:$field_unit_id){
+            measurement_id            name
             method
             reference
             reference_link
@@ -187,8 +180,8 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
 
     static deleteOne(id) {
         let query = `
-          mutation 
-            deleteMeasurement{ 
+          mutation
+            deleteMeasurement{
               deleteMeasurement(
                 measurement_id: "${id}" )}`;
 
@@ -209,7 +202,7 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
 
     static updateOne(input) {
         let query = `
-          mutation 
+          mutation
             updateMeasurement(
               $measurement_id:ID! 
               $name:String 
@@ -220,12 +213,7 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
               $unit:String 
               $short_name:String 
               $comments:String 
-              $field_unit_id:Int  
-              $addIndividual:ID 
-              $removeIndividual:ID
-              $addAccession:ID 
-              $removeAccession:ID  
-            ){
+              $field_unit_id:Int             ){
               updateMeasurement(
                 measurement_id:$measurement_id 
                 name:$name 
@@ -236,12 +224,7 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
                 unit:$unit 
                 short_name:$short_name 
                 comments:$comments 
-                field_unit_id:$field_unit_id   
-                addIndividual:$addIndividual 
-                removeIndividual:$removeIndividual  
-                addAccession:$addAccession 
-                removeAccession:$removeAccession  
-              ){
+                field_unit_id:$field_unit_id               ){
                 measurement_id 
                 name 
                 method 
@@ -272,6 +255,155 @@ module.exports = class MEASUREMENT_YOLANDAPROJECT {
             handleError(error);
         });
     }
+
+
+    /**
+     * add_individual_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
+     * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async add_individual_id(measurement_id, individual_id) {
+        let query = `
+              mutation
+                updateMeasurement{
+                  updateMeasurement(
+                    measurement_id:"${measurement_id}"
+                    addIndividual:"${individual_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    measurement_id                    individual_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateMeasurement;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+    /**
+     * add_accession_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async add_accession_id(measurement_id, accession_id) {
+        let query = `
+              mutation
+                updateMeasurement{
+                  updateMeasurement(
+                    measurement_id:"${measurement_id}"
+                    addAccession:"${accession_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    measurement_id                    accession_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateMeasurement;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+    /**
+     * remove_individual_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
+     * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async remove_individual_id(measurement_id, individual_id) {
+        let query = `
+              mutation
+                updateMeasurement{
+                  updateMeasurement(
+                    measurement_id:"${measurement_id}"
+                    removeIndividual:"${individual_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    measurement_id                    individual_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateMeasurement;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+    /**
+     * remove_accession_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async remove_accession_id(measurement_id, accession_id) {
+        let query = `
+              mutation
+                updateMeasurement{
+                  updateMeasurement(
+                    measurement_id:"${measurement_id}"
+                    removeAccession:"${accession_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    measurement_id                    accession_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateMeasurement;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Measurement.bulkAddCsv is not implemented.")

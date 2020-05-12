@@ -95,7 +95,7 @@ module.exports = class role extends Sequelize.Model {
         return role.findOne(options);
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -108,7 +108,10 @@ module.exports = class role extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {
@@ -630,12 +633,12 @@ module.exports = class role extends Sequelize.Model {
     }
 
     /**
-     * _addUsers - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_userId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addUsers(record, addUsers) {
+    static async add_userId(record, addUsers) {
         const updated = await sequelize.transaction(async (transaction) => {
             return await record.setUsers(addUsers, {
                 transaction: transaction
@@ -645,12 +648,12 @@ module.exports = class role extends Sequelize.Model {
     }
 
     /**
-     * _removeUsers - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_userId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Id}   userId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeUsers(record, removeUsers) {
+    static async remove_userId(record, removeUsers) {
         const updated = await sequelize.transaction(async (transaction) => {
             return await record.removeUsers(removeUsers, {
                 transaction: transaction

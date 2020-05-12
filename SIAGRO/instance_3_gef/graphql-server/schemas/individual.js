@@ -107,8 +107,8 @@ type IndividualEdge{
   }
 
     type Mutation {
-    addIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID , addMeasurements:[ID] ): Individual!
-    updateIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID, removeAccession:ID  , addMeasurements:[ID], removeMeasurements:[ID] ): Individual!
+    addIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID , addMeasurements:[ID], skipAssociationsExistenceChecks:Boolean = false): Individual!
+    updateIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID, removeAccession:ID  , addMeasurements:[ID], removeMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Individual!
   deleteIndividual(name: ID!): String!
   bulkAddIndividualCsv: [Individual] }
 

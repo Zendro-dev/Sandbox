@@ -26,11 +26,11 @@ module.exports = class INDIVIDUAL_PGMN {
 
     static readById(iri) {
         let query = `
-          query 
+          query
             readOneIndividual
             {
               readOneIndividual(name:"${iri}")
-              { 
+              {
                 name 
                 origin 
                 description 
@@ -120,20 +120,13 @@ module.exports = class INDIVIDUAL_PGMN {
           $origin:String
           $description:String
           $genotypeId:Int
-          $field_unit_id:Int 
-          $addAccession:ID 
-          $addMeasurements:[ID]
- 
-        ){
-          addIndividual( 
-          name:$name  
+          $field_unit_id:Int        ){
+          addIndividual(          name:$name  
           origin:$origin
           description:$description
           genotypeId:$genotypeId
-          field_unit_id:$field_unit_id  
-          addAccession:$addAccession  addMeasurements:$addMeasurements){
-            name 
-            origin
+          field_unit_id:$field_unit_id){
+            name            origin
             description
             accession_id
             genotypeId
@@ -159,8 +152,8 @@ module.exports = class INDIVIDUAL_PGMN {
 
     static deleteOne(id) {
         let query = `
-          mutation 
-            deleteIndividual{ 
+          mutation
+            deleteIndividual{
               deleteIndividual(
                 name: "${id}" )}`;
 
@@ -181,29 +174,19 @@ module.exports = class INDIVIDUAL_PGMN {
 
     static updateOne(input) {
         let query = `
-          mutation 
+          mutation
             updateIndividual(
               $name:ID! 
               $origin:String 
               $description:String 
               $genotypeId:Int 
-              $field_unit_id:Int  
-              $addAccession:ID 
-              $removeAccession:ID  
-              $addMeasurements:[ID] 
-              $removeMeasurements:[ID] 
-            ){
+              $field_unit_id:Int             ){
               updateIndividual(
                 name:$name 
                 origin:$origin 
                 description:$description 
                 genotypeId:$genotypeId 
-                field_unit_id:$field_unit_id   
-                addAccession:$addAccession 
-                removeAccession:$removeAccession   
-                addMeasurements:$addMeasurements 
-                removeMeasurements:$removeMeasurements 
-              ){
+                field_unit_id:$field_unit_id               ){
                 name 
                 origin 
                 description 
@@ -228,6 +211,83 @@ module.exports = class INDIVIDUAL_PGMN {
             handleError(error);
         });
     }
+
+
+    /**
+     * add_accession_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async add_accession_id(name, accession_id) {
+        let query = `
+              mutation
+                updateIndividual{
+                  updateIndividual(
+                    name:"${name}"
+                    addAccession:"${accession_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    name                    accession_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateIndividual;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+    /**
+     * remove_accession_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async remove_accession_id(name, accession_id) {
+        let query = `
+              mutation
+                updateIndividual{
+                  updateIndividual(
+                    name:"${name}"
+                    removeAccession:"${accession_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    name                    accession_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateIndividual;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Individual.bulkAddCsv is not implemented.")

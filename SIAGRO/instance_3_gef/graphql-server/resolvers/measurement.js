@@ -136,53 +136,47 @@ measurement.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_individual - field Mutation for to_one associations to add 
+ * add_individual - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 measurement.prototype.add_individual = async function(input) {
-    await measurement._addIndividual(this.getIdValue(), input.addIndividual);
+    await measurement.add_individual_id(this.getIdValue(), input.addIndividual);
     this.individual_id = input.addIndividual;
 }
-
 /**
- * add_accession - field Mutation for to_one associations to add 
+ * add_accession - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 measurement.prototype.add_accession = async function(input) {
-    await measurement._addAccession(this.getIdValue(), input.addAccession);
+    await measurement.add_accession_id(this.getIdValue(), input.addAccession);
     this.accession_id = input.addAccession;
 }
 
-
-
 /**
- * remove_individual - field Mutation for to_one associations to remove 
+ * remove_individual - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_individual = async function(input) {
-    if (input.removeIndividual === this.individual_id) {
-        await measurement._removeIndividual(this.getIdValue(), input.removeIndividual);
+    if (input.removeIndividual == this.individual_id) {
+        await measurement.remove_individual_id(this.getIdValue(), input.removeIndividual);
         this.individual_id = null;
     }
 }
-
 /**
- * remove_accession - field Mutation for to_one associations to remove 
+ * remove_accession - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_accession = async function(input) {
-    if (input.removeAccession === this.accession_id) {
-        await measurement._removeAccession(this.getIdValue(), input.removeAccession);
+    if (input.removeAccession == this.accession_id) {
+        await measurement.remove_accession_id(this.getIdValue(), input.removeAccession);
         this.accession_id = null;
     }
 }
-
 
 
 /**
@@ -202,7 +196,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await measurement.countRecords(search) > context.recordsLimit) {
+    if (await measurement.countRecords(search).sum > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -368,12 +362,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countMeasurements: function({
+    countMeasurements: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
-                return measurement.countRecords(search);
+                return (await measurement.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -419,7 +413,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdMeasurement = await measurement.addOne(inputSanitized);
                 await createdMeasurement.handleAssociations(inputSanitized, context);
                 return createdMeasurement;
@@ -491,7 +487,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedMeasurement = await measurement.updateOne(inputSanitized);
                 await updatedMeasurement.handleAssociations(inputSanitized, context);
                 return updatedMeasurement;

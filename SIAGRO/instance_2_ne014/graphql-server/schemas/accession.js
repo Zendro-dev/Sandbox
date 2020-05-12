@@ -279,7 +279,6 @@ input orderAccessionInput{
 }
 
 type Query {
-  accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
   readOneAccession(accession_id: ID!): Accession
   countAccessions(search: searchAccessionInput ): Int
   vueTableAccession : VueTableAccession  csvTableTemplateAccession: [String]
@@ -288,8 +287,8 @@ type Query {
 }
 
   type Mutation {
-  addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, addLocation:ID , addIndividuals:[ID], addMeasurements:[ID] ): Accession!
-  updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, removeTaxon:ID , addLocation:ID, removeLocation:ID  , addIndividuals:[ID], removeIndividuals:[ID] , addMeasurements:[ID], removeMeasurements:[ID] ): Accession!
+  addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, addLocation:ID , addIndividuals:[ID], addMeasurements:[ID], skipAssociationsExistenceChecks:Boolean = false): Accession!
+  updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, removeTaxon:ID , addLocation:ID, removeLocation:ID  , addIndividuals:[ID], removeIndividuals:[ID] , addMeasurements:[ID], removeMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
 deleteAccession(accession_id: ID!): String!
 bulkAddAccessionCsv: [Accession] }
 

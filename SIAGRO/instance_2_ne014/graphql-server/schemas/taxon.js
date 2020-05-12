@@ -169,8 +169,8 @@ type TaxonEdge{
   }
 
     type Mutation {
-    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID] ): Taxon!
-    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], removeAccessions:[ID] ): Taxon!
+    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], removeAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
   deleteTaxon(id: ID!): String!
   bulkAddTaxonCsv: [Taxon] }
 

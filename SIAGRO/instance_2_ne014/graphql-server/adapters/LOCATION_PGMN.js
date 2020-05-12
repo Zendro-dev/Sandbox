@@ -26,11 +26,11 @@ module.exports = class LOCATION_PGMN {
 
     static readById(iri) {
         let query = `
-          query 
+          query
             readOneLocation
             {
               readOneLocation(locationId:"${iri}")
-              { 
+              {
                 locationId 
                 country 
                 state 
@@ -157,12 +157,8 @@ module.exports = class LOCATION_PGMN {
           $stoniness:String
           $sewer:String
           $topography:String
-          $slope:Float 
-          $addAccessions:[ID]
- 
-        ){
-          addLocation( 
-          locationId:$locationId  
+          $slope:Float        ){
+          addLocation(          locationId:$locationId  
           country:$country
           state:$state
           municipality:$municipality
@@ -179,9 +175,8 @@ module.exports = class LOCATION_PGMN {
           stoniness:$stoniness
           sewer:$sewer
           topography:$topography
-          slope:$slope   addAccessions:$addAccessions){
-            locationId 
-            country
+          slope:$slope){
+            locationId            country
             state
             municipality
             locality
@@ -219,8 +214,8 @@ module.exports = class LOCATION_PGMN {
 
     static deleteOne(id) {
         let query = `
-          mutation 
-            deleteLocation{ 
+          mutation
+            deleteLocation{
               deleteLocation(
                 locationId: "${id}" )}`;
 
@@ -241,7 +236,7 @@ module.exports = class LOCATION_PGMN {
 
     static updateOne(input) {
         let query = `
-          mutation 
+          mutation
             updateLocation(
               $locationId:ID! 
               $country:String 
@@ -260,10 +255,7 @@ module.exports = class LOCATION_PGMN {
               $stoniness:String 
               $sewer:String 
               $topography:String 
-              $slope:Float    
-              $addAccessions:[ID] 
-              $removeAccessions:[ID] 
-            ){
+              $slope:Float             ){
               updateLocation(
                 locationId:$locationId 
                 country:$country 
@@ -282,10 +274,7 @@ module.exports = class LOCATION_PGMN {
                 stoniness:$stoniness 
                 sewer:$sewer 
                 topography:$topography 
-                slope:$slope    
-                addAccessions:$addAccessions 
-                removeAccessions:$removeAccessions 
-              ){
+                slope:$slope               ){
                 locationId 
                 country 
                 state 
@@ -322,6 +311,11 @@ module.exports = class LOCATION_PGMN {
             handleError(error);
         });
     }
+
+
+
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Location.bulkAddCsv is not implemented.")

@@ -26,11 +26,11 @@ module.exports = class ACCESSION_PGMN {
 
     static readById(iri) {
         let query = `
-          query 
+          query
             readOneAccession
             {
               readOneAccession(accession_id:"${iri}")
-              { 
+              {
                 accession_id 
                 collectors_name 
                 collectors_initials 
@@ -194,16 +194,8 @@ module.exports = class ACCESSION_PGMN {
           $collected_plants:Int
           $collected_other:String
           $habit:String
-          $local_name:String 
-          $addTaxon:ID 
-          $addLocation:ID 
-          $addIndividuals:[ID]
- 
-          $addMeasurements:[ID]
- 
-        ){
-          addAccession( 
-          accession_id:$accession_id  
+          $local_name:String        ){
+          addAccession(          accession_id:$accession_id  
           collectors_name:$collectors_name
           collectors_initials:$collectors_initials
           sampling_date:$sampling_date
@@ -231,11 +223,8 @@ module.exports = class ACCESSION_PGMN {
           collected_plants:$collected_plants
           collected_other:$collected_other
           habit:$habit
-          local_name:$local_name  
-          addTaxon:$addTaxon 
-          addLocation:$addLocation  addIndividuals:$addIndividuals addMeasurements:$addMeasurements){
-            accession_id 
-            collectors_name
+          local_name:$local_name){
+            accession_id            collectors_name
             collectors_initials
             sampling_date
             sampling_number
@@ -286,8 +275,8 @@ module.exports = class ACCESSION_PGMN {
 
     static deleteOne(id) {
         let query = `
-          mutation 
-            deleteAccession{ 
+          mutation
+            deleteAccession{
               deleteAccession(
                 accession_id: "${id}" )}`;
 
@@ -308,7 +297,7 @@ module.exports = class ACCESSION_PGMN {
 
     static updateOne(input) {
         let query = `
-          mutation 
+          mutation
             updateAccession(
               $accession_id:ID! 
               $collectors_name:String 
@@ -338,16 +327,7 @@ module.exports = class ACCESSION_PGMN {
               $collected_plants:Int 
               $collected_other:String 
               $habit:String 
-              $local_name:String  
-              $addTaxon:ID 
-              $removeTaxon:ID
-              $addLocation:ID 
-              $removeLocation:ID  
-              $addIndividuals:[ID] 
-              $removeIndividuals:[ID] 
-              $addMeasurements:[ID] 
-              $removeMeasurements:[ID] 
-            ){
+              $local_name:String             ){
               updateAccession(
                 accession_id:$accession_id 
                 collectors_name:$collectors_name 
@@ -377,16 +357,7 @@ module.exports = class ACCESSION_PGMN {
                 collected_plants:$collected_plants 
                 collected_other:$collected_other 
                 habit:$habit 
-                local_name:$local_name   
-                addTaxon:$addTaxon 
-                removeTaxon:$removeTaxon  
-                addLocation:$addLocation 
-                removeLocation:$removeLocation   
-                addIndividuals:$addIndividuals 
-                removeIndividuals:$removeIndividuals  
-                addMeasurements:$addMeasurements 
-                removeMeasurements:$removeMeasurements 
-              ){
+                local_name:$local_name               ){
                 accession_id 
                 collectors_name 
                 collectors_initials 
@@ -436,6 +407,155 @@ module.exports = class ACCESSION_PGMN {
             handleError(error);
         });
     }
+
+
+    /**
+     * add_taxon_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async add_taxon_id(accession_id, taxon_id) {
+        let query = `
+              mutation
+                updateAccession{
+                  updateAccession(
+                    accession_id:"${accession_id}"
+                    addTaxon:"${taxon_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    accession_id                    taxon_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+    /**
+     * add_locationId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async add_locationId(accession_id, locationId) {
+        let query = `
+              mutation
+                updateAccession{
+                  updateAccession(
+                    accession_id:"${accession_id}"
+                    addLocation:"${locationId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    accession_id                    locationId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+    /**
+     * remove_taxon_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async remove_taxon_id(accession_id, taxon_id) {
+        let query = `
+              mutation
+                updateAccession{
+                  updateAccession(
+                    accession_id:"${accession_id}"
+                    removeTaxon:"${taxon_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    accession_id                    taxon_id                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+    /**
+     * remove_locationId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+    static async remove_locationId(accession_id, locationId) {
+        let query = `
+              mutation
+                updateAccession{
+                  updateAccession(
+                    accession_id:"${accession_id}"
+                    removeLocation:"${locationId}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    accession_id                    locationId                  }
+                }`
+
+        return axios.post(remoteCenzontleURL, {
+            query: query
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateAccession;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
+    }
+
+
+
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Accession.bulkAddCsv is not implemented.")

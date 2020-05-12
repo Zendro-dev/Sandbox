@@ -99,7 +99,7 @@ module.exports = class Individual {
 
     /**
      * registeredAdapters - Returns an object which has a key for each
-     * adapter on adapter/index.js. Each key of the object will have 
+     * adapter on adapter/index.js. Each key of the object will have
      *
      * @return {string}     baseUrl from request.
      */
@@ -138,12 +138,12 @@ module.exports = class Individual {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -155,9 +155,9 @@ module.exports = class Individual {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -200,12 +200,12 @@ module.exports = class Individual {
         let authAdapters = [];
         /**
          * Differentiated cases:
-         *    if authorizedAdapters is defined: 
+         *    if authorizedAdapters is defined:
          *      - called from resolver.
          *      - authorizedAdapters will no be modified.
-         * 
-         *    if authorizedAdapters is not defined: 
-         *      - called internally 
+         *
+         *    if authorizedAdapters is not defined:
+         *      - called internally
          *      - authorizedAdapters will be set to registered adapters.
          */
         if (authorizedAdapters === undefined) {
@@ -224,9 +224,9 @@ module.exports = class Individual {
         let promises = authAdapters.map(adapter => {
             /**
              * Differentiated cases:
-             *   sql-adapter: 
+             *   sql-adapter:
              *      resolve with current parameters.
-             *   
+             *
              *   ddm-adapter:
              *   cenzontle-webservice-adapter:
              *   generic-adapter:
@@ -234,15 +234,15 @@ module.exports = class Individual {
              */
             switch (adapter.adapterType) {
                 case 'ddm-adapter':
-                case 'generic-adapter':
                     let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
                     return adapter.readAllCursor(nsearch, order, pagination).catch(benignErrors => benignErrors);
 
+                case 'generic-adapter':
                 case 'sql-adapter':
                 case 'cenzontle-webservice-adapter':
                     return adapter.readAllCursor(search, order, pagination).catch(benignErrors => benignErrors);
 
-                case 'default':
+                default:
                     throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
             }
         });
@@ -375,6 +375,30 @@ module.exports = class Individual {
         let responsibleAdapter = this.adapterForIri(input.name);
         return adapters[responsibleAdapter].updateOne(input).then(result => new Individual(result));
     }
+
+    /**
+     * add_accession_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_accession_id(name, accession_id) {
+        let responsibleAdapter = this.adapterForIri(name);
+        return await adapters[responsibleAdapter].add_accession_id(name, accession_id);
+    }
+
+    /**
+     * remove_accession_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   name   IdAttribute of the root model to be updated
+     * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_accession_id(name, accession_id) {
+        let responsibleAdapter = this.adapterForIri(name);
+        return await adapters[responsibleAdapter].remove_accession_id(name, accession_id);
+    }
+
+
 
     static bulkAddCsv(context) {
         throw new Error("Individual.bulkAddCsv is not implemented.")

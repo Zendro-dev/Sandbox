@@ -362,105 +362,99 @@ accession.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_individuals - field Mutation for to_many associations to add 
+ * add_individuals - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.add_individuals = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addIndividuals) {
-        results.push(models.individual._addAccession(associatedRecordId, this.getIdValue()));
+        results.push(models.individual.add_accession_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 /**
- * add_measurements - field Mutation for to_many associations to add 
+ * add_measurements - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.add_measurements = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addMeasurements) {
-        results.push(models.measurement._addAccession(associatedRecordId, this.getIdValue()));
+        results.push(models.measurement.add_accession_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 /**
- * add_taxon - field Mutation for to_one associations to add 
+ * add_taxon - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.add_taxon = async function(input) {
-    await accession._addTaxon(this.getIdValue(), input.addTaxon);
+    await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
-
 /**
- * add_location - field Mutation for to_one associations to add 
+ * add_location - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 accession.prototype.add_location = async function(input) {
-    await accession._addLocation(this.getIdValue(), input.addLocation);
+    await accession.add_locationId(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
 
-
-
 /**
- * remove_individuals - field Mutation for to_many associations to remove 
+ * remove_individuals - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_individuals = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeIndividuals) {
-        results.push(models.individual._removeAccession(associatedRecordId, this.getIdValue()));
+        results.push(models.individual.remove_accession_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 /**
- * remove_measurements - field Mutation for to_many associations to remove 
+ * remove_measurements - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_measurements = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeMeasurements) {
-        results.push(models.measurement._removeAccession(associatedRecordId, this.getIdValue()));
+        results.push(models.measurement.remove_accession_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 /**
- * remove_taxon - field Mutation for to_one associations to remove 
+ * remove_taxon - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_taxon = async function(input) {
-    if (input.removeTaxon === this.taxon_id) {
-        await accession._removeTaxon(this.getIdValue(), input.removeTaxon);
+    if (input.removeTaxon == this.taxon_id) {
+        await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
     }
 }
-
 /**
- * remove_location - field Mutation for to_one associations to remove 
+ * remove_location - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
-        await accession._removeLocation(this.getIdValue(), input.removeLocation);
+    if (input.removeLocation == this.locationId) {
+        await accession.remove_locationId(this.getIdValue(), input.removeLocation);
         this.locationId = null;
     }
 }
-
 
 
 /**
@@ -480,7 +474,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCount(search, context, query) {
-    if (await accession.countRecords(search) > context.recordsLimit) {
+    if (await accession.countRecords(search).sum > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
 }
@@ -648,12 +642,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countAccessions: function({
+    countAccessions: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Accession', 'read').then(async authorization => {
             if (authorization === true) {
-                return accession.countRecords(search);
+                return (await accession.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -699,7 +693,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdAccession = await accession.addOne(inputSanitized);
                 await createdAccession.handleAssociations(inputSanitized, context);
                 return createdAccession;
@@ -771,7 +767,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedAccession = await accession.updateOne(inputSanitized);
                 await updatedAccession.handleAssociations(inputSanitized, context);
                 return updatedAccession;
