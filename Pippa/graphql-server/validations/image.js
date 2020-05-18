@@ -75,5 +75,16 @@ module.exports.validator_patch = function(image) {
             error: null
         }
     }
+
+    image.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return image
 }

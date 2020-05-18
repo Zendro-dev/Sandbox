@@ -183,11 +183,17 @@ module.exports = class trial_PHENOMIS extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return trial_PHENOMIS.findOne(options);
+    static async readById(id) {
+        let item = await trial_PHENOMIS.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static countRecords(search) {
@@ -473,7 +479,8 @@ module.exports = class trial_PHENOMIS extends Sequelize.Model {
                     programDbId: null
                 }, {
                     where: {
-                        trialDbId: trialDbId
+                        trialDbId: trialDbId,
+                        programDbId: programDbId
                     }
                 }, {
                     transaction: transaction

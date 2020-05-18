@@ -104,3 +104,25 @@ docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
 cd ./RemoteCenzontleInstance
 docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
 ```
+
+### EMHPASIS-Layer Demo
+A playground used for development, experiments, and alien abductions with BreedingAPI data models. Setup is 3 servers all connected in a mesh topology (every server knows about all the other servers in the network)
+
+#### Start up
+To start the Sandbox without the SPA:
+```
+docker-compose -f docker-compose-dev-minus_spa.yml  up --force-recreate --remove-orphans
+```
+
+To start the Sandbox with SPAs:
+```
+```
+
+#### Environment:
+The following networks will be created upon running the `docker-compose up`:  
+* `EL-demo`: _central network which holds all started services_
+* `Phenomis`: _network for the Phenomis services_
+* `Phis`: _network for the Phis services_
+* `Pippa`: _network for the Pippa services_  
+
+The docker containers will communicate via their given `container_name`. Graphql servers are exposed on the Ports: 3000 (Phenomis), 3001(Phis) and 3002(Pippa)

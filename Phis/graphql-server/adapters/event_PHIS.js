@@ -146,11 +146,17 @@ module.exports = class event_PHIS extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return event_PHIS.findOne(options);
+    static async readById(id) {
+        let item = await event_PHIS.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static countRecords(search) {
@@ -436,7 +442,8 @@ module.exports = class event_PHIS extends Sequelize.Model {
                     studyDbId: null
                 }, {
                     where: {
-                        eventType: eventType
+                        eventType: eventType,
+                        studyDbId: studyDbId
                     }
                 }, {
                     transaction: transaction

@@ -47,5 +47,16 @@ module.exports.validator_patch = function(breedingMethod) {
             error: null
         }
     }
+
+    breedingMethod.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return breedingMethod
 }

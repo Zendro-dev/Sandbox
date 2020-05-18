@@ -41,5 +41,16 @@ module.exports.validator_patch = function(role_to_user) {
             error: null
         }
     }
+
+    role_to_user.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return role_to_user
 }

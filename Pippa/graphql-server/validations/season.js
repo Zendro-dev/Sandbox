@@ -44,5 +44,16 @@ module.exports.validator_patch = function(season) {
             error: null
         }
     }
+
+    season.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return season
 }

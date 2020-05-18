@@ -126,11 +126,17 @@ module.exports = class environmentParameter_PHENOMIS extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return environmentParameter_PHENOMIS.findOne(options);
+    static async readById(id) {
+        let item = await environmentParameter_PHENOMIS.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static countRecords(search) {
@@ -416,7 +422,8 @@ module.exports = class environmentParameter_PHENOMIS extends Sequelize.Model {
                     studyDbId: null
                 }, {
                     where: {
-                        environmentParameterDbId: environmentParameterDbId
+                        environmentParameterDbId: environmentParameterDbId,
+                        studyDbId: studyDbId
                     }
                 }, {
                     transaction: transaction

@@ -85,5 +85,16 @@ module.exports.validator_patch = function(study) {
             error: null
         }
     }
+
+    study.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return study
 }

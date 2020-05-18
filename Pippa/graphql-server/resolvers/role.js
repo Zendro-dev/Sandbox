@@ -38,17 +38,21 @@ role.prototype.usersFilter = function({
     order,
     pagination
 }, context) {
-    try {
-        return this.usersFilterImpl({
-            search,
-            order,
-            pagination
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.usersFilterImpl({
+                search,
+                order,
+                pagination
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
-
+    })
 }
 
 /**
@@ -67,16 +71,21 @@ role.prototype.usersConnection = function({
     order,
     pagination
 }, context) {
-    try {
-        return this.usersConnectionImpl({
-            search,
-            order,
-            pagination
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.usersConnectionImpl({
+                search,
+                order,
+                pagination
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
+    })
 }
 
 /**
@@ -89,14 +98,19 @@ role.prototype.usersConnection = function({
 role.prototype.countFilteredUsers = function({
     search
 }, context) {
-    try {
-        return this.countFilteredUsersImpl({
-            search
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.countFilteredUsersImpl({
+                search
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
+    })
 }
 
 
@@ -154,41 +168,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await role.countRecords(search).sum > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await role.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneRole"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -249,10 +252,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'role', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "roles");
-                let resultRecords = await role.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "roles");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "roles");
+                return await role.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -279,9 +280,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'role', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "rolesConnection");
-                let resultRecords = await role.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "rolesConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
                 return role.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -304,11 +303,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'role', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = role.readById(id);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return role.readById(id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

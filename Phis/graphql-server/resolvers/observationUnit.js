@@ -38,35 +38,38 @@ const associationArgsDef = {
 observationUnit.prototype.observationUnitPosition = async function({
     search
 }, context) {
-    if (helper.isNotUndefinedAndNotNull(this.observationUnitDbId)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOneObservationUnitPosition({
-                    [models.observationUnitPosition.idAttribute()]: this.observationUnitDbId
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.observationUnitPosition.idAttribute(),
-                    "value": {
-                        "value": this.observationUnitDbId
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.observationUnitPositionsConnection({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
+    try {
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "observationUnitDbId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
+
+        let found = (await resolvers.observationUnitPositionsConnection({
+            search: nsearch
+        }, context)).edges;
+
+        if (found.length > 0) {
+            if (found.length > 1) {
+                let foundIds = [];
+                found.forEach(observationUnitPosition => {
+                    foundIds.push(observationUnitPosition.node.getIdValue())
+                })
+                context.benignErrors.push(new Error(
+                    `Not unique "to_one" association Error: Found ${found.length} dogs matching observationUnit with observationUnitDbId ${this.getIdValue()}. Consider making this association a "to_many", using unique constraints, or moving the foreign key into the observationUnit model. Returning first observationUnitPosition. Found observationUnitPositions ${models.observationUnitPosition.idAttribute()}s: [${foundIds.toString()}]`
+                ));
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
-    }
+            return found[0].node;
+        }
+        return null;
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
 }
 /**
  * observationUnit.prototype.germplasm - Return associated record
@@ -78,6 +81,7 @@ observationUnit.prototype.observationUnitPosition = async function({
 observationUnit.prototype.germplasm = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.germplasmDbId)) {
         try {
             if (search === undefined) {
@@ -118,6 +122,7 @@ observationUnit.prototype.germplasm = async function({
 observationUnit.prototype.location = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.locationDbId)) {
         try {
             if (search === undefined) {
@@ -158,6 +163,7 @@ observationUnit.prototype.location = async function({
 observationUnit.prototype.program = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.programDbId)) {
         try {
             if (search === undefined) {
@@ -198,6 +204,7 @@ observationUnit.prototype.program = async function({
 observationUnit.prototype.study = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.studyDbId)) {
         try {
             if (search === undefined) {
@@ -238,6 +245,7 @@ observationUnit.prototype.study = async function({
 observationUnit.prototype.trial = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.trialDbId)) {
         try {
             if (search === undefined) {
@@ -683,6 +691,14 @@ observationUnit.prototype.add_observationUnitToEvents = async function(input) {
 }
 
 /**
+ * add_observationUnitPosition - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+observationUnit.prototype.add_observationUnitPosition = async function(input) {
+    await models.observationUnitPosition.add_observationUnitDbId(input.addObservationUnitPosition, this.getIdValue());
+}
+/**
  * add_germplasm - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
@@ -780,6 +796,14 @@ observationUnit.prototype.remove_observationUnitToEvents = async function(input)
 }
 
 /**
+ * remove_observationUnitPosition - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+observationUnit.prototype.remove_observationUnitPosition = async function(input) {
+    await models.observationUnitPosition.remove_observationUnitDbId(input.removeObservationUnitPosition, this.getIdValue());
+}
+/**
  * remove_germplasm - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -846,41 +870,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await observationUnit.countRecords(search).sum > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await observationUnit.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneObservationUnit"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record

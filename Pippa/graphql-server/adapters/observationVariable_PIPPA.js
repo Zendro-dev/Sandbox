@@ -227,11 +227,17 @@ module.exports = class observationVariable_PIPPA extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return observationVariable_PIPPA.findOne(options);
+    static async readById(id) {
+        let item = await observationVariable_PIPPA.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static countRecords(search) {
@@ -601,7 +607,8 @@ module.exports = class observationVariable_PIPPA extends Sequelize.Model {
                     methodDbId: null
                 }, {
                     where: {
-                        observationVariableDbId: observationVariableDbId
+                        observationVariableDbId: observationVariableDbId,
+                        methodDbId: methodDbId
                     }
                 }, {
                     transaction: transaction
@@ -629,7 +636,8 @@ module.exports = class observationVariable_PIPPA extends Sequelize.Model {
                     ontologyDbId: null
                 }, {
                     where: {
-                        observationVariableDbId: observationVariableDbId
+                        observationVariableDbId: observationVariableDbId,
+                        ontologyDbId: ontologyDbId
                     }
                 }, {
                     transaction: transaction
@@ -657,7 +665,8 @@ module.exports = class observationVariable_PIPPA extends Sequelize.Model {
                     scaleDbId: null
                 }, {
                     where: {
-                        observationVariableDbId: observationVariableDbId
+                        observationVariableDbId: observationVariableDbId,
+                        scaleDbId: scaleDbId
                     }
                 }, {
                     transaction: transaction
@@ -685,7 +694,8 @@ module.exports = class observationVariable_PIPPA extends Sequelize.Model {
                     traitDbId: null
                 }, {
                     where: {
-                        observationVariableDbId: observationVariableDbId
+                        observationVariableDbId: observationVariableDbId,
+                        traitDbId: traitDbId
                     }
                 }, {
                     transaction: transaction

@@ -41,5 +41,16 @@ module.exports.validator_patch = function(observationUnit_to_event) {
             error: null
         }
     }
+
+    observationUnit_to_event.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return observationUnit_to_event
 }

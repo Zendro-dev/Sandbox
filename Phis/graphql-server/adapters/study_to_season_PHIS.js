@@ -114,11 +114,17 @@ module.exports = class study_to_season_PHIS extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return study_to_season_PHIS.findOne(options);
+    static async readById(id) {
+        let item = await study_to_season_PHIS.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static countRecords(search) {
@@ -432,7 +438,8 @@ module.exports = class study_to_season_PHIS extends Sequelize.Model {
                     studyDbId: null
                 }, {
                     where: {
-                        id: id
+                        id: id,
+                        studyDbId: studyDbId
                     }
                 }, {
                     transaction: transaction
@@ -460,7 +467,8 @@ module.exports = class study_to_season_PHIS extends Sequelize.Model {
                     seasonDbId: null
                 }, {
                     where: {
-                        id: id
+                        id: id,
+                        seasonDbId: seasonDbId
                     }
                 }, {
                     transaction: transaction

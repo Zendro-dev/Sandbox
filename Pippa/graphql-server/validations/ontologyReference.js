@@ -47,5 +47,16 @@ module.exports.validator_patch = function(ontologyReference) {
             error: null
         }
     }
+
+    ontologyReference.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return ontologyReference
 }

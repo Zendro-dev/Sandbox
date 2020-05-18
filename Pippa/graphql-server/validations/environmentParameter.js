@@ -62,5 +62,16 @@ module.exports.validator_patch = function(environmentParameter) {
             error: null
         }
     }
+
+    environmentParameter.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record validated, no generic
+        // validation checks are available.
+
+        return {
+            error: null
+        }
+    }
+
     return environmentParameter
 }

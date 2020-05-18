@@ -30,6 +30,7 @@ const associationArgsDef = {
 trial_to_contact.prototype.trial = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.trialDbId)) {
         try {
             if (search === undefined) {
@@ -70,6 +71,7 @@ trial_to_contact.prototype.trial = async function({
 trial_to_contact.prototype.contact = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.contactDbId)) {
         try {
             if (search === undefined) {
@@ -184,41 +186,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await trial_to_contact.countRecords(search).sum > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await trial_to_contact.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneTrial_to_contact"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
