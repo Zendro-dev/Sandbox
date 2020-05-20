@@ -116,23 +116,27 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Individual.belongsTo(models.accession, {
             as: 'accession',
             foreignKey: 'accession_id'
         });
-
         Individual.hasMany(models.measurement, {
             as: 'measurements',
             foreignKey: 'individual_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Individual.findOne(options);
+    static async readById(id) {
+        let item = await Individual.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static async countRecords(search) {
@@ -510,7 +514,8 @@ module.exports = class Individual extends Sequelize.Model {
                     accession_id: null
                 }, {
                     where: {
-                        name: name
+                        name: name,
+                        accession_id: accession_id
                     }
                 }, {
                     transaction: transaction

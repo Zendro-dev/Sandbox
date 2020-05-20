@@ -139,23 +139,27 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Measurement.belongsTo(models.individual, {
             as: 'individual',
             foreignKey: 'individual_id'
         });
-
         Measurement.belongsTo(models.accession, {
             as: 'accession',
             foreignKey: 'accession_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Measurement.findOne(options);
+    static async readById(id) {
+        let item = await Measurement.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static async countRecords(search) {
@@ -557,7 +561,8 @@ module.exports = class Measurement extends Sequelize.Model {
                     individual_id: null
                 }, {
                     where: {
-                        measurement_id: measurement_id
+                        measurement_id: measurement_id,
+                        individual_id: individual_id
                     }
                 }, {
                     transaction: transaction
@@ -581,7 +586,8 @@ module.exports = class Measurement extends Sequelize.Model {
                     accession_id: null
                 }, {
                     where: {
-                        measurement_id: measurement_id
+                        measurement_id: measurement_id,
+                        accession_id: accession_id
                     }
                 }, {
                     transaction: transaction

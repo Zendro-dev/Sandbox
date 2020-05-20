@@ -253,28 +253,31 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Accession.belongsTo(models.location, {
             as: 'location',
             foreignKey: 'locationId'
         });
-
         Accession.hasMany(models.individual, {
             as: 'individuals',
             foreignKey: 'accession_id'
         });
-
         Accession.hasMany(models.measurement, {
             as: 'measurements',
             foreignKey: 'accession_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Accession.findOne(options);
+    static async readById(id) {
+        let item = await Accession.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
     static async countRecords(search) {
@@ -676,7 +679,8 @@ module.exports = class Accession extends Sequelize.Model {
                     taxon_id: null
                 }, {
                     where: {
-                        accession_id: accession_id
+                        accession_id: accession_id,
+                        taxon_id: taxon_id
                     }
                 }, {
                     transaction: transaction
@@ -700,7 +704,8 @@ module.exports = class Accession extends Sequelize.Model {
                     locationId: null
                 }, {
                     where: {
-                        accession_id: accession_id
+                        accession_id: accession_id,
+                        locationId: locationId
                     }
                 }, {
                     transaction: transaction

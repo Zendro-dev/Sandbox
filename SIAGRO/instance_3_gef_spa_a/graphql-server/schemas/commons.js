@@ -2,11 +2,14 @@ module.exports = `
 
   enum Operator{
     like
+    notLike
     or
     and
     eq
     between
+    notBetween
     in
+    notIn
     gt
     gte
     lt
@@ -14,6 +17,8 @@ module.exports = `
     ne
     regexp
     notRegexp
+    is
+    not
   }
 
   enum Order{

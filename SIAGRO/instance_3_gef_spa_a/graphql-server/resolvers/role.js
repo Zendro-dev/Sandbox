@@ -37,17 +37,21 @@ role.prototype.usersFilter = function({
     order,
     pagination
 }, context) {
-    try {
-        return this.usersFilterImpl({
-            search,
-            order,
-            pagination
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.usersFilterImpl({
+                search,
+                order,
+                pagination
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
-
+    })
 }
 
 /**
@@ -66,16 +70,21 @@ role.prototype.usersConnection = function({
     order,
     pagination
 }, context) {
-    try {
-        return this.usersConnectionImpl({
-            search,
-            order,
-            pagination
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.usersConnectionImpl({
+                search,
+                order,
+                pagination
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
+    })
 }
 
 /**
@@ -88,14 +97,19 @@ role.prototype.usersConnection = function({
 role.prototype.countFilteredUsers = function({
     search
 }, context) {
-    try {
-        return this.countFilteredUsersImpl({
-            search
-        });
-    } catch (error) {
+    return checkAuthorization(context, 'user', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+            return this.countFilteredUsersImpl({
+                search
+            });
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
         console.error(error);
         handleError(error);
-    };
+    })
 }
 
 
@@ -201,21 +215,15 @@ async function countAllAssociatedRecords(id, context) {
     if (role === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
-    let promises_generic_to_many = [];
-    let promises_generic_to_one = [];
 
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
-    let result_generic_to_many = await Promise.all(promises_generic_to_many);
-    let result_generic_to_one = await Promise.all(promises_generic_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
-    let get_generic_to_many_associated = result_generic_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_generic_to_one_associated = result_generic_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated + get_generic_to_many_associated + get_generic_to_one_associated;
+    return get_to_one_associated + get_to_many_associated;
 }
 
 /**

@@ -1,0 +1,15 @@
+{
+  "model" : "Person",
+  "storageType" : "generic-adapter",
+  "adapterName": "person_a",
+  "regex": "_a",
+  "url": "http://localhost:3000/graphql",
+  "attributes" : {
+    "personId": "String",
+    "firstName" : "String",
+    "lastName" : "String",
+    "email" : "String",
+    "hometownId": "String"
+  },
+  "internalId": "personId"
+}
