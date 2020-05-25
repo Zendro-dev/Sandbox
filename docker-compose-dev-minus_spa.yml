@@ -1,0 +1,92 @@
+version: "3.7"
+
+services:
+  
+  ################################
+  # server1 SERVICES
+  ################################
+  integration_test_server1_postgres:
+    build:
+      context: ./integration_test_server1
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - integration_test_server1_data:/var/lib/postgresql/data
+    networks:
+      - integration_test_server1
+
+  integration_test_server1_graphql_server:
+    container_name: integration_test_server1-graphql-container
+    depends_on:
+      - integration_test_server1_postgres
+    build:
+      context: ./integration_test_server1/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./integration_test_server1:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./integration_test_server1/graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+    networks:
+      - integration_test_server1
+      - integration_test_demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+  ################################
+  # integration_test_server2 SERVICES
+  ################################
+  integration_test_server2_postgres:
+    build:
+      context: ./integration_test_server2
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - integration_test_server2_data:/var/lib/postgresql/data
+    networks:
+      - integration_test_server2
+
+  integration_test_server2_graphql_server:
+    container_name: integration_test_server2-graphql-container
+    depends_on:
+      - integration_test_server2_postgres
+    build:
+      context: ./integration_test_server2/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3001:3001
+    environment:
+      - PORT=3001
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./integration_test_server2:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./integration_test_server2/graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+    networks:
+      - integration_test_server2
+      - integration_test_demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+volumes:
+  integration_test_server1_data:
+  integration_test_server2_data:
+
+networks:
+  integration_test_server1:
+  integration_test_server2:
+  integration_test_demo:
