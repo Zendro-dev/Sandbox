@@ -29,42 +29,42 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.accession&&Array.isArray(permissions.accession)
             &&(permissions.accession.includes('read') || permissions.accession.includes('*')))
-            ? ((props) => <AccessionTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <AccessionTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/individual" 
           render={
             /* acl check */
             (permissions&&permissions.individual&&Array.isArray(permissions.individual)
             &&(permissions.individual.includes('read') || permissions.individual.includes('*')))
-            ? ((props) => <IndividualTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <IndividualTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/location" 
           render={
             /* acl check */
             (permissions&&permissions.location&&Array.isArray(permissions.location)
             &&(permissions.location.includes('read') || permissions.location.includes('*')))
-            ? ((props) => <LocationTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <LocationTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/measurement" 
           render={
             /* acl check */
             (permissions&&permissions.measurement&&Array.isArray(permissions.measurement)
             &&(permissions.measurement.includes('read') || permissions.measurement.includes('*')))
-            ? ((props) => <MeasurementTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <MeasurementTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/role_to_user" 
           render={
             /* acl check */
             (permissions&&permissions.role_to_user&&Array.isArray(permissions.role_to_user)
             &&(permissions.role_to_user.includes('read') || permissions.role_to_user.includes('*')))
-            ? ((props) => <RoleToUserTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <RoleToUserTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/taxon" 
           render={
             /* acl check */
             (permissions&&permissions.taxon&&Array.isArray(permissions.taxon)
             &&(permissions.taxon.includes('read') || permissions.taxon.includes('*')))
-            ? ((props) => <TaxonTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <TaxonTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 
         {/* Admin models */}
@@ -73,14 +73,14 @@ export default function TablesSwitch(props) {
             /* acl check */
             (permissions&&permissions.role&&Array.isArray(permissions.role)
             &&(permissions.role.includes('read') || permissions.role.includes('*')))
-            ? ((props) => <RoleTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <RoleTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/admin/user" 
           render={
             /* acl check */
             (permissions&&permissions.user&&Array.isArray(permissions.user)
             &&(permissions.user.includes('read') || permissions.user.includes('*')))
-            ? ((props) => <UserTable {...props} permissions={permissions}/>) : (NoPermissionSectionPage)
+            ? ((props) => <UserTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 
         {/* Default */}

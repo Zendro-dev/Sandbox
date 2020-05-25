@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
@@ -60,9 +61,6 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
-  notiErrorActionText: {
-    color: '#eba0a0',
-  },
 }));
 
 export default function RolesCompactView(props) {
@@ -101,17 +99,47 @@ export default function RolesCompactView(props) {
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
-  const actionText = useRef(null);
+  const lref = useRef(null);
+  const [lh, setLh] = useState(82);
+
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
   ));
 
-  const lref = useRef(null);
-  const [lh, setLh] = useState(82);
+   /**
+    * Callbacks:
+    *  showMessage
+    *  getData
+    */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
 
   /**
    * getData
@@ -125,9 +153,10 @@ export default function RolesCompactView(props) {
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
+    errors.current = [];
 
     /*
-      API Request: RolesFilter
+      API Request: readOneUser
     */
     let label = 'name';
     let sublabel = 'id';
@@ -151,110 +180,145 @@ export default function RolesCompactView(props) {
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        if (
-            response.data &&
-            response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }
-          //save response data
-          //save response data
-          let newCount = response.data.data.readOneUser.countFilteredRoles;
-          let its = response.data.data.readOneUser.rolesConnection.edges.map(o => o.node);
-          let pi = response.data.data.readOneUser.rolesConnection.pageInfo;
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{association: 'roles', query: 'readOneUser', method: 'getData()', request: 'api.user.getRolesConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
-          /*
-            Check: empty page
-          */
-          if( its.length === 0 && pi&&pi.hasPreviousPage ) 
-          {
-            //configure
-            isOnApiRequestRef.current = false;
-            isCursorPaginating.current = false;
-            isForwardPagination.current = false;
-            setIsOnApiRequest(false);
-            
-            //reload
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            return;
-          }//else
-
-          //update pageInfo
-          pageInfo.current = pi;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-
-          //ok
-          setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-          setItems((its&&Array.isArray(its)) ? its : []);
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-          setIsOnApiRequest(false);
-          return;
-
-        } else { //error: bad response on getAssociationFilter()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-          
-          setCount(0);
-          setItems([]);
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-          setIsOnApiRequest(false);
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
         }
-      })
-      .catch(({isCanceled, ...err}) => { //error: on getAssociationFilter()
-        if(isCanceled) {
+
+        //check: readOneUser
+        let readOneUser = response.data.data.readOneUser;
+        if(readOneUser === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{association: 'roles', query: 'readOneUser', method: 'getData()', request: 'api.user.getRolesConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
-        } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
- 
-          setCount(0);
-          setItems([]);
+        }
+
+        //check: readOneUser type
+        if(typeof readOneUser !== 'object'
+        || !Number.isInteger(readOneUser.countFilteredRoles)
+        || typeof readOneUser.rolesConnection !== 'object'
+        || readOneUser.rolesConnection === null
+        || !Array.isArray(readOneUser.rolesConnection.edges)
+        || typeof readOneUser.rolesConnection.pageInfo !== 'object'
+        || readOneUser.rolesConnection.pageInfo === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{association: 'roles', query: 'readOneUser', method: 'getData()', request: 'api.user.getRolesConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let newCount = readOneUser.countFilteredRoles;
+        let its = readOneUser.rolesConnection.edges.map(o => o.node);
+        let pi = readOneUser.rolesConnection.pageInfo;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: 'roles', query: 'readOneUser', method: 'getData()', request: 'api.user.getRolesConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'roles'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 && pi&&pi.hasPreviousPage ) 
+        {
+          //configure
           isOnApiRequestRef.current = false;
           isCursorPaginating.current = false;
-          includeCursor.current = false;
+          isForwardPagination.current = false;
           setIsOnApiRequest(false);
+          
+          //reload
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }//else
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //ok
+        setCount(newCount);
+        setItems([...its]);
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        includeCursor.current = false;
+        setIsOnApiRequest(false);
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.user.getRolesConnection
+        if(err.isCanceled) {
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{association: 'roles', query: 'readOneUser', method: 'getData()', request: 'api.user.getRolesConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'roles'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
         }
       });
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.id, search, rowsPerPage]);
+
+  }, [graphqlServerUrl, showMessage, t, dataTrigger, item.id, search, rowsPerPage]);
 
   useEffect(() => {
 
@@ -480,6 +544,23 @@ export default function RolesCompactView(props) {
       setIsCountReady(true);
     }
   }, [count]);
+
+  /**
+   * Utils
+   */
+  function clearRequestGetData() {
+    //update pageInfo
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+          
+    setCount(0);
+    setItems([]);
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    includeCursor.current = false;
+    setIsOnApiRequest(false);
+  }
 
   function updateHeights() {
     if(lref.current) {

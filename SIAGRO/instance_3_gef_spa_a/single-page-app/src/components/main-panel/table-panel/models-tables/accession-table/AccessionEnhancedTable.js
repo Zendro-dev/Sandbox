@@ -4,6 +4,7 @@ import { changesCompleted, clearChanges } from '../../../../../store/actions'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../snackbar/Snackbar';
 import moment from "moment";
 import PropTypes from 'prop-types';
 import api from '../../../../../requests/requests.index.js'
@@ -69,9 +70,6 @@ const useStyles = makeStyles(theme => ({
         color: '#f50057'
       }
     },
-    notiErrorActionText: {
-      color: '#eba0a0',
-    },
     tableBackdrop: {
       WebkitTapHighlightColor: 'transparent',
       minWidth: '100%',
@@ -124,10 +122,18 @@ export default function AccessionEnhancedTable(props) {
   const changes = useSelector(state => state.changes);
   const dispatch = useDispatch();
 
-  const actionText = useRef(null);
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
@@ -143,6 +149,28 @@ export default function AccessionEnhancedTable(props) {
   const [tscl, setTscl] = useState(0);
 
   /**
+   * Callbacks:
+   *  showMessage
+   *  getData
+   */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
     * getData
     * 
     * Get @items and @count from GrahpQL Server.
@@ -155,39 +183,94 @@ export default function AccessionEnhancedTable(props) {
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
+    errors.current = [];
 
     /*
-      API Request: countItems
+      API Request: countAccessions
     */
     let cancelableApiReq = makeCancelable(api.accession.getCountItems(graphqlServerUrl, search));
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        //check response
-        if(
-          response.data &&
-          response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }
-          //save response data
-          var newCount = response.data.data.countAccessions;
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Accession', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.path=['Accessions'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        
+        //check: countAccessions
+        let countAccessions = response.data.data.countAccessions;
+        if(countAccessions === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'countAccessions ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{model: 'Accession', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.path=['Accessions'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+        //check: countAccessions type
+        if(!Number.isInteger(countAccessions)) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'countAccessions ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'Accession', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.path=['Accessions'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'countAccessions ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: 'Accession', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.path=['Accessions'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        setCount(countAccessions);
 
 
           /*
-            API Request: items
+            API Request: accessionsConnection
           */
           let variables = {
             pagination: {
@@ -208,157 +291,170 @@ export default function AccessionEnhancedTable(props) {
           cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
-            .then(response => {
+            .then(
+            //resolved
+            (response) => {
               //delete from cancelables
               cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              //check response
-              if (
-                response.data &&
-                response.data.data
-              ) {
-                //notify graphql errors
-                if(response.data.errors) {
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Errors: ", response.data.errors);
-                }
-                //save response data
-                let its = response.data.data.accessionsConnection.edges.map(o => o.node);
-                let pi = response.data.data.accessionsConnection.pageInfo;
-                
-                /*
-                  Check: empty page
-                */
-                if( its.length === 0 && pi&&pi.hasPreviousPage ) 
-                {
-                  //configure
-                  isOnApiRequestRef.current = false;
-                  isCursorPaginating.current = false;
-                  isForwardPagination.current = false;
-                  setIsOnApiRequest(false);
-                  
-                  //reload
-                  setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                  return;
-                }//else
+              
+              //check: response data
+              if(!response.data ||!response.data.data) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='error';
+                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+                newError.locations=[{model: 'Accession', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
+                newError.path=['Accessions'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
 
-                //update pageInfo
-                pageInfo.current = pi;
-                setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                setHasNextPage(pageInfo.current.hasNextPage);
-                
-                //ok
-                setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-                setItems(its&&Array.isArray(its) ? its : []);
-                isOnApiRequestRef.current = false;
-                isCursorPaginating.current = false;
-                includeCursor.current = false;
-                setIsOnApiRequest(false);
-                return;
-
-              } else { //error: bad response on getItems()
-                actionText.current = t('modelPanels.gotIt', "Got it");
-                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                  variant: 'error',
-                  preventDuplicate: false,
-                  persist: true,
-                  action: action.current,
-                });
-                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                //update pageInfo
-                pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                setHasNextPage(pageInfo.current.hasNextPage);
-                setCount(0);
-                setItems([]);
-                isOnApiRequestRef.current = false;
-                isCursorPaginating.current = false;
-                includeCursor.current = false;
-                setIsOnApiRequest(false);
+                showMessage(newError.message, withDetails);
+                clearRequestGetData();
                 return;
               }
-            })
-            .catch(({isCanceled, ...err}) => { //error: on getItems()
-              if(isCanceled) {
+
+              //check: accessionsConnection
+              let accessionsConnection = response.data.data.accessionsConnection;
+              if(accessionsConnection === null) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='error';
+                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+                newError.locations=[{model: 'Accession', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
+                newError.path=['Accessions'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+                clearRequestGetData();
                 return;
-              } else {
-                actionText.current = t('modelPanels.gotIt', "Got it");
-                enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                  variant: 'error',
-                  preventDuplicate: false,
-                  persist: true,
-                  action: action.current,
-                });
-                console.log("Error: ", err);
-                //update pageInfo
-                pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                setHasNextPage(pageInfo.current.hasNextPage);
-                setCount(0);
-                setItems([]);
+              }
+
+              //check: accessionsConnection type
+              if(typeof accessionsConnection !== 'object'
+              || !Array.isArray(accessionsConnection.edges)
+              || typeof accessionsConnection.pageInfo !== 'object' 
+              || accessionsConnection.pageInfo === null) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='error';
+                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+                newError.locations=[{model: 'Accession', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
+                newError.path=['Accessions'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+                clearRequestGetData();
+                return;
+              }
+              //get items
+              let its = accessionsConnection.edges.map(o => o.node);
+              let pi = accessionsConnection.pageInfo;
+
+              //check: graphql errors
+              if(response.data.errors) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='info';
+                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+                newError.locations=[{model: 'Accession', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
+                newError.path=['Accessions'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+              }
+                
+              /*
+                Check: empty page
+              */
+              if( its.length === 0 && pi&&pi.hasPreviousPage ) 
+              {
+                //configure
                 isOnApiRequestRef.current = false;
                 isCursorPaginating.current = false;
-                includeCursor.current = false;
+                isForwardPagination.current = false;
                 setIsOnApiRequest(false);
+                
+                //reload
+                setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                return;
+              }//else
+
+              //update pageInfo
+              pageInfo.current = pi;
+              setHasPreviousPage(pageInfo.current.hasPreviousPage);
+              setHasNextPage(pageInfo.current.hasNextPage);
+              
+              //ok
+              setItems([...its]);
+
+              //ends request
+              isOnApiRequestRef.current = false;
+              isCursorPaginating.current = false;
+              includeCursor.current = false;
+              setIsOnApiRequest(false);
+              return;
+            },
+            //rejected
+            (err) => {
+              throw err;
+            })
+            //error
+            .catch((err) => { //error: on api.accession.getItemsConnection
+              if(err.isCanceled) {
+                return;
+              } else {
+                let newError = {};
+                let withDetails=true;
+                variant.current='error';
+                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+                newError.locations=[{model: 'Accession', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
+                newError.path=['Accessions'];
+                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+                clearRequestGetData();
                 return;
               }
             });
-          return;
-        } else { //error: bad response on getCountItems()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-          setCount(0);
-          setItems([]);
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-          setIsOnApiRequest(false);
-          return;
-        }
+      },
+      //rejected
+      (err) => {
+        throw err;
       })
-      .catch(({isCanceled, ...err}) => { //error: on getCountItems()
-        if(isCanceled) {
-          return;
-        }
-        else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
-          //update pageInfo
-          pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-          setCount(0);
-          setItems([]);
-          isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
-          includeCursor.current = false;
-          setIsOnApiRequest(false);
-          return;
-        }
-    });
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, search, orderBy, order, rowsPerPage]);
+      //error
+      .catch((err) => { //error: on api.accession.getCountItems
+        if(err.isCanceled) {
+          return
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Accession', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.path=['Accessions'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+      });
+  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, rowsPerPage, showMessage]);
+
+  /**
+   * Effects
+   */
   useEffect(() => {
 
     //cleanup on unmounted.
@@ -446,159 +542,289 @@ export default function AccessionEnhancedTable(props) {
     }
   }, [deleteConfirmationItem]);
 
+  /**
+    * doDelete
+    * 
+    * Delete @item using GrahpQL Server mutation.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @item deleted.
+    * 
+    */
   function doDelete(event, item) {
-    //variables
-    let variables = {};
+    errors.current = [];
 
+    let variables = {};
     //set accession_id (internalId)
     variables.accession_id = item.accession_id;
 
     /*
-      API Request: deleteItem
+      API Request: deleteAccession
     */
     let cancelableApiReq = makeCancelable(api.accession.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
-        if(
-          response.data &&
-          response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }else {
-            //ok
-            enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
-              variant: 'success',
-              preventDuplicate: false,
-              persist: false,
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'left',
-              },
-            });
-          }
-          reloadData();
-          return;
 
-        } else { //error: bad response on deleteItem()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          reloadData();
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}`, 'delete'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
         }
-      })
-      .catch(({isCanceled, ...err}) => { //error: on deleteItem()
-        if(isCanceled) {
+
+        //check: deleteAccession
+        let deleteAccession = response.data.data.deleteAccession;
+        if(deleteAccession === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'deleteAccession ' + t('modelPanels.errors.data.e5', 'could not be completed.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` ,'delete'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
+        }
+
+        /**
+         * Type of deleteAccession is not validated. Only not null is
+         * checked above to confirm successfull operation.
+         */
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'deleteAccession ' + t('modelPanels.errors.data.e6', 'completed with errors.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` ,'delete'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
+          variant: 'success',
+          preventDuplicate: false,
+          persist: false,
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+        });
+        reloadData();
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.accession.deleteItem
+        if(err.isCanceled) {
+          return
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
-          reloadData();
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` ,'delete'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
         }
       });
   }
 
+  /**
+    * getCsvTemplate
+    * 
+    * Get @csvTemplate using GrahpQL Server query.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @item received.
+    * 
+    */
   function getCsvTemplate() {
+    errors.current = [];
+
     /*
-      API Request: deleteItem
+      API Request: csvTableTemplateAccession
     */
     let cancelableApiReq = makeCancelable(api.accession.tableTemplate(graphqlServerUrl));
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        //check response
-        if(
-          response.data &&
-          response.data.data &&
-          response.data.data.csvTableTemplateAccession        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }else {
-            //ok
-            enqueueSnackbar( t('modelPanels.messages.msg7', "Template downloaded successfully."), {
-              variant: 'success',
-              preventDuplicate: false,
-              persist: false,
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'left',
-              },
-            });
-            //download
-            let file = response.data.data.csvTableTemplateAccession.join("\n");
-            const url = window.URL.createObjectURL(new Blob([file]));
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "accession-template.csv");
-            document.body.appendChild(link);
-            link.click();
-          }
-          return;
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Accession', query: 'csvTableTemplateAccession', method: 'getCsvTemplate()', request: 'api.accession.tableTemplate'}];
+          newError.path=['Accessions', 'csvTemplate'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
-        } else { //error: bad response on tableTemplate()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          clearRequestGetCsvTemplate();
+          showMessage(newError.message, withDetails);
           return;
         }
-      })
-      .catch(({isCanceled, ...err}) => { //error: on tableTemplate()
-        if(isCanceled) {
+
+        //check: csvTableTemplateAccession
+        let csvTableTemplateAccession = response.data.data.csvTableTemplateAccession;
+        if(csvTableTemplateAccession === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'csvTableTemplateAccession ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{model: 'Accession', query: 'csvTableTemplateAccession', method: 'getCsvTemplate()', request: 'api.accession.tableTemplate'}];
+          newError.path=['Accessions', 'csvTemplate'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetCsvTemplate();
           return;
+        }
+
+        //check: csvTableTemplateAccession type
+        if(typeof csvTableTemplateAccession !== 'string') {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'csvTableTemplateAccession ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'Accession', query: 'csvTableTemplateAccession', method: 'getCsvTemplate()', request: 'api.accession.tableTemplate'}];
+          newError.path=['Accessions', 'csvTemplate'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetCsvTemplate();
+          return;
+        }
+        
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'csvTableTemplateAccession ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: 'Accession', query: 'csvTableTemplateAccession', method: 'getCsvTemplate()', request: 'api.accession.tableTemplate'}];
+          newError.path=['Accessions', 'csvTemplate'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        enqueueSnackbar( t('modelPanels.messages.msg7', "Template downloaded successfully."), {
+          variant: 'success',
+          preventDuplicate: false,
+          persist: false,
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+        });
+        //download
+        let file = response.data.data.csvTableTemplateAccession.join("\n");
+        const url = window.URL.createObjectURL(new Blob([file]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "accession-template.csv");
+        document.body.appendChild(link);
+        link.click();
+        return;
+
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.accession.tableTemplate
+        if(err.isCanceled) {
+          return
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Accession', query: 'csvTableTemplateAccession', method: 'getCsvTemplate()', request: 'api.accession.tableTemplate'}];
+          newError.path=['Accessions', 'csvTemplate'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetCsvTemplate();
           return;
         }
       });
+  }
+
+  /**
+    * Utils
+    */
+
+  function clearRequestGetData() {
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+    setCount(0);
+    setItems([]);
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    includeCursor.current = false;
+    setIsOnApiRequest(false);
+  }
+
+  function clearRequestDoDelete() {
+    reloadData();
+  }
+
+  function clearRequestGetCsvTemplate() {
+    //nothing to do.
   }
 
   function resetPageRefs() {

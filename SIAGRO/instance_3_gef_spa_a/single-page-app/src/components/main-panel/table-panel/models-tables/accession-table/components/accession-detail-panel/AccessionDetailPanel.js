@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { modelChange } from '../../../../../../../store/actions'
 import PropTypes from 'prop-types';
@@ -7,6 +7,7 @@ import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../snackbar/Snackbar';
 import AccessionAttributesPage from './components/accession-attributes-page/AccessionAttributesPage'
 import AccessionAssociationsPage from './components/accession-associations-page/AccessionAssociationsPage'
 import AccessionUpdatePanel from '../accession-update-panel/AccessionUpdatePanel'
@@ -107,14 +108,47 @@ export default function AccessionDetailPanel(props) {
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
   const dispatch = useDispatch();
 
-  const actionText = useRef(null);
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
   ));
+
+   /**
+    * Callbacks:
+    *  showMessage
+    */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * Effects
+   */
 
   useEffect(() => {
 
@@ -240,79 +274,134 @@ export default function AccessionDetailPanel(props) {
     lastFetchTime.current = Date.now();
   }, [itemState]);
 
+  /**
+   * Utils
+   */
+
+  function clearRequestDoDelete() {
+    //nothing to do.
+  }
+
+  /**
+    * doDelete
+    * 
+    * Delete @item using GrahpQL Server mutation.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @item deleted.
+    * 
+    */
   function doDelete(event, item) {
+    errors.current = [];
+    
     //variables
     let variables = {};
 
-
     /*
-      API Request: deleteItem
+      API Request: deleteAccession
     */
     let cancelableApiReq = makeCancelable(api.accession.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        //check response
-        if(
-          response.data &&
-          response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }else {
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}`, 'delete'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
-            //ok
-            enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
-              variant: 'success',
-              preventDuplicate: false,
-              persist: false,
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'left',
-              },
-            });
-            onSuccessDelete(event, item);
-          }
-          return;
-
-        } else { //error: bad response on deleteItem()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
         }
-      })
-      .catch(({isCanceled, ...err}) => { //error: on deleteItem()
-        if(isCanceled) {
+
+        //check: deleteAccession
+        let deleteAccession = response.data.data.deleteAccession;
+        if(deleteAccession === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'deleteAccession ' + t('modelPanels.errors.data.e5', 'could not be completed.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` , 'delete'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
+        }
+
+        /**
+         * Type of deleteAccession is not validated. Only not null is
+         * checked above to confirm successfull operation.
+         */
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'deleteAccession ' + t('modelPanels.errors.data.e6', 'completed with errors.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` ,'delete'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        enqueueSnackbar( t('modelPanels.messages.msg4', "Record deleted successfully."), {
+          variant: 'success',
+          preventDuplicate: false,
+          persist: false,
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+        });
+        onSuccessDelete(event, item);
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on deleteAccession
+        if(err.isCanceled) {
+          return
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Accession', query: 'deleteAccession', method: 'doDelete()', request: 'api.accession.deleteItem'}];
+          newError.path=['Accessions', `accession_id:${item.accession_id}` ,'delete'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoDelete();
           return;
         }
       });
+      
   }
 
   function getInitialValueOkStates(item) {

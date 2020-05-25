@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import IndividualAttributesPage from './components/individual-attributes-page/IndividualAttributesPage'
@@ -56,9 +57,6 @@ const useStyles = makeStyles(theme => ({
     bottom: -26+3,
     right: 10,
     margin: '0 auto',
-  },
-  notiErrorActionText: {
-    color: '#eba0a0',
   },
 }));
 
@@ -125,14 +123,47 @@ export default function IndividualUpdatePanel(props) {
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
-  const actionText = useRef(null);
-  const action = (key) => (
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
+  const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
-  );
+  ));
+
+   /**
+    * Callbacks:
+    *  showMessage
+    */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * Effects
+   */
 
   useEffect(() => {
 
@@ -221,6 +252,16 @@ export default function IndividualUpdatePanel(props) {
       setMeasurementDetailDialogOpen(true);
     }
   }, [measurementDetailItem]);
+
+  /**
+   * Utils
+   */
+
+  function clearRequestDoSave() {
+    //reset contention flags
+    isSaving.current = false;
+    isClosing.current = false;
+  }
 
   function getInitialValues() {
     let initialValues = {};
@@ -355,7 +396,17 @@ export default function IndividualUpdatePanel(props) {
     }
   }
 
+  /**
+    * doSave
+    * 
+    * Update new @item using GrahpQL Server mutation.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @item updated.
+    * 
+    */
   function doSave(event) {
+    errors.current = [];
+
     /*
       Variables setup
     */
@@ -395,78 +446,119 @@ export default function IndividualUpdatePanel(props) {
     }
 
     /*
-      API Request: updateItem
+      API Request: updateIndividual
     */
     let cancelableApiReq = makeCancelable(api.individual.updateItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        //check response
-        if (
-          response.data &&
-          response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action,
-            });
-            console.log("Errors: ", response.data.errors);
-          } else {
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Individual', query: 'updateIndividual', method: 'doSave()', request: 'api.individual.updateItem'}];
+          newError.path=['Individuals', `name:${item.name}`, 'update'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
 
-            //ok
-            enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
-              variant: 'success',
-              preventDuplicate: false,
-              persist: false,
-              anchorOrigin: {
-                vertical: 'bottom',
-                horizontal: 'left',
-              },
-            });
-            onClose(event, true, response.data.data.updateIndividual);
-          }
-          return;
-
-        } else { //error: bad response on updateItem()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          
-          //reset contention flags
-          isSaving.current = false;
-          isClosing.current = false;
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
           return;
         }
-      })
-      .catch(({isCanceled, ...err}) => { //error: on updateItem()
-        if(isCanceled) {
+
+        //check: updateIndividual
+        let updateIndividual = response.data.data.updateIndividual;
+        if(updateIndividual === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'updateIndividual ' + t('modelPanels.errors.data.e5', 'could not be completed.');
+          newError.locations=[{model: 'Individual', query: 'updateIndividual', method: 'doSave()', request: 'api.individual.updateItem'}];
+          newError.path=['Individuals', `name:${item.name}`, 'update'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
           return;
+        }
+
+        //check: updateIndividual type
+        if(typeof updateIndividual !== 'object') {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'Individual ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'Individual', query: 'updateIndividual', method: 'doSave()', request: 'api.individual.updateItem'}];
+          newError.path=['Individuals', `name:${item.name}`, 'update'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
+          return;
+        }
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'updateIndividual ' + t('modelPanels.errors.data.e6', 'completed with errors.');
+          newError.locations=[{model: 'Individual', query: 'updateIndividual', method: 'doSave()', request: 'api.individual.updateItem'}];
+          newError.path=['Individuals', `name:${item.name}`, 'update'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
+          variant: 'success',
+          preventDuplicate: false,
+          persist: false,
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+        });
+        onClose(event, true, updateIndividual);
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.individual.updateItem
+        if(err.isCanceled) {
+          return
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action,
-          });
-          console.log("Error: ", err);
-          
-          //reset contention flags
-          isSaving.current = false;
-          isClosing.current = false;
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Individual', query: 'updateIndividual', method: 'doSave()', request: 'api.individual.updateItem'}];
+          newError.path=['Individuals', `name:${item.name}`, 'update'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
           return;
         }
       });
