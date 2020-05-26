@@ -142,6 +142,8 @@ module.exports.validator_patch = function(accession) {
         //TODO: on the input you have the record validated, no generic
         // validation checks are available.
 
+        throw new Error( 'No record shall pass!' );
+
         return {
             error: null
         }
