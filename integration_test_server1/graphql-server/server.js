@@ -16,6 +16,8 @@
  const {JSONPath} = require('jsonpath-plus');
  const graphqlFormatError = require('./node_modules/graphql/error/formatError');
  const errors = require('./utils/errors');
+ const { printError } = require('graphql');
+
 
  var {
    graphql, buildSchema
@@ -189,8 +191,7 @@ app.use('/export', cors(), (req, res) =>{
    },
    customExecuteFn: execute.execute,
    customFormatErrorFn: function(error){
-    //let error = errors.constructErrorForLogging(error);
-    console.log(errors.stringifyCompletely(error)) // Fix the current version, please!
+    errors.customErrorLog(error) // Will log the error either compact (defualt) or verbose dependent on the env variable "ERROR_LOG"
     return {
       message: error.message,
       locations: error.locations ? error.locations : "",

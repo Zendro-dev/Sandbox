@@ -1,5 +1,6 @@
 const { GraphQLError } = require('graphql');
 const helper = require('./helper')
+const globals = require('../config/globals');
 
 class CenzontleError extends Error{
   constructor({message, path, locations, extensions}) {
@@ -42,6 +43,24 @@ module.exports.stringifyCompletely = function(error, replacer, space) {
 
 module.exports.handleError = function(error){
   throw new Error(error);
+}
+
+/**
+ * customErrorLog - Log the errors depending on the env Variable "ERROR_LOG".
+ *                  Default is "compact". If specifically set to "verbose" errors
+ *                  will be logged with all properties (including graphQLError properties)
+ * 
+ * @param {Error}   error to be logged
+ */
+module.exports.customErrorLog = function(error) {
+  if (globals.ERROR_LOG.toUpperCase() === "VERBOSE") {
+    console.error(module.exports.stringifyCompletely(error,null,2))
+  } else { //if not verbose default should be "compact", if for some reason another env was given it should still be compact
+    console.error(error)
+    if (error.originalError !== undefined) {
+      console.error("OriginalError:\n" + JSON.stringify(error.originalError,null,2));
+    }
+  }
 }
 
 /*constructErrorForLogging = function(error) {

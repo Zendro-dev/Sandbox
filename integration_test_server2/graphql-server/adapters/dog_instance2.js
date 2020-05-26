@@ -295,7 +295,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
     }
 
     static addOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this , input)
             .then(async (valSuccess) => {
                 try {
                     const result = await sequelize.transaction(async (t) => {

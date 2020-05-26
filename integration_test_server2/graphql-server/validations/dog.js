@@ -12,7 +12,8 @@ module.exports.validator_patch = function(dog) {
         "$async": true,
         "properties": {
             "name": {
-                "type": ["string", "null"]
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9]+$"
             },
             "dog_id": {
                 "type": ["string", "null"]

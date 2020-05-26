@@ -249,6 +249,7 @@ module.exports = class Accession {
                 query: query,
                 variables: input
             })
+            console.log(response)
             // STATUS-CODE is 200 -
             // NO ERROR as such has been detected by the server (Express),
             // though there might be errors from the remote GraphQL instance.
