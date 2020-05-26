@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -144,7 +145,6 @@ measurement.prototype.add_individual = async function(input) {
     await measurement.add_individual_id(this.getIdValue(), input.addIndividual);
     this.individual_id = input.addIndividual;
 }
-
 /**
  * add_accession - field Mutation for to_one associations to add
  *
@@ -155,26 +155,24 @@ measurement.prototype.add_accession = async function(input) {
     this.accession_id = input.addAccession;
 }
 
-
 /**
  * remove_individual - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_individual = async function(input) {
-    if (input.removeIndividual === this.individual_id) {
+    if (input.removeIndividual == this.individual_id) {
         await measurement.remove_individual_id(this.getIdValue(), input.removeIndividual);
         this.individual_id = null;
     }
 }
-
 /**
  * remove_accession - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_accession = async function(input) {
-    if (input.removeAccession === this.accession_id) {
+    if (input.removeAccession == this.accession_id) {
         await measurement.remove_accession_id(this.getIdValue(), input.removeAccession);
         this.accession_id = null;
     }
@@ -191,43 +189,31 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await measurement.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await measurement.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneMeasurement"));
     }
+    context.recordsLimit -= 1;
 }
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
-}
-
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -252,7 +238,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -266,7 +252,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`Measurement with measurement_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -289,10 +275,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "measurements");
-                let resultRecords = await measurement.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "measurements");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "measurements");
+                return await measurement.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -319,9 +303,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "measurementsConnection");
-                let resultRecords = await measurement.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "measurementsConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "measurementsConnection");
                 return measurement.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -344,11 +326,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = measurement.readById(measurement_id);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return measurement.readById(measurement_id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -365,12 +344,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countMeasurements: function({
+    countMeasurements: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Measurement', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Measurement', 'read').then(async authorization => {
             if (authorization === true) {
-                return measurement.countRecords(search);
+                return (await measurement.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -416,7 +395,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdMeasurement = await measurement.addOne(inputSanitized);
                 await createdMeasurement.handleAssociations(inputSanitized, context);
                 return createdMeasurement;
@@ -460,7 +441,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Measurement', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await measurement.validForDeletion(measurement_id, context)) {
+                if (await validForDeletion(measurement_id, context)) {
                     return measurement.deleteOne(measurement_id);
                 }
             } else {
@@ -488,7 +469,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedMeasurement = await measurement.updateOne(inputSanitized);
                 await updatedMeasurement.handleAssociations(inputSanitized, context);
                 return updatedMeasurement;

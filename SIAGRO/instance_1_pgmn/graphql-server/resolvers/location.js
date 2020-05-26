@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -181,6 +182,7 @@ location.prototype.remove_accessions = async function(input) {
 }
 
 
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -191,43 +193,31 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await location.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await location.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneLocation"));
     }
+    context.recordsLimit -= 1;
 }
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
-}
-
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -251,7 +241,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -265,7 +255,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`Location with locationId ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -288,10 +278,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Location', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "locations");
-                let resultRecords = await location.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "locations");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "locations");
+                return await location.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -318,9 +306,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Location', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "locationsConnection");
-                let resultRecords = await location.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "locationsConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "locationsConnection");
                 return location.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -343,11 +329,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Location', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = location.readById(locationId);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return location.readById(locationId);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -364,12 +347,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countLocations: function({
+    countLocations: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Location', 'read').then(async authorization => {
             if (authorization === true) {
-                return location.countRecords(search);
+                return (await location.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -415,7 +398,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdLocation = await location.addOne(inputSanitized);
                 await createdLocation.handleAssociations(inputSanitized, context);
                 return createdLocation;
@@ -459,7 +444,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Location', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await location.validForDeletion(locationId, context)) {
+                if (await validForDeletion(locationId, context)) {
                     return location.deleteOne(locationId);
                 }
             } else {
@@ -487,7 +472,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedLocation = await location.updateOne(inputSanitized);
                 await updatedLocation.handleAssociations(inputSanitized, context);
                 return updatedLocation;

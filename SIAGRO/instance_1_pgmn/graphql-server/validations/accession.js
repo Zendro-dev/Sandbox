@@ -136,5 +136,18 @@ module.exports.validator_patch = function(accession) {
             error: null
         }
     }
+
+    accession.prototype.validateAfterRead = async function(record) {
+
+        //TODO: on the input you have the record to be deleted, no generic
+        // validation checks are available.
+        //console.log("VALIDATED AFTER READ");
+        //throw new Error("SOMETHING WENT WRONG");
+
+        return {
+            error: null
+        }
+    }
+
     return accession
 }

@@ -134,8 +134,8 @@ type MeasurementEdge{
   }
 
     type Mutation {
-    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID  ): Measurement!
-    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID  ): Measurement!
+    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID  , skipAssociationsExistenceChecks:Boolean = false): Measurement!
   deleteMeasurement(measurement_id: ID!): String!
   bulkAddMeasurementCsv: [Measurement] }
 

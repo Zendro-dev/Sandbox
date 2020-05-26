@@ -3,6 +3,7 @@ const globals = require('../config/globals');
 const {
     handleError
 } = require('../utils/errors');
+const validatorUtil = require('../utils/validatorUtil');
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
@@ -51,7 +52,11 @@ module.exports = class MEASUREMENT_PGMN {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return res.data.data.readOneMeasurement;
+                let item = res.data.data.readOneMeasurement;
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
             }
@@ -126,56 +131,60 @@ module.exports = class MEASUREMENT_PGMN {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addMeasurement(
-          $measurement_id:ID!  
-          $name:String
-          $method:String
-          $reference:String
-          $reference_link:String
-          $value:Float
-          $unit:String
-          $short_name:String
-          $comments:String
-          $field_unit_id:Int        ){
-          addMeasurement(          measurement_id:$measurement_id  
-          name:$name
-          method:$method
-          reference:$reference
-          reference_link:$reference_link
-          value:$value
-          unit:$unit
-          short_name:$short_name
-          comments:$comments
-          field_unit_id:$field_unit_id){
-            measurement_id            name
-            method
-            reference
-            reference_link
-            value
-            unit
-            short_name
-            comments
-            field_unit_id
-            individual_id
-            accession_id
-          }
-        }`;
 
-        return axios.post(remoteCenzontleURL, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.addMeasurement;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+          mutation addMeasurement(
+              $measurement_id:ID!  
+            $name:String
+            $method:String
+            $reference:String
+            $reference_link:String
+            $value:Float
+            $unit:String
+            $short_name:String
+            $comments:String
+            $field_unit_id:Int          ){
+            addMeasurement(            measurement_id:$measurement_id  
+            name:$name
+            method:$method
+            reference:$reference
+            reference_link:$reference_link
+            value:$value
+            unit:$unit
+            short_name:$short_name
+            comments:$comments
+            field_unit_id:$field_unit_id){
+              measurement_id                name
+                method
+                reference
+                reference_link
+                value
+                unit
+                short_name
+                comments
+                field_unit_id
+                individual_id
+                accession_id
+              }
+          }`;
+
+                return axios.post(remoteCenzontleURL, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return res.data.data.addMeasurement;
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                    }
+                }).catch(error => {
+                    error['url'] = remoteCenzontleURL;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
@@ -201,59 +210,62 @@ module.exports = class MEASUREMENT_PGMN {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateMeasurement(
-              $measurement_id:ID! 
-              $name:String 
-              $method:String 
-              $reference:String 
-              $reference_link:String 
-              $value:Float 
-              $unit:String 
-              $short_name:String 
-              $comments:String 
-              $field_unit_id:Int             ){
-              updateMeasurement(
-                measurement_id:$measurement_id 
-                name:$name 
-                method:$method 
-                reference:$reference 
-                reference_link:$reference_link 
-                value:$value 
-                unit:$unit 
-                short_name:$short_name 
-                comments:$comments 
-                field_unit_id:$field_unit_id               ){
-                measurement_id 
-                name 
-                method 
-                reference 
-                reference_link 
-                value 
-                unit 
-                short_name 
-                comments 
-                field_unit_id 
-                individual_id 
-                accession_id 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateMeasurement(
+                  $measurement_id:ID! 
+                  $name:String 
+                  $method:String 
+                  $reference:String 
+                  $reference_link:String 
+                  $value:Float 
+                  $unit:String 
+                  $short_name:String 
+                  $comments:String 
+                  $field_unit_id:Int                 ){
+                  updateMeasurement(
+                    measurement_id:$measurement_id 
+                    name:$name 
+                    method:$method 
+                    reference:$reference 
+                    reference_link:$reference_link 
+                    value:$value 
+                    unit:$unit 
+                    short_name:$short_name 
+                    comments:$comments 
+                    field_unit_id:$field_unit_id                   ){
+                    measurement_id 
+                    name 
+                    method 
+                    reference 
+                    reference_link 
+                    value 
+                    unit 
+                    short_name 
+                    comments 
+                    field_unit_id 
+                    individual_id 
+                    accession_id 
+                  }
+                }`
 
-        return axios.post(remoteCenzontleURL, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateMeasurement;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+                return axios.post(remoteCenzontleURL, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return res.data.data.updateMeasurement;
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                    }
+                }).catch(error => {
+                    error['url'] = remoteCenzontleURL;
+                    handleError(error);
+                });
+            });
     }
 
 

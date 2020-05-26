@@ -7,187 +7,187 @@ module.exports = `
 
     """
     @original-field
-
+    
     """
     collectors_name: String
 
     """
     @original-field
-
+    
     """
     collectors_initials: String
 
     """
     @original-field
-
+    
     """
     sampling_date: Date
 
     """
     @original-field
-
+    
     """
     sampling_number: String
 
     """
     @original-field
-
+    
     """
     catalog_number: String
 
     """
     @original-field
-
+    
     """
     institution_deposited: String
 
     """
     @original-field
-
+    
     """
     collection_name: String
 
     """
     @original-field
-
+    
     """
     collection_acronym: String
 
     """
     @original-field
-
+    
     """
     identified_by: String
 
     """
     @original-field
-
+    
     """
     identification_date: Date
 
     """
     @original-field
-
+    
     """
     abundance: String
 
     """
     @original-field
-
+    
     """
     habitat: String
 
     """
     @original-field
-
+    
     """
     observations: String
 
     """
     @original-field
-
+    
     """
     family: String
 
     """
     @original-field
-
+    
     """
     genus: String
 
     """
     @original-field
-
+    
     """
     species: String
 
     """
     @original-field
-
+    
     """
     subspecies: String
 
     """
     @original-field
-
+    
     """
     variety: String
 
     """
     @original-field
-
+    
     """
     race: String
 
     """
     @original-field
-
+    
     """
     form: String
 
     """
     @original-field
-
+    
     """
     taxon_id: String
 
     """
     @original-field
-
+    
     """
     collection_deposit: String
 
     """
     @original-field
-
+    
     """
     collect_number: String
 
     """
     @original-field
-
+    
     """
     collect_source: String
 
     """
     @original-field
-
+    
     """
     collected_seeds: Int
 
     """
     @original-field
-
+    
     """
     collected_plants: Int
 
     """
     @original-field
-
+    
     """
     collected_other: String
 
     """
     @original-field
-
+    
     """
     habit: String
 
     """
     @original-field
-
+    
     """
     local_name: String
 
     """
     @original-field
-
+    
     """
     locationId: String
 
     taxon(search: searchTaxonInput): Taxon
   location(search: searchLocationInput): Location
-
+    
     """
     @search-request
     """
@@ -203,7 +203,7 @@ module.exports = `
     @count-request
     """
     countFilteredIndividuals(search: searchIndividualInput) : Int
-
+  
     """
     @search-request
     """
@@ -299,8 +299,8 @@ type AccessionEdge{
   }
 
     type Mutation {
-    addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, addLocation:ID , addIndividuals:[ID], addMeasurements:[ID], skipAssociationsExistenceChecks:Boolean = false ): Accession!
-    updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, removeTaxon:ID , addLocation:ID, removeLocation:ID  , addIndividuals:[ID], removeIndividuals:[ID] , addMeasurements:[ID], removeMeasurements:[ID],skipAssociationsExistenceChecks:Boolean = false ): Accession!
+    addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, addLocation:ID , addIndividuals:[ID], addMeasurements:[ID], skipAssociationsExistenceChecks:Boolean = false): Accession!
+    updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date, sampling_number: String, catalog_number: String, institution_deposited: String, collection_name: String, collection_acronym: String, identified_by: String, identification_date: Date, abundance: String, habitat: String, observations: String, family: String, genus: String, species: String, subspecies: String, variety: String, race: String, form: String, collection_deposit: String, collect_number: String, collect_source: String, collected_seeds: Int, collected_plants: Int, collected_other: String, habit: String, local_name: String , addTaxon:ID, removeTaxon:ID , addLocation:ID, removeLocation:ID  , addIndividuals:[ID], removeIndividuals:[ID] , addMeasurements:[ID], removeMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
   deleteAccession(accession_id: ID!): String!
   bulkAddAccessionCsv: [Accession] }
 

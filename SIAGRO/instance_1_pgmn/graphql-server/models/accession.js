@@ -253,31 +253,34 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Accession.belongsTo(models.location, {
             as: 'location',
             foreignKey: 'locationId'
         });
-
         Accession.hasMany(models.individual, {
             as: 'individuals',
             foreignKey: 'accessionId'
         });
-
         Accession.hasMany(models.measurement, {
             as: 'measurements',
             foreignKey: 'accession_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Accession.findOne(options);
+    static async readById(id) {
+        let item = await Accession.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -290,7 +293,10 @@ module.exports = class Accession extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {
@@ -609,12 +615,12 @@ module.exports = class Accession extends Sequelize.Model {
 
 
     /**
-     * _addTaxon - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_taxon_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addTaxon(accession_id, taxon_id) {
+    static async add_taxon_id(accession_id, taxon_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Accession.update({
@@ -633,10 +639,10 @@ module.exports = class Accession extends Sequelize.Model {
         return updated;
     }
     /**
-     * _addLocation - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async add_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
@@ -658,12 +664,12 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     /**
-     * _removeTaxon - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_taxon_id - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeTaxon(accession_id, taxon_id) {
+    static async remove_taxon_id(accession_id, taxon_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Accession.update({
@@ -682,10 +688,10 @@ module.exports = class Accession extends Sequelize.Model {
         return updated;
     }
     /**
-     * _removeLocation - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {

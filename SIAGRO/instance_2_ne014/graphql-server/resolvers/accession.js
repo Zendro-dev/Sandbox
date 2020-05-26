@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 const associationArgsDef = {
     'addTaxon': 'taxon',
@@ -320,7 +321,6 @@ accession.prototype.add_taxon = async function(input) {
     await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
-
 /**
  * add_location - field Mutation for to_one associations to add
  *
@@ -330,7 +330,6 @@ accession.prototype.add_location = async function(input) {
     await accession.add_locationId(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
-
 /**
  * remove_individuals - field Mutation for to_many associations to remove
  *
@@ -363,26 +362,59 @@ accession.prototype.remove_measurements = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_taxon = async function(input) {
-    if (input.removeTaxon === this.taxon_id) {
+    if (input.removeTaxon == this.taxon_id) {
         await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
     }
 }
-
 /**
  * remove_location - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
+    if (input.removeLocation == this.locationId) {
         await accession.remove_locationId(this.getIdValue(), input.removeLocation);
         this.locationId = null;
     }
 }
 
 
+/**
+ * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
+ *
+ * @param {string} query The query that failed
+ */
+function errorMessageForRecordsLimit(query) {
+    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
+}
 
+/**
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ *
+ * @param {object} search  Search argument for filtering records
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {string} query The query that makes this check
+ */
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await accession.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit(query));
+    }
+    context.recordsLimit -= count;
+}
+
+/**
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
+ *
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+function checkCountForOneAndReduceRecordsLimit(context) {
+    if (1 > context.recordsLimit) {
+        throw new Error(errorMessageForRecordsLimit("readOneAccession"));
+    }
+    context.recordsLimit -= 1;
+}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -409,7 +441,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -585,7 +617,7 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, accession.adapterForIri(accession_id), 'delete');
             if (authorizationCheck === true) {
-                if (await accession.validForDeletion(accession_id, context)) {
+                if (await validForDeletion(accession_id, context)) {
                     return accession.deleteOne(accession_id);
                 }
             } else { //adapter not auth

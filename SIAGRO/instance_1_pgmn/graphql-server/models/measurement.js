@@ -139,26 +139,30 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Measurement.belongsTo(models.individual, {
             as: 'individual',
             foreignKey: 'individual_id'
         });
-
         Measurement.belongsTo(models.accession, {
             as: 'accession',
             foreignKey: 'accession_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Measurement.findOne(options);
+    static async readById(id) {
+        let item = await Measurement.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -171,7 +175,10 @@ module.exports = class Measurement extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {
@@ -490,12 +497,12 @@ module.exports = class Measurement extends Sequelize.Model {
 
 
     /**
-     * _addIndividual - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_individual_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   measurement_id   IdAttribute of the root model to be updated
      * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addIndividual(measurement_id, individual_id) {
+    static async add_individual_id(measurement_id, individual_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Measurement.update({
@@ -514,12 +521,12 @@ module.exports = class Measurement extends Sequelize.Model {
         return updated;
     }
     /**
-     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_accession_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   measurement_id   IdAttribute of the root model to be updated
      * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _addAccession(measurement_id, accession_id) {
+    static async add_accession_id(measurement_id, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Measurement.update({
@@ -539,12 +546,12 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     /**
-     * _removeIndividual - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_individual_id - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   measurement_id   IdAttribute of the root model to be updated
      * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeIndividual(measurement_id, individual_id) {
+    static async remove_individual_id(measurement_id, individual_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Measurement.update({
@@ -563,12 +570,12 @@ module.exports = class Measurement extends Sequelize.Model {
         return updated;
     }
     /**
-     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_accession_id - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   measurement_id   IdAttribute of the root model to be updated
      * @param {Id}   accession_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async _removeAccession(measurement_id, accession_id) {
+    static async remove_accession_id(measurement_id, accession_id) {
         let updated = await sequelize.transaction(async transaction => {
             try {
                 return Measurement.update({

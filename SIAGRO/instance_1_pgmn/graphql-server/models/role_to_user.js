@@ -60,14 +60,20 @@ module.exports = class role_to_user extends Sequelize.Model {
 
     static associate(models) {}
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return role_to_user.findOne(options);
+    static async readById(id) {
+        let item = await role_to_user.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -80,7 +86,10 @@ module.exports = class role_to_user extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {

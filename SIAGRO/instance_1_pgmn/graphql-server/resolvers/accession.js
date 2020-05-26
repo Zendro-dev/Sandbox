@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -396,7 +397,6 @@ accession.prototype.add_taxon = async function(input) {
     await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
-
 /**
  * add_location - field Mutation for to_one associations to add
  *
@@ -406,7 +406,6 @@ accession.prototype.add_location = async function(input) {
     await accession.add_locationId(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
-
 
 /**
  * remove_individuals - field Mutation for to_many associations to remove
@@ -440,19 +439,18 @@ accession.prototype.remove_measurements = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_taxon = async function(input) {
-    if (input.removeTaxon === this.taxon_id) {
+    if (input.removeTaxon == this.taxon_id) {
         await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
     }
 }
-
 /**
  * remove_location - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
+    if (input.removeLocation == this.locationId) {
         await accession.remove_locationId(this.getIdValue(), input.removeLocation);
         this.locationId = null;
     }
@@ -469,43 +467,31 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await accession.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await accession.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneAccession"));
     }
+    context.recordsLimit -= 1;
 }
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
-}
-
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -532,7 +518,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -569,10 +555,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Accession', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "accessions");
-                let resultRecords = await accession.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "accessions");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "accessions");
+                return await accession.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -599,9 +583,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Accession', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "accessionsConnection");
-                let resultRecords = await accession.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "accessionsConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "accessionsConnection");
                 return accession.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -624,11 +606,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Accession', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = accession.readById(accession_id);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return accession.readById(accession_id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -645,12 +624,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countAccessions: function({
+    countAccessions: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Accession', 'read').then(async authorization => {
             if (authorization === true) {
-                return accession.countRecords(search);
+                return (await accession.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -696,8 +675,8 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if(!input.skipAssociationsExistenceChecks) {
-                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let createdAccession = await accession.addOne(inputSanitized);
                 await createdAccession.handleAssociations(inputSanitized, context);
@@ -742,7 +721,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Accession', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await accession.validForDeletion(accession_id, context)) {
+                if (await validForDeletion(accession_id, context)) {
                     return accession.deleteOne(accession_id);
                 }
             } else {
@@ -770,8 +749,8 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if(!input.skipAssociationsExistenceChecks) {
-                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let updatedAccession = await accession.updateOne(inputSanitized);
                 await updatedAccession.handleAssociations(inputSanitized, context);

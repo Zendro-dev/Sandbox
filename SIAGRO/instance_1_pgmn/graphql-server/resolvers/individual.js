@@ -13,6 +13,7 @@ const {
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const globals = require('../config/globals');
 
 
 
@@ -223,7 +224,6 @@ individual.prototype.add_accession = async function(input) {
     this.accessionId = input.addAccession;
 }
 
-
 /**
  * remove_measurements - field Mutation for to_many associations to remove
  *
@@ -243,7 +243,7 @@ individual.prototype.remove_measurements = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 individual.prototype.remove_accession = async function(input) {
-    if (input.removeAccession === this.accessionId) {
+    if (input.removeAccession == this.accessionId) {
         await individual.remove_accessionId(this.getIdValue(), input.removeAccession);
         this.accessionId = null;
     }
@@ -260,43 +260,31 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await individual.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await individual.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneIndividual"));
     }
+    context.recordsLimit -= 1;
 }
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
-}
-
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -321,7 +309,7 @@ async function countAllAssociatedRecords(id, context) {
     let result_to_one = await Promise.all(promises_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
-    let get_to_one_associated = result_to_one.filter((r, index) => r !== null).length;
+    let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
     return get_to_one_associated + get_to_many_associated;
 }
@@ -335,7 +323,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Accession with accession_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`Individual with name ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -358,10 +346,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Individual', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "individuals");
-                let resultRecords = await individual.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "individuals");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "individuals");
+                return await individual.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -388,9 +374,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Individual', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "individualsConnection");
-                let resultRecords = await individual.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "individualsConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "individualsConnection");
                 return individual.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -413,11 +397,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Individual', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = individual.readById(name);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return individual.readById(name);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -434,12 +415,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countIndividuals: function({
+    countIndividuals: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Individual', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Individual', 'read').then(async authorization => {
             if (authorization === true) {
-                return individual.countRecords(search);
+                return (await individual.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -485,8 +466,8 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if(!input.skipAssociationsExistenceChecks) {
-                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let createdIndividual = await individual.addOne(inputSanitized);
                 await createdIndividual.handleAssociations(inputSanitized, context);
@@ -531,7 +512,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Individual', 'delete').then(async authorization => {
             if (authorization === true) {
-                if (await individual.validForDeletion(name, context)) {
+                if (await validForDeletion(name, context)) {
                     return individual.deleteOne(name);
                 }
             } else {
@@ -559,8 +540,8 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if(!input.skipAssociationsExistenceChecks) {
-                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let updatedIndividual = await individual.updateOne(inputSanitized);
                 await updatedIndividual.handleAssociations(inputSanitized, context);

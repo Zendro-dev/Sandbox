@@ -3,6 +3,7 @@ const globals = require('../config/globals');
 const {
     handleError
 } = require('../utils/errors');
+const validatorUtil = require('../utils/validatorUtil');
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
@@ -31,37 +32,37 @@ module.exports = class ACCESSION_PGMN {
             {
               readOneAccession(accession_id:"${iri}")
               {
-                accession_id 
-                collectors_name 
-                collectors_initials 
-                sampling_date 
-                sampling_number 
-                catalog_number 
-                institution_deposited 
-                collection_name 
-                collection_acronym 
-                identified_by 
-                identification_date 
-                abundance 
-                habitat 
-                observations 
-                family 
-                genus 
-                species 
-                subspecies 
-                variety 
-                race 
-                form 
-                taxon_id 
-                collection_deposit 
-                collect_number 
-                collect_source 
-                collected_seeds 
-                collected_plants 
-                collected_other 
-                habit 
-                local_name 
-                locationId 
+                accession_id
+                collectors_name
+                collectors_initials
+                sampling_date
+                sampling_number
+                catalog_number
+                institution_deposited
+                collection_name
+                collection_acronym
+                identified_by
+                identification_date
+                abundance
+                habitat
+                observations
+                family
+                genus
+                species
+                subspecies
+                variety
+                race
+                form
+                taxon_id
+                collection_deposit
+                collect_number
+                collect_source
+                collected_seeds
+                collected_plants
+                collected_other
+                habit
+                local_name
+                locationId
               }
             }`;
 
@@ -70,7 +71,12 @@ module.exports = class ACCESSION_PGMN {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return res.data.data.readOneAccession;
+                let item = res.data.data.readOneAccession;
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                      console.log( "VAL SUCCESS", valSuccess );
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
             }
@@ -164,113 +170,117 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addAccession(
-          $accession_id:ID!  
-          $collectors_name:String
-          $collectors_initials:String
-          $sampling_date:Date
-          $sampling_number:String
-          $catalog_number:String
-          $institution_deposited:String
-          $collection_name:String
-          $collection_acronym:String
-          $identified_by:String
-          $identification_date:Date
-          $abundance:String
-          $habitat:String
-          $observations:String
-          $family:String
-          $genus:String
-          $species:String
-          $subspecies:String
-          $variety:String
-          $race:String
-          $form:String
-          $collection_deposit:String
-          $collect_number:String
-          $collect_source:String
-          $collected_seeds:Int
-          $collected_plants:Int
-          $collected_other:String
-          $habit:String
-          $local_name:String        ){
-          addAccession(          accession_id:$accession_id  
-          collectors_name:$collectors_name
-          collectors_initials:$collectors_initials
-          sampling_date:$sampling_date
-          sampling_number:$sampling_number
-          catalog_number:$catalog_number
-          institution_deposited:$institution_deposited
-          collection_name:$collection_name
-          collection_acronym:$collection_acronym
-          identified_by:$identified_by
-          identification_date:$identification_date
-          abundance:$abundance
-          habitat:$habitat
-          observations:$observations
-          family:$family
-          genus:$genus
-          species:$species
-          subspecies:$subspecies
-          variety:$variety
-          race:$race
-          form:$form
-          collection_deposit:$collection_deposit
-          collect_number:$collect_number
-          collect_source:$collect_source
-          collected_seeds:$collected_seeds
-          collected_plants:$collected_plants
-          collected_other:$collected_other
-          habit:$habit
-          local_name:$local_name){
-            accession_id            collectors_name
-            collectors_initials
-            sampling_date
-            sampling_number
-            catalog_number
-            institution_deposited
-            collection_name
-            collection_acronym
-            identified_by
-            identification_date
-            abundance
-            habitat
-            observations
-            family
-            genus
-            species
-            subspecies
-            variety
-            race
-            form
-            taxon_id
-            collection_deposit
-            collect_number
-            collect_source
-            collected_seeds
-            collected_plants
-            collected_other
-            habit
-            local_name
-            locationId
-          }
-        }`;
 
-        return axios.post(remoteCenzontleURL, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.addAccession;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+          mutation addAccession(
+              $accession_id:ID!
+            $collectors_name:String
+            $collectors_initials:String
+            $sampling_date:Date
+            $sampling_number:String
+            $catalog_number:String
+            $institution_deposited:String
+            $collection_name:String
+            $collection_acronym:String
+            $identified_by:String
+            $identification_date:Date
+            $abundance:String
+            $habitat:String
+            $observations:String
+            $family:String
+            $genus:String
+            $species:String
+            $subspecies:String
+            $variety:String
+            $race:String
+            $form:String
+            $collection_deposit:String
+            $collect_number:String
+            $collect_source:String
+            $collected_seeds:Int
+            $collected_plants:Int
+            $collected_other:String
+            $habit:String
+            $local_name:String          ){
+            addAccession(            accession_id:$accession_id
+            collectors_name:$collectors_name
+            collectors_initials:$collectors_initials
+            sampling_date:$sampling_date
+            sampling_number:$sampling_number
+            catalog_number:$catalog_number
+            institution_deposited:$institution_deposited
+            collection_name:$collection_name
+            collection_acronym:$collection_acronym
+            identified_by:$identified_by
+            identification_date:$identification_date
+            abundance:$abundance
+            habitat:$habitat
+            observations:$observations
+            family:$family
+            genus:$genus
+            species:$species
+            subspecies:$subspecies
+            variety:$variety
+            race:$race
+            form:$form
+            collection_deposit:$collection_deposit
+            collect_number:$collect_number
+            collect_source:$collect_source
+            collected_seeds:$collected_seeds
+            collected_plants:$collected_plants
+            collected_other:$collected_other
+            habit:$habit
+            local_name:$local_name){
+              accession_id                collectors_name
+                collectors_initials
+                sampling_date
+                sampling_number
+                catalog_number
+                institution_deposited
+                collection_name
+                collection_acronym
+                identified_by
+                identification_date
+                abundance
+                habitat
+                observations
+                family
+                genus
+                species
+                subspecies
+                variety
+                race
+                form
+                taxon_id
+                collection_deposit
+                collect_number
+                collect_source
+                collected_seeds
+                collected_plants
+                collected_other
+                habit
+                local_name
+                locationId
+              }
+          }`;
+
+                return axios.post(remoteCenzontleURL, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return res.data.data.addAccession;
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                    }
+                }).catch(error => {
+                    error['url'] = remoteCenzontleURL;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
@@ -296,116 +306,119 @@ module.exports = class ACCESSION_PGMN {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateAccession(
-              $accession_id:ID! 
-              $collectors_name:String 
-              $collectors_initials:String 
-              $sampling_date:Date 
-              $sampling_number:String 
-              $catalog_number:String 
-              $institution_deposited:String 
-              $collection_name:String 
-              $collection_acronym:String 
-              $identified_by:String 
-              $identification_date:Date 
-              $abundance:String 
-              $habitat:String 
-              $observations:String 
-              $family:String 
-              $genus:String 
-              $species:String 
-              $subspecies:String 
-              $variety:String 
-              $race:String 
-              $form:String 
-              $collection_deposit:String 
-              $collect_number:String 
-              $collect_source:String 
-              $collected_seeds:Int 
-              $collected_plants:Int 
-              $collected_other:String 
-              $habit:String 
-              $local_name:String             ){
-              updateAccession(
-                accession_id:$accession_id 
-                collectors_name:$collectors_name 
-                collectors_initials:$collectors_initials 
-                sampling_date:$sampling_date 
-                sampling_number:$sampling_number 
-                catalog_number:$catalog_number 
-                institution_deposited:$institution_deposited 
-                collection_name:$collection_name 
-                collection_acronym:$collection_acronym 
-                identified_by:$identified_by 
-                identification_date:$identification_date 
-                abundance:$abundance 
-                habitat:$habitat 
-                observations:$observations 
-                family:$family 
-                genus:$genus 
-                species:$species 
-                subspecies:$subspecies 
-                variety:$variety 
-                race:$race 
-                form:$form 
-                collection_deposit:$collection_deposit 
-                collect_number:$collect_number 
-                collect_source:$collect_source 
-                collected_seeds:$collected_seeds 
-                collected_plants:$collected_plants 
-                collected_other:$collected_other 
-                habit:$habit 
-                local_name:$local_name               ){
-                accession_id 
-                collectors_name 
-                collectors_initials 
-                sampling_date 
-                sampling_number 
-                catalog_number 
-                institution_deposited 
-                collection_name 
-                collection_acronym 
-                identified_by 
-                identification_date 
-                abundance 
-                habitat 
-                observations 
-                family 
-                genus 
-                species 
-                subspecies 
-                variety 
-                race 
-                form 
-                taxon_id 
-                collection_deposit 
-                collect_number 
-                collect_source 
-                collected_seeds 
-                collected_plants 
-                collected_other 
-                habit 
-                local_name 
-                locationId 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateAccession(
+                  $accession_id:ID!
+                  $collectors_name:String
+                  $collectors_initials:String
+                  $sampling_date:Date
+                  $sampling_number:String
+                  $catalog_number:String
+                  $institution_deposited:String
+                  $collection_name:String
+                  $collection_acronym:String
+                  $identified_by:String
+                  $identification_date:Date
+                  $abundance:String
+                  $habitat:String
+                  $observations:String
+                  $family:String
+                  $genus:String
+                  $species:String
+                  $subspecies:String
+                  $variety:String
+                  $race:String
+                  $form:String
+                  $collection_deposit:String
+                  $collect_number:String
+                  $collect_source:String
+                  $collected_seeds:Int
+                  $collected_plants:Int
+                  $collected_other:String
+                  $habit:String
+                  $local_name:String                 ){
+                  updateAccession(
+                    accession_id:$accession_id
+                    collectors_name:$collectors_name
+                    collectors_initials:$collectors_initials
+                    sampling_date:$sampling_date
+                    sampling_number:$sampling_number
+                    catalog_number:$catalog_number
+                    institution_deposited:$institution_deposited
+                    collection_name:$collection_name
+                    collection_acronym:$collection_acronym
+                    identified_by:$identified_by
+                    identification_date:$identification_date
+                    abundance:$abundance
+                    habitat:$habitat
+                    observations:$observations
+                    family:$family
+                    genus:$genus
+                    species:$species
+                    subspecies:$subspecies
+                    variety:$variety
+                    race:$race
+                    form:$form
+                    collection_deposit:$collection_deposit
+                    collect_number:$collect_number
+                    collect_source:$collect_source
+                    collected_seeds:$collected_seeds
+                    collected_plants:$collected_plants
+                    collected_other:$collected_other
+                    habit:$habit
+                    local_name:$local_name                   ){
+                    accession_id
+                    collectors_name
+                    collectors_initials
+                    sampling_date
+                    sampling_number
+                    catalog_number
+                    institution_deposited
+                    collection_name
+                    collection_acronym
+                    identified_by
+                    identification_date
+                    abundance
+                    habitat
+                    observations
+                    family
+                    genus
+                    species
+                    subspecies
+                    variety
+                    race
+                    form
+                    taxon_id
+                    collection_deposit
+                    collect_number
+                    collect_source
+                    collected_seeds
+                    collected_plants
+                    collected_other
+                    habit
+                    local_name
+                    locationId
+                  }
+                }`
 
-        return axios.post(remoteCenzontleURL, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return res.data.data.updateAccession;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        }).catch(error => {
-            error['url'] = remoteCenzontleURL;
-            handleError(error);
-        });
+                return axios.post(remoteCenzontleURL, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return res.data.data.updateAccession;
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                    }
+                }).catch(error => {
+                    error['url'] = remoteCenzontleURL;
+                    handleError(error);
+                });
+            });
     }
 
 

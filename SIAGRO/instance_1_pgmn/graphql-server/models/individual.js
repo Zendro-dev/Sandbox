@@ -116,26 +116,30 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
     static associate(models) {
-
         Individual.belongsTo(models.accession, {
             as: 'accession',
             foreignKey: 'accessionId'
         });
-
         Individual.hasMany(models.measurement, {
             as: 'measurements',
             foreignKey: 'individual_id'
         });
     }
 
-    static readById(id) {
-        let options = {};
-        options['where'] = {};
-        options['where'][this.idAttribute()] = id;
-        return Individual.findOne(options);
+    static async readById(id) {
+        let item = await Individual.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+            .then((valSuccess) => {
+                return item
+            }).catch((err) => {
+                return err
+            });
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
         let options = {};
         if (search !== undefined) {
 
@@ -148,7 +152,10 @@ module.exports = class Individual extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
-        return super.count(options);
+        return {
+            sum: await super.count(options),
+            errors: []
+        };
     }
 
     static readAll(search, order, pagination) {
@@ -467,10 +474,10 @@ module.exports = class Individual extends Sequelize.Model {
 
 
     /**
-     * _addAccession - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_accessionId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async add_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
@@ -492,10 +499,10 @@ module.exports = class Individual extends Sequelize.Model {
     }
 
     /**
-     * _removeAccession - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_accessionId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   name   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_accessionId(name, accessionId) {
         let updated = await sequelize.transaction(async transaction => {

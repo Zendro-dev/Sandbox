@@ -70,7 +70,7 @@ if (process.argv.length > 2 && process.argv[2] == 'acl') {
 /* Schema */
 console.log('Merging Schema');
 var merged_schema = mergeSchema(path.join(__dirname, './schemas'));
-console.log(merged_schema);
+//console.log(merged_schema);
 var Schema = buildSchema(merged_schema);
 /*set scalar types for dates */
 Object.assign(Schema._typeMap.DateTime, GraphQLDateTime);
@@ -240,7 +240,7 @@ app.use('/export', cors(), (req, res) =>{
             queries = newQueries;
           }
 
-          let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);          
+          let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);
           let output;
           if (jq != null) { // jq
             output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});
