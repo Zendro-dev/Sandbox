@@ -315,16 +315,12 @@ export default function AccessionsToAddTransferView(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
-          let withDetails=true;
-          variant.current='info';
           newError.message = 'countAccessions ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
           newError.locations=[{model: 'Location', association: 'accessions', table:'A', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -421,16 +417,12 @@ export default function AccessionsToAddTransferView(props) {
               //check: graphql errors
               if(response.data.errors) {
                 let newError = {};
-                let withDetails=true;
-                variant.current='info';
                 newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
                 newError.locations=[{model: 'Location', association: 'accessions', table:'A', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
                 newError.path=['add', 'accessions'];
                 newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
                 errors.current.push(newError);
                 console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
               }
 
               /*
@@ -462,6 +454,23 @@ export default function AccessionsToAddTransferView(props) {
               isCursorPaginating.current = false;
               includeCursor.current = false;
               setIsOnApiRequest(false);
+
+              /**
+               * Display graphql errors
+               */
+              if(errors.current.length > 0) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='info';
+                newError.message = 'getData() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
+                newError.locations=[{model: 'Location', association: 'accessions', table:'A', method: 'getData()'}];
+                newError.path=['add', 'accessions'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+              }
               return;
 
             },
@@ -564,7 +573,7 @@ export default function AccessionsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getDataB()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -582,7 +591,7 @@ export default function AccessionsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = 'countAccessions ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getDataB()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -599,7 +608,7 @@ export default function AccessionsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = 'countAccessions ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getDataB()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -613,180 +622,189 @@ export default function AccessionsToAddTransferView(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
-          let withDetails=true;
-          variantB.current='info';
           newError.message = 'countAccessions ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getDataB()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
         }
 
         //ok
         setCountB(countAccessions);
   
 
-          /*
-            API Request: accessionsConnection
-          */
-          let variables = {
-            pagination: {
-              after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
-              before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
-              first: isForwardPaginationB.current ? rowsPerPageB : null,
-              last: !isForwardPaginationB.current ? rowsPerPageB : null,
-              includeCursor: includeCursorB.current,
+        /*
+          API Request: accessionsConnection
+        */
+        let variables = {
+          pagination: {
+            after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
+            before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
+            first: isForwardPaginationB.current ? rowsPerPageB : null,
+            last: !isForwardPaginationB.current ? rowsPerPageB : null,
+            includeCursor: includeCursorB.current,
+          }
+        };
+        let cancelableApiReqB = makeCancelable(api.accession.getItemsConnection(
+          graphqlServerUrl,
+          searchB,
+          null, //orderBy
+          null, //orderDirection
+          variables,
+          ops
+        ));
+        cancelablePromises.current.push(cancelableApiReqB);
+        cancelableApiReqB
+          .promise
+          .then(
+          //resolved
+          (response) => {
+            //delete from cancelables
+            cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
+            
+            //check: response data
+            if(!response.data ||!response.data.data) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getDataB()', request: 'api.accession.getItemsConnection'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
             }
-          };
-          let cancelableApiReqB = makeCancelable(api.accession.getItemsConnection(
-            graphqlServerUrl,
-            searchB,
-            null, //orderBy
-            null, //orderDirection
-            variables,
-            ops
-          ));
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            //resolved
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
-                newError.path=['add', 'accessions'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+            
+            //check: accessionsConnection
+            let accessionsConnection = response.data.data.accessionsConnection;
+            if(accessionsConnection === null) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getDataB()', request: 'api.accession.getItemsConnection'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-              //check: accessionsConnection
-              let accessionsConnection = response.data.data.accessionsConnection;
-              if(accessionsConnection === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
-                newError.path=['add', 'accessions'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+            
+            //check: accessionsConnection type
+            if(typeof accessionsConnection !== 'object'
+            || !Array.isArray(accessionsConnection.edges)
+            || typeof accessionsConnection.pageInfo !== 'object' 
+            || accessionsConnection.pageInfo === null) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getDataB()', request: 'api.accession.getItemsConnection'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-              //check: accessionsConnection type
-              if(typeof accessionsConnection !== 'object'
-              || !Array.isArray(accessionsConnection.edges)
-              || typeof accessionsConnection.pageInfo !== 'object' 
-              || accessionsConnection.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
-                newError.path=['add', 'accessions'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+            //get items
+            let its = accessionsConnection.edges.map(o => o.node);
+            let pi = accessionsConnection.pageInfo;
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              //get items
-              let its = accessionsConnection.edges.map(o => o.node);
-              let pi = accessionsConnection.pageInfo;
+            //check: graphql errors
+            if(response.data.errors) {
+              let newError = {};
+              newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getDataB()', request: 'api.accession.getItemsConnection'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+            }
 
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='info';
-                newError.message = 'accessionsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
-                newError.path=['add', 'accessions'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-              }
-  
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
-                
-                //reload
-                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfoB.current = pi;
-              setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-              setHasNextPageB(pageInfoB.current.hasNextPage);
-                
-              //ok
-              setItemsB([...its]);
-
-              //ends request
+            /*
+              Check: empty page
+            */
+            if( its.length === 0 && pi.hasPreviousPage ) 
+            {
+              //configure
               isOnApiRequestRefB.current = false;
               isCursorPaginatingB.current = false;
               isForwardPaginationB.current = false;
               setIsOnApiRequestB(false);
+              
+              //reload
+              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
               return;
+            }//else
 
-            },
-            //rejected
-            (err) => {
-              throw err;
-            })
-            //error
-            .catch((err) => { //error: on api.accession.getItemsConnection
-              if(err.isCanceled) {
-                return;
-              } else {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getData()', request: 'api.accession.getItemsConnection'}];
-                newError.path=['add', 'accessions'];
-                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+            //update pageInfo
+            pageInfoB.current = pi;
+            setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+            setHasNextPageB(pageInfoB.current.hasNextPage);
+              
+            //ok
+            setItemsB([...its]);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-            });
+            //ends request
+            isOnApiRequestRefB.current = false;
+            isCursorPaginatingB.current = false;
+            isForwardPaginationB.current = false;
+            setIsOnApiRequestB(false);
+
+            /**
+              * Display graphql errors
+              */
+            if(errorsB.current.length > 0) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='info';
+              newError.message = 'getDataB() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errorsB.current.length+')';
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', method: 'getDataB()'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+            }
+            return;
+
+          },
+          //rejected
+          (err) => {
+            throw err;
+          })
+          //error
+          .catch((err) => { //error: on api.accession.getItemsConnection
+            if(err.isCanceled) {
+              return;
+            } else {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+              newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'accessionsConnection', method: 'getDataB()', request: 'api.accession.getItemsConnection'}];
+              newError.path=['add', 'accessions'];
+              newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+          });
       },
       //rejected
       (err) => {
@@ -801,7 +819,7 @@ export default function AccessionsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getData()', request: 'api.accession.getCountItems'}];
+          newError.locations=[{model: 'Location', association: 'accessions', table:'B', query: 'countAccessions', method: 'getDataB()', request: 'api.accession.getCountItems'}];
           newError.path=['add', 'accessions'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);

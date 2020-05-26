@@ -37,6 +37,7 @@ export default function UserAttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -92,6 +93,7 @@ export default function UserAttributesFormView(props) {
                 label='email'
                 text={item.email}
                 valueOk={valueOkStates.email}
+                valueAjv={valueAjvStates.email}
                 autoFocus={true}
                 handleSetValue={handleSetValue}
               />
@@ -105,6 +107,7 @@ export default function UserAttributesFormView(props) {
                 label='password'
                 text={item.password}
                 valueOk={valueOkStates.password}
+                valueAjv={valueAjvStates.password}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -118,6 +121,7 @@ export default function UserAttributesFormView(props) {
 UserAttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

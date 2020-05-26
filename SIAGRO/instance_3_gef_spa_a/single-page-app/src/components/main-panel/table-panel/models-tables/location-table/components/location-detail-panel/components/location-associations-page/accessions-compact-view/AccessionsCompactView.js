@@ -287,6 +287,8 @@ export default function AccessionsCompactView(props) {
         //ok
         setCount(newCount);
         setItems([...its]);
+
+        //ends request
         isOnApiRequestRef.current = false;
         isCursorPaginating.current = false;
         includeCursor.current = false;

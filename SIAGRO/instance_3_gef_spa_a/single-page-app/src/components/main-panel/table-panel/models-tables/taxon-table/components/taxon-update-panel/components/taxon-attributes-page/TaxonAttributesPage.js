@@ -16,6 +16,7 @@ export default function TaxonAttributesPage(props) {
   const {
     item,
     valueOkStates,
+    valueAjvStates,
     hidden,
     handleSetValue,
   } = props;
@@ -34,6 +35,7 @@ export default function TaxonAttributesPage(props) {
             <TaxonAttributesFormView
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -45,6 +47,7 @@ export default function TaxonAttributesPage(props) {
 TaxonAttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

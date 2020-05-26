@@ -81,6 +81,7 @@ export default function AccessionUpdatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
     const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
   
@@ -98,6 +99,7 @@ export default function AccessionUpdatePanel(props) {
 
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
+  const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
   const [individualsIdsToAddState, setIndividualsIdsToAddState] = useState([]);
@@ -377,6 +379,44 @@ export default function AccessionUpdatePanel(props) {
     return initialValueOkStates;
   }
 
+  function getInitialValueAjvStates() {
+    let _initialValueAjvStates = {};
+
+    _initialValueAjvStates.accession_id = {errors: []};
+    _initialValueAjvStates.collectors_name = {errors: []};
+    _initialValueAjvStates.collectors_initials = {errors: []};
+    _initialValueAjvStates.sampling_date = {errors: []};
+    _initialValueAjvStates.sampling_number = {errors: []};
+    _initialValueAjvStates.catalog_number = {errors: []};
+    _initialValueAjvStates.institution_deposited = {errors: []};
+    _initialValueAjvStates.collection_name = {errors: []};
+    _initialValueAjvStates.collection_acronym = {errors: []};
+    _initialValueAjvStates.identified_by = {errors: []};
+    _initialValueAjvStates.identification_date = {errors: []};
+    _initialValueAjvStates.abundance = {errors: []};
+    _initialValueAjvStates.habitat = {errors: []};
+    _initialValueAjvStates.observations = {errors: []};
+    _initialValueAjvStates.family = {errors: []};
+    _initialValueAjvStates.genus = {errors: []};
+    _initialValueAjvStates.species = {errors: []};
+    _initialValueAjvStates.subspecies = {errors: []};
+    _initialValueAjvStates.variety = {errors: []};
+    _initialValueAjvStates.race = {errors: []};
+    _initialValueAjvStates.form = {errors: []};
+    _initialValueAjvStates.taxon_id = {errors: []}; //FK
+    _initialValueAjvStates.collection_deposit = {errors: []};
+    _initialValueAjvStates.collect_number = {errors: []};
+    _initialValueAjvStates.collect_source = {errors: []};
+    _initialValueAjvStates.collected_seeds = {errors: []};
+    _initialValueAjvStates.collected_plants = {errors: []};
+    _initialValueAjvStates.collected_other = {errors: []};
+    _initialValueAjvStates.habit = {errors: []};
+    _initialValueAjvStates.local_name = {errors: []};
+    _initialValueAjvStates.locationId = {errors: []}; //FK
+
+    return _initialValueAjvStates;
+  }
+
   function areThereNotAcceptableFields() {
     let a = Object.entries(valueOkStates);
     for(let i=0; i<a.length; ++i) {
@@ -555,6 +595,53 @@ export default function AccessionUpdatePanel(props) {
     }
   }
 
+function setAjvErrors(err) {
+    //clear
+    valuesAjvRefs.current = getInitialValueAjvStates();
+    
+    //check
+    if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
+      let errors = err.response.data.errors;
+      
+      //for each error
+      for(let i=0; i<errors.length; ++i) {
+        let e=errors[i];
+        //check
+        if(e && typeof e === 'object' && Array.isArray(e.details)){
+          let details = e.details;
+          
+          for(let d=0; d<details.length; ++d) {
+            let detail = details[d];
+
+            //check
+            if(detail && typeof detail === 'object' && detail.dataPath && detail.message) {
+              console.log("@@Ajv error found: ", detail);
+
+              /**
+               * In this point, the error is considered as an AJV error.
+               * 
+               * will be set to a okStatus reference and at the end of this function 
+               * the okStatus state will be updated.
+               */
+              //set reference
+              addAjvErrorToField(detail);
+            }
+          }
+        }
+      }
+      //update state
+      setValueAjvStates({...valuesAjvRefs.current});
+    }
+  }
+
+  function addAjvErrorToField(error) {
+    let dataPath = error.dataPath.slice(1);
+    
+    if(valuesAjvRefs.current[dataPath] !== undefined){
+      valuesAjvRefs.current[dataPath].errors.push(error.message);
+    }
+  }
+  
   /**
     * doSave
     * 
@@ -723,6 +810,10 @@ export default function AccessionUpdatePanel(props) {
         if(err.isCanceled) {
           return
         } else {
+          //set ajv errors
+          setAjvErrors(err);
+
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1170,6 +1261,7 @@ export default function AccessionUpdatePanel(props) {
               hidden={tabsValue !== 0}
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />

@@ -17,8 +17,6 @@ module.exports = `
     ne
     regexp
     notRegexp
-    is
-    not
   }
 
   enum Order{

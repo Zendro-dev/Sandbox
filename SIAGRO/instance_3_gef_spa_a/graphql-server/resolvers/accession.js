@@ -442,7 +442,7 @@ accession.prototype.remove_measurements = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_taxon = async function(input) {
-    if (input.removeTaxon === this.taxon_id) {
+    if (input.removeTaxon == this.taxon_id) {
         await accession.remove_taxon_id(this.getIdValue(), input.removeTaxon);
         this.taxon_id = null;
     }
@@ -453,7 +453,7 @@ accession.prototype.remove_taxon = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
+    if (input.removeLocation == this.locationId) {
         await accession.remove_locationId(this.getIdValue(), input.removeLocation);
         this.locationId = null;
     }

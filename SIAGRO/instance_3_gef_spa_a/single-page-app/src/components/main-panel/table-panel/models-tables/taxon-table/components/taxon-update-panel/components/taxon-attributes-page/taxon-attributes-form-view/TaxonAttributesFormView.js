@@ -37,6 +37,7 @@ export default function TaxonAttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -87,6 +88,7 @@ export default function TaxonAttributesFormView(props) {
                 label='id'
                 text={item.id}
                 valueOk={valueOkStates.id}
+                valueAjv={valueAjvStates.id}
                 autoFocus={true}
                 handleSetValue={handleSetValue}
               />
@@ -100,6 +102,7 @@ export default function TaxonAttributesFormView(props) {
                 label='taxon'
                 text={item.taxon}
                 valueOk={valueOkStates.taxon}
+                valueAjv={valueAjvStates.taxon}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -112,6 +115,7 @@ export default function TaxonAttributesFormView(props) {
                 label='categoria'
                 text={item.categoria}
                 valueOk={valueOkStates.categoria}
+                valueAjv={valueAjvStates.categoria}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -124,6 +128,7 @@ export default function TaxonAttributesFormView(props) {
                 label='estatus'
                 text={item.estatus}
                 valueOk={valueOkStates.estatus}
+                valueAjv={valueAjvStates.estatus}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -136,6 +141,7 @@ export default function TaxonAttributesFormView(props) {
                 label='nombreAutoridad'
                 text={item.nombreAutoridad}
                 valueOk={valueOkStates.nombreAutoridad}
+                valueAjv={valueAjvStates.nombreAutoridad}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -148,6 +154,7 @@ export default function TaxonAttributesFormView(props) {
                 label='citaNomenclatural'
                 text={item.citaNomenclatural}
                 valueOk={valueOkStates.citaNomenclatural}
+                valueAjv={valueAjvStates.citaNomenclatural}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -160,6 +167,7 @@ export default function TaxonAttributesFormView(props) {
                 label='fuente'
                 text={item.fuente}
                 valueOk={valueOkStates.fuente}
+                valueAjv={valueAjvStates.fuente}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -172,6 +180,7 @@ export default function TaxonAttributesFormView(props) {
                 label='ambiente'
                 text={item.ambiente}
                 valueOk={valueOkStates.ambiente}
+                valueAjv={valueAjvStates.ambiente}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -184,6 +193,7 @@ export default function TaxonAttributesFormView(props) {
                 label='grupoSNIB'
                 text={item.grupoSNIB}
                 valueOk={valueOkStates.grupoSNIB}
+                valueAjv={valueAjvStates.grupoSNIB}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -196,6 +206,7 @@ export default function TaxonAttributesFormView(props) {
                 label='categoriaResidencia'
                 text={item.categoriaResidencia}
                 valueOk={valueOkStates.categoriaResidencia}
+                valueAjv={valueAjvStates.categoriaResidencia}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -208,6 +219,7 @@ export default function TaxonAttributesFormView(props) {
                 label='nom'
                 text={item.nom}
                 valueOk={valueOkStates.nom}
+                valueAjv={valueAjvStates.nom}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -220,6 +232,7 @@ export default function TaxonAttributesFormView(props) {
                 label='cites'
                 text={item.cites}
                 valueOk={valueOkStates.cites}
+                valueAjv={valueAjvStates.cites}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -232,6 +245,7 @@ export default function TaxonAttributesFormView(props) {
                 label='iucn'
                 text={item.iucn}
                 valueOk={valueOkStates.iucn}
+                valueAjv={valueAjvStates.iucn}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -244,6 +258,7 @@ export default function TaxonAttributesFormView(props) {
                 label='prioritarias'
                 text={item.prioritarias}
                 valueOk={valueOkStates.prioritarias}
+                valueAjv={valueAjvStates.prioritarias}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -256,6 +271,7 @@ export default function TaxonAttributesFormView(props) {
                 label='endemismo'
                 text={item.endemismo}
                 valueOk={valueOkStates.endemismo}
+                valueAjv={valueAjvStates.endemismo}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -269,6 +285,7 @@ export default function TaxonAttributesFormView(props) {
 TaxonAttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

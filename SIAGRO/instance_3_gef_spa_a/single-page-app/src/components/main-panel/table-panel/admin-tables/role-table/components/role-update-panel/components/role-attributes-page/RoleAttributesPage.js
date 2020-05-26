@@ -16,6 +16,7 @@ export default function RoleAttributesPage(props) {
   const {
     item,
     valueOkStates,
+    valueAjvStates,
     hidden,
     handleSetValue,
   } = props;
@@ -34,6 +35,7 @@ export default function RoleAttributesPage(props) {
             <RoleAttributesFormView
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -45,6 +47,7 @@ export default function RoleAttributesPage(props) {
 RoleAttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

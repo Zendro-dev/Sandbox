@@ -164,7 +164,7 @@ measurement.prototype.add_accession = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_individual = async function(input) {
-    if (input.removeIndividual === this.individual_id) {
+    if (input.removeIndividual == this.individual_id) {
         await measurement.remove_individual_id(this.getIdValue(), input.removeIndividual);
         this.individual_id = null;
     }
@@ -175,7 +175,7 @@ measurement.prototype.remove_individual = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 measurement.prototype.remove_accession = async function(input) {
-    if (input.removeAccession === this.accession_id) {
+    if (input.removeAccession == this.accession_id) {
         await measurement.remove_accession_id(this.getIdValue(), input.removeAccession);
         this.accession_id = null;
     }

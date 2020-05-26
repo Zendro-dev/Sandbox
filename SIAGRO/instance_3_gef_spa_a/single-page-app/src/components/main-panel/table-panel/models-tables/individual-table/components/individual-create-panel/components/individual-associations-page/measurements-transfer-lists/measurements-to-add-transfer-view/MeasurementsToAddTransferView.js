@@ -315,16 +315,12 @@ export default function MeasurementsToAddTransferView(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
-          let withDetails=true;
-          variant.current='info';
           newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
           newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -421,16 +417,12 @@ export default function MeasurementsToAddTransferView(props) {
               //check: graphql errors
               if(response.data.errors) {
                 let newError = {};
-                let withDetails=true;
-                variant.current='info';
                 newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
                 newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
                 newError.path=['add', 'measurements'];
                 newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
                 errors.current.push(newError);
                 console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
               }
 
               /*
@@ -462,6 +454,23 @@ export default function MeasurementsToAddTransferView(props) {
               isCursorPaginating.current = false;
               includeCursor.current = false;
               setIsOnApiRequest(false);
+
+              /**
+               * Display graphql errors
+               */
+              if(errors.current.length > 0) {
+                let newError = {};
+                let withDetails=true;
+                variant.current='info';
+                newError.message = 'getData() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'A', method: 'getData()'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errors.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessage(newError.message, withDetails);
+              }
               return;
 
             },
@@ -564,7 +573,7 @@ export default function MeasurementsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -582,7 +591,7 @@ export default function MeasurementsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -599,7 +608,7 @@ export default function MeasurementsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
@@ -613,180 +622,189 @@ export default function MeasurementsToAddTransferView(props) {
         //check: graphql errors
         if(response.data.errors) {
           let newError = {};
-          let withDetails=true;
-          variantB.current='info';
           newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
         }
 
         //ok
         setCountB(countMeasurements);
   
 
-          /*
-            API Request: measurementsConnection
-          */
-          let variables = {
-            pagination: {
-              after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
-              before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
-              first: isForwardPaginationB.current ? rowsPerPageB : null,
-              last: !isForwardPaginationB.current ? rowsPerPageB : null,
-              includeCursor: includeCursorB.current,
+        /*
+          API Request: measurementsConnection
+        */
+        let variables = {
+          pagination: {
+            after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
+            before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
+            first: isForwardPaginationB.current ? rowsPerPageB : null,
+            last: !isForwardPaginationB.current ? rowsPerPageB : null,
+            includeCursor: includeCursorB.current,
+          }
+        };
+        let cancelableApiReqB = makeCancelable(api.measurement.getItemsConnection(
+          graphqlServerUrl,
+          searchB,
+          null, //orderBy
+          null, //orderDirection
+          variables,
+          ops
+        ));
+        cancelablePromises.current.push(cancelableApiReqB);
+        cancelableApiReqB
+          .promise
+          .then(
+          //resolved
+          (response) => {
+            //delete from cancelables
+            cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
+            
+            //check: response data
+            if(!response.data ||!response.data.data) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
             }
-          };
-          let cancelableApiReqB = makeCancelable(api.measurement.getItemsConnection(
-            graphqlServerUrl,
-            searchB,
-            null, //orderBy
-            null, //orderDirection
-            variables,
-            ops
-          ));
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            //resolved
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
-                newError.path=['add', 'measurements'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+            
+            //check: measurementsConnection
+            let measurementsConnection = response.data.data.measurementsConnection;
+            if(measurementsConnection === null) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-              //check: measurementsConnection
-              let measurementsConnection = response.data.data.measurementsConnection;
-              if(measurementsConnection === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
-                newError.path=['add', 'measurements'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+            
+            //check: measurementsConnection type
+            if(typeof measurementsConnection !== 'object'
+            || !Array.isArray(measurementsConnection.edges)
+            || typeof measurementsConnection.pageInfo !== 'object' 
+            || measurementsConnection.pageInfo === null) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              
-              //check: measurementsConnection type
-              if(typeof measurementsConnection !== 'object'
-              || !Array.isArray(measurementsConnection.edges)
-              || typeof measurementsConnection.pageInfo !== 'object' 
-              || measurementsConnection.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
-                newError.path=['add', 'measurements'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+            //get items
+            let its = measurementsConnection.edges.map(o => o.node);
+            let pi = measurementsConnection.pageInfo;
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              //get items
-              let its = measurementsConnection.edges.map(o => o.node);
-              let pi = measurementsConnection.pageInfo;
+            //check: graphql errors
+            if(response.data.errors) {
+              let newError = {};
+              newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+            }
 
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='info';
-                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
-                newError.path=['add', 'measurements'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-              }
-  
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
-                
-                //reload
-                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfoB.current = pi;
-              setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-              setHasNextPageB(pageInfoB.current.hasNextPage);
-                
-              //ok
-              setItemsB([...its]);
-
-              //ends request
+            /*
+              Check: empty page
+            */
+            if( its.length === 0 && pi.hasPreviousPage ) 
+            {
+              //configure
               isOnApiRequestRefB.current = false;
               isCursorPaginatingB.current = false;
               isForwardPaginationB.current = false;
               setIsOnApiRequestB(false);
+              
+              //reload
+              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
               return;
+            }//else
 
-            },
-            //rejected
-            (err) => {
-              throw err;
-            })
-            //error
-            .catch((err) => { //error: on api.measurement.getItemsConnection
-              if(err.isCanceled) {
-                return;
-              } else {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
-                newError.path=['add', 'measurements'];
-                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+            //update pageInfo
+            pageInfoB.current = pi;
+            setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+            setHasNextPageB(pageInfoB.current.hasNextPage);
+              
+            //ok
+            setItemsB([...its]);
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-            });
+            //ends request
+            isOnApiRequestRefB.current = false;
+            isCursorPaginatingB.current = false;
+            isForwardPaginationB.current = false;
+            setIsOnApiRequestB(false);
+
+            /**
+              * Display graphql errors
+              */
+            if(errorsB.current.length > 0) {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='info';
+              newError.message = 'getDataB() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errorsB.current.length+')';
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', method: 'getDataB()'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+            }
+            return;
+
+          },
+          //rejected
+          (err) => {
+            throw err;
+          })
+          //error
+          .catch((err) => { //error: on api.measurement.getItemsConnection
+            if(err.isCanceled) {
+              return;
+            } else {
+              let newError = {};
+              let withDetails=true;
+              variantB.current='error';
+              newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+              errorsB.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessageB(newError.message, withDetails);
+              clearRequestGetDataB();
+              return;
+            }
+          });
       },
       //rejected
       (err) => {
@@ -801,7 +819,7 @@ export default function MeasurementsToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
           newError.path=['add', 'measurements'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);

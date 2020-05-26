@@ -41,6 +41,7 @@ export default function MeasurementAttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -91,6 +92,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='measurement_id'
                 text={item.measurement_id}
                 valueOk={valueOkStates.measurement_id}
+                valueAjv={valueAjvStates.measurement_id}
                 autoFocus={true}
                 handleSetValue={handleSetValue}
               />
@@ -104,6 +106,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='name'
                 text={item.name}
                 valueOk={valueOkStates.name}
+                valueAjv={valueAjvStates.name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -116,6 +119,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='method'
                 text={item.method}
                 valueOk={valueOkStates.method}
+                valueAjv={valueAjvStates.method}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -128,6 +132,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='reference'
                 text={item.reference}
                 valueOk={valueOkStates.reference}
+                valueAjv={valueAjvStates.reference}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -140,6 +145,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='reference_link'
                 text={item.reference_link}
                 valueOk={valueOkStates.reference_link}
+                valueAjv={valueAjvStates.reference_link}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -152,6 +158,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='value'
                 text={item.value}
                 valueOk={valueOkStates.value}
+                valueAjv={valueAjvStates.value}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -164,6 +171,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='unit'
                 text={item.unit}
                 valueOk={valueOkStates.unit}
+                valueAjv={valueAjvStates.unit}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -176,6 +184,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='short_name'
                 text={item.short_name}
                 valueOk={valueOkStates.short_name}
+                valueAjv={valueAjvStates.short_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -188,6 +197,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='comments'
                 text={item.comments}
                 valueOk={valueOkStates.comments}
+                valueAjv={valueAjvStates.comments}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -200,6 +210,7 @@ export default function MeasurementAttributesFormView(props) {
                 label='field_unit_id'
                 text={item.field_unit_id}
                 valueOk={valueOkStates.field_unit_id}
+                valueAjv={valueAjvStates.field_unit_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -213,6 +224,7 @@ export default function MeasurementAttributesFormView(props) {
 MeasurementAttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

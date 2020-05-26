@@ -77,7 +77,7 @@ const definition = {
             target: 'Taxon',
             targetKey: 'taxon_id',
             keyIn: 'Accession',
-            targetStorageType: 'webservice',
+            targetStorageType: 'generic',
             label: 'scientificName',
             sublabel: 'taxonRank',
             name: 'taxon',

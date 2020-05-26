@@ -245,7 +245,7 @@ individual.prototype.remove_measurements = async function(input) {
  * @param {object} input   Info of input Ids to remove  the association
  */
 individual.prototype.remove_accession = async function(input) {
-    if (input.removeAccession === this.accession_id) {
+    if (input.removeAccession == this.accession_id) {
         await individual.remove_accession_id(this.getIdValue(), input.removeAccession);
         this.accession_id = null;
     }

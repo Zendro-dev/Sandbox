@@ -63,7 +63,8 @@ module.exports.validator_patch = function(location) {
                 "type": ["string", "null"]
             },
             "slope": {
-                "type": ["number", "null"]
+                "type": ["number", "null"],
+                "maximum": 5 
             }
         }
     }

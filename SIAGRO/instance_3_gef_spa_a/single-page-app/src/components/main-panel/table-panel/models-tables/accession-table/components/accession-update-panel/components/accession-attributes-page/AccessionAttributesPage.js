@@ -16,6 +16,7 @@ export default function AccessionAttributesPage(props) {
   const {
     item,
     valueOkStates,
+    valueAjvStates,
     foreignKeys,
     hidden,
     handleSetValue,
@@ -35,6 +36,7 @@ export default function AccessionAttributesPage(props) {
             <AccessionAttributesFormView
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               foreignKeys={foreignKeys}
               handleSetValue={handleSetValue}
             />
@@ -47,6 +49,7 @@ export default function AccessionAttributesPage(props) {
 AccessionAttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   foreignKeys: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,

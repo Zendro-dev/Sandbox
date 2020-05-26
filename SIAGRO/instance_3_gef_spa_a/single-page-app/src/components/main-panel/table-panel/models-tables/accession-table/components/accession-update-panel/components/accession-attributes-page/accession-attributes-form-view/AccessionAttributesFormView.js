@@ -41,6 +41,7 @@ export default function AccessionAttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -91,6 +92,7 @@ export default function AccessionAttributesFormView(props) {
                 label='accession_id'
                 text={item.accession_id}
                 valueOk={valueOkStates.accession_id}
+                valueAjv={valueAjvStates.accession_id}
                 autoFocus={true}
                 handleSetValue={handleSetValue}
               />
@@ -104,6 +106,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collectors_name'
                 text={item.collectors_name}
                 valueOk={valueOkStates.collectors_name}
+                valueAjv={valueAjvStates.collectors_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -116,6 +119,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collectors_initials'
                 text={item.collectors_initials}
                 valueOk={valueOkStates.collectors_initials}
+                valueAjv={valueAjvStates.collectors_initials}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -128,6 +132,7 @@ export default function AccessionAttributesFormView(props) {
                 label='sampling_date'
                 text={item.sampling_date}
                 valueOk={valueOkStates.sampling_date}
+                valueAjv={valueAjvStates.sampling_date}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -140,6 +145,7 @@ export default function AccessionAttributesFormView(props) {
                 label='sampling_number'
                 text={item.sampling_number}
                 valueOk={valueOkStates.sampling_number}
+                valueAjv={valueAjvStates.sampling_number}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -152,6 +158,7 @@ export default function AccessionAttributesFormView(props) {
                 label='catalog_number'
                 text={item.catalog_number}
                 valueOk={valueOkStates.catalog_number}
+                valueAjv={valueAjvStates.catalog_number}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -164,6 +171,7 @@ export default function AccessionAttributesFormView(props) {
                 label='institution_deposited'
                 text={item.institution_deposited}
                 valueOk={valueOkStates.institution_deposited}
+                valueAjv={valueAjvStates.institution_deposited}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -176,6 +184,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collection_name'
                 text={item.collection_name}
                 valueOk={valueOkStates.collection_name}
+                valueAjv={valueAjvStates.collection_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -188,6 +197,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collection_acronym'
                 text={item.collection_acronym}
                 valueOk={valueOkStates.collection_acronym}
+                valueAjv={valueAjvStates.collection_acronym}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -200,6 +210,7 @@ export default function AccessionAttributesFormView(props) {
                 label='identified_by'
                 text={item.identified_by}
                 valueOk={valueOkStates.identified_by}
+                valueAjv={valueAjvStates.identified_by}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -212,6 +223,7 @@ export default function AccessionAttributesFormView(props) {
                 label='identification_date'
                 text={item.identification_date}
                 valueOk={valueOkStates.identification_date}
+                valueAjv={valueAjvStates.identification_date}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -224,6 +236,7 @@ export default function AccessionAttributesFormView(props) {
                 label='abundance'
                 text={item.abundance}
                 valueOk={valueOkStates.abundance}
+                valueAjv={valueAjvStates.abundance}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -236,6 +249,7 @@ export default function AccessionAttributesFormView(props) {
                 label='habitat'
                 text={item.habitat}
                 valueOk={valueOkStates.habitat}
+                valueAjv={valueAjvStates.habitat}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -248,6 +262,7 @@ export default function AccessionAttributesFormView(props) {
                 label='observations'
                 text={item.observations}
                 valueOk={valueOkStates.observations}
+                valueAjv={valueAjvStates.observations}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -260,6 +275,7 @@ export default function AccessionAttributesFormView(props) {
                 label='family'
                 text={item.family}
                 valueOk={valueOkStates.family}
+                valueAjv={valueAjvStates.family}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -272,6 +288,7 @@ export default function AccessionAttributesFormView(props) {
                 label='genus'
                 text={item.genus}
                 valueOk={valueOkStates.genus}
+                valueAjv={valueAjvStates.genus}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -284,6 +301,7 @@ export default function AccessionAttributesFormView(props) {
                 label='species'
                 text={item.species}
                 valueOk={valueOkStates.species}
+                valueAjv={valueAjvStates.species}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -296,6 +314,7 @@ export default function AccessionAttributesFormView(props) {
                 label='subspecies'
                 text={item.subspecies}
                 valueOk={valueOkStates.subspecies}
+                valueAjv={valueAjvStates.subspecies}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -308,6 +327,7 @@ export default function AccessionAttributesFormView(props) {
                 label='variety'
                 text={item.variety}
                 valueOk={valueOkStates.variety}
+                valueAjv={valueAjvStates.variety}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -320,6 +340,7 @@ export default function AccessionAttributesFormView(props) {
                 label='race'
                 text={item.race}
                 valueOk={valueOkStates.race}
+                valueAjv={valueAjvStates.race}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -332,6 +353,7 @@ export default function AccessionAttributesFormView(props) {
                 label='form'
                 text={item.form}
                 valueOk={valueOkStates.form}
+                valueAjv={valueAjvStates.form}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -344,6 +366,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collection_deposit'
                 text={item.collection_deposit}
                 valueOk={valueOkStates.collection_deposit}
+                valueAjv={valueAjvStates.collection_deposit}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -356,6 +379,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collect_number'
                 text={item.collect_number}
                 valueOk={valueOkStates.collect_number}
+                valueAjv={valueAjvStates.collect_number}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -368,6 +392,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collect_source'
                 text={item.collect_source}
                 valueOk={valueOkStates.collect_source}
+                valueAjv={valueAjvStates.collect_source}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -380,6 +405,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collected_seeds'
                 text={item.collected_seeds}
                 valueOk={valueOkStates.collected_seeds}
+                valueAjv={valueAjvStates.collected_seeds}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -392,6 +418,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collected_plants'
                 text={item.collected_plants}
                 valueOk={valueOkStates.collected_plants}
+                valueAjv={valueAjvStates.collected_plants}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -404,6 +431,7 @@ export default function AccessionAttributesFormView(props) {
                 label='collected_other'
                 text={item.collected_other}
                 valueOk={valueOkStates.collected_other}
+                valueAjv={valueAjvStates.collected_other}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -416,6 +444,7 @@ export default function AccessionAttributesFormView(props) {
                 label='habit'
                 text={item.habit}
                 valueOk={valueOkStates.habit}
+                valueAjv={valueAjvStates.habit}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -428,6 +457,7 @@ export default function AccessionAttributesFormView(props) {
                 label='local_name'
                 text={item.local_name}
                 valueOk={valueOkStates.local_name}
+                valueAjv={valueAjvStates.local_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -441,6 +471,7 @@ export default function AccessionAttributesFormView(props) {
 AccessionAttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

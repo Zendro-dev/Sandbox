@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { blueGrey } from '@material-ui/core/colors';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import api from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
@@ -73,9 +74,6 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
   },
-  notiErrorActionText: {
-    color: '#eba0a0',
-  },
 }));
 
 export default function MeasurementsToAddTransferView(props) {
@@ -140,7 +138,10 @@ export default function MeasurementsToAddTransferView(props) {
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
   const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? Array.from(idsToAdd) : []);
+  
+  //associated ids
   const lidsAssociated = useRef(undefined);
+
 
   const cancelablePromises = useRef([]);
 
@@ -148,19 +149,84 @@ export default function MeasurementsToAddTransferView(props) {
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
 
-  const actionText = useRef(null);
+  const lref = useRef(null);
+  const lrefB = useRef(null);
+  const [lh, setLh] = useState(82);
+  const [lhB, setLhB] = useState(82);
+
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
     </> 
   ));
 
-  const lref = useRef(null);
-  const lrefB = useRef(null);
-  const [lh, setLh] = useState(82);
-  const [lhB, setLhB] = useState(82);
+  //snackbar
+  const variantB = useRef('info');
+  const errorsB = useRef([]);
+  const contentB = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsB.current}
+    variant={variantB.current} />
+  ));
+  const actionTextB = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionB = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextB.current}
+      </Button>
+    </> 
+  ));
+
+  /**
+    * Callbacks:
+    *  showMessage
+    *  showMessageB
+    *  getData
+    *  getDataB
+    */
+
+  /**
+   * showMessage
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * showMessageB
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageB = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantB.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionB.current : undefined,
+      content: withDetail ? contentB.current : undefined,
+    });
+  },[enqueueSnackbar]);
 
   /**
    * getData
@@ -174,346 +240,190 @@ export default function MeasurementsToAddTransferView(props) {
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
+    errors.current = [];
 
-    //if ids associated needs to be fetched.
-    if(lidsAssociated.current === undefined) {
-      /*
-        API Request: associated measurements ids
-      */
-      let cancelableApiReq = makeCancelable(api.individual.getAssociatedMeasurementsConnection(graphqlServerUrl, item.name));  
-      cancelablePromises.current.push(cancelableApiReq);
-      cancelableApiReq
-        .promise
-        .then(response => {
-          //delete from cancelables
-          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-          //check response
-          if (
-            response.data &&
-            response.data.data
-          ) {
-            //notify graphql errors
+    /*
+      API Request: readOneIndividual
+    */
+    let cancelableApiReq = makeCancelable(api.individual.getAssociatedMeasurementsConnection(graphqlServerUrl, item.name));  
+    cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
+      .then(
+      (response) => {
+        //delete from cancelables
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'readOneIndividual', method: 'getData()', request: 'api.individual.getAssociatedMeasurementsConnection'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+        //check: readOneIndividual
+        let readOneIndividual = response.data.data.readOneIndividual;
+        if(readOneIndividual === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'readOneIndividual ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'readOneIndividual', method: 'getData()', request: 'api.individual.getAssociatedMeasurementsConnection'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //check: readOneIndividual type
+        if(typeof readOneIndividual !== 'object'
+        || typeof readOneIndividual.measurementsConnection !== 'object'
+        || readOneIndividual.measurementsConnection === null
+        || !Array.isArray(readOneIndividual.measurementsConnection.edges)) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'readOneIndividual ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'readOneIndividual', method: 'getData()', request: 'api.individual.getAssociatedMeasurementsConnection'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+        //get items
+        let idso = readOneIndividual.measurementsConnection.edges.map(o => o.node);
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          newError.message = 'readOneIndividual ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'readOneIndividual', method: 'getData()', request: 'api.individual.getAssociatedMeasurementsConnection'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+        }
+
+        //set associated ids
+        lidsAssociated.current = idso.map(function(item){ return item.measurement_id});
+
+        //set ops: excluded ids: toAddIds + associatedIds
+        let ops = null;
+        let exIds = [];
+        if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
+          exIds = lidsToAdd.current;
+        }
+        if(lidsAssociated.current !== undefined && lidsAssociated.current.length > 0) {
+          exIds = exIds.concat(lidsAssociated.current);
+        }
+        if(exIds.length > 0) {
+          ops = {
+            exclude: [{
+              type: 'String',
+              values: {measurement_id: exIds}
+            }]
+          };
+        }
+
+        /*
+          API Request: countMeasurements
+        */
+        let cancelableApiReqB = makeCancelable(api.measurement.getCountItems(graphqlServerUrl, search, ops));
+        cancelablePromises.current.push(cancelableApiReqB);
+        cancelableApiReqB
+          .promise
+          .then(
+          //resolved
+          (response)=> {
+            //delete from cancelables
+            cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
+            
+            //check: response data
+            if(!response.data ||!response.data.data) {
+              let newError = {};
+              let withDetails=true;
+              variant.current='error';
+              newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errors.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessage(newError.message, withDetails);
+              clearRequestGetData();
+              return;
+            }
+
+            //check: countMeasurements
+            let countMeasurements = response.data.data.countMeasurements;
+            if(countMeasurements === null) {
+              let newError = {};
+              let withDetails=true;
+              variant.current='error';
+              newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errors.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessage(newError.message, withDetails);
+              clearRequestGetData();
+              return;
+            }
+            
+            //check: countMeasurements type
+            if(!Number.isInteger(countMeasurements)) {
+              let newError = {};
+              let withDetails=true;
+              variant.current='error';
+              newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+              errors.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessage(newError.message, withDetails);
+              clearRequestGetData();
+              return;
+            }
+
+            //check: graphql errors
             if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-            //set ids
-            let idso = response.data.data.readOneIndividual.measurementsConnection.edges.map(o => o.node);
-            lidsAssociated.current = (idso&&Array.isArray(idso)) ? idso.map(function(item){ return item.measurement_id}) : [];
-
-            //set ops: excluded ids: toAddIds + associatedIds
-            let ops = null;
-            let exIds = [];
-            if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
-              exIds = lidsToAdd.current;
-            }
-            if(lidsAssociated.current !== undefined && lidsAssociated.current.length > 0) {
-              exIds = exIds.concat(lidsAssociated.current);
-            }
-            if(exIds.length > 0) {
-              ops = {
-                exclude: [{
-                  type: 'String',
-                  values: {measurement_id: exIds}
-                }]
-              };
+              let newError = {};
+              newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+              errors.current.push(newError);
+              console.log("Error: ", newError);
             }
 
-              /*
-              API Request: countItems
-            */
-            let cancelableApiReqB = makeCancelable(api.measurement.getCountItems(graphqlServerUrl, search, ops));
-            cancelablePromises.current.push(cancelableApiReqB);
-            cancelableApiReqB
-              .promise
-              .then(response => {
-                //delete from cancelables
-                cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-                //check response
-                if (
-                  response.data &&
-                  response.data.data
-                ) {
-                  //notify graphql errors
-                  if(response.data.errors) {
-                    actionText.current = t('modelPanels.gotIt', "Got it");
-                    enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                      variant: 'error',
-                      preventDuplicate: false,
-                      persist: true,
-                      action: action.current,
-                    });
-                    console.log("Errors: ", response.data.errors);
-                  }
-                  //save response data
-                  let newCount = response.data.data.countMeasurements;
+            //ok
+            setCount(countMeasurements);
 
-                  /*
-                    API Request: items
-                  */
-                  let variables = {
-                    pagination: {
-                      after: isForwardPagination.current ? pageInfo.current.endCursor : null,
-                      before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
-                      first: isForwardPagination.current ? rowsPerPage : null,
-                      last: !isForwardPagination.current ? rowsPerPage : null,
-                      includeCursor: includeCursor.current,
-                    }
-                  };
-                  let cancelableApiReqC = makeCancelable(api.measurement.getItemsConnection(
-                    graphqlServerUrl,
-                    search,
-                    null, //orderBy
-                    null, //orderDirection
-                    variables,
-                    ops
-                  ));
-                  cancelablePromises.current.push(cancelableApiReqC);
-                  cancelableApiReqC
-                    .promise
-                    .then(response => {
-                      //delete from cancelables
-                      cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqC), 1);
-                      //check response
-                      if (
-                        response.data &&
-                        response.data.data
-                      ) {
-                        //notify graphql errors
-                        if(response.data.errors) {
-                          actionText.current = t('modelPanels.gotIt', "Got it");
-                          enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                            variant: 'error',
-                            preventDuplicate: false,
-                            persist: true,
-                            action: action.current,
-                          });
-                          console.log("Errors: ", response.data.errors);
-                        }
-                        //save response data
-                        let its = response.data.data.measurementsConnection.edges.map(o => o.node);
-                        let pi = response.data.data.measurementsConnection.pageInfo;
-
-                        /*
-                          Check: empty page
-                        */
-                        if( its.length === 0 && pi&&pi.hasPreviousPage ) 
-                        {
-                          //configure
-                          isOnApiRequestRef.current = false;
-                          isCursorPaginating.current = false;
-                          isForwardPagination.current = false;
-                          setIsOnApiRequest(false);
-                          
-                          //reload
-                          setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                          return;
-                        }//else
-
-                        //update pageInfo
-                        pageInfo.current = pi;
-                        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                        setHasNextPage(pageInfo.current.hasNextPage);
-
-                        //ok
-                        setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-                        setItems(its&&Array.isArray(its) ? its : []);
-                        isOnApiRequestRef.current = false;
-                        isCursorPaginating.current = false;
-                        includeCursor.current = false;
-                        setIsOnApiRequest(false);
-                        return;
-
-                      } else { //error: bad response on getItems()
-                        actionText.current = t('modelPanels.gotIt', "Got it");
-                        enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                          variant: 'error',
-                          preventDuplicate: false,
-                          persist: true,
-                          action: action.current,
-                        });
-                        console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                        //update pageInfo
-                        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                        setHasNextPage(pageInfo.current.hasNextPage);
-                        setCount(0);
-                        setItems([]);
-                        isOnApiRequestRef.current = false;
-                        setIsOnApiRequest(false);
-                        return;
-                      }
-                    })
-                    .catch(({isCanceled, ...err}) => { //error: on getItems()
-                      if(isCanceled) {
-                        return;
-                      } else {
-                        actionText.current = t('modelPanels.gotIt', "Got it");
-                        enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                          variant: 'error',
-                          preventDuplicate: false,
-                          persist: true,
-                          action: action.current,
-                        });
-                        console.log("Error: ", err);
-                        //update pageInfo
-                        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                        setHasNextPage(pageInfo.current.hasNextPage);
-                        setCount(0);
-                        setItems([]);
-                        isOnApiRequestRef.current = false;
-                        setIsOnApiRequest(false);
-                        return;
-                      }
-                    });
-
-                  return;
-                } else {  //error: bad response on getCountItems()
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                  //update pageInfo
-                  pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                  setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                  setHasNextPage(pageInfo.current.hasNextPage);
-                  setCount(0);
-                  setItems([]);
-                  isOnApiRequestRef.current = false;
-                  setIsOnApiRequest(false);
-                  return;
-                }
-              })
-              .catch(({isCanceled, ...err}) => { //error: on getCountItems()
-                if(isCanceled) {
-                  return;
-                } else {
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Error: ", err);
-                  //update pageInfo
-                  pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                  setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                  setHasNextPage(pageInfo.current.hasNextPage);
-                  setCount(0);
-                  setItems([]);
-                  isOnApiRequestRef.current = false;
-                  setIsOnApiRequest(false);
-                  return;
-                }
-              });
-
-          } else {  //error: bad response on getAssociatedIds()
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            //update pageInfo
-            pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-            setHasPreviousPage(pageInfo.current.hasPreviousPage);
-            setHasNextPage(pageInfo.current.hasNextPage);
-            setCount(0);
-            setItems([]);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-          }
-        })
-        .catch(({isCanceled, ...err}) => { //error: on getAssociatedIds()
-          if(isCanceled) {
-            return;
-          } else {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Error: ", err);
-            //update pageInfo
-            pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-            setHasPreviousPage(pageInfo.current.hasPreviousPage);
-            setHasNextPage(pageInfo.current.hasNextPage);
-            setCount(0);
-            setItems([]);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-          }
-        });
-
-    }
-    else { //do getData directly
-      //set ops: excluded ids: toAddIds + associatedIds
-      let ops = null;
-      let exIds = [];
-      if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
-        exIds = lidsToAdd.current;
-      }
-      if(lidsAssociated.current !== undefined && lidsAssociated.current.length > 0) {
-        exIds = exIds.concat(lidsAssociated.current);
-      }
-      if(exIds.length > 0) {
-        ops = {
-          exclude: [{
-            type: 'String',
-            values: {measurement_id: exIds}
-          }]
-        };
-      }
-
-      /*
-        API Request: countItems
-      */
-      let cancelableApiReq = makeCancelable(api.measurement.getCountItems(graphqlServerUrl, search, ops));
-      cancelablePromises.current.push(cancelableApiReq);
-      cancelableApiReq
-        .promise
-        .then(response => {
-          //delete from cancelables
-          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-          //check response
-          if (
-            response.data &&
-            response.data.data
-          ) {
-            //notify graphql errors
-            if(response.data.errors) {
-              actionText.current = t('modelPanels.gotIt', "Got it");
-              enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                variant: 'error',
-                preventDuplicate: false,
-                persist: true,
-                action: action.current,
-              });
-              console.log("Errors: ", response.data.errors);
-            }
-            //save response data
-            let newCount = response.data.data.countMeasurements;
 
             /*
-              API Request: items
+              API Request: measurementsConnection
             */
             let variables = {
               pagination: {
@@ -524,7 +434,7 @@ export default function MeasurementsToAddTransferView(props) {
                 includeCursor: includeCursor.current,
               }
             };
-            let cancelableApiReqB = makeCancelable(api.measurement.getItemsConnection(
+            let cancelableApiReqC = makeCancelable(api.measurement.getItemsConnection(
               graphqlServerUrl,
               search,
               null, //orderBy
@@ -532,36 +442,88 @@ export default function MeasurementsToAddTransferView(props) {
               variables,
               ops
             ));
-            cancelablePromises.current.push(cancelableApiReqB);
-            cancelableApiReqB
+            cancelablePromises.current.push(cancelableApiReqC);
+            cancelableApiReqC
               .promise
-              .then(response => {
+              .then(
+              //resolved
+              (response) => {
                 //delete from cancelables
-                cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-                //check response
-                if (
-                  response.data &&
-                  response.data.data
-                ) {
-                  //notify graphql errors
-                  if(response.data.errors) {
-                    actionText.current = t('modelPanels.gotIt', "Got it");
-                    enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                      variant: 'error',
-                      preventDuplicate: false,
-                      persist: true,
-                      action: action.current,
-                    });
-                    console.log("Errors: ", response.data.errors);
+                cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqC), 1);
+                
+                //check: response data
+                if(!response.data ||!response.data.data) {
+                  let newError = {};
+                  let withDetails=true;
+                  variant.current='error';
+                  newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+                  newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
+                  newError.path=['add', 'measurements'];
+                  newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                  errors.current.push(newError);
+                  console.log("Error: ", newError);
+
+                  showMessage(newError.message, withDetails);
+                  clearRequestGetData();
+                  return;
+                }
+
+                //check: measurementsConnection
+                let measurementsConnection = response.data.data.measurementsConnection;
+                if(measurementsConnection === null) {
+                  let newError = {};
+                  let withDetails=true;
+                  variant.current='error';
+                  newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+                  newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
+                  newError.path=['add', 'measurements'];
+                  newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                  errors.current.push(newError);
+                  console.log("Error: ", newError);
+
+                  showMessage(newError.message, withDetails);
+                  clearRequestGetData();
+                  return;
+                }
+
+                  //check: measurementsConnection type
+                  if(typeof measurementsConnection !== 'object'
+                  || !Array.isArray(measurementsConnection.edges)
+                  || typeof measurementsConnection.pageInfo !== 'object' 
+                  || measurementsConnection.pageInfo === null) {
+                    let newError = {};
+                    let withDetails=true;
+                    variant.current='error';
+                    newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+                    newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
+                    newError.path=['add', 'measurements'];
+                    newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                    errors.current.push(newError);
+                    console.log("Error: ", newError);
+
+                    showMessage(newError.message, withDetails);
+                    clearRequestGetData();
+                    return;
                   }
-                  //save response data
-                  let its = response.data.data.measurementsConnection.edges.map(o => o.node);
-                  let pi = response.data.data.measurementsConnection.pageInfo;
+                  //get items
+                  let its = measurementsConnection.edges.map(o => o.node);
+                  let pi = measurementsConnection.pageInfo;                      
+
+                  //check: graphql errors
+                  if(response.data.errors) {
+                    let newError = {};
+                    newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+                    newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
+                    newError.path=['add', 'measurements'];
+                    newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                    errors.current.push(newError);
+                    console.log("Error: ", newError);
+                  }
 
                   /*
                     Check: empty page
                   */
-                  if( its.length === 0 && pi&&pi.hasPreviousPage ) 
+                  if( its.length === 0 && pi.hasPreviousPage ) 
                   {
                     //configure
                     isOnApiRequestRef.current = false;
@@ -580,106 +542,108 @@ export default function MeasurementsToAddTransferView(props) {
                   setHasNextPage(pageInfo.current.hasNextPage);
 
                   //ok
-                  setCount((newCount&&typeof newCount==='number') ? newCount : 0);
-                  setItems(its&&Array.isArray(its) ? its : []);
+                  setItems([...its]);
+
+                  //ends request
                   isOnApiRequestRef.current = false;
                   isCursorPaginating.current = false;
                   includeCursor.current = false;
                   setIsOnApiRequest(false);
-                  return;
 
-                } else { //error: bad response on getItems()
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                  //update pageInfo
-                  pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                  setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                  setHasNextPage(pageInfo.current.hasNextPage);
-                  
-                  setCount(0);
-                  setItems([]);
-                  isOnApiRequestRef.current = false;
-                  setIsOnApiRequest(false);
-                  return;
-                }
-              })
-              .catch(({isCanceled, ...err}) => { //error: on getItems()
-                if(isCanceled) {
-                  return;
-                } else {
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Error: ", err);
-                  //update pageInfo
-                  pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                  setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                  setHasNextPage(pageInfo.current.hasNextPage);
-                  setCount(0);
-                  setItems([]);
-                  isOnApiRequestRef.current = false;
-                  setIsOnApiRequest(false);
-                  return;
-                }
-              });
+                  /**
+                   * Display graphql errors
+                   */
+                  if(errors.current.length > 0) {
+                    let newError = {};
+                    let withDetails=true;
+                    variant.current='info';
+                    newError.message = 'getData() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
+                    newError.locations=[{model: 'Individual', association: 'measurements', table:'A', method: 'getData()'}];
+                    newError.path=['add', 'measurements'];
+                    newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                    errors.current.push(newError);
+                    console.log("Error: ", newError);
 
-            return;
-          } else { //error: bad response on getCountItems()
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-            //update pageInfo
-            pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-            setHasPreviousPage(pageInfo.current.hasPreviousPage);
-            setHasNextPage(pageInfo.current.hasNextPage);
-            setCount(0);
-            setItems([]);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-          }
-        })
-        .catch(({isCanceled, ...err}) => { //error: on getCountItems()
-          if(isCanceled) {
-            return;
-          } else {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Error: ", err);
-            //update pageInfo
-            pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-            setHasPreviousPage(pageInfo.current.hasPreviousPage);
-            setHasNextPage(pageInfo.current.hasNextPage);
-            setCount(0);
-            setItems([]);
-            isOnApiRequestRef.current = false;
-            setIsOnApiRequest(false);
-            return;
-          }
-        });
+                    showMessage(newError.message, withDetails);
+                  }
 
-    }//end: else: do getData directly
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTrigger, item.name, search, rowsPerPage]);
+                  return;
+                },
+                //rejected
+                (err) => {
+                  throw err;
+                })
+                //error
+                .catch((err) => { //error: on api.measurement.getItemsConnection
+                  if(err.isCanceled) {
+                    return;
+                  } else {
+                    let newError = {};
+                    let withDetails=true;
+                    variant.current='error';
+                    newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+                    newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'measurementsConnection', method: 'getData()', request: 'api.measurement.getItemsConnection'}];
+                    newError.path=['add', 'measurements'];
+                    newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+                    errors.current.push(newError);
+                    console.log("Error: ", newError);
+    
+                    showMessage(newError.message, withDetails);
+                    clearRequestGetData();
+                    return;
+                  }
+                });
+          },
+          //rejected
+          (err) => {
+            throw err;
+          })
+          //error
+          .catch((err) => { //error: on api.measurement.getCountItems
+            if(err.isCanceled) {
+              return
+            } else {
+              let newError = {};
+              let withDetails=true;
+              variant.current='error';
+              newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+              newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'countMeasurements', method: 'getData()', request: 'api.measurement.getCountItems'}];
+              newError.path=['add', 'measurements'];
+              newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+              errors.current.push(newError);
+              console.log("Error: ", newError);
+
+              showMessage(newError.message, withDetails);
+              clearRequestGetData();
+              return;
+            }
+          });
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.individual.getAssociatedMeasurementsConnection
+        if(err.isCanceled) {
+          return
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'A', query: 'readOneIndividual', method: 'getData()', request: 'api.individual.getAssociatedMeasurementsConnection'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+      });
+  }, [graphqlServerUrl, showMessage, t, dataTrigger, item.name, search, rowsPerPage]);
 
   /**
    * getDataB
@@ -693,6 +657,7 @@ export default function MeasurementsToAddTransferView(props) {
     isOnApiRequestRefB.current = true;
     setIsOnApiRequestB(true);
     Boolean(dataTriggerB); //avoid warning
+    errorsB.current = [];
 
     //set ops: only ids
     let ops = null;
@@ -704,16 +669,7 @@ export default function MeasurementsToAddTransferView(props) {
         }]
       };
     } else {
-      //update pageInfo
-      pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-      setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-      setHasNextPageB(pageInfoB.current.hasNextPage);
-      setCountB(0);
-      setItemsB([]);
-      isOnApiRequestRefB.current = false;
-      isCursorPaginatingB.current = false;
-      includeCursorB.current = false;
-      setIsOnApiRequestB(false);
+      clearRequestGetDataB();
       setThereAreItemsToAdd(false);
       return;
     }
@@ -725,31 +681,84 @@ export default function MeasurementsToAddTransferView(props) {
     cancelablePromises.current.push(cancelableApiReq);
     cancelableApiReq
       .promise
-      .then(response => {
+      .then(
+      //resolved
+      (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        //check response
-        if (
-          response.data &&
-          response.data.data
-        ) {
-          //notify graphql errors
-          if(response.data.errors) {
-            actionText.current = t('modelPanels.gotIt', "Got it");
-            enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-              variant: 'error',
-              preventDuplicate: false,
-              persist: true,
-              action: action.current,
-            });
-            console.log("Errors: ", response.data.errors);
-          }
-          //save response data
-          let newCount = response.data.data.countMeasurements;
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          clearRequestGetDataB();
+          return;
+        }
+
+        //check: countMeasurements
+        let countMeasurements = response.data.data.countMeasurements;
+        if(countMeasurements === null) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          clearRequestGetDataB();
+          return;
+        }
+        
+        //check: countMeasurements type
+        if(!Number.isInteger(countMeasurements)) {
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          clearRequestGetDataB();
+          return;
+        }
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          newError.message = 'countMeasurements ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+        }
+        
+        //ok
+        setCountB(countMeasurements);
 
 
           /*
             API Request: items
+          */
+          /*
+            API Request: measurementsConnection
           */
           let variables = {
             pagination: {
@@ -771,157 +780,182 @@ export default function MeasurementsToAddTransferView(props) {
           cancelablePromises.current.push(cancelableApiReqB);
           cancelableApiReqB
             .promise
-            .then(response => {
+            .then(
+            (response) => {
               //delete from cancelables
               cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              //check response
-              if (
-                response.data &&
-                response.data.data
-              ) {
-                //notify graphql errors
-                if(response.data.errors) {
-                  actionText.current = t('modelPanels.gotIt', "Got it");
-                  enqueueSnackbar( t('modelPanels.errors.e3', "The GraphQL query returned a response with errors. Please contact your administrator."), {
-                    variant: 'error',
-                    preventDuplicate: false,
-                    persist: true,
-                    action: action.current,
-                  });
-                  console.log("Errors: ", response.data.errors);
-                }
-                //save response data
-                let its = response.data.data.measurementsConnection.edges.map(o => o.node);
-                let pi = response.data.data.measurementsConnection.pageInfo;
+              
+              //check: response data
+              if(!response.data ||!response.data.data) {
+                let newError = {};
+                let withDetails=true;
+                variantB.current='error';
+                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
 
-                /*
-                  Check: empty page
-                */
-                if( its.length === 0 && pi&&pi.hasPreviousPage ) 
-                {
-                  //configure
-                  isOnApiRequestRefB.current = false;
-                  isCursorPaginatingB.current = false;
-                  isForwardPaginationB.current = false;
-                  setIsOnApiRequestB(false);
-                  
-                  //reload
-                  setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                  return;
-                }//else
-
-                //update pageInfo
-                pageInfoB.current = pi;
-                setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-                setHasNextPageB(pageInfoB.current.hasNextPage);
-                
-                //ok
-                setCountB((newCount&&typeof newCount==='number') ? newCount : 0);
-                setItemsB(its&&Array.isArray(its) ? its : []);
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
-                return;
-
-              } else { //error: bad response on getItems()
-                actionText.current = t('modelPanels.gotIt', "Got it");
-                enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-                  variant: 'error',
-                  preventDuplicate: false,
-                  persist: true,
-                  action: action.current,
-                });
-                console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-                //update pageInfo
-                pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-                setHasNextPageB(pageInfoB.current.hasNextPage);
-               
-                setCountB(0);
-                setItemsB([]);
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
+                showMessageB(newError.message, withDetails);
+                clearRequestGetDataB();
                 return;
               }
-            })
-            .catch(({isCanceled, ...err}) => { //error: on getItems()
-              if(isCanceled) {
+
+              //check: measurementsConnection
+              let measurementsConnection = response.data.data.measurementsConnection;
+              if(measurementsConnection === null) {
+                let newError = {};
+                let withDetails=true;
+                variantB.current='error';
+                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessageB(newError.message, withDetails);
+                clearRequestGetDataB();
                 return;
-              } else {
-                actionText.current = t('modelPanels.gotIt', "Got it");
-                enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-                  variant: 'error',
-                  preventDuplicate: false,
-                  persist: true,
-                  action: action.current,
-                });
-                console.log("Error: ", err);
-                //update pageInfo
-                pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-                setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-                setHasNextPageB(pageInfoB.current.hasNextPage);
-                setCountB(0);
-                setItemsB([]);
+              }
+
+              //check: measurementsConnection type
+              if(typeof measurementsConnection !== 'object'
+              || !Array.isArray(measurementsConnection.edges)
+              || typeof measurementsConnection.pageInfo !== 'object' 
+              || measurementsConnection.pageInfo === null) {
+                let newError = {};
+                let withDetails=true;
+                variantB.current='error';
+                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessageB(newError.message, withDetails);
+                clearRequestGetDataB();
+                return;
+              }
+              //get items
+              let its = measurementsConnection.edges.map(o => o.node);
+              let pi = measurementsConnection.pageInfo;
+
+              //check: graphql errors
+              if(response.data.errors) {
+                let newError = {};
+                newError.message = 'measurementsConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
+              }
+
+              /*
+                Check: empty page
+              */
+              if( its.length === 0 && pi.hasPreviousPage ) 
+              {
+                //configure
                 isOnApiRequestRefB.current = false;
                 isCursorPaginatingB.current = false;
                 isForwardPaginationB.current = false;
                 setIsOnApiRequestB(false);
+                
+                //reload
+                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                return;
+              }//else
+
+              //update pageInfo
+              pageInfoB.current = pi;
+              setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+              setHasNextPageB(pageInfoB.current.hasNextPage);
+              //ok
+              setItemsB([...its]);
+
+              //ends request
+              isOnApiRequestRefB.current = false;
+              isCursorPaginatingB.current = false;
+              isForwardPaginationB.current = false;
+              setIsOnApiRequestB(false);
+
+              /**
+               * Display graphql errors
+               */
+              if(errorsB.current.length > 0) {
+                let newError = {};
+                let withDetails=true;
+                variantB.current='info';
+                newError.message = 'getDataB() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errorsB.current.length+')';
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', method: 'getDataB()'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessageB(newError.message, withDetails);
+              }
+              return;
+            
+            },
+            //rejected
+            (err) => {
+              throw err;
+            })
+            //error
+            .catch((err) => { //error: on api.measurement.getItemsConnection
+              if(err.isCanceled) {
+                return;
+              } else {
+                let newError = {};
+                let withDetails=true;
+                variantB.current='error';
+                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+                newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'measurementsConnection', method: 'getDataB()', request: 'api.measurement.getItemsConnection'}];
+                newError.path=['add', 'measurements'];
+                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+                errorsB.current.push(newError);
+                console.log("Error: ", newError);
+
+                showMessageB(newError.message, withDetails);
+                clearRequestGetDataB();
                 return;
               }
             });
-
-          return;
-        } else { //error: bad response on getCountItems()
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", t('modelPanels.errors.e2', "An error ocurred while trying to execute the GraphQL query, cannot process server response. Please contact your administrator."));
-          //update pageInfo
-          pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-          setHasNextPageB(pageInfoB.current.hasNextPage);
-          setCountB(0);
-          setItemsB([]);
-          isOnApiRequestRefB.current = false;
-          isCursorPaginatingB.current = false;
-          isForwardPaginationB.current = false;
-          setIsOnApiRequestB(false);
-          return;
-        }
+      },
+      //rejected
+      (err) => {
+        throw err;
       })
-      .catch(({isCanceled, ...err}) => { //error: on getCountItems()
-        if(isCanceled) {
-          return;
+      //error
+      .catch((err) => { //error: on api.measurement.getCountItems
+        if(err.isCanceled) {
+          return
         } else {
-          actionText.current = t('modelPanels.gotIt', "Got it");
-          enqueueSnackbar( t('modelPanels.errors.e1', "An error occurred while trying to execute the GraphQL query. Please contact your administrator."), {
-            variant: 'error',
-            preventDuplicate: false,
-            persist: true,
-            action: action.current,
-          });
-          console.log("Error: ", err);
-          //update pageInfo
-          pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-          setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-          setHasNextPageB(pageInfoB.current.hasNextPage);
-          setCountB(0);
-          setItemsB([]);
-          isOnApiRequestRefB.current = false;
-          isCursorPaginatingB.current = false;
-          isForwardPaginationB.current = false;
-          setIsOnApiRequestB(false);
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'Individual', association: 'measurements', table:'B', query: 'countMeasurements', method: 'getDataB()', request: 'api.measurement.getCountItems'}];
+          newError.path=['add', 'measurements'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          clearRequestGetDataB();
           return;
         }
       });
-  }, [graphqlServerUrl, enqueueSnackbar, t, dataTriggerB, searchB, rowsPerPageB]);
+  }, [graphqlServerUrl, showMessageB, t, dataTriggerB, searchB, rowsPerPageB]);
+
+  /**
+   * Effects
+   */
 
   useEffect(() => {
 
@@ -1010,7 +1044,7 @@ export default function MeasurementsToAddTransferView(props) {
             });
           }
 
-          //clear associatedIds[] to cause a re-fetch on next getData().
+          //clear associatedIds[] (they will be re-fetch on next getData()).
           lidsAssociated.current = undefined;
 
           //reload
@@ -1070,7 +1104,7 @@ export default function MeasurementsToAddTransferView(props) {
               if(idsRemoved) {
                 let iof = idsRemoved.indexOf(item.name);
                 if(iof !== -1) {
-                  //clear associatedIds[] to cause a re-fetch on next getData().
+                  //clear associatedIds[] (they will be re-fetched on next getData()).
                   lidsAssociated.current = undefined;
 
                   //reload
@@ -1115,7 +1149,7 @@ export default function MeasurementsToAddTransferView(props) {
                   }
                   handleUntransfer('measurements', idAdded);
 
-                  //clear associatedIds[] to cause a re-fetch on next getData().
+                  //clear associatedIds[] (they will be re-fetch on next getData()).
                   lidsAssociated.current = undefined;
 
                   //reload
@@ -1213,7 +1247,7 @@ export default function MeasurementsToAddTransferView(props) {
             }
             handleUntransfer('measurements', idRemoved);
 
-            //clear associatedIds[] to cause a re-fetch on next getData().
+            //clear associatedIds[] (they will be re-fetch on next getData()).
             lidsAssociated.current = undefined;
 
             //reload
@@ -1338,6 +1372,38 @@ export default function MeasurementsToAddTransferView(props) {
       setIsCountReadyB(true);
     }
   }, [countB]);
+
+  /**
+   * Utils
+   */
+
+  function clearRequestGetData() {
+    //update pageInfo
+    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+          
+    setCount(0);
+    setItems([]);
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    includeCursor.current = false;
+    setIsOnApiRequest(false);
+  }
+
+  function clearRequestGetDataB() {
+    //update pageInfo
+    pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+    setHasNextPageB(pageInfoB.current.hasNextPage);
+  
+    setCountB(0);
+    setItemsB([]);
+    isOnApiRequestRefB.current = false;
+    isCursorPaginatingB.current = false;
+    includeCursorB.current = false;
+    setIsOnApiRequestB(false);
+  }
 
   function updateHeights() {
     if(lref.current) {

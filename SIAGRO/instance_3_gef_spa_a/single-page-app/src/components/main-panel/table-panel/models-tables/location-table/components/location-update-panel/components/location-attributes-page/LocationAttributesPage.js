@@ -16,6 +16,7 @@ export default function LocationAttributesPage(props) {
   const {
     item,
     valueOkStates,
+    valueAjvStates,
     hidden,
     handleSetValue,
   } = props;
@@ -34,6 +35,7 @@ export default function LocationAttributesPage(props) {
             <LocationAttributesFormView
               item={item}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -45,6 +47,7 @@ export default function LocationAttributesPage(props) {
 LocationAttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

@@ -39,6 +39,7 @@ export default function IndividualAttributesFormView(props) {
   const { t } = useTranslation();
   const { item, 
           valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -89,6 +90,7 @@ export default function IndividualAttributesFormView(props) {
                 label='name'
                 text={item.name}
                 valueOk={valueOkStates.name}
+                valueAjv={valueAjvStates.name}
                 autoFocus={true}
                 handleSetValue={handleSetValue}
               />
@@ -102,6 +104,7 @@ export default function IndividualAttributesFormView(props) {
                 label='origin'
                 text={item.origin}
                 valueOk={valueOkStates.origin}
+                valueAjv={valueAjvStates.origin}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -114,6 +117,7 @@ export default function IndividualAttributesFormView(props) {
                 label='description'
                 text={item.description}
                 valueOk={valueOkStates.description}
+                valueAjv={valueAjvStates.description}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -126,6 +130,7 @@ export default function IndividualAttributesFormView(props) {
                 label='genotypeId'
                 text={item.genotypeId}
                 valueOk={valueOkStates.genotypeId}
+                valueAjv={valueAjvStates.genotypeId}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -138,6 +143,7 @@ export default function IndividualAttributesFormView(props) {
                 label='field_unit_id'
                 text={item.field_unit_id}
                 valueOk={valueOkStates.field_unit_id}
+                valueAjv={valueAjvStates.field_unit_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -151,6 +157,7 @@ export default function IndividualAttributesFormView(props) {
 IndividualAttributesFormView.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
 

@@ -1,5 +1,5 @@
 /*
-    Resolvers for basic CRUD operations
+    Resolvers for basic CRUD operations for generic models
 */
 
 const path = require('path');
@@ -16,10 +16,10 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
+
 const associationArgsDef = {
     'addAccessions': 'accession'
 }
-
 
 
 
@@ -155,8 +155,9 @@ taxon.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
+
 /**
- * add_accessions - field Mutation for to_many associations to add
+ * add_accessions - field Mutation for to_many associations to add 
  *
  * @param {object} input   Info of input Ids to add  the association
  */
@@ -169,8 +170,10 @@ taxon.prototype.add_accessions = async function(input) {
 }
 
 
+
+
 /**
- * remove_accessions - field Mutation for to_many associations to remove
+ * remove_accessions - field Mutation for to_many associations to remove 
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
@@ -181,6 +184,7 @@ taxon.prototype.remove_accessions = async function(input) {
     }
     await Promise.all(results);
 }
+
 
 
 
@@ -358,7 +362,7 @@ module.exports = {
     }, context) {
         return await checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                return (await taxon.countRecords(search)).sum;
+                return await taxon.countRecords(search);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -408,7 +412,7 @@ module.exports = {
                     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let createdTaxon = await taxon.addOne(inputSanitized);
-                await createdTaxon.handleAssociations(inputSanitized, context);
+                if (createdTaxon) await createdTaxon.handleAssociations(inputSanitized, context);
                 return createdTaxon;
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -482,7 +486,7 @@ module.exports = {
                     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let updatedTaxon = await taxon.updateOne(inputSanitized);
-                await updatedTaxon.handleAssociations(inputSanitized, context);
+                if (updatedTaxon) await updatedTaxon.handleAssociations(inputSanitized, context);
                 return updatedTaxon;
             } else {
                 throw new Error("You don't have authorization to perform this action");
