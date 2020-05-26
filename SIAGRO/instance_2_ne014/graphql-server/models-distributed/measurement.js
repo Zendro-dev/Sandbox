@@ -4,6 +4,7 @@ const adapters = require('../adapters/index');
 const globals = require('../config/globals');
 const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const validatorUtil = require('../utils/validatorUtil');
 
 const definition = {
     model: 'Measurement',
@@ -146,7 +147,13 @@ module.exports = class Measurement {
                 throw new Error("IRI has no match WS");
             }
 
-            return adapters[responsibleAdapter[0]].readById(id).then(result => new Measurement(result));
+            return adapters[responsibleAdapter[0]].readById(id).then(result => {
+                let item = new Measurement(result);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item;
+                    });
+            });
         }
     }
 
@@ -377,8 +384,11 @@ module.exports = class Measurement {
 
     static addOne(input) {
         this.assertInputHasId(input);
-        let responsibleAdapter = this.adapterForIri(input.measurement_id);
-        return adapters[responsibleAdapter].addOne(input).then(result => new Measurement(result));
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let responsibleAdapter = this.adapterForIri(input.measurement_id);
+                return adapters[responsibleAdapter].addOne(input).then(result => new Measurement(result));
+            });
     }
 
     static deleteOne(id) {
@@ -388,8 +398,11 @@ module.exports = class Measurement {
 
     static updateOne(input) {
         this.assertInputHasId(input);
-        let responsibleAdapter = this.adapterForIri(input.measurement_id);
-        return adapters[responsibleAdapter].updateOne(input).then(result => new Measurement(result));
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let responsibleAdapter = this.adapterForIri(input.measurement_id);
+                return adapters[responsibleAdapter].updateOne(input).then(result => new Measurement(result));
+            });
     }
 
     /**

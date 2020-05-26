@@ -58,11 +58,7 @@ module.exports = class LOCATION_PGMN {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                let item = res.data.data.readOneLocation;
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-                    .then((valSuccess) => {
-                        return item
-                    })
+                return res.data.data.readOneLocation;
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
             }
@@ -143,10 +139,7 @@ module.exports = class LOCATION_PGMN {
     }
 
     static addOne(input) {
-
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                let query = `
+        let query = `
           mutation addLocation(
               $locationId:ID!  
             $country:String
@@ -204,21 +197,20 @@ module.exports = class LOCATION_PGMN {
               }
           }`;
 
-                return axios.post(remoteCenzontleURL, {
-                    query: query,
-                    variables: input
-                }).then(res => {
-                    //check
-                    if (res && res.data && res.data.data) {
-                        return res.data.data.addLocation;
-                    } else {
-                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-                    }
-                }).catch(error => {
-                    error['url'] = remoteCenzontleURL;
-                    handleError(error);
-                });
-            });
+        return axios.post(remoteCenzontleURL, {
+            query: query,
+            variables: input
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.addLocation;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
     }
 
     static deleteOne(id) {
@@ -244,84 +236,81 @@ module.exports = class LOCATION_PGMN {
     }
 
     static updateOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                let query = `
-              mutation
-                updateLocation(
-                  $locationId:ID! 
-                  $country:String 
-                  $state:String 
-                  $municipality:String 
-                  $locality:String 
-                  $latitude:Float 
-                  $longitude:Float 
-                  $altitude:Float 
-                  $natural_area:String 
-                  $natural_area_name:String 
-                  $georeference_method:String 
-                  $georeference_source:String 
-                  $datum:String 
-                  $vegetation:String 
-                  $stoniness:String 
-                  $sewer:String 
-                  $topography:String 
-                  $slope:Float                 ){
-                  updateLocation(
-                    locationId:$locationId 
-                    country:$country 
-                    state:$state 
-                    municipality:$municipality 
-                    locality:$locality 
-                    latitude:$latitude 
-                    longitude:$longitude 
-                    altitude:$altitude 
-                    natural_area:$natural_area 
-                    natural_area_name:$natural_area_name 
-                    georeference_method:$georeference_method 
-                    georeference_source:$georeference_source 
-                    datum:$datum 
-                    vegetation:$vegetation 
-                    stoniness:$stoniness 
-                    sewer:$sewer 
-                    topography:$topography 
-                    slope:$slope                   ){
-                    locationId 
-                    country 
-                    state 
-                    municipality 
-                    locality 
-                    latitude 
-                    longitude 
-                    altitude 
-                    natural_area 
-                    natural_area_name 
-                    georeference_method 
-                    georeference_source 
-                    datum 
-                    vegetation 
-                    stoniness 
-                    sewer 
-                    topography 
-                    slope 
-                  }
-                }`
+        let query = `
+          mutation
+            updateLocation(
+              $locationId:ID! 
+              $country:String 
+              $state:String 
+              $municipality:String 
+              $locality:String 
+              $latitude:Float 
+              $longitude:Float 
+              $altitude:Float 
+              $natural_area:String 
+              $natural_area_name:String 
+              $georeference_method:String 
+              $georeference_source:String 
+              $datum:String 
+              $vegetation:String 
+              $stoniness:String 
+              $sewer:String 
+              $topography:String 
+              $slope:Float             ){
+              updateLocation(
+                locationId:$locationId 
+                country:$country 
+                state:$state 
+                municipality:$municipality 
+                locality:$locality 
+                latitude:$latitude 
+                longitude:$longitude 
+                altitude:$altitude 
+                natural_area:$natural_area 
+                natural_area_name:$natural_area_name 
+                georeference_method:$georeference_method 
+                georeference_source:$georeference_source 
+                datum:$datum 
+                vegetation:$vegetation 
+                stoniness:$stoniness 
+                sewer:$sewer 
+                topography:$topography 
+                slope:$slope               ){
+                locationId 
+                country 
+                state 
+                municipality 
+                locality 
+                latitude 
+                longitude 
+                altitude 
+                natural_area 
+                natural_area_name 
+                georeference_method 
+                georeference_source 
+                datum 
+                vegetation 
+                stoniness 
+                sewer 
+                topography 
+                slope 
+              }
+            }`
 
-                return axios.post(remoteCenzontleURL, {
-                    query: query,
-                    variables: input
-                }).then(res => {
-                    //check
-                    if (res && res.data && res.data.data) {
-                        return res.data.data.updateLocation;
-                    } else {
-                        throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-                    }
-                }).catch(error => {
-                    error['url'] = remoteCenzontleURL;
-                    handleError(error);
-                });
-            });
+        return axios.post(remoteCenzontleURL, {
+            query: query,
+            variables: input
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                return res.data.data.updateLocation;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        }).catch(error => {
+            error['url'] = remoteCenzontleURL;
+            handleError(error);
+        });
     }
 
 

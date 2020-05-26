@@ -95,8 +95,6 @@ module.exports = class user extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 

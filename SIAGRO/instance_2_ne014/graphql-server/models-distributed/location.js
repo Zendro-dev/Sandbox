@@ -4,6 +4,7 @@ const adapters = require('../adapters/index');
 const globals = require('../config/globals');
 const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
+const validatorUtil = require('../utils/validatorUtil');
 
 const definition = {
     model: 'Location',
@@ -147,7 +148,13 @@ module.exports = class Location {
                 throw new Error("IRI has no match WS");
             }
 
-            return adapters[responsibleAdapter[0]].readById(id).then(result => new Location(result));
+            return adapters[responsibleAdapter[0]].readById(id).then(result => {
+                let item = new Location(result);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item;
+                    });
+            });
         }
     }
 
@@ -378,8 +385,11 @@ module.exports = class Location {
 
     static addOne(input) {
         this.assertInputHasId(input);
-        let responsibleAdapter = this.adapterForIri(input.locationId);
-        return adapters[responsibleAdapter].addOne(input).then(result => new Location(result));
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let responsibleAdapter = this.adapterForIri(input.locationId);
+                return adapters[responsibleAdapter].addOne(input).then(result => new Location(result));
+            });
     }
 
     static deleteOne(id) {
@@ -389,8 +399,11 @@ module.exports = class Location {
 
     static updateOne(input) {
         this.assertInputHasId(input);
-        let responsibleAdapter = this.adapterForIri(input.locationId);
-        return adapters[responsibleAdapter].updateOne(input).then(result => new Location(result));
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let responsibleAdapter = this.adapterForIri(input.locationId);
+                return adapters[responsibleAdapter].updateOne(input).then(result => new Location(result));
+            });
     }
 
 
