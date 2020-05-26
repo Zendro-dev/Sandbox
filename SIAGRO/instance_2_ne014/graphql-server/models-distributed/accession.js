@@ -379,15 +379,14 @@ module.exports = class Accession {
                         someHasNextPage |= current.pageInfo.hasNextPage;
                         someHasPreviousPage |= current.pageInfo.hasPreviousPage;
                         total.nodes = total.nodes.concat(current.edges.map(e => e.node).filter( async node => {
-                           let result = await  validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, node)
+                           return  validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, node)
                            .then( (valSuccess) => {
                              return true;
                            }).catch( error => {
                              total.errors.push(error);
-                             result = false;
+                             return false;
                            });
 
-                           return result;
                         } ));
                     }
                     return total;
