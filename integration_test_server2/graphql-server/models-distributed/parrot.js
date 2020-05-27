@@ -359,16 +359,6 @@ module.exports = class parrot {
             });
     }
 
-    static bulkAddCsv(context) {
-        throw new Error("parrot.bulkAddCsv is not implemented.")
-    }
-
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(parrot);
-    }
-
-
-
     /**
      * add_person_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
@@ -393,7 +383,11 @@ module.exports = class parrot {
 
 
 
+    static bulkAddCsv(context) {
+        throw new Error("parrot.bulkAddCsv is not implemented.")
+    }
 
-
-
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(parrot);
+    }
 }

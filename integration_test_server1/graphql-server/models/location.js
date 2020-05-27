@@ -447,12 +447,6 @@ module.exports = class Location extends Sequelize.Model {
 
 
 
-
-
-
-
-
-
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

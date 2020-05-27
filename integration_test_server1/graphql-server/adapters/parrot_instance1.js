@@ -345,19 +345,15 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
 
     static async add_person_id(parrot_id, person_id) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return super.update({
-                    person_id: person_id
-                }, {
-                    where: {
-                        parrot_id: parrot_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return super.update({
+                person_id: person_id
+            }, {
+                where: {
+                    parrot_id: parrot_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
@@ -374,20 +370,16 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
 
     static async remove_person_id(parrot_id, person_id) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return super.update({
-                    person_id: null
-                }, {
-                    where: {
-                        parrot_id: parrot_id,
-                        person_id: person_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return super.update({
+                person_id: null
+            }, {
+                where: {
+                    parrot_id: parrot_id,
+                    person_id: person_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }

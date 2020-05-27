@@ -16,6 +16,7 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
+
 const associationArgsDef = {
     'addAccessions': 'accession'
 }
@@ -39,26 +40,21 @@ location.prototype.accessionsFilter = function({
     order,
     pagination
 }, context) {
-    try {
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationId",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
 
-        return resolvers.accessions({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+    return resolvers.accessions({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 /**
@@ -71,25 +67,20 @@ location.prototype.accessionsFilter = function({
 location.prototype.countFilteredAccessions = function({
     search
 }, context) {
-    try {
 
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationId",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
 
-        return resolvers.countAccessions({
-            search: nsearch
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+    return resolvers.countAccessions({
+        search: nsearch
+    }, context);
 }
 
 /**
@@ -108,30 +99,23 @@ location.prototype.accessionsConnection = function({
     order,
     pagination
 }, context) {
-    try {
 
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "locationId",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationId",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
 
-        return resolvers.accessionsConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+    return resolvers.accessionsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
-
-
 
 
 /**
@@ -141,19 +125,15 @@ location.prototype.accessionsConnection = function({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 location.prototype.handleAssociations = async function(input, context) {
-    try {
-        let promises = [];
-        if (helper.isNonEmptyArray(input.addAccessions)) {
-            promises.push(this.add_accessions(input, context));
-        }
-        if (helper.isNonEmptyArray(input.removeAccessions)) {
-            promises.push(this.remove_accessions(input, context));
-        }
-
-        await Promise.all(promises);
-    } catch (error) {
-        throw error
+    let promises = [];
+    if (helper.isNonEmptyArray(input.addAccessions)) {
+        promises.push(this.add_accessions(input, context));
     }
+    if (helper.isNonEmptyArray(input.removeAccessions)) {
+        promises.push(this.remove_accessions(input, context));
+    }
+
+    await Promise.all(promises);
 }
 /**
  * add_accessions - field Mutation for to_many associations to add
@@ -181,11 +161,6 @@ location.prototype.remove_accessions = async function(input) {
     }
     await Promise.all(results);
 }
-
-
-
-
-
 
 
 
@@ -277,22 +252,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    locations: function({
+    locations: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Location', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "locations");
-                return await location.readAll(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'Location', 'read' === true)) {
+            await checkCountAndReduceRecordsLimit(search, context, "locations");
+            return await location.readAll(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -305,22 +275,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    locationsConnection: function({
+    locationsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'Location', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "locationsConnection");
-                return location.readAllCursor(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "locationsConnection");
+            return location.readAllCursor(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -330,20 +295,15 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with locationId requested
      */
-    readOneLocation: function({
+    readOneLocation: async function({
         locationId
     }, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
-            if (authorization === true) {
-                checkCountForOneAndReduceRecordsLimit(context);
-                return location.readById(locationId);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
+            checkCountForOneAndReduceRecordsLimit(context);
+            return location.readById(locationId);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -356,16 +316,11 @@ module.exports = {
     countLocations: async function({
         search
     }, context) {
-        return await checkAuthorization(context, 'Location', 'read').then(async authorization => {
-            if (authorization === true) {
-                return (await location.countRecords(search)).sum;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
+            return (await location.countRecords(search)).sum;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -375,17 +330,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableLocation: function(_, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, location, ["id", "locationId", "country", "state", "municipality", "locality"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    vueTableLocation: async function(_, context) {
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
+            return helper.vueTable(context.request, location, ["id", "locationId", "country", "state", "municipality", "locality"]);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -398,24 +348,19 @@ module.exports = {
      * @return {object}         New record created
      */
     addLocation: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'Location', 'create');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let createdLocation = await location.addOne(inputSanitized);
-                await createdLocation.handleAssociations(inputSanitized, context);
-                return createdLocation;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'Location', 'create');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let createdLocation = await location.addOne(inputSanitized);
+            await createdLocation.handleAssociations(inputSanitized, context);
+            return createdLocation;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -425,17 +370,12 @@ module.exports = {
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddLocationCsv: function(_, context) {
-        return checkAuthorization(context, 'Location', 'create').then(authorization => {
-            if (authorization === true) {
-                return location.bulkAddCsv(context);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    bulkAddLocationCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'Location', 'create') === true) {
+            return location.bulkAddCsv(context);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -445,21 +385,16 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteLocation: function({
+    deleteLocation: async function({
         locationId
     }, context) {
-        return checkAuthorization(context, 'Location', 'delete').then(async authorization => {
-            if (authorization === true) {
-                if (await validForDeletion(locationId, context)) {
-                    return location.deleteOne(locationId);
-                }
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        if (await checkAuthorization(context, 'Location', 'delete') === true) {
+            if (await validForDeletion(locationId, context)) {
+                return location.deleteOne(locationId);
             }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -472,24 +407,19 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateLocation: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'Location', 'update');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let updatedLocation = await location.updateOne(inputSanitized);
-                await updatedLocation.handleAssociations(inputSanitized, context);
-                return updatedLocation;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'Location', 'update');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let updatedLocation = await location.updateOne(inputSanitized);
+            await updatedLocation.handleAssociations(inputSanitized, context);
+            return updatedLocation;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -500,17 +430,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateLocation: function(_, context) {
-        return checkAuthorization(context, 'Location', 'read').then(authorization => {
-            if (authorization === true) {
-                return location.csvTableTemplate();
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    csvTableTemplateLocation: async function(_, context) {
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
+            return location.csvTableTemplate();
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     }
 
 }

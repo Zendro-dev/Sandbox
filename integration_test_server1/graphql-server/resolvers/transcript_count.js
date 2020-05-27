@@ -16,6 +16,7 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
+
 const associationArgsDef = {
     'addIndividual': 'individual',
     'addAminoacidsequence': 'aminoacidsequence'
@@ -35,33 +36,28 @@ transcript_count.prototype.individual = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.individual_id)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOneIndividual({
-                    [models.individual.idAttribute()]: this.individual_id
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.individual.idAttribute(),
-                    "value": {
-                        "value": this.individual_id
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.individuals({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
+        if (search === undefined) {
+            return resolvers.readOneIndividual({
+                [models.individual.idAttribute()]: this.individual_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.individual.idAttribute(),
+                "value": {
+                    "value": this.individual_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.individuals({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
+            return found;
+        }
     }
 }
 /**
@@ -76,37 +72,30 @@ transcript_count.prototype.aminoacidsequence = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.aminoacidsequence_id)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOneAminoacidsequence({
-                    [models.aminoacidsequence.idAttribute()]: this.aminoacidsequence_id
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.aminoacidsequence.idAttribute(),
-                    "value": {
-                        "value": this.aminoacidsequence_id
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.aminoacidsequences({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
+        if (search === undefined) {
+            return resolvers.readOneAminoacidsequence({
+                [models.aminoacidsequence.idAttribute()]: this.aminoacidsequence_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.aminoacidsequence.idAttribute(),
+                "value": {
+                    "value": this.aminoacidsequence_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.aminoacidsequences({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
+            return found;
+        }
     }
 }
-
-
 
 
 
@@ -117,27 +106,23 @@ transcript_count.prototype.aminoacidsequence = async function({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 transcript_count.prototype.handleAssociations = async function(input, context) {
-    try {
-        let promises = [];
+    let promises = [];
 
-        if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
-            promises.push(this.add_individual(input, context));
-        }
-        if (helper.isNotUndefinedAndNotNull(input.addAminoacidsequence)) {
-            promises.push(this.add_aminoacidsequence(input, context));
-        }
-
-        if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
-            promises.push(this.remove_individual(input, context));
-        }
-        if (helper.isNotUndefinedAndNotNull(input.removeAminoacidsequence)) {
-            promises.push(this.remove_aminoacidsequence(input, context));
-        }
-
-        await Promise.all(promises);
-    } catch (error) {
-        throw error
+    if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
+        promises.push(this.add_individual(input, context));
     }
+    if (helper.isNotUndefinedAndNotNull(input.addAminoacidsequence)) {
+        promises.push(this.add_aminoacidsequence(input, context));
+    }
+
+    if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
+        promises.push(this.remove_individual(input, context));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeAminoacidsequence)) {
+        promises.push(this.remove_aminoacidsequence(input, context));
+    }
+
+    await Promise.all(promises);
 }
 /**
  * add_individual - field Mutation for to_one associations to add
@@ -180,11 +165,6 @@ transcript_count.prototype.remove_aminoacidsequence = async function(input) {
         this.aminoacidsequence_id = null;
     }
 }
-
-
-
-
-
 
 
 /**
@@ -276,22 +256,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    transcript_counts: function({
+    transcript_counts: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'transcript_count', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "transcript_counts");
-                return await transcript_count.readAll(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'transcript_count', 'read' === true)) {
+            await checkCountAndReduceRecordsLimit(search, context, "transcript_counts");
+            return await transcript_count.readAll(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -304,22 +279,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    transcript_countsConnection: function({
+    transcript_countsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'transcript_count', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "transcript_countsConnection");
-                return transcript_count.readAllCursor(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "transcript_countsConnection");
+            return transcript_count.readAllCursor(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -329,20 +299,15 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneTranscript_count: function({
+    readOneTranscript_count: async function({
         id
     }, context) {
-        return checkAuthorization(context, 'transcript_count', 'read').then(authorization => {
-            if (authorization === true) {
-                checkCountForOneAndReduceRecordsLimit(context);
-                return transcript_count.readById(id);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+            checkCountForOneAndReduceRecordsLimit(context);
+            return transcript_count.readById(id);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -355,16 +320,11 @@ module.exports = {
     countTranscript_counts: async function({
         search
     }, context) {
-        return await checkAuthorization(context, 'transcript_count', 'read').then(async authorization => {
-            if (authorization === true) {
-                return (await transcript_count.countRecords(search)).sum;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+            return (await transcript_count.countRecords(search)).sum;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -374,17 +334,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableTranscript_count: function(_, context) {
-        return checkAuthorization(context, 'transcript_count', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, transcript_count, ["id", "gene", "variable", "tissue_or_condition"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    vueTableTranscript_count: async function(_, context) {
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+            return helper.vueTable(context.request, transcript_count, ["id", "gene", "variable", "tissue_or_condition"]);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -397,24 +352,19 @@ module.exports = {
      * @return {object}         New record created
      */
     addTranscript_count: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'transcript_count', 'create');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let createdTranscript_count = await transcript_count.addOne(inputSanitized);
-                await createdTranscript_count.handleAssociations(inputSanitized, context);
-                return createdTranscript_count;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'transcript_count', 'create');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let createdTranscript_count = await transcript_count.addOne(inputSanitized);
+            await createdTranscript_count.handleAssociations(inputSanitized, context);
+            return createdTranscript_count;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -424,17 +374,12 @@ module.exports = {
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddTranscript_countCsv: function(_, context) {
-        return checkAuthorization(context, 'transcript_count', 'create').then(authorization => {
-            if (authorization === true) {
-                return transcript_count.bulkAddCsv(context);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    bulkAddTranscript_countCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'transcript_count', 'create') === true) {
+            return transcript_count.bulkAddCsv(context);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -444,21 +389,16 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteTranscript_count: function({
+    deleteTranscript_count: async function({
         id
     }, context) {
-        return checkAuthorization(context, 'transcript_count', 'delete').then(async authorization => {
-            if (authorization === true) {
-                if (await validForDeletion(id, context)) {
-                    return transcript_count.deleteOne(id);
-                }
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        if (await checkAuthorization(context, 'transcript_count', 'delete') === true) {
+            if (await validForDeletion(id, context)) {
+                return transcript_count.deleteOne(id);
             }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -471,24 +411,19 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateTranscript_count: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'transcript_count', 'update');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let updatedTranscript_count = await transcript_count.updateOne(inputSanitized);
-                await updatedTranscript_count.handleAssociations(inputSanitized, context);
-                return updatedTranscript_count;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'transcript_count', 'update');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let updatedTranscript_count = await transcript_count.updateOne(inputSanitized);
+            await updatedTranscript_count.handleAssociations(inputSanitized, context);
+            return updatedTranscript_count;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -499,17 +434,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateTranscript_count: function(_, context) {
-        return checkAuthorization(context, 'transcript_count', 'read').then(authorization => {
-            if (authorization === true) {
-                return transcript_count.csvTableTemplate();
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    csvTableTemplateTranscript_count: async function(_, context) {
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+            return transcript_count.csvTableTemplate();
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     }
 
 }

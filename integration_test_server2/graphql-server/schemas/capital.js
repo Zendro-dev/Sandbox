@@ -4,6 +4,7 @@ module.exports = `
     @original-field
     """
     capital_id: ID
+
     """
     @original-field
     
@@ -17,8 +18,8 @@ module.exports = `
     country_id: String
 
     unique_country(search: searchCountryInput): country
-    
     }
+
 type CapitalConnection{
   edges: [CapitalEdge]
   pageInfo: pageInfo!
@@ -40,11 +41,13 @@ type CapitalEdge{
     from: Int
     to: Int
   }
+
   enum capitalField {
     capital_id
     name
     country_id
   }
+
   input searchCapitalInput {
     field: capitalField
     value: typeValue
@@ -56,6 +59,7 @@ type CapitalEdge{
     field: capitalField
     order: Order
   }
+
   type Query {
     capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput ): [capital]
     readOneCapital(capital_id: ID!): capital
@@ -64,9 +68,10 @@ type CapitalEdge{
 
     capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput ): CapitalConnection
   }
+
     type Mutation {
-    addCapital(capital_id: ID!, name: String , addUnique_country:ID   , skipAssociationsExistenceChecks:Boolean = false): capital!
-    updateCapital(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID    , skipAssociationsExistenceChecks:Boolean = false): capital!
+    addCapital(capital_id: ID!, name: String , addUnique_country:ID , skipAssociationsExistenceChecks:Boolean = false): capital!
+    updateCapital(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID  , skipAssociationsExistenceChecks:Boolean = false): capital!
   deleteCapital(capital_id: ID!): String!
   bulkAddCapitalCsv: [capital] }
 

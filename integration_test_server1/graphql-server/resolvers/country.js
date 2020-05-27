@@ -16,6 +16,7 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
+
 const associationArgsDef = {
     'addUnique_capital': 'capital'
 }
@@ -32,40 +33,33 @@ const associationArgsDef = {
 country.prototype.unique_capital = async function({
     search
 }, context) {
-    try {
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "country_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "country_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
 
-        let found = await resolvers.capitals({
-            search: nsearch
-        }, context);
-        if (found) {
-            if (found.length > 1) {
-                let foundIds = [];
-                found.forEach(capital => {
-                    foundIds.push(capital.getIdValue())
-                })
-                context.benignErrors.push(new Error(
-                    `Not unique "to_one" association Error: Found ${found.length} capitals matching country with country_id ${this.getIdValue()}. Consider making this association a "to_many", using unique constraints, or moving the foreign key into the country model. Returning first capital. Found capitals ${models.capital.idAttribute()}s: [${foundIds.toString()}]`
-                ));
-            }
-            return found[0];
+    let found = await resolvers.capitals({
+        search: nsearch
+    }, context);
+    if (found) {
+        if (found.length > 1) {
+            let foundIds = [];
+            found.forEach(capital => {
+                foundIds.push(capital.getIdValue())
+            })
+            context.benignErrors.push(new Error(
+                `Not unique "to_one" association Error: Found ${found.length} capitals matching country with country_id ${this.getIdValue()}. Consider making this association a "to_many", using unique constraints, or moving the foreign key into the country model. Returning first capital. Found capitals ${models.capital.idAttribute()}s: [${foundIds.toString()}]`
+            ));
         }
-        return found;
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
+        return found[0];
+    }
+    return found;
 }
-
-
 
 
 
@@ -76,21 +70,17 @@ country.prototype.unique_capital = async function({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 country.prototype.handleAssociations = async function(input, context) {
-    try {
-        let promises = [];
+    let promises = [];
 
-        if (helper.isNotUndefinedAndNotNull(input.addUnique_capital)) {
-            promises.push(this.add_unique_capital(input, context));
-        }
-
-        if (helper.isNotUndefinedAndNotNull(input.removeUnique_capital)) {
-            promises.push(this.remove_unique_capital(input, context));
-        }
-
-        await Promise.all(promises);
-    } catch (error) {
-        throw error
+    if (helper.isNotUndefinedAndNotNull(input.addUnique_capital)) {
+        promises.push(this.add_unique_capital(input, context));
     }
+
+    if (helper.isNotUndefinedAndNotNull(input.removeUnique_capital)) {
+        promises.push(this.remove_unique_capital(input, context));
+    }
+
+    await Promise.all(promises);
 }
 /**
  * add_unique_capital - field Mutation for to_one associations to add
@@ -109,11 +99,6 @@ country.prototype.add_unique_capital = async function(input) {
 country.prototype.remove_unique_capital = async function(input) {
     await models.capital.remove_country_id(input.removeUnique_capital, this.getIdValue());
 }
-
-
-
-
-
 
 
 /**
@@ -204,22 +189,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    countries: function({
+    countries: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'country', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "countries");
-                return await country.readAll(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'country', 'read' === true)) {
+            await checkCountAndReduceRecordsLimit(search, context, "countries");
+            return await country.readAll(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -232,22 +212,17 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    countriesConnection: function({
+    countriesConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        return checkAuthorization(context, 'country', 'read').then(async authorization => {
-            if (authorization === true) {
-                await checkCountAndReduceRecordsLimit(search, context, "countriesConnection");
-                return country.readAllCursor(search, order, pagination);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'country', 'read') === true) {
+            await checkCountAndReduceRecordsLimit(search, context, "countriesConnection");
+            return country.readAllCursor(search, order, pagination);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -257,20 +232,15 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with country_id requested
      */
-    readOneCountry: function({
+    readOneCountry: async function({
         country_id
     }, context) {
-        return checkAuthorization(context, 'country', 'read').then(authorization => {
-            if (authorization === true) {
-                checkCountForOneAndReduceRecordsLimit(context);
-                return country.readById(country_id);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'country', 'read') === true) {
+            checkCountForOneAndReduceRecordsLimit(context);
+            return country.readById(country_id);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -283,16 +253,11 @@ module.exports = {
     countCountries: async function({
         search
     }, context) {
-        return await checkAuthorization(context, 'country', 'read').then(async authorization => {
-            if (authorization === true) {
-                return (await country.countRecords(search)).sum;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        if (await checkAuthorization(context, 'country', 'read') === true) {
+            return (await country.countRecords(search)).sum;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -302,17 +267,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableCountry: function(_, context) {
-        return checkAuthorization(context, 'country', 'read').then(authorization => {
-            if (authorization === true) {
-                return helper.vueTable(context.request, country, ["id", "name", "country_id"]);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    vueTableCountry: async function(_, context) {
+        if (await checkAuthorization(context, 'country', 'read') === true) {
+            return helper.vueTable(context.request, country, ["id", "name", "country_id"]);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -325,24 +285,19 @@ module.exports = {
      * @return {object}         New record created
      */
     addCountry: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'country', 'create');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let createdCountry = await country.addOne(inputSanitized);
-                await createdCountry.handleAssociations(inputSanitized, context);
-                return createdCountry;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'country', 'create');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let createdCountry = await country.addOne(inputSanitized);
+            await createdCountry.handleAssociations(inputSanitized, context);
+            return createdCountry;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -352,17 +307,12 @@ module.exports = {
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddCountryCsv: function(_, context) {
-        return checkAuthorization(context, 'country', 'create').then(authorization => {
-            if (authorization === true) {
-                return country.bulkAddCsv(context);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    bulkAddCountryCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'country', 'create') === true) {
+            return country.bulkAddCsv(context);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -372,21 +322,16 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteCountry: function({
+    deleteCountry: async function({
         country_id
     }, context) {
-        return checkAuthorization(context, 'country', 'delete').then(async authorization => {
-            if (authorization === true) {
-                if (await validForDeletion(country_id, context)) {
-                    return country.deleteOne(country_id);
-                }
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        if (await checkAuthorization(context, 'country', 'delete') === true) {
+            if (await validForDeletion(country_id, context)) {
+                return country.deleteOne(country_id);
             }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -399,24 +344,19 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateCountry: async function(input, context) {
-        try {
-            let authorization = await checkAuthorization(context, 'country', 'update');
-            if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let updatedCountry = await country.updateOne(inputSanitized);
-                await updatedCountry.handleAssociations(inputSanitized, context);
-                return updatedCountry;
-            } else {
-                throw new Error("You don't have authorization to perform this action");
+        let authorization = await checkAuthorization(context, 'country', 'update');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let updatedCountry = await country.updateOne(inputSanitized);
+            await updatedCountry.handleAssociations(inputSanitized, context);
+            return updatedCountry;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -427,17 +367,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateCountry: function(_, context) {
-        return checkAuthorization(context, 'country', 'read').then(authorization => {
-            if (authorization === true) {
-                return country.csvTableTemplate();
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    csvTableTemplateCountry: async function(_, context) {
+        if (await checkAuthorization(context, 'country', 'read') === true) {
+            return country.csvTableTemplate();
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     }
 
 }

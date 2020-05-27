@@ -467,8 +467,6 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
 
-
-
     /**
      * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -477,19 +475,15 @@ module.exports = class Accession extends Sequelize.Model {
      */
     static async add_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return Accession.update({
-                    locationId: locationId
-                }, {
-                    where: {
-                        accession_id: accession_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return Accession.update({
+                locationId: locationId
+            }, {
+                where: {
+                    accession_id: accession_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
@@ -502,27 +496,19 @@ module.exports = class Accession extends Sequelize.Model {
      */
     static async remove_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return Accession.update({
-                    locationId: null
-                }, {
-                    where: {
-                        accession_id: accession_id,
-                        locationId: locationId
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return Accession.update({
+                locationId: null
+            }, {
+                where: {
+                    accession_id: accession_id,
+                    locationId: locationId
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
-
-
-
-
 
 
     /**

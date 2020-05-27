@@ -359,16 +359,6 @@ module.exports = class dog {
             });
     }
 
-    static bulkAddCsv(context) {
-        throw new Error("dog.bulkAddCsv is not implemented.")
-    }
-
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(dog);
-    }
-
-
-
     /**
      * add_person_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
@@ -393,7 +383,11 @@ module.exports = class dog {
 
 
 
+    static bulkAddCsv(context) {
+        throw new Error("dog.bulkAddCsv is not implemented.")
+    }
 
-
-
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(dog);
+    }
 }

@@ -8,6 +8,7 @@ const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
 const validatorUtil = require('../utils/validatorUtil');
+const helper = require('../utils/helper');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -162,6 +163,9 @@ module.exports = class country {
             }
         }).then(res => {
             //check
+            if (helper.isNonEmptyArray(res.data.errors)) {
+                throw new Error(JSON.stringify(res.data.errors));
+            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.countriesConnection.edges;
                 let pageInfo = res.data.data.countriesConnection.pageInfo;
@@ -271,6 +275,9 @@ module.exports = class country {
             });
     }
 
+
+
+
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
@@ -303,16 +310,6 @@ module.exports = class country {
             handleError(error);
         });
     }
-
-
-
-
-
-
-
-
-
-
 
     static get definition() {
         return definition;

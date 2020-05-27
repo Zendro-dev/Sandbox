@@ -444,8 +444,6 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
 
-
-
     /**
      * add_accessionId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -454,19 +452,15 @@ module.exports = class Measurement extends Sequelize.Model {
      */
     static async add_accessionId(measurement_id, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return Measurement.update({
-                    accessionId: accessionId
-                }, {
-                    where: {
-                        measurement_id: measurement_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return Measurement.update({
+                accessionId: accessionId
+            }, {
+                where: {
+                    measurement_id: measurement_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
@@ -479,27 +473,19 @@ module.exports = class Measurement extends Sequelize.Model {
      */
     static async remove_accessionId(measurement_id, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return Measurement.update({
-                    accessionId: null
-                }, {
-                    where: {
-                        measurement_id: measurement_id,
-                        accessionId: accessionId
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return Measurement.update({
+                accessionId: null
+            }, {
+                where: {
+                    measurement_id: measurement_id,
+                    accessionId: accessionId
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
-
-
-
-
 
 
     /**

@@ -435,8 +435,6 @@ module.exports = class capital extends Sequelize.Model {
     }
 
 
-
-
     /**
      * add_country_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -445,19 +443,15 @@ module.exports = class capital extends Sequelize.Model {
      */
     static async add_country_id(capital_id, country_id) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return capital.update({
-                    country_id: country_id
-                }, {
-                    where: {
-                        capital_id: capital_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return capital.update({
+                country_id: country_id
+            }, {
+                where: {
+                    capital_id: capital_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
@@ -470,27 +464,19 @@ module.exports = class capital extends Sequelize.Model {
      */
     static async remove_country_id(capital_id, country_id) {
         let updated = await sequelize.transaction(async transaction => {
-            try {
-                return capital.update({
-                    country_id: null
-                }, {
-                    where: {
-                        capital_id: capital_id,
-                        country_id: country_id
-                    }
-                }, {
-                    transaction: transaction
-                })
-            } catch (error) {
-                throw error;
-            }
+            return capital.update({
+                country_id: null
+            }, {
+                where: {
+                    capital_id: capital_id,
+                    country_id: country_id
+                }
+            }, {
+                transaction: transaction
+            })
         });
         return updated;
     }
-
-
-
-
 
 
     /**

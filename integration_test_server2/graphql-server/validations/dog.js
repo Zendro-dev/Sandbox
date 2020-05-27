@@ -12,7 +12,8 @@ module.exports.validator_patch = function(dog) {
         "$async": true,
         "properties": {
             "name": {
-                "type": ["string", "null"]
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9]+$"
             },
             "dog_id": {
                 "type": ["string", "null"]
@@ -28,7 +29,7 @@ module.exports.validator_patch = function(dog) {
     )
 
     dog.prototype.validateForCreate = async function(record) {
-      throw new Error("NO DOG CAN BE CREATED");
+      //throw new Error("NO DOG CAN BE CREATED");
         return await dog.prototype.asyncValidate(record)
     }
 

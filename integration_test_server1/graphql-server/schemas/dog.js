@@ -5,11 +5,12 @@ type dog{
   """
   dog_id: ID
 
-  """
+"""
   @original-field
   
   """
   name: String
+
 """
   @original-field
   
@@ -17,7 +18,6 @@ type dog{
   person_id: String
 
 person(search: searchPersonInput): person
-
 }
 
 type DogConnection{
@@ -70,8 +70,8 @@ type Query {
 }
 
   type Mutation {
-  addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
-  updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
+  addDog(dog_id: ID!, name: String , addPerson:ID , skipAssociationsExistenceChecks:Boolean = false): dog!
+  updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID  , skipAssociationsExistenceChecks:Boolean = false): dog!
 deleteDog(dog_id: ID!): String!
 bulkAddDogCsv: [dog] }
 

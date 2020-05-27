@@ -31,37 +31,30 @@ dog.prototype.person = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.person_id)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOnePerson({
-                    [models.person.idAttribute()]: this.person_id
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.person.idAttribute(),
-                    "value": {
-                        "value": this.person_id
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.peopleConnection({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
+        if (search === undefined) {
+            return resolvers.readOnePerson({
+                [models.person.idAttribute()]: this.person_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.person.idAttribute(),
+                "value": {
+                    "value": this.person_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.peopleConnection({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
+            return found;
+        }
     }
 }
-
-
 
 
 
@@ -72,21 +65,17 @@ dog.prototype.person = async function({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 dog.prototype.handleAssociations = async function(input, context) {
-    try {
-        let promises = [];
+    let promises = [];
 
-        if (helper.isNotUndefinedAndNotNull(input.addPerson)) {
-            promises.push(this.add_person(input, context));
-        }
-
-        if (helper.isNotUndefinedAndNotNull(input.removePerson)) {
-            promises.push(this.remove_person(input, context));
-        }
-
-        await Promise.all(promises);
-    } catch (error) {
-        throw error
+    if (helper.isNotUndefinedAndNotNull(input.addPerson)) {
+        promises.push(this.add_person(input, context));
     }
+
+    if (helper.isNotUndefinedAndNotNull(input.removePerson)) {
+        promises.push(this.remove_person(input, context));
+    }
+
+    await Promise.all(promises);
 }
 /**
  * add_person - field Mutation for to_one associations to add
@@ -108,11 +97,6 @@ dog.prototype.remove_person = async function(input) {
         this.person_id = null;
     }
 }
-
-
-
-
-
 
 
 /**
@@ -220,38 +204,33 @@ module.exports = {
             throw new Error('No adapters registered for data model "dog"');
         } //else
 
-        try {
-            //exclude adapters
-            let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
-            if (adapters.length === 0) {
-                throw new Error('All adapters was excluded for data model "dog"');
-            } //else
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "dog"');
+        } //else
 
-            //check: auth adapters
-            let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
-            if (authorizationCheck.authorizedAdapters.length > 0) {
-                let connectionObj = await dog.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
-                //check adapter authorization Errors
-                if (authorizationCheck.authorizationErrors.length > 0) {
-                    context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
-                }
-                //check Errors returned by the model layer (time-outs, unreachable, etc...)
-                if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
-                    context.benignErrors = context.benignErrors.concat(connectionObj.errors)
-                    delete connectionObj['errors']
-                }
-                return connectionObj;
-            } else { //adapters not auth || errors
-                // else new Error
-                if (authorizationCheck.authorizationErrors.length > 0) {
-                    throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
-                } else {
-                    throw new Error('No available adapters for data model "dog" ');
-                }
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            let connectionObj = await dog.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            //check Errors returned by the model layer (time-outs, unreachable, etc...)
+            if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(connectionObj.errors)
+                delete connectionObj['errors']
+            }
+            return connectionObj;
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "dog" ');
+            }
         }
     },
 
@@ -267,16 +246,11 @@ module.exports = {
         dog_id
     }, context) {
         //check: adapters auth
-        try {
-            let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(dog_id), 'read');
-            if (authorizationCheck === true) {
-                return dog.readById(dog_id);
-            } else { //adapter not auth
-                throw new Error("You don't have authorization to perform this action on adapter");
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+        let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(dog_id), 'read');
+        if (authorizationCheck === true) {
+            return dog.readById(dog_id);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -294,24 +268,19 @@ module.exports = {
         }
 
         //check: adapters auth
-        try {
-            let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(input.dog_id), 'create');
-            if (authorizationCheck === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let createdRecord = await dog.addOne(inputSanitized);
-                await createdRecord.handleAssociations(inputSanitized, context);
-                return createdRecord;
-            } else { //adapter not auth
-                throw new Error("You don't have authorization to perform this action on adapter");
+        let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(input.dog_id), 'create');
+        if (authorizationCheck === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let createdRecord = await dog.addOne(inputSanitized);
+            await createdRecord.handleAssociations(inputSanitized, context);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -322,17 +291,12 @@ module.exports = {
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddDogCsv: function(_, context) {
-        return checkAuthorization(context, 'dog', 'create').then(authorization => {
-            if (authorization === true) {
-                return dog.bulkAddCsv(context);
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    bulkAddDogCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'dog', 'create') === true) {
+            return dog.bulkAddCsv(context);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     },
 
     /**
@@ -346,18 +310,13 @@ module.exports = {
         dog_id
     }, context) {
         //check: adapters auth
-        try {
-            let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(dog_id), 'delete');
-            if (authorizationCheck === true) {
-                if (await validForDeletion(dog_id, context)) {
-                    return dog.deleteOne(dog_id);
-                }
-            } else { //adapter not auth
-                throw new Error("You don't have authorization to perform this action on adapter");
+        let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(dog_id), 'delete');
+        if (authorizationCheck === true) {
+            if (await validForDeletion(dog_id, context)) {
+                return dog.deleteOne(dog_id);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -375,24 +334,19 @@ module.exports = {
         }
 
         //check: adapters auth
-        try {
-            let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(input.dog_id), 'update');
-            if (authorizationCheck === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let updatedRecord = await dog.updateOne(inputSanitized);
-                await updatedRecord.handleAssociations(inputSanitized, context);
-                return updatedRecord;
-            } else { //adapter not auth
-                throw new Error("You don't have authorization to perform this action on adapter");
+        let authorizationCheck = await checkAuthorization(context, dog.adapterForIri(input.dog_id), 'update');
+        if (authorizationCheck === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            let updatedRecord = await dog.updateOne(inputSanitized);
+            await updatedRecord.handleAssociations(inputSanitized, context);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -413,39 +367,34 @@ module.exports = {
             throw new Error('No adapters registered for data model "dog"');
         } //else
 
-        try {
-            //exclude adapters
-            let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
-            if (adapters.length === 0) {
-                throw new Error('All adapters was excluded for data model "dog"');
-            } //else
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "dog"');
+        } //else
 
-            //check: auth adapters
-            let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
-            if (authorizationCheck.authorizedAdapters.length > 0) {
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
 
-                let countObj = await dog.countRecords(search, authorizationCheck.authorizedAdapters);
-                //check adapter authorization Errors
-                if (authorizationCheck.authorizationErrors.length > 0) {
-                    context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
-                }
-                //check Errors returned by the model layer (time-outs, unreachable, etc...)
-                if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
-                    context.benignErrors = context.benignErrors.concat(countObj.errors)
-                    delete countObj['errors']
-                }
-                return countObj.sum;
-            } else { //adapters not auth || errors
-                // else new Error
-                if (authorizationCheck.authorizationErrors.length > 0) {
-                    throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
-                } else {
-                    throw new Error('No available adapters for data model "dog"');
-                }
+            let countObj = await dog.countRecords(search, authorizationCheck.authorizedAdapters);
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
+            //check Errors returned by the model layer (time-outs, unreachable, etc...)
+            if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(countObj.errors)
+                delete countObj['errors']
+            }
+            return countObj.sum;
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "dog"');
+            }
         }
     },
 
@@ -456,17 +405,12 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateDog: function(_, context) {
-        return checkAuthorization(context, 'dog', 'read').then(authorization => {
-            if (authorization === true) {
-                return dog.csvTableTemplate();
-            } else {
-                throw new Error("You don't have authorization to perform this action");
-            }
-        }).catch(error => {
-            console.error(error);
-            handleError(error);
-        })
+    csvTableTemplateDog: async function(_, context) {
+        if (await checkAuthorization(context, 'dog', 'read') === true) {
+            return dog.csvTableTemplate();
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
     }
 
 }
