@@ -467,25 +467,23 @@ module.exports = {
      * @return {object}         New record created
      */
     addAccession: async function(input, context) {
-        try {
             let authorization = await checkAuthorization(context, 'Accession', 'create');
             if (authorization === true) {
-                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-                }
-                let createdAccession = await accession.addOne(inputSanitized);
-                await createdAccession.handleAssociations(inputSanitized, context);
-                return createdAccession;
+              let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+              await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+              await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+              if (!input.skipAssociationsExistenceChecks) {
+                  await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+              }
+              let createdAccessionAndErrors = await accession.addOne(inputSanitized).catch(err => {throw (err)});
+              console.log("createdAccessionAndErrors: " + JSON.stringify(createdAccessionAndErrors));
+              let createdAccession = createdAccessionAndErrors.data;
+              await createdAccession.handleAssociations(inputSanitized, context);
+              return createdAccession;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        }
+
     },
 
     /**
