@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
-const helper = require('../utils/helper');
+const validatorUtil = require('../utils/validatorUtil');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -90,7 +90,11 @@ module.exports = class Measurement {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return new Measurement(res.data.data.readOneMeasurement);
+                let item = new Measurement(res.data.data.readOneMeasurement);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
@@ -177,9 +181,6 @@ module.exports = class Measurement {
             }
         }).then(res => {
             //check
-            if (helper.isNonEmptyArray(res.data.errors)) {
-                throw new Error(JSON.stringify(res.data.errors));
-            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.measurementsConnection.edges;
                 let pageInfo = res.data.data.measurementsConnection.pageInfo;
@@ -205,45 +206,48 @@ module.exports = class Measurement {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addMeasurement(
-          $measurement_id:ID!  
-          $name:String
-          $method:String
-          $reference:String        ){
-          addMeasurement(          measurement_id:$measurement_id  
-          name:$name
-          method:$method
-          reference:$reference){
-            measurement_id            name
-            method
-            reference
-            accessionId
-          }
-        }`;
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation addMeasurement(
+                      $measurement_id:ID!  
+                $name:String
+                $method:String
+                $reference:String              ){
+                addMeasurement(                measurement_id:$measurement_id  
+                name:$name
+                method:$method
+                reference:$reference){
+                  measurement_id                        name
+                        method
+                        reference
+                        accessionId
+                      }
+              }`;
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new Measurement(res.data.data.addMeasurement);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new Measurement(res.data.data.addMeasurement);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
         let query = `
-          mutation
-            deleteMeasurement{
-              deleteMeasurement(
-                measurement_id: "${id}" )}`;
+              mutation
+                deleteMeasurement{
+                  deleteMeasurement(
+                    measurement_id: "${id}" )}`;
 
         return axios.post(url, {
             query: query
@@ -261,41 +265,79 @@ module.exports = class Measurement {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateMeasurement(
-              $measurement_id:ID! 
-              $name:String 
-              $method:String 
-              $reference:String             ){
-              updateMeasurement(
-                measurement_id:$measurement_id 
-                name:$name 
-                method:$method 
-                reference:$reference               ){
-                measurement_id 
-                name 
-                method 
-                reference 
-                accessionId 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateMeasurement(
+                  $measurement_id:ID! 
+                  $name:String 
+                  $method:String 
+                  $reference:String                 ){
+                  updateMeasurement(
+                    measurement_id:$measurement_id 
+                    name:$name 
+                    method:$method 
+                    reference:$reference                   ){
+                    measurement_id 
+                    name 
+                    method 
+                    reference 
+                    accessionId 
+                  }
+                }`
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new Measurement(res.data.data.updateMeasurement);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new Measurement(res.data.data.updateMeasurement);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
+    }
+
+    static bulkAddCsv(context) {
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        return context.request.files.csv_file.mv(tmpFile).then(() => {
+            let query = `mutation {bulkAddMeasurementCsv{measurement_id}}`;
+            let formData = new FormData();
+            formData.append('csv_file', fs.createReadStream(tmpFile));
+            formData.append('query', query);
+
+            return axios.post(url, formData, {
+                headers: formData.getHeaders()
+            }).then(res => {
+                return res.data.data.bulkAddMeasurementCsv;
+            });
+
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+    static csvTableTemplate() {
+        let query = `query { csvTableTemplateMeasurement }`;
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            return res.data.data.csvTableTemplateMeasurement;
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+
 
     /**
      * add_accessionId - field Mutation (adapter-layer) for to_one associationsArguments to add
@@ -360,38 +402,10 @@ module.exports = class Measurement {
     }
 
 
-    static bulkAddCsv(context) {
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
-        return context.request.files.csv_file.mv(tmpFile).then(() => {
-            let query = `mutation {bulkAddMeasurementCsv{measurement_id}}`;
-            let formData = new FormData();
-            formData.append('csv_file', fs.createReadStream(tmpFile));
-            formData.append('query', query);
 
-            return axios.post(url, formData, {
-                headers: formData.getHeaders()
-            }).then(res => {
-                return res.data.data.bulkAddMeasurementCsv;
-            });
 
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplateMeasurement }`;
-        return axios.post(url, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplateMeasurement;
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
     static get definition() {
         return definition;

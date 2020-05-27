@@ -16,7 +16,6 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
-
 const associationArgsDef = {
     'addLocation': 'location',
     'addMeasurements': 'measurement'
@@ -36,28 +35,33 @@ accession.prototype.location = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.locationId)) {
-        if (search === undefined) {
-            return resolvers.readOneLocation({
-                [models.location.idAttribute()]: this.locationId
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.location.idAttribute(),
-                "value": {
-                    "value": this.locationId
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.locations({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
+        try {
+            if (search === undefined) {
+                return resolvers.readOneLocation({
+                    [models.location.idAttribute()]: this.locationId
+                }, context)
+            } else {
+                //build new search filter
+                let nsearch = helper.addSearchField({
+                    "search": search,
+                    "field": models.location.idAttribute(),
+                    "value": {
+                        "value": this.locationId
+                    },
+                    "operator": "eq"
+                });
+                let found = await resolvers.locations({
+                    search: nsearch
+                }, context);
+                if (found) {
+                    return found[0]
+                }
+                return found;
             }
-            return found;
-        }
+        } catch (error) {
+            console.error(error);
+            handleError(error);
+        };
     }
 }
 
@@ -77,21 +81,26 @@ accession.prototype.measurementsFilter = function({
     order,
     pagination
 }, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "accessionId",
-        "value": {
-            "value": this.getIdValue()
-        },
-        "operator": "eq"
-    });
+    try {
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accessionId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
 
-    return resolvers.measurements({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+        return resolvers.measurements({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
 }
 
 /**
@@ -104,20 +113,25 @@ accession.prototype.measurementsFilter = function({
 accession.prototype.countFilteredMeasurements = function({
     search
 }, context) {
+    try {
 
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "accessionId",
-        "value": {
-            "value": this.getIdValue()
-        },
-        "operator": "eq"
-    });
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accessionId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
 
-    return resolvers.countMeasurements({
-        search: nsearch
-    }, context);
+        return resolvers.countMeasurements({
+            search: nsearch
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
 }
 
 /**
@@ -136,23 +150,30 @@ accession.prototype.measurementsConnection = function({
     order,
     pagination
 }, context) {
+    try {
 
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "accessionId",
-        "value": {
-            "value": this.getIdValue()
-        },
-        "operator": "eq"
-    });
+        //build new search filter
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": "accessionId",
+            "value": {
+                "value": this.getIdValue()
+            },
+            "operator": "eq"
+        });
 
-    return resolvers.measurementsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+        return resolvers.measurementsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    } catch (error) {
+        console.error(error);
+        handleError(error);
+    };
 }
+
+
 
 
 /**
@@ -162,21 +183,25 @@ accession.prototype.measurementsConnection = function({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 accession.prototype.handleAssociations = async function(input, context) {
-    let promises = [];
-    if (helper.isNonEmptyArray(input.addMeasurements)) {
-        promises.push(this.add_measurements(input, context));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
-        promises.push(this.add_location(input, context));
-    }
-    if (helper.isNonEmptyArray(input.removeMeasurements)) {
-        promises.push(this.remove_measurements(input, context));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
-        promises.push(this.remove_location(input, context));
-    }
+    try {
+        let promises = [];
+        if (helper.isNonEmptyArray(input.addMeasurements)) {
+            promises.push(this.add_measurements(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
+            promises.push(this.add_location(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeMeasurements)) {
+            promises.push(this.remove_measurements(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
+            promises.push(this.remove_location(input, context));
+        }
 
-    await Promise.all(promises);
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
 }
 /**
  * add_measurements - field Mutation for to_many associations to add
@@ -225,6 +250,11 @@ accession.prototype.remove_location = async function(input) {
         this.locationId = null;
     }
 }
+
+
+
+
+
 
 
 /**
@@ -316,17 +346,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    accessions: async function({
+    accessions: function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read' === true)) {
-            await checkCountAndReduceRecordsLimit(search, context, "accessions");
-            return await accession.readAll(search, order, pagination);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+        return checkAuthorization(context, 'Accession', 'read').then(async authorization => {
+            if (authorization === true) {
+                await checkCountAndReduceRecordsLimit(search, context, "accessions");
+                return await accession.readAll(search, order, pagination);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -339,17 +374,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    accessionsConnection: async function({
+    accessionsConnection: function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "accessionsConnection");
-            return accession.readAllCursor(search, order, pagination);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+        return checkAuthorization(context, 'Accession', 'read').then(async authorization => {
+            if (authorization === true) {
+                await checkCountAndReduceRecordsLimit(search, context, "accessionsConnection");
+                return accession.readAllCursor(search, order, pagination);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -359,15 +399,20 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with accession_id requested
      */
-    readOneAccession: async function({
+    readOneAccession: function({
         accession_id
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            checkCountForOneAndReduceRecordsLimit(context);
-            return accession.readById(accession_id);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+            if (authorization === true) {
+                checkCountForOneAndReduceRecordsLimit(context);
+                return accession.readById(accession_id);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -380,11 +425,16 @@ module.exports = {
     countAccessions: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            return (await accession.countRecords(search)).sum;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+        return await checkAuthorization(context, 'Accession', 'read').then(async authorization => {
+            if (authorization === true) {
+                return (await accession.countRecords(search)).sum;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -394,12 +444,17 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableAccession: async function(_, context) {
-        if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            return helper.vueTable(context.request, accession, ["id", "accession_id", "collectors_name", "collectors_initials", "locationId"]);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+    vueTableAccession: function(_, context) {
+        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+            if (authorization === true) {
+                return helper.vueTable(context.request, accession, ["id", "accession_id", "collectors_name", "collectors_initials", "locationId"]);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -412,21 +467,24 @@ module.exports = {
      * @return {object}         New record created
      */
     addAccession: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'Accession', 'create');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            if (!input.skipAssociationsExistenceChecks) {
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+        try {
+            let authorization = await checkAuthorization(context, 'Accession', 'create');
+            if (authorization === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let createdAccession = await accession.addOne(inputSanitized);
+                await createdAccession.handleAssociations(inputSanitized, context);
+                return createdAccession;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
             }
-            let createdAccessionAndErrors = await accession.addOne(inputSanitized).catch(err => {throw (err)});
-            console.log("createdAccessionAndErrors: " + JSON.stringify(createdAccessionAndErrors));
-            let createdAccession = createdAccessionAndErrors.data;            
-            await createdAccession.handleAssociations(inputSanitized, context);
-            return createdAccession;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } catch (error) {
+            console.error(error);
+            handleError(error);
         }
     },
 
@@ -436,12 +494,17 @@ module.exports = {
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddAccessionCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'Accession', 'create') === true) {
-            return accession.bulkAddCsv(context);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+    bulkAddAccessionCsv: function(_, context) {
+        return checkAuthorization(context, 'Accession', 'create').then(authorization => {
+            if (authorization === true) {
+                return accession.bulkAddCsv(context);
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -451,16 +514,21 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteAccession: async function({
+    deleteAccession: function({
         accession_id
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'delete') === true) {
-            if (await validForDeletion(accession_id, context)) {
-                return accession.deleteOne(accession_id);
+        return checkAuthorization(context, 'Accession', 'delete').then(async authorization => {
+            if (authorization === true) {
+                if (await validForDeletion(accession_id, context)) {
+                    return accession.deleteOne(accession_id);
+                }
+            } else {
+                throw new Error("You don't have authorization to perform this action");
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     },
 
     /**
@@ -473,19 +541,24 @@ module.exports = {
      * @return {object}         Updated record
      */
     updateAccession: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'Accession', 'update');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            if (!input.skipAssociationsExistenceChecks) {
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+        try {
+            let authorization = await checkAuthorization(context, 'Accession', 'update');
+            if (authorization === true) {
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let updatedAccession = await accession.updateOne(inputSanitized);
+                await updatedAccession.handleAssociations(inputSanitized, context);
+                return updatedAccession;
+            } else {
+                throw new Error("You don't have authorization to perform this action");
             }
-            let updatedAccession = await accession.updateOne(inputSanitized);
-            await updatedAccession.handleAssociations(inputSanitized, context);
-            return updatedAccession;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } catch (error) {
+            console.error(error);
+            handleError(error);
         }
     },
 
@@ -496,12 +569,17 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateAccession: async function(_, context) {
-        if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            return accession.csvTableTemplate();
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+    csvTableTemplateAccession: function(_, context) {
+        return checkAuthorization(context, 'Accession', 'read').then(authorization => {
+            if (authorization === true) {
+                return accession.csvTableTemplate();
+            } else {
+                throw new Error("You don't have authorization to perform this action");
+            }
+        }).catch(error => {
+            console.error(error);
+            handleError(error);
+        })
     }
 
 }

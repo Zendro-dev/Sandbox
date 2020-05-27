@@ -7,9 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
-const helper = require('../utils/helper');
-const errorHelper = require('../utils/errors')
-
+const validatorUtil = require('../utils/validatorUtil');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -83,7 +81,11 @@ module.exports = class capital {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return new capital(res.data.data.readOneCapital);
+                let item = new capital(res.data.data.readOneCapital);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
@@ -114,48 +116,33 @@ module.exports = class capital {
         });
     }
 
-    static async readAll(search, order, pagination) {
+    static readAll(search, order, pagination) {
         let query = `query capitals($search: searchCapitalInput $pagination: paginationInput $order: [orderCapitalInput]){
       capitals(search:$search pagination:$pagination order:$order){capital_id          name
                 country_id
         } }`
 
-        try {
-            let response = await axios.post(url, {
-                query: query,
-                variables: {
-                    search: search,
-                    order: order,
-                    pagination: pagination
-                }
-            })
-            console.log("response Cap: " + JSON.stringify(response.data))
-            console.log("response Keys Cap: " + Object.keys(response.data))
-
-            // STATUS-CODE is 200 -
-            // NO ERROR as such has been detected by the server (Express),
-            // though there might be errors from the remote GraphQL instance.
-            //let benignError = errorHelper.handleRemoteErrors(response.data.errors, errMessageIfNeeded)
-            //dataAndBeningErrors.beningErrors.push(benignError);
-            if (response && response.data && response.data.data) {
-                let data = response.data.data.capitals;
+        return axios.post(url, {
+            query: query,
+            variables: {
+                search: search,
+                order: order,
+                pagination: pagination
+            }
+        }).then(res => {
+            //check
+            if (res && res.data && res.data.data) {
+                let data = res.data.data.capitals;
                 return data.map(item => {
                     return new capital(item)
                 });
-                // dataAndBeningErrors.data = new country(response.data.data.countries);
-                // return dataAndBeningErrors.data;
-            }
-
-        } catch (error) {
-            console.log("caught Error: " + error)
-            if (!errorHelper.isRemoteGraphQlError(error)) {
-                throw error
             } else {
-                // STATUS CODE is NOT 200,
-                // which means a rather serious error was sent by the remote server.
-                throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
+                throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
-        }
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
 
     }
 
@@ -181,9 +168,6 @@ module.exports = class capital {
             }
         }).then(res => {
             //check
-            if (helper.isNonEmptyArray(res.data.errors)) {
-                throw new Error(JSON.stringify(res.data.errors));
-            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.capitalsConnection.edges;
                 let pageInfo = res.data.data.capitalsConnection.pageInfo;
@@ -209,39 +193,42 @@ module.exports = class capital {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addCapital(
-          $capital_id:ID!  
-          $name:String        ){
-          addCapital(          capital_id:$capital_id  
-          name:$name){
-            capital_id            name
-            country_id
-          }
-        }`;
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation addCapital(
+                      $capital_id:ID!  
+                $name:String              ){
+                addCapital(                capital_id:$capital_id  
+                name:$name){
+                  capital_id                        name
+                        country_id
+                      }
+              }`;
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new capital(res.data.data.addCapital);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new capital(res.data.data.addCapital);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
         let query = `
-          mutation
-            deleteCapital{
-              deleteCapital(
-                capital_id: "${id}" )}`;
+              mutation
+                deleteCapital{
+                  deleteCapital(
+                    capital_id: "${id}" )}`;
 
         return axios.post(url, {
             query: query
@@ -259,35 +246,73 @@ module.exports = class capital {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateCapital(
-              $capital_id:ID! 
-              $name:String             ){
-              updateCapital(
-                capital_id:$capital_id 
-                name:$name               ){
-                capital_id 
-                name 
-                country_id 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateCapital(
+                  $capital_id:ID! 
+                  $name:String                 ){
+                  updateCapital(
+                    capital_id:$capital_id 
+                    name:$name                   ){
+                    capital_id 
+                    name 
+                    country_id 
+                  }
+                }`
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new capital(res.data.data.updateCapital);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new capital(res.data.data.updateCapital);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
+    }
+
+    static bulkAddCsv(context) {
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        return context.request.files.csv_file.mv(tmpFile).then(() => {
+            let query = `mutation {bulkAddCapitalCsv{capital_id}}`;
+            let formData = new FormData();
+            formData.append('csv_file', fs.createReadStream(tmpFile));
+            formData.append('query', query);
+
+            return axios.post(url, formData, {
+                headers: formData.getHeaders()
+            }).then(res => {
+                return res.data.data.bulkAddCapitalCsv;
+            });
+
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+    static csvTableTemplate() {
+        let query = `query { csvTableTemplateCapital }`;
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            return res.data.data.csvTableTemplateCapital;
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+
 
     /**
      * add_country_id - field Mutation (adapter-layer) for to_one associationsArguments to add
@@ -352,38 +377,10 @@ module.exports = class capital {
     }
 
 
-    static bulkAddCsv(context) {
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
-        return context.request.files.csv_file.mv(tmpFile).then(() => {
-            let query = `mutation {bulkAddCapitalCsv{capital_id}}`;
-            let formData = new FormData();
-            formData.append('csv_file', fs.createReadStream(tmpFile));
-            formData.append('query', query);
 
-            return axios.post(url, formData, {
-                headers: formData.getHeaders()
-            }).then(res => {
-                return res.data.data.bulkAddCapitalCsv;
-            });
 
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplateCapital }`;
-        return axios.post(url, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplateCapital;
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
     static get definition() {
         return definition;

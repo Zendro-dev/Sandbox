@@ -15,21 +15,27 @@
     if( adapters[adapter.adapterName] ){
       throw new Error(`Duplicated adapter name ${adapter.adapterName}`);
     }
-    
+
     switch(adapter.adapterType) {
       case 'ddm-adapter':
       case 'cenzontle-webservice-adapter':
       case 'generic-adapter':
-        adapters[adapter.adapterName] = adapter; 
+        adapters[adapter.adapterName] = adapter;
         break;
 
       case 'sql-adapter':
         adapters[adapter.adapterName] = adapter.init(sequelize, Sequelize);
         break;
-      
+
       case 'default':
         throw new Error(`Adapter storageType '${adapter.storageType}' is not supported`);
     }
+
+    let patches_patch = path.join(__dirname,'..','patches', file);
+    if(fs.existsSync(patches_patch)){
+        adapter = require(`${patches_patch}`).logic_patch(adapter);
+    }
+
   });
-  
+
   

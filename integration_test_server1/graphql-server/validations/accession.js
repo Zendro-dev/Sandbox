@@ -15,8 +15,8 @@ module.exports.validator_patch = function(accession) {
                 "type": ["string", "null"]
             },
             "collectors_name": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9]+$"
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9]+$"
             },
             "collectors_initials": {
                 "type": ["string", "null"]

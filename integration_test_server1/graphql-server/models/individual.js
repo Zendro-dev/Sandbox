@@ -88,8 +88,6 @@ module.exports = class individual extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 
@@ -226,8 +224,7 @@ module.exports = class individual extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -426,6 +423,12 @@ module.exports = class individual extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(individual);
     }
+
+
+
+
+
+
 
 
 

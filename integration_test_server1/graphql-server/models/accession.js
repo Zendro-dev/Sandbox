@@ -130,8 +130,6 @@ module.exports = class Accession extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 
@@ -268,8 +266,7 @@ module.exports = class Accession extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -470,6 +467,8 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
 
+
+
     /**
      * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -478,15 +477,19 @@ module.exports = class Accession extends Sequelize.Model {
      */
     static async add_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
-            return Accession.update({
-                locationId: locationId
-            }, {
-                where: {
-                    accession_id: accession_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return Accession.update({
+                    locationId: locationId
+                }, {
+                    where: {
+                        accession_id: accession_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -499,19 +502,27 @@ module.exports = class Accession extends Sequelize.Model {
      */
     static async remove_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
-            return Accession.update({
-                locationId: null
-            }, {
-                where: {
-                    accession_id: accession_id,
-                    locationId: locationId
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return Accession.update({
+                    locationId: null
+                }, {
+                    where: {
+                        accession_id: accession_id,
+                        locationId: locationId
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
+
+
+
+
 
 
     /**

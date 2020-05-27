@@ -7,8 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
-const helper = require('../utils/helper');
-const errorHelper = require('../utils/errors')
+const validatorUtil = require('../utils/validatorUtil');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -78,7 +77,11 @@ module.exports = class country {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return new country(res.data.data.readOneCountry);
+                let item = new country(res.data.data.readOneCountry);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
@@ -109,16 +112,12 @@ module.exports = class country {
         });
     }
 
-    static async readAll(search, order, pagination) {
-
-        let errMessageIfNeeded = `Remote service ${url} returned error(s).`
-        let dataAndBeningErrors = { data: {}, beningErrors: [] }
-
+    static readAll(search, order, pagination) {
         let query = `query countries($search: searchCountryInput $pagination: paginationInput $order: [orderCountryInput]){
       countries(search:$search pagination:$pagination order:$order){country_id          name
         } }`
 
-        /*return axios.post(url, {
+        return axios.post(url, {
             query: query,
             variables: {
                 search: search,
@@ -127,7 +126,6 @@ module.exports = class country {
             }
         }).then(res => {
             //check
-
             if (res && res.data && res.data.data) {
                 let data = res.data.data.countries;
                 return data.map(item => {
@@ -138,46 +136,8 @@ module.exports = class country {
             }
         }).catch(error => {
             error['url'] = url;
-            errors.handleError(error);
-        });*/
-
-
-        try {
-            let response = await axios.post(url, {
-                query: query,
-                variables: {
-                    search: search,
-                    order: order,
-                    pagination: pagination
-                }
-            })
-            console.log("response: " + JSON.stringify(response.data))
-            console.log("response Keys: " + Object.keys(response.data))
-
-            // STATUS-CODE is 200 -
-            // NO ERROR as such has been detected by the server (Express),
-            // though there might be errors from the remote GraphQL instance.
-            //let benignError = errorHelper.handleRemoteErrors(response.data.errors, errMessageIfNeeded)
-            //dataAndBeningErrors.beningErrors.push(benignError);
-            if (response && response.data && response.data.data) {
-                let data = response.data.data.countries;
-                return data.map(item => {
-                    return new country(item)
-                });
-                // dataAndBeningErrors.data = new country(response.data.data.countries);
-                // return dataAndBeningErrors.data;
-            }
-
-        } catch (error) {
-            console.log("caught Error: " + error)
-            if (!errorHelper.isRemoteGraphQlError(error)) {
-                throw error
-            } else {
-                // STATUS CODE is NOT 200,
-                // which means a rather serious error was sent by the remote server.
-                throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
-            }
-        }
+            handleError(error);
+        });
 
     }
 
@@ -202,9 +162,6 @@ module.exports = class country {
             }
         }).then(res => {
             //check
-            if (helper.isNonEmptyArray(res.data.errors)) {
-                throw new Error(JSON.stringify(res.data.errors));
-            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.countriesConnection.edges;
                 let pageInfo = res.data.data.countriesConnection.pageInfo;
@@ -230,38 +187,41 @@ module.exports = class country {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addCountry(
-          $country_id:ID!  
-          $name:String        ){
-          addCountry(          country_id:$country_id  
-          name:$name){
-            country_id            name
-          }
-        }`;
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation addCountry(
+                      $country_id:ID!  
+                $name:String              ){
+                addCountry(                country_id:$country_id  
+                name:$name){
+                  country_id                        name
+                      }
+              }`;
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new country(res.data.data.addCountry);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new country(res.data.data.addCountry);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
         let query = `
-          mutation
-            deleteCountry{
-              deleteCountry(
-                country_id: "${id}" )}`;
+              mutation
+                deleteCountry{
+                  deleteCountry(
+                    country_id: "${id}" )}`;
 
         return axios.post(url, {
             query: query
@@ -279,37 +239,37 @@ module.exports = class country {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateCountry(
-              $country_id:ID! 
-              $name:String             ){
-              updateCountry(
-                country_id:$country_id 
-                name:$name               ){
-                country_id 
-                name 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateCountry(
+                  $country_id:ID! 
+                  $name:String                 ){
+                  updateCountry(
+                    country_id:$country_id 
+                    name:$name                   ){
+                    country_id 
+                    name 
+                  }
+                }`
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new country(res.data.data.updateCountry);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new country(res.data.data.updateCountry);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
-
-
-
 
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
@@ -343,6 +303,16 @@ module.exports = class country {
             handleError(error);
         });
     }
+
+
+
+
+
+
+
+
+
+
 
     static get definition() {
         return definition;

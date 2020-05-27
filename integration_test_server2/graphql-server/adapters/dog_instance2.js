@@ -106,12 +106,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-            .then((valSuccess) => {
-                return item
-            }).catch((err) => {
-                return err
-            });
+        return item;
     }
 
     static countRecords(search) {
@@ -208,8 +203,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -294,61 +288,49 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         });
     }
 
-    static addOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this , input)
-            .then(async (valSuccess) => {
-                try {
-                    const result = await sequelize.transaction(async (t) => {
-                        let item = await super.create(input, {
-                            transaction: t
-                        });
-                        return item;
-                    });
-                    return result;
-                } catch (error) {
-                    throw error;
-                }
+    static async addOne(input) {
+
+        try {
+            const result = await sequelize.transaction(async (t) => {
+                let item = await super.create(input, {
+                    transaction: t
+                });
+                return item;
             });
+            return result;
+        } catch (error) {
+            throw error;
+        }
+
     }
 
     static deleteOne(id) {
         return super.findByPk(id)
             .then(item => {
-
                 if (item === null) return new Error(`Record with ID = ${id} not exist`);
-
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
-                    .then((valSuccess) => {
-                        return item
-                            .destroy()
-                            .then(() => {
-                                return 'Item successfully deleted';
-                            });
-                    }).catch((err) => {
-                        return err
-                    })
+                return item
+                    .destroy()
+                    .then(() => {
+                        return 'Item successfully deleted';
+                    });
             });
-
     }
 
-    static updateOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                try {
-                    let result = await sequelize.transaction(async (t) => {
-                        let item = await super.findByPk(input[this.idAttribute()], {
-                            transaction: t
-                        });
-                        let updated = await item.update(input, {
-                            transaction: t
-                        });
-                        return updated;
-                    });
-                    return result;
-                } catch (error) {
-                    throw error;
-                }
+    static async updateOne(input) {
+        try {
+            let result = await sequelize.transaction(async (t) => {
+                let item = await super.findByPk(input[this.idAttribute()], {
+                    transaction: t
+                });
+                let updated = await item.update(input, {
+                    transaction: t
+                });
+                return updated;
             });
+            return result;
+        } catch (error) {
+            throw error;
+        }
     }
 
 
@@ -363,15 +345,19 @@ module.exports = class dog_instance2 extends Sequelize.Model {
 
     static async add_person_id(dog_id, person_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return super.update({
-                person_id: person_id
-            }, {
-                where: {
-                    dog_id: dog_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return super.update({
+                    person_id: person_id
+                }, {
+                    where: {
+                        dog_id: dog_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -388,16 +374,20 @@ module.exports = class dog_instance2 extends Sequelize.Model {
 
     static async remove_person_id(dog_id, person_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return super.update({
-                person_id: null
-            }, {
-                where: {
-                    dog_id: dog_id,
-                    person_id: person_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return super.update({
+                    person_id: null
+                }, {
+                    where: {
+                        dog_id: dog_id,
+                        person_id: person_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }

@@ -7,8 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
-const helper = require('../utils/helper');
-const errorHelper = require('../utils/errors')
+const validatorUtil = require('../utils/validatorUtil');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -110,7 +109,11 @@ module.exports = class Accession {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return new Accession(res.data.data.readOneAccession);
+                let item = new Accession(res.data.data.readOneAccession);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
@@ -197,9 +200,6 @@ module.exports = class Accession {
             }
         }).then(res => {
             //check
-            if (helper.isNonEmptyArray(res.data.errors)) {
-                throw new Error(JSON.stringify(res.data.errors));
-            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.accessionsConnection.edges;
                 let pageInfo = res.data.data.accessionsConnection.pageInfo;
@@ -224,82 +224,63 @@ module.exports = class Accession {
         });
     }
 
-    static async addOne(input) {
-        let errMessageIfNeeded = `Remote service ${url} returned error(s).`
-        let dataAndBeningErrors = { data: {}, beningErrors: [] }
+    static addOne(input) {
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation addAccession(
+                      $accession_id:ID!
+                $collectors_name:String
+                $collectors_initials:String
+                $sampling_date:Date              ){
+                addAccession(                accession_id:$accession_id
+                collectors_name:$collectors_name
+                collectors_initials:$collectors_initials
+                sampling_date:$sampling_date){
+                  accession_id                        collectors_name
+                        collectors_initials
+                        sampling_date
+                        locationId
+                      }
+              }`;
 
-        let query = `
-        mutation addAccession(
-          $accession_id:ID!  
-          $collectors_name:String
-          $collectors_initials:String
-          $sampling_date:Date        ){
-          addAccession(          accession_id:$accession_id  
-          collectors_name:$collectors_name
-          collectors_initials:$collectors_initials
-          sampling_date:$sampling_date){
-            accession_id            collectors_name
-            collectors_initials
-            sampling_date
-            locationId
-          }
-        }`;
-        try {
-            let response = await axios.post(url, {
-                query: query,
-                variables: input
-            })
-            console.log(response)
-            // STATUS-CODE is 200 -
-            // NO ERROR as such has been detected by the server (Express),
-            // though there might be errors from the remote GraphQL instance.
-            let benignError = errorHelper.handleRemoteErrors(response.data.errors, errMessageIfNeeded)
-            dataAndBeningErrors.beningErrors.push(benignError);
-            if (response && response.data && response.data.data) {
-                dataAndBeningErrors.data = new Accession(response.data.data.addAccession);
-                return dataAndBeningErrors;
-            }
+              let errMessageIfNeeded = `Remote service ${url} returned error(s).`
+              let dataAndBeningErrors = { data: {}, beningErrors: [] }
 
-        } catch (error) {
-            if (!errorHelper.isRemoteGraphQlError(error)) {
-                throw error
-            } else {
-                // STATUS CODE is NOT 200,
-                // which means a rather serious error was sent by the remote server.
-                throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
-            }
-        }
+              try {
+                  let response = await axios.post(url, {
+                      query: query,
+                      variables: input
+                  })
+                  console.log(response)
+                  // STATUS-CODE is 200 -
+                  // NO ERROR as such has been detected by the server (Express),
+                  // though there might be errors from the remote GraphQL instance.
+                  let benignError = errorHelper.handleRemoteErrors(response.data.errors, errMessageIfNeeded)
+                  dataAndBeningErrors.beningErrors.push(benignError);
+                  if (response && response.data && response.data.data) {
+                      dataAndBeningErrors.data = new Accession(response.data.data.addAccession);
+                      return dataAndBeningErrors;
+                  }
 
-        /*return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            let benignError = errorHelper.handleRemoteErrors(res.data.errors, errMessageIfNeeded)
-            dataAndBeningErrors.beningErrors.push(benignError);
-            if (res && res.data && res.data.data) {
-                dataAndBeningErrors.data = new Accession(res.data.data.addAccession);
-                return dataAndBeningErrors;
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            if (!errorHelper.isRemoteGraphQlError(error)) {
-                throw error
-            } else {
-                // STATUS CODE is NOT 200,
-                // which means a rather serious error was sent by the remote server.
-                throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
-            }
-        });*/
+              } catch (error) {
+                  if (!errorHelper.isRemoteGraphQlError(error)) {
+                      throw error
+                  } else {
+                      // STATUS CODE is NOT 200,
+                      // which means a rather serious error was sent by the remote server.
+                      throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
+                  }
+              }
+            });
     }
 
     static deleteOne(id) {
         let query = `
-          mutation
-            deleteAccession{
-              deleteAccession(
-                accession_id: "${id}" )}`;
+              mutation
+                deleteAccession{
+                  deleteAccession(
+                    accession_id: "${id}" )}`;
 
         return axios.post(url, {
             query: query
@@ -317,41 +298,79 @@ module.exports = class Accession {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateAccession(
-              $accession_id:ID! 
-              $collectors_name:String 
-              $collectors_initials:String 
-              $sampling_date:Date             ){
-              updateAccession(
-                accession_id:$accession_id 
-                collectors_name:$collectors_name 
-                collectors_initials:$collectors_initials 
-                sampling_date:$sampling_date               ){
-                accession_id 
-                collectors_name 
-                collectors_initials 
-                sampling_date 
-                locationId 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateAccession(
+                  $accession_id:ID!
+                  $collectors_name:String
+                  $collectors_initials:String
+                  $sampling_date:Date                 ){
+                  updateAccession(
+                    accession_id:$accession_id
+                    collectors_name:$collectors_name
+                    collectors_initials:$collectors_initials
+                    sampling_date:$sampling_date                   ){
+                    accession_id
+                    collectors_name
+                    collectors_initials
+                    sampling_date
+                    locationId
+                  }
+                }`
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new Accession(res.data.data.updateAccession);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new Accession(res.data.data.updateAccession);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
+    }
+
+    static bulkAddCsv(context) {
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        return context.request.files.csv_file.mv(tmpFile).then(() => {
+            let query = `mutation {bulkAddAccessionCsv{accession_id}}`;
+            let formData = new FormData();
+            formData.append('csv_file', fs.createReadStream(tmpFile));
+            formData.append('query', query);
+
+            return axios.post(url, formData, {
+                headers: formData.getHeaders()
+            }).then(res => {
+                return res.data.data.bulkAddAccessionCsv;
+            });
+
         }).catch(error => {
             error['url'] = url;
             handleError(error);
         });
     }
+
+    static csvTableTemplate() {
+        let query = `query { csvTableTemplateAccession }`;
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            return res.data.data.csvTableTemplateAccession;
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+
 
     /**
      * add_locationId - field Mutation (adapter-layer) for to_one associationsArguments to add
@@ -416,38 +435,10 @@ module.exports = class Accession {
     }
 
 
-    static bulkAddCsv(context) {
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
-        return context.request.files.csv_file.mv(tmpFile).then(() => {
-            let query = `mutation {bulkAddAccessionCsv{accession_id}}`;
-            let formData = new FormData();
-            formData.append('csv_file', fs.createReadStream(tmpFile));
-            formData.append('query', query);
 
-            return axios.post(url, formData, {
-                headers: formData.getHeaders()
-            }).then(res => {
-                return res.data.data.bulkAddAccessionCsv;
-            });
 
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplateAccession }`;
-        return axios.post(url, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplateAccession;
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
     static get definition() {
         return definition;

@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     measurement_id: ID
-
     """
     @original-field
     
@@ -30,8 +29,8 @@ module.exports = `
     accessionId: String
 
     accession(search: searchAccessionInput): Accession
+    
     }
-
 type MeasurementConnection{
   edges: [MeasurementEdge]
   pageInfo: pageInfo!
@@ -53,7 +52,6 @@ type MeasurementEdge{
     from: Int
     to: Int
   }
-
   enum MeasurementField {
     measurement_id
     name
@@ -61,7 +59,6 @@ type MeasurementEdge{
     reference
     accessionId
   }
-
   input searchMeasurementInput {
     field: MeasurementField
     value: typeValue
@@ -73,7 +70,6 @@ type MeasurementEdge{
     field: MeasurementField
     order: Order
   }
-
   type Query {
     measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput ): [Measurement]
     readOneMeasurement(measurement_id: ID!): Measurement
@@ -82,10 +78,9 @@ type MeasurementEdge{
 
     measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput ): MeasurementConnection
   }
-
     type Mutation {
-    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID , skipAssociationsExistenceChecks:Boolean = false): Measurement!
-    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID, removeAccession:ID  , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
   deleteMeasurement(measurement_id: ID!): String!
   bulkAddMeasurementCsv: [Measurement] }
 

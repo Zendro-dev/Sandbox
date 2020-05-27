@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     id: ID
-
     """
     @original-field
     
@@ -43,8 +42,8 @@ module.exports = `
 
     individual(search: searchIndividualInput): individual
   aminoacidsequence(search: searchAminoacidsequenceInput): aminoacidsequence
+    
     }
-
 type Transcript_countConnection{
   edges: [Transcript_countEdge]
   pageInfo: pageInfo!
@@ -66,7 +65,6 @@ type Transcript_countEdge{
     from: Int
     to: Int
   }
-
   enum transcript_countField {
     id
     gene
@@ -76,7 +74,6 @@ type Transcript_countEdge{
     individual_id
     aminoacidsequence_id
   }
-
   input searchTranscript_countInput {
     field: transcript_countField
     value: typeValue
@@ -88,7 +85,6 @@ type Transcript_countEdge{
     field: transcript_countField
     order: Order
   }
-
   type Query {
     transcript_counts(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput ): [transcript_count]
     readOneTranscript_count(id: ID!): transcript_count
@@ -97,10 +93,9 @@ type Transcript_countEdge{
 
     transcript_countsConnection(search:searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput ): Transcript_countConnection
   }
-
     type Mutation {
-    addTranscript_count( gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, addAminoacidsequence:ID , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
-    updateTranscript_count(id: ID!, gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, removeIndividual:ID , addAminoacidsequence:ID, removeAminoacidsequence:ID  , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
+    addTranscript_count( gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, addAminoacidsequence:ID   , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
+    updateTranscript_count(id: ID!, gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, removeIndividual:ID , addAminoacidsequence:ID, removeAminoacidsequence:ID    , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
   deleteTranscript_count(id: ID!): String!
   bulkAddTranscript_countCsv: [transcript_count] }
 

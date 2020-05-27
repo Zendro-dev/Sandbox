@@ -3,6 +3,7 @@ const globals = require('../config/globals');
 const {
     handleError
 } = require('../utils/errors');
+const validatorUtil = require('../utils/validatorUtil');
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
@@ -109,15 +110,15 @@ module.exports = class dog_instance2 {
 
     static addOne(input) {
         let query = `
-        mutation addDog(
-          $dog_id:ID!  
-          $name:String        ){
-          addDog(          dog_id:$dog_id  
-          name:$name){
-            dog_id            name
-            person_id
-          }
-        }`;
+          mutation addDog(
+              $dog_id:ID!  
+            $name:String          ){
+            addDog(            dog_id:$dog_id  
+            name:$name){
+              dog_id                name
+                person_id
+              }
+          }`;
 
         return axios.post(remoteCenzontleURL, {
             query: query,

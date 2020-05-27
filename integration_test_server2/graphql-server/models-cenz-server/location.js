@@ -7,7 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4');
 const globals = require('../config/globals');
-const helper = require('../utils/helper');
+const validatorUtil = require('../utils/validatorUtil');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -90,7 +90,11 @@ module.exports = class Location {
         }).then(res => {
             //check
             if (res && res.data && res.data.data) {
-                return new Location(res.data.data.readOneLocation);
+                let item = new Location(res.data.data.readOneLocation);
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+                    .then((valSuccess) => {
+                        return item
+                    })
             } else {
                 throw new Error(`Invalid response from remote cenz-server: ${url}`);
             }
@@ -177,9 +181,6 @@ module.exports = class Location {
             }
         }).then(res => {
             //check
-            if (helper.isNonEmptyArray(res.data.errors)) {
-                throw new Error(JSON.stringify(res.data.errors));
-            }
             if (res && res.data && res.data.data) {
                 let data_edges = res.data.data.locationsConnection.edges;
                 let pageInfo = res.data.data.locationsConnection.pageInfo;
@@ -205,47 +206,50 @@ module.exports = class Location {
     }
 
     static addOne(input) {
-        let query = `
-        mutation addLocation(
-          $locationId:ID!  
-          $country:String
-          $state:String
-          $municipality:String
-          $locality:String        ){
-          addLocation(          locationId:$locationId  
-          country:$country
-          state:$state
-          municipality:$municipality
-          locality:$locality){
-            locationId            country
-            state
-            municipality
-            locality
-          }
-        }`;
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation addLocation(
+                      $locationId:ID!  
+                $country:String
+                $state:String
+                $municipality:String
+                $locality:String              ){
+                addLocation(                locationId:$locationId  
+                country:$country
+                state:$state
+                municipality:$municipality
+                locality:$locality){
+                  locationId                        country
+                        state
+                        municipality
+                        locality
+                      }
+              }`;
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new Location(res.data.data.addLocation);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new Location(res.data.data.addLocation);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
 
     static deleteOne(id) {
         let query = `
-          mutation
-            deleteLocation{
-              deleteLocation(
-                locationId: "${id}" )}`;
+              mutation
+                deleteLocation{
+                  deleteLocation(
+                    locationId: "${id}" )}`;
 
         return axios.post(url, {
             query: query
@@ -263,46 +267,46 @@ module.exports = class Location {
     }
 
     static updateOne(input) {
-        let query = `
-          mutation
-            updateLocation(
-              $locationId:ID! 
-              $country:String 
-              $state:String 
-              $municipality:String 
-              $locality:String             ){
-              updateLocation(
-                locationId:$locationId 
-                country:$country 
-                state:$state 
-                municipality:$municipality 
-                locality:$locality               ){
-                locationId 
-                country 
-                state 
-                municipality 
-                locality 
-              }
-            }`
+        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
+            .then(async (valSuccess) => {
+                let query = `
+              mutation
+                updateLocation(
+                  $locationId:ID! 
+                  $country:String 
+                  $state:String 
+                  $municipality:String 
+                  $locality:String                 ){
+                  updateLocation(
+                    locationId:$locationId 
+                    country:$country 
+                    state:$state 
+                    municipality:$municipality 
+                    locality:$locality                   ){
+                    locationId 
+                    country 
+                    state 
+                    municipality 
+                    locality 
+                  }
+                }`
 
-        return axios.post(url, {
-            query: query,
-            variables: input
-        }).then(res => {
-            //check
-            if (res && res.data && res.data.data) {
-                return new Location(res.data.data.updateLocation);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${url}`);
-            }
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
+                return axios.post(url, {
+                    query: query,
+                    variables: input
+                }).then(res => {
+                    //check
+                    if (res && res.data && res.data.data) {
+                        return new Location(res.data.data.updateLocation);
+                    } else {
+                        throw new Error(`Invalid response from remote cenz-server: ${url}`);
+                    }
+                }).catch(error => {
+                    error['url'] = url;
+                    handleError(error);
+                });
+            });
     }
-
-
-
 
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
@@ -336,6 +340,16 @@ module.exports = class Location {
             handleError(error);
         });
     }
+
+
+
+
+
+
+
+
+
+
 
     static get definition() {
         return definition;

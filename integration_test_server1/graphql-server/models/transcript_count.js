@@ -125,8 +125,6 @@ module.exports = class transcript_count extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 
@@ -263,8 +261,7 @@ module.exports = class transcript_count extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -465,6 +462,8 @@ module.exports = class transcript_count extends Sequelize.Model {
     }
 
 
+
+
     /**
      * add_individual_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -473,15 +472,19 @@ module.exports = class transcript_count extends Sequelize.Model {
      */
     static async add_individual_id(id, individual_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                individual_id: individual_id
-            }, {
-                where: {
-                    id: id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return transcript_count.update({
+                    individual_id: individual_id
+                }, {
+                    where: {
+                        id: id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -493,15 +496,19 @@ module.exports = class transcript_count extends Sequelize.Model {
      */
     static async add_aminoacidsequence_id(id, aminoacidsequence_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                aminoacidsequence_id: aminoacidsequence_id
-            }, {
-                where: {
-                    id: id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return transcript_count.update({
+                    aminoacidsequence_id: aminoacidsequence_id
+                }, {
+                    where: {
+                        id: id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -514,16 +521,20 @@ module.exports = class transcript_count extends Sequelize.Model {
      */
     static async remove_individual_id(id, individual_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                individual_id: null
-            }, {
-                where: {
-                    id: id,
-                    individual_id: individual_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return transcript_count.update({
+                    individual_id: null
+                }, {
+                    where: {
+                        id: id,
+                        individual_id: individual_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -535,19 +546,27 @@ module.exports = class transcript_count extends Sequelize.Model {
      */
     static async remove_aminoacidsequence_id(id, aminoacidsequence_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                aminoacidsequence_id: null
-            }, {
-                where: {
-                    id: id,
-                    aminoacidsequence_id: aminoacidsequence_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return transcript_count.update({
+                    aminoacidsequence_id: null
+                }, {
+                    where: {
+                        id: id,
+                        aminoacidsequence_id: aminoacidsequence_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
+
+
+
+
 
 
     /**

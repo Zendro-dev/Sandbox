@@ -98,8 +98,6 @@ module.exports = class capital extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 
@@ -236,8 +234,7 @@ module.exports = class capital extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -438,6 +435,8 @@ module.exports = class capital extends Sequelize.Model {
     }
 
 
+
+
     /**
      * add_country_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -446,15 +445,19 @@ module.exports = class capital extends Sequelize.Model {
      */
     static async add_country_id(capital_id, country_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return capital.update({
-                country_id: country_id
-            }, {
-                where: {
-                    capital_id: capital_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return capital.update({
+                    country_id: country_id
+                }, {
+                    where: {
+                        capital_id: capital_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -467,19 +470,27 @@ module.exports = class capital extends Sequelize.Model {
      */
     static async remove_country_id(capital_id, country_id) {
         let updated = await sequelize.transaction(async transaction => {
-            return capital.update({
-                country_id: null
-            }, {
-                where: {
-                    capital_id: capital_id,
-                    country_id: country_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return capital.update({
+                    country_id: null
+                }, {
+                    where: {
+                        capital_id: capital_id,
+                        country_id: country_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
+
+
+
+
 
 
     /**

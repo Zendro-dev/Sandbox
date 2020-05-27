@@ -107,8 +107,6 @@ module.exports = class Measurement extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
             .then((valSuccess) => {
                 return item
-            }).catch((err) => {
-                return err
             });
     }
 
@@ -245,8 +243,7 @@ module.exports = class Measurement extends Sequelize.Model {
             }
             //woptions: copy of {options} with only 'where' options
             let woptions = {};
-            woptions['where'] = {
-                ...options['where']
+            woptions['where'] = { ...options['where']
             };
             /*
              *  Count (with only where-options)
@@ -447,6 +444,8 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
 
+
+
     /**
      * add_accessionId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -455,15 +454,19 @@ module.exports = class Measurement extends Sequelize.Model {
      */
     static async add_accessionId(measurement_id, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
-            return Measurement.update({
-                accessionId: accessionId
-            }, {
-                where: {
-                    measurement_id: measurement_id
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return Measurement.update({
+                    accessionId: accessionId
+                }, {
+                    where: {
+                        measurement_id: measurement_id
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
@@ -476,19 +479,27 @@ module.exports = class Measurement extends Sequelize.Model {
      */
     static async remove_accessionId(measurement_id, accessionId) {
         let updated = await sequelize.transaction(async transaction => {
-            return Measurement.update({
-                accessionId: null
-            }, {
-                where: {
-                    measurement_id: measurement_id,
-                    accessionId: accessionId
-                }
-            }, {
-                transaction: transaction
-            })
+            try {
+                return Measurement.update({
+                    accessionId: null
+                }, {
+                    where: {
+                        measurement_id: measurement_id,
+                        accessionId: accessionId
+                    }
+                }, {
+                    transaction: transaction
+                })
+            } catch (error) {
+                throw error;
+            }
         });
         return updated;
     }
+
+
+
+
 
 
     /**
