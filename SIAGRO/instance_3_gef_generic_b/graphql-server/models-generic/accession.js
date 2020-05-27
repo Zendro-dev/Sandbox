@@ -41,12 +41,8 @@ const definition = {
     },
     associations: {
         individuals: {
-            type: 'to_many',
+            type: 'generic_to_many',
             target: 'Individual',
-            targetKey: 'accession_id',
-            keyIn: 'Individual',
-            targetStorageType: 'generic',
-            label: 'name',
             name: 'individuals',
             name_lc: 'individuals',
             name_cp: 'Individuals',
@@ -54,9 +50,19 @@ const definition = {
             target_lc_pl: 'individuals',
             target_pl: 'Individuals',
             target_cp: 'Individual',
-            target_cp_pl: 'Individuals',
-            keyIn_lc: 'individual',
-            holdsForeignKey: false
+            target_cp_pl: 'Individuals'
+        },
+        location: {
+            type: 'generic_to_one',
+            target: 'Location',
+            name: 'location',
+            name_lc: 'location',
+            name_cp: 'Location',
+            target_lc: 'location',
+            target_lc_pl: 'locations',
+            target_pl: 'Locations',
+            target_cp: 'Location',
+            target_cp_pl: 'Locations'
         },
         taxon: {
             type: 'to_one',
@@ -74,25 +80,6 @@ const definition = {
             target_pl: 'Taxons',
             target_cp: 'Taxon',
             target_cp_pl: 'Taxons',
-            keyIn_lc: 'accession',
-            holdsForeignKey: true
-        },
-        location: {
-            type: 'to_one',
-            target: 'Location',
-            targetKey: 'locationId',
-            keyIn: 'Accession',
-            targetStorageType: 'generic',
-            label: 'country',
-            sublabel: 'state',
-            name: 'location',
-            name_lc: 'location',
-            name_cp: 'Location',
-            target_lc: 'location',
-            target_lc_pl: 'locations',
-            target_pl: 'Locations',
-            target_cp: 'Location',
-            target_cp_pl: 'Locations',
             keyIn_lc: 'accession',
             holdsForeignKey: true
         },
@@ -129,7 +116,6 @@ module.exports = class Accession {
      *
      * @param  {obejct} input    Data for the new instances. Input for each field of the model.
      */
-
     constructor({
         accession_id,
         collectors_name,
@@ -212,6 +198,11 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(record)
      * 
+     * Thrown on:
+     *    * No record found.
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where record is an object with all its properties set from the record fetched.
      * @see: constructor() of the class Accession;
      * 
@@ -230,6 +221,10 @@ module.exports = class Accession {
      * countRecords - Count the number of records of model Accession that match the filters provided
      * in the @search parameter. Returns the number of records counted.
      * @see: Cenzontle specifications for search object.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {object} search Object with search filters.
      * @return {int} Number of records counted, that match the search filters.
@@ -253,6 +248,10 @@ module.exports = class Accession {
      * Returned value:
      *    for each record
      *    array.push( new Accession(record) )
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Accession;
@@ -282,6 +281,10 @@ module.exports = class Accession {
      * 
      * Returned value:
      *    { edges, pageInfo }
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Accession;
@@ -455,7 +458,7 @@ module.exports = class Accession {
      * on @input object.
      * Only if record was created successfully, returns an instance of this class 
      * (Accession), with all its properties set from the new record created.
-     * If this function fails to create the new record, returns null.
+     * If this function fails to create the new record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are set to 
@@ -467,12 +470,16 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(newRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where newRecord is an object with all its properties set from the new record created.
      * @see: constructor() of the class Accession;
      * 
      * @param  {String} id The id of the record that needs to be fetched.
-     * @return {Accession|null} If successfully created, returns an instance of 
-     * Accession class constructed with the new record, otherwise returns null.
+     * @return {Accession} If successfully created, returns an instance of 
+     * Accession class constructed with the new record, otherwise throws an error.
      */
     static async addOne(input) {
         /*
@@ -486,7 +493,7 @@ module.exports = class Accession {
      * of id attribute: 'accession_id', which should be on received as input.
      * Only if record was updated successfully, returns an instance of this class 
      * (Accession), with all its properties set from the record updated.
-     * If this function fails to update the record, returns null.
+     * If this function fails to update the record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are NOT
@@ -497,14 +504,18 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(updatedRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where updatedRecord is an object with all its properties set from the record updated.
      * @see: constructor() of the class Accession;
      * 
      * @param  {object} input Input with properties to be updated. The special id 
      * attribute: 'accession_id' should contains the id value of the record
      * that will be updated. 
-     * @return {Accession|null} If successfully created, returns an instance of 
-     * Accession class constructed with the new record, otherwise returns null.
+     * @return {Accession} If successfully created, returns an instance of 
+     * Accession class constructed with the new record, otherwise throws an error.
      */
     static async updateOne(input) {
         /*
@@ -516,10 +527,14 @@ module.exports = class Accession {
     /**
      * deleteOne - Delete the record whose id is equal to the @id received as parameter.
      * Only if record was deleted successfully, returns the id of the deleted record.
-     * If this function fails to delete the record, returns null.
+     * If this function fails to delete the record, should throw an error.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {String} id The id of the record that will be deleted.
-     * @return {int|null} id of the record deleted or null if the operation failed.
+     * @return {int} id of the record deleted or throws an error if the operation failed.
      */
     static async deleteOne(id) {
         /*
@@ -542,6 +557,47 @@ module.exports = class Accession {
         throw new Error('csvTableTemplateAccession is not implemented');
     }
 
+
+    async locationImpl({
+        search
+    }, context) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('locationImpl() is not implemented');
+    }
+
+    async individualsFilterImpl({
+        search,
+        order,
+        pagination
+    }, context) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('individualsFilterImpl() is not implemented');
+    }
+
+    async individualsConnectionImpl({
+        search,
+        order,
+        pagination
+    }, context) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('individualsConnectionImpl() is not implemented');
+    }
+
+    async countFilteredIndividualsImpl({
+        search
+    }, context) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('countFilteredIndividualsImpl() is not implemented');
+    }
+
     /**
      * add_taxon_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -552,19 +608,6 @@ module.exports = class Accession {
         let updated = await Accession.updateOne({
             accession_id: accession_id,
             taxon_id: taxon_id
-        });
-        return updated;
-    }
-    /**
-     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
-     *
-     * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async add_locationId(accession_id, locationId) {
-        let updated = await Accession.updateOne({
-            accession_id: accession_id,
-            locationId: locationId
         });
         return updated;
     }
@@ -582,18 +625,57 @@ module.exports = class Accession {
         });
         return updated;
     }
+
     /**
-     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * add_locationImpl - field Mutation (model-layer) for add new location association (generic_to_one). 
      *
-     * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Object}  accession_input Object with all the current attributes of the Accession model record to be updated,
+     *                  including info of input ids to add as association.
      */
-    static async remove_locationId(accession_id, locationId) {
-        let updated = await Accession.updateOne({
-            accession_id: accession_id,
-            locationId: null
-        });
-        return updated;
+    static async add_locationImpl(accession_input) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('add_locationImpl() is not implemented');
+    }
+
+    /**
+     * add_individualsImpl - field Mutation (model-layer) for add new individuals associations (generic_to_many). 
+     *
+     * @param {Object}  accession_input Object with all the current attributes of the Accession model record to be updated,
+     *                  including info of input ids to add as association. 
+     */
+    static async add_individualsImpl(accession_id, ids_to_add, accession_input) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('add_individualsImpl() is not implemented');
+    }
+
+    /**
+     * remove_locationImpl - field Mutation (model-layer) for remove new location association (generic_to_one). 
+     *
+     * @param {Object}  accession_input Object with all the current attributes of the Accession model record to be updated,
+     *                  including info of input ids to remove as association.
+     */
+    static async remove_locationImpl(accession_input) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('remove_locationImpl() is not implemented');
+    }
+
+    /**
+     * remove_individualsImpl - field Mutation (model-layer) for remove new individuals associations (generic_to_many). 
+     *
+     * @param {Object}  accession_input Object with all the current attributes of the Accession model record to be updated,
+     *                  including info of input ids to remove as association. 
+     */
+    static async remove_individualsImpl(accession_id, ids_to_remove, accession_input) {
+        /*
+        YOUR CODE GOES HERE
+        */
+        throw new Error('remove_individualsImpl() is not implemented');
     }
 
 

@@ -8,6 +8,8 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
+import Tooltip from '@material-ui/core/Tooltip';
 
 
 import StringField from './components/StringField'
@@ -40,6 +42,7 @@ export default function MeasurementAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -79,18 +82,35 @@ export default function MeasurementAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
+            {/*
+              Internal ID
+            */}
             {/* measurement_id */}
             <CardContent key='measurement_id' className={classes.cardContent} >
-              <StringField
-                itemKey='measurement_id'
-                name='measurement_id'
-                label='measurement_id'
-                valueOk={valueOkStates.measurement_id}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+
+                  <StringField
+                    itemKey='measurement_id'
+                    name='measurement_id'
+                    label='measurement_id'
+                    valueOk={valueOkStates.measurement_id}
+                    valueAjv={valueAjvStates.measurement_id}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+
+                </Grid>
+
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* name */}
             <CardContent key='name' className={classes.cardContent} >
@@ -99,6 +119,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='name'
                 label='name'
                 valueOk={valueOkStates.name}
+                valueAjv={valueAjvStates.name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -110,6 +131,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='method'
                 label='method'
                 valueOk={valueOkStates.method}
+                valueAjv={valueAjvStates.method}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -121,6 +143,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='reference'
                 label='reference'
                 valueOk={valueOkStates.reference}
+                valueAjv={valueAjvStates.reference}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -132,6 +155,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='reference_link'
                 label='reference_link'
                 valueOk={valueOkStates.reference_link}
+                valueAjv={valueAjvStates.reference_link}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -143,6 +167,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='value'
                 label='value'
                 valueOk={valueOkStates.value}
+                valueAjv={valueAjvStates.value}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -154,6 +179,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='unit'
                 label='unit'
                 valueOk={valueOkStates.unit}
+                valueAjv={valueAjvStates.unit}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -165,6 +191,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='short_name'
                 label='short_name'
                 valueOk={valueOkStates.short_name}
+                valueAjv={valueAjvStates.short_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -176,6 +203,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='comments'
                 label='comments'
                 valueOk={valueOkStates.comments}
+                valueAjv={valueAjvStates.comments}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -187,6 +215,7 @@ export default function MeasurementAttributesFormView(props) {
                 name='field_unit_id'
                 label='field_unit_id'
                 valueOk={valueOkStates.field_unit_id}
+                valueAjv={valueAjvStates.field_unit_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -199,5 +228,6 @@ export default function MeasurementAttributesFormView(props) {
 }
 MeasurementAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

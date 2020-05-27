@@ -129,7 +129,6 @@ module.exports = class Accession {
      *
      * @param  {obejct} input    Data for the new instances. Input for each field of the model.
      */
-
     constructor({
         accession_id,
         collectors_name,
@@ -212,6 +211,11 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(record)
      * 
+     * Thrown on:
+     *    * No record found.
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where record is an object with all its properties set from the record fetched.
      * @see: constructor() of the class Accession;
      * 
@@ -230,6 +234,10 @@ module.exports = class Accession {
      * countRecords - Count the number of records of model Accession that match the filters provided
      * in the @search parameter. Returns the number of records counted.
      * @see: Cenzontle specifications for search object.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {object} search Object with search filters.
      * @return {int} Number of records counted, that match the search filters.
@@ -253,6 +261,10 @@ module.exports = class Accession {
      * Returned value:
      *    for each record
      *    array.push( new Accession(record) )
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Accession;
@@ -282,6 +294,10 @@ module.exports = class Accession {
      * 
      * Returned value:
      *    { edges, pageInfo }
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Accession;
@@ -455,7 +471,7 @@ module.exports = class Accession {
      * on @input object.
      * Only if record was created successfully, returns an instance of this class 
      * (Accession), with all its properties set from the new record created.
-     * If this function fails to create the new record, returns null.
+     * If this function fails to create the new record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are set to 
@@ -467,12 +483,16 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(newRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where newRecord is an object with all its properties set from the new record created.
      * @see: constructor() of the class Accession;
      * 
      * @param  {String} id The id of the record that needs to be fetched.
-     * @return {Accession|null} If successfully created, returns an instance of 
-     * Accession class constructed with the new record, otherwise returns null.
+     * @return {Accession} If successfully created, returns an instance of 
+     * Accession class constructed with the new record, otherwise throws an error.
      */
     static async addOne(input) {
         /*
@@ -486,7 +506,7 @@ module.exports = class Accession {
      * of id attribute: 'accession_id', which should be on received as input.
      * Only if record was updated successfully, returns an instance of this class 
      * (Accession), with all its properties set from the record updated.
-     * If this function fails to update the record, returns null.
+     * If this function fails to update the record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are NOT
@@ -497,14 +517,18 @@ module.exports = class Accession {
      * Returned value:
      *    new Accession(updatedRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where updatedRecord is an object with all its properties set from the record updated.
      * @see: constructor() of the class Accession;
      * 
      * @param  {object} input Input with properties to be updated. The special id 
      * attribute: 'accession_id' should contains the id value of the record
      * that will be updated. 
-     * @return {Accession|null} If successfully created, returns an instance of 
-     * Accession class constructed with the new record, otherwise returns null.
+     * @return {Accession} If successfully created, returns an instance of 
+     * Accession class constructed with the new record, otherwise throws an error.
      */
     static async updateOne(input) {
         /*
@@ -516,10 +540,14 @@ module.exports = class Accession {
     /**
      * deleteOne - Delete the record whose id is equal to the @id received as parameter.
      * Only if record was deleted successfully, returns the id of the deleted record.
-     * If this function fails to delete the record, returns null.
+     * If this function fails to delete the record, should throw an error.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {String} id The id of the record that will be deleted.
-     * @return {int|null} id of the record deleted or null if the operation failed.
+     * @return {int} id of the record deleted or throws an error if the operation failed.
      */
     static async deleteOne(id) {
         /*
@@ -541,6 +569,7 @@ module.exports = class Accession {
         */
         throw new Error('csvTableTemplateAccession is not implemented');
     }
+
 
     /**
      * add_taxon_id - field Mutation (model-layer) for to_one associationsArguments to add 
@@ -595,6 +624,10 @@ module.exports = class Accession {
         });
         return updated;
     }
+
+
+
+
 
 
     static base64Decode(cursor) {

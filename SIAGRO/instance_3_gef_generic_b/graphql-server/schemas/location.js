@@ -122,7 +122,8 @@ module.exports = `
     @count-request
     """
     countFilteredAccessions(search: searchAccessionInput) : Int
-  }
+  
+    }
 type LocationConnection{
   edges: [LocationEdge]
   pageInfo: pageInfo!
@@ -184,8 +185,8 @@ type LocationEdge{
     locationsConnection(search:searchLocationInput, order: [ orderLocationInput ], pagination: paginationCursorInput ): LocationConnection
   }
     type Mutation {
-    addLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String, latitude: Float, longitude: Float, altitude: Float, natural_area: String, natural_area_name: String, georeference_method: String, georeference_source: String, datum: String, vegetation: String, stoniness: String, sewer: String, topography: String, slope: Float  , addAccessions:[ID], skipAssociationsExistenceChecks:Boolean = false): Location!
-    updateLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String, latitude: Float, longitude: Float, altitude: Float, natural_area: String, natural_area_name: String, georeference_method: String, georeference_source: String, datum: String, vegetation: String, stoniness: String, sewer: String, topography: String, slope: Float  , addAccessions:[ID], removeAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Location!
+    addLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String, latitude: Float, longitude: Float, altitude: Float, natural_area: String, natural_area_name: String, georeference_method: String, georeference_source: String, datum: String, vegetation: String, stoniness: String, sewer: String, topography: String, slope: Float   , addAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Location!
+    updateLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String, latitude: Float, longitude: Float, altitude: Float, natural_area: String, natural_area_name: String, georeference_method: String, georeference_source: String, datum: String, vegetation: String, stoniness: String, sewer: String, topography: String, slope: Float   , addAccessions:[ID], removeAccessions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Location!
   deleteLocation(locationId: ID!): String!
   bulkAddLocationCsv: [Location] }
 

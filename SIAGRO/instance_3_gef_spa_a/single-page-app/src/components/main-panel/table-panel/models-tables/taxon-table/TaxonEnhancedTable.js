@@ -724,7 +724,7 @@ export default function TaxonEnhancedTable(props) {
         }
 
         //check: csvTableTemplateTaxon type
-        if(typeof csvTableTemplateTaxon !== 'string') {
+        if(!Array.isArray(csvTableTemplateTaxon)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1303,17 +1303,18 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-
-                                {/* Id */}
+                                {/* id*/}
                                 <TableCell
                                   key='id'
                                   align='left'
-                                  padding="default"
+                                  padding="checkbox"
                                 >
-                                  {String((item.id!==null)?item.id:'')}
+                                  <Tooltip title={ 'id: ' + item.id}>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
+                                  </Tooltip>
                                 </TableCell>
 
-                                {/* Taxon */}
+                                {/* taxon */}
                                 <TableCell
                                   key='taxon'
                                   align='left'
@@ -1322,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.taxon!==null)?item.taxon:'')}
                                 </TableCell>
 
-                                {/* Categoria */}
+                                {/* categoria */}
                                 <TableCell
                                   key='categoria'
                                   align='left'
@@ -1331,7 +1332,7 @@ function resetReloadData() {
                                   {String((item.categoria!==null)?item.categoria:'')}
                                 </TableCell>
 
-                                {/* Estatus */}
+                                {/* estatus */}
                                 <TableCell
                                   key='estatus'
                                   align='left'
@@ -1340,7 +1341,7 @@ function resetReloadData() {
                                   {String((item.estatus!==null)?item.estatus:'')}
                                 </TableCell>
 
-                                {/* NombreAutoridad */}
+                                {/* nombreAutoridad */}
                                 <TableCell
                                   key='nombreAutoridad'
                                   align='left'
@@ -1349,7 +1350,7 @@ function resetReloadData() {
                                   {String((item.nombreAutoridad!==null)?item.nombreAutoridad:'')}
                                 </TableCell>
 
-                                {/* CitaNomenclatural */}
+                                {/* citaNomenclatural */}
                                 <TableCell
                                   key='citaNomenclatural'
                                   align='left'
@@ -1358,7 +1359,7 @@ function resetReloadData() {
                                   {String((item.citaNomenclatural!==null)?item.citaNomenclatural:'')}
                                 </TableCell>
 
-                                {/* Fuente */}
+                                {/* fuente */}
                                 <TableCell
                                   key='fuente'
                                   align='left'
@@ -1367,7 +1368,7 @@ function resetReloadData() {
                                   {String((item.fuente!==null)?item.fuente:'')}
                                 </TableCell>
 
-                                {/* Ambiente */}
+                                {/* ambiente */}
                                 <TableCell
                                   key='ambiente'
                                   align='left'
@@ -1376,7 +1377,7 @@ function resetReloadData() {
                                   {String((item.ambiente!==null)?item.ambiente:'')}
                                 </TableCell>
 
-                                {/* GrupoSNIB */}
+                                {/* grupoSNIB */}
                                 <TableCell
                                   key='grupoSNIB'
                                   align='left'
@@ -1385,7 +1386,7 @@ function resetReloadData() {
                                   {String((item.grupoSNIB!==null)?item.grupoSNIB:'')}
                                 </TableCell>
 
-                                {/* CategoriaResidencia */}
+                                {/* categoriaResidencia */}
                                 <TableCell
                                   key='categoriaResidencia'
                                   align='left'
@@ -1394,7 +1395,7 @@ function resetReloadData() {
                                   {String((item.categoriaResidencia!==null)?item.categoriaResidencia:'')}
                                 </TableCell>
 
-                                {/* Nom */}
+                                {/* nom */}
                                 <TableCell
                                   key='nom'
                                   align='left'
@@ -1403,7 +1404,7 @@ function resetReloadData() {
                                   {String((item.nom!==null)?item.nom:'')}
                                 </TableCell>
 
-                                {/* Cites */}
+                                {/* cites */}
                                 <TableCell
                                   key='cites'
                                   align='left'
@@ -1412,7 +1413,7 @@ function resetReloadData() {
                                   {String((item.cites!==null)?item.cites:'')}
                                 </TableCell>
 
-                                {/* Iucn */}
+                                {/* iucn */}
                                 <TableCell
                                   key='iucn'
                                   align='left'
@@ -1421,7 +1422,7 @@ function resetReloadData() {
                                   {String((item.iucn!==null)?item.iucn:'')}
                                 </TableCell>
 
-                                {/* Prioritarias */}
+                                {/* prioritarias */}
                                 <TableCell
                                   key='prioritarias'
                                   align='left'
@@ -1430,7 +1431,7 @@ function resetReloadData() {
                                   {String((item.prioritarias!==null)?item.prioritarias:'')}
                                 </TableCell>
 
-                                {/* Endemismo */}
+                                {/* endemismo */}
                                 <TableCell
                                   key='endemismo'
                                   align='left'

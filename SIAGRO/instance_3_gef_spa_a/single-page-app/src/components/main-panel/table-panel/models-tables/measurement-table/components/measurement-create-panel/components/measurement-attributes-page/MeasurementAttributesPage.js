@@ -15,6 +15,7 @@ export default function MeasurementAttributesPage(props) {
   const classes = useStyles();
   const {
     valueOkStates,
+    valueAjvStates,
     foreignKeys,
     hidden,
     handleSetValue,
@@ -33,6 +34,7 @@ export default function MeasurementAttributesPage(props) {
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <MeasurementAttributesFormView
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               foreignKeys={foreignKeys}
               handleSetValue={handleSetValue}
             />
@@ -44,6 +46,7 @@ export default function MeasurementAttributesPage(props) {
 }
 MeasurementAttributesPage.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
     foreignKeys: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,

@@ -101,6 +101,8 @@ user.prototype.countFilteredRoles = function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -140,6 +142,11 @@ user.prototype.add_roles = async function(input) {
 user.prototype.remove_roles = async function(input) {
     await models.user.remove_roleId(this, input.removeRoles);
 }
+
+
+
+
+
 
 
 
@@ -205,15 +212,21 @@ async function countAllAssociatedRecords(id, context) {
     if (user === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let promises_generic_to_many = [];
+    let promises_generic_to_one = [];
 
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
+    let result_to_many = await Promise.all(promises_generic_to_many);
+    let result_to_one = await Promise.all(promises_generic_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
+    let get_generic_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_generic_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated + get_generic_to_many_associated + get_generic_to_one_associated;
 }
 
 /**

@@ -8,6 +8,8 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
+import Tooltip from '@material-ui/core/Tooltip';
 
 
 import StringField from './components/StringField'
@@ -38,6 +40,7 @@ export default function IndividualAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -77,18 +80,35 @@ export default function IndividualAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
+            {/*
+              Internal ID
+            */}
             {/* name */}
             <CardContent key='name' className={classes.cardContent} >
-              <StringField
-                itemKey='name'
-                name='name'
-                label='name'
-                valueOk={valueOkStates.name}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+
+                  <StringField
+                    itemKey='name'
+                    name='name'
+                    label='name'
+                    valueOk={valueOkStates.name}
+                    valueAjv={valueAjvStates.name}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+
+                </Grid>
+
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* origin */}
             <CardContent key='origin' className={classes.cardContent} >
@@ -97,6 +117,7 @@ export default function IndividualAttributesFormView(props) {
                 name='origin'
                 label='origin'
                 valueOk={valueOkStates.origin}
+                valueAjv={valueAjvStates.origin}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -108,6 +129,7 @@ export default function IndividualAttributesFormView(props) {
                 name='description'
                 label='description'
                 valueOk={valueOkStates.description}
+                valueAjv={valueAjvStates.description}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -119,6 +141,7 @@ export default function IndividualAttributesFormView(props) {
                 name='genotypeId'
                 label='genotypeId'
                 valueOk={valueOkStates.genotypeId}
+                valueAjv={valueAjvStates.genotypeId}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -130,6 +153,7 @@ export default function IndividualAttributesFormView(props) {
                 name='field_unit_id'
                 label='field_unit_id'
                 valueOk={valueOkStates.field_unit_id}
+                valueAjv={valueAjvStates.field_unit_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -142,5 +166,6 @@ export default function IndividualAttributesFormView(props) {
 }
 IndividualAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

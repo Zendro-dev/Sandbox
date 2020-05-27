@@ -15,6 +15,7 @@ export default function UserAttributesPage(props) {
   const classes = useStyles();
   const {
     valueOkStates,
+    valueAjvStates,
     hidden,
     handleSetValue,
   } = props;
@@ -32,6 +33,7 @@ export default function UserAttributesPage(props) {
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <UserAttributesFormView
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -42,6 +44,7 @@ export default function UserAttributesPage(props) {
 }
 UserAttributesPage.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

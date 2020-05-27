@@ -724,7 +724,7 @@ export default function UserEnhancedTable(props) {
         }
 
         //check: csvTableTemplateUser type
-        if(typeof csvTableTemplateUser !== 'string') {
+        if(!Array.isArray(csvTableTemplateUser)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1314,7 +1314,7 @@ function resetReloadData() {
                                   </Tooltip>
                                 </TableCell>
 
-                                {/* Email */}
+                                {/* email */}
                                 <TableCell
                                   key='email'
                                   align='left'
@@ -1323,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.email!==null)?item.email:'')}
                                 </TableCell>
 
-                                {/* Password */}
+                                {/* password */}
                                 <TableCell
                                   key='password'
                                   align='left'

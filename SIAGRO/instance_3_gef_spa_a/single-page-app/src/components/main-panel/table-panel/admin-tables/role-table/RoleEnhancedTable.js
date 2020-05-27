@@ -724,7 +724,7 @@ export default function RoleEnhancedTable(props) {
         }
 
         //check: csvTableTemplateRole type
-        if(typeof csvTableTemplateRole !== 'string') {
+        if(!Array.isArray(csvTableTemplateRole)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1314,7 +1314,7 @@ function resetReloadData() {
                                   </Tooltip>
                                 </TableCell>
 
-                                {/* Name */}
+                                {/* name */}
                                 <TableCell
                                   key='name'
                                   align='left'
@@ -1323,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.name!==null)?item.name:'')}
                                 </TableCell>
 
-                                {/* Description */}
+                                {/* description */}
                                 <TableCell
                                   key='description'
                                   align='left'

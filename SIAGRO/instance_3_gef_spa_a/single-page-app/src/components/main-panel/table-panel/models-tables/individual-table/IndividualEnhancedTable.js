@@ -724,7 +724,7 @@ export default function IndividualEnhancedTable(props) {
         }
 
         //check: csvTableTemplateIndividual type
-        if(typeof csvTableTemplateIndividual !== 'string') {
+        if(!Array.isArray(csvTableTemplateIndividual)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1303,17 +1303,18 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-
-                                {/* Name */}
+                                {/* name*/}
                                 <TableCell
                                   key='name'
                                   align='left'
-                                  padding="default"
+                                  padding="checkbox"
                                 >
-                                  {String((item.name!==null)?item.name:'')}
+                                  <Tooltip title={ 'name: ' + item.name}>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.name}</Typography>
+                                  </Tooltip>
                                 </TableCell>
 
-                                {/* Origin */}
+                                {/* origin */}
                                 <TableCell
                                   key='origin'
                                   align='left'
@@ -1322,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.origin!==null)?item.origin:'')}
                                 </TableCell>
 
-                                {/* Description */}
+                                {/* description */}
                                 <TableCell
                                   key='description'
                                   align='left'
@@ -1331,7 +1332,7 @@ function resetReloadData() {
                                   {String((item.description!==null)?item.description:'')}
                                 </TableCell>
 
-                                {/* Accession_id */}
+                                {/* accession_id */}
                                 <TableCell
                                   key='accession_id'
                                   align='left'
@@ -1340,7 +1341,7 @@ function resetReloadData() {
                                   {String((item.accession_id!==null)?item.accession_id:'')}
                                 </TableCell>
 
-                                {/* GenotypeId */}
+                                {/* genotypeId */}
                                 <TableCell
                                   key='genotypeId'
                                   align='right'
@@ -1349,7 +1350,7 @@ function resetReloadData() {
                                   {String((item.genotypeId!==null)?item.genotypeId:'')}
                                 </TableCell>
 
-                                {/* Field_unit_id */}
+                                {/* field_unit_id */}
                                 <TableCell
                                   key='field_unit_id'
                                   align='right'

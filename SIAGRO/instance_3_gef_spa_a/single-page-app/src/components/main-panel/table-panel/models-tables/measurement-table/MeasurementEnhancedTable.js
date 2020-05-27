@@ -724,7 +724,7 @@ export default function MeasurementEnhancedTable(props) {
         }
 
         //check: csvTableTemplateMeasurement type
-        if(typeof csvTableTemplateMeasurement !== 'string') {
+        if(!Array.isArray(csvTableTemplateMeasurement)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1303,17 +1303,18 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-
-                                {/* Measurement_id */}
+                                {/* measurement_id*/}
                                 <TableCell
                                   key='measurement_id'
                                   align='left'
-                                  padding="default"
+                                  padding="checkbox"
                                 >
-                                  {String((item.measurement_id!==null)?item.measurement_id:'')}
+                                  <Tooltip title={ 'measurement_id: ' + item.measurement_id}>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.measurement_id}</Typography>
+                                  </Tooltip>
                                 </TableCell>
 
-                                {/* Name */}
+                                {/* name */}
                                 <TableCell
                                   key='name'
                                   align='left'
@@ -1322,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.name!==null)?item.name:'')}
                                 </TableCell>
 
-                                {/* Method */}
+                                {/* method */}
                                 <TableCell
                                   key='method'
                                   align='left'
@@ -1331,7 +1332,7 @@ function resetReloadData() {
                                   {String((item.method!==null)?item.method:'')}
                                 </TableCell>
 
-                                {/* Reference */}
+                                {/* reference */}
                                 <TableCell
                                   key='reference'
                                   align='left'
@@ -1340,7 +1341,7 @@ function resetReloadData() {
                                   {String((item.reference!==null)?item.reference:'')}
                                 </TableCell>
 
-                                {/* Reference_link */}
+                                {/* reference_link */}
                                 <TableCell
                                   key='reference_link'
                                   align='left'
@@ -1349,7 +1350,7 @@ function resetReloadData() {
                                   {String((item.reference_link!==null)?item.reference_link:'')}
                                 </TableCell>
 
-                                {/* Value */}
+                                {/* value */}
                                 <TableCell
                                   key='value'
                                   align='right'
@@ -1358,7 +1359,7 @@ function resetReloadData() {
                                   {String((item.value!==null)?item.value:'')}
                                 </TableCell>
 
-                                {/* Unit */}
+                                {/* unit */}
                                 <TableCell
                                   key='unit'
                                   align='left'
@@ -1367,7 +1368,7 @@ function resetReloadData() {
                                   {String((item.unit!==null)?item.unit:'')}
                                 </TableCell>
 
-                                {/* Short_name */}
+                                {/* short_name */}
                                 <TableCell
                                   key='short_name'
                                   align='left'
@@ -1376,7 +1377,7 @@ function resetReloadData() {
                                   {String((item.short_name!==null)?item.short_name:'')}
                                 </TableCell>
 
-                                {/* Comments */}
+                                {/* comments */}
                                 <TableCell
                                   key='comments'
                                   align='left'
@@ -1385,7 +1386,7 @@ function resetReloadData() {
                                   {String((item.comments!==null)?item.comments:'')}
                                 </TableCell>
 
-                                {/* Field_unit_id */}
+                                {/* field_unit_id */}
                                 <TableCell
                                   key='field_unit_id'
                                   align='right'
@@ -1394,7 +1395,7 @@ function resetReloadData() {
                                   {String((item.field_unit_id!==null)?item.field_unit_id:'')}
                                 </TableCell>
 
-                                {/* Individual_id */}
+                                {/* individual_id */}
                                 <TableCell
                                   key='individual_id'
                                   align='left'
@@ -1403,7 +1404,7 @@ function resetReloadData() {
                                   {String((item.individual_id!==null)?item.individual_id:'')}
                                 </TableCell>
 
-                                {/* Accession_id */}
+                                {/* accession_id */}
                                 <TableCell
                                   key='accession_id'
                                   align='left'

@@ -724,7 +724,7 @@ export default function LocationEnhancedTable(props) {
         }
 
         //check: csvTableTemplateLocation type
-        if(typeof csvTableTemplateLocation !== 'string') {
+        if(!Array.isArray(csvTableTemplateLocation)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1303,17 +1303,18 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-
-                                {/* LocationId */}
+                                {/* locationId*/}
                                 <TableCell
                                   key='locationId'
                                   align='left'
-                                  padding="default"
+                                  padding="checkbox"
                                 >
-                                  {String((item.locationId!==null)?item.locationId:'')}
+                                  <Tooltip title={ 'locationId: ' + item.locationId}>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.locationId}</Typography>
+                                  </Tooltip>
                                 </TableCell>
 
-                                {/* Country */}
+                                {/* country */}
                                 <TableCell
                                   key='country'
                                   align='left'
@@ -1322,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.country!==null)?item.country:'')}
                                 </TableCell>
 
-                                {/* State */}
+                                {/* state */}
                                 <TableCell
                                   key='state'
                                   align='left'
@@ -1331,7 +1332,7 @@ function resetReloadData() {
                                   {String((item.state!==null)?item.state:'')}
                                 </TableCell>
 
-                                {/* Municipality */}
+                                {/* municipality */}
                                 <TableCell
                                   key='municipality'
                                   align='left'
@@ -1340,7 +1341,7 @@ function resetReloadData() {
                                   {String((item.municipality!==null)?item.municipality:'')}
                                 </TableCell>
 
-                                {/* Locality */}
+                                {/* locality */}
                                 <TableCell
                                   key='locality'
                                   align='left'
@@ -1349,7 +1350,7 @@ function resetReloadData() {
                                   {String((item.locality!==null)?item.locality:'')}
                                 </TableCell>
 
-                                {/* Latitude */}
+                                {/* latitude */}
                                 <TableCell
                                   key='latitude'
                                   align='right'
@@ -1358,7 +1359,7 @@ function resetReloadData() {
                                   {String((item.latitude!==null)?item.latitude:'')}
                                 </TableCell>
 
-                                {/* Longitude */}
+                                {/* longitude */}
                                 <TableCell
                                   key='longitude'
                                   align='right'
@@ -1367,7 +1368,7 @@ function resetReloadData() {
                                   {String((item.longitude!==null)?item.longitude:'')}
                                 </TableCell>
 
-                                {/* Altitude */}
+                                {/* altitude */}
                                 <TableCell
                                   key='altitude'
                                   align='right'
@@ -1376,7 +1377,7 @@ function resetReloadData() {
                                   {String((item.altitude!==null)?item.altitude:'')}
                                 </TableCell>
 
-                                {/* Natural_area */}
+                                {/* natural_area */}
                                 <TableCell
                                   key='natural_area'
                                   align='left'
@@ -1385,7 +1386,7 @@ function resetReloadData() {
                                   {String((item.natural_area!==null)?item.natural_area:'')}
                                 </TableCell>
 
-                                {/* Natural_area_name */}
+                                {/* natural_area_name */}
                                 <TableCell
                                   key='natural_area_name'
                                   align='left'
@@ -1394,7 +1395,7 @@ function resetReloadData() {
                                   {String((item.natural_area_name!==null)?item.natural_area_name:'')}
                                 </TableCell>
 
-                                {/* Georeference_method */}
+                                {/* georeference_method */}
                                 <TableCell
                                   key='georeference_method'
                                   align='left'
@@ -1403,7 +1404,7 @@ function resetReloadData() {
                                   {String((item.georeference_method!==null)?item.georeference_method:'')}
                                 </TableCell>
 
-                                {/* Georeference_source */}
+                                {/* georeference_source */}
                                 <TableCell
                                   key='georeference_source'
                                   align='left'
@@ -1412,7 +1413,7 @@ function resetReloadData() {
                                   {String((item.georeference_source!==null)?item.georeference_source:'')}
                                 </TableCell>
 
-                                {/* Datum */}
+                                {/* datum */}
                                 <TableCell
                                   key='datum'
                                   align='left'
@@ -1421,7 +1422,7 @@ function resetReloadData() {
                                   {String((item.datum!==null)?item.datum:'')}
                                 </TableCell>
 
-                                {/* Vegetation */}
+                                {/* vegetation */}
                                 <TableCell
                                   key='vegetation'
                                   align='left'
@@ -1430,7 +1431,7 @@ function resetReloadData() {
                                   {String((item.vegetation!==null)?item.vegetation:'')}
                                 </TableCell>
 
-                                {/* Stoniness */}
+                                {/* stoniness */}
                                 <TableCell
                                   key='stoniness'
                                   align='left'
@@ -1439,7 +1440,7 @@ function resetReloadData() {
                                   {String((item.stoniness!==null)?item.stoniness:'')}
                                 </TableCell>
 
-                                {/* Sewer */}
+                                {/* sewer */}
                                 <TableCell
                                   key='sewer'
                                   align='left'
@@ -1448,7 +1449,7 @@ function resetReloadData() {
                                   {String((item.sewer!==null)?item.sewer:'')}
                                 </TableCell>
 
-                                {/* Topography */}
+                                {/* topography */}
                                 <TableCell
                                   key='topography'
                                   align='left'
@@ -1457,7 +1458,7 @@ function resetReloadData() {
                                   {String((item.topography!==null)?item.topography:'')}
                                 </TableCell>
 
-                                {/* Slope */}
+                                {/* slope */}
                                 <TableCell
                                   key='slope'
                                   align='right'

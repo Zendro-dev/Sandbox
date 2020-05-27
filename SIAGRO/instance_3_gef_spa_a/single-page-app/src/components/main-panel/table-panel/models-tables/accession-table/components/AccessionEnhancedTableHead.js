@@ -6,6 +6,9 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Tooltip from '@material-ui/core/Tooltip';
+import Key from '@material-ui/icons/VpnKey';
 
 export default function AccessionEnhancedTableHead(props) {
   const { t } = useTranslation();
@@ -51,22 +54,29 @@ export default function AccessionEnhancedTableHead(props) {
           Headers 
         */}
 
-
+        {/* accession_id*/}
         <TableCell
           key='accession_id'
           align='left'
-          padding="default"
+          padding="checkbox"
           sortDirection={orderBy === 'accession_id' ? order : false}
         >
-          {/* accession_id */}
           <TableSortLabel
-              active={orderBy === 'accession_id'}
-              direction={order}
-              onClick={(event) => {onRequestSort(event, 'accession_id')}}
+            active={orderBy === 'accession_id'}
+            direction={order}
+            onClick={(event) => { onRequestSort(event, 'accession_id') }}
           >
-            <Typography color="inherit" variant="caption">
-              accession_id
-            </Typography>
+          <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+            <Grid item>
+              <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Typography color="inherit" variant="caption" display='inline' noWrap={true}>
+                accession_id              </Typography>
+            </Grid>
+          </Grid>
           </TableSortLabel>
         </TableCell>
 

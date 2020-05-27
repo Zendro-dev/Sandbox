@@ -65,6 +65,7 @@ export default function MeasurementCreatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const [foreignKeys, setForeignKeys] = useState({});
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -78,6 +79,7 @@ export default function MeasurementCreatePanel(props) {
 
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
+  const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
   const [accessionIdsToAddState, setAccessionIdsToAddState] = useState([]);
   const accessionIdsToAdd = useRef([]);
@@ -218,6 +220,25 @@ export default function MeasurementCreatePanel(props) {
     return initialValueOkStates;
   }
 
+  function getInitialValueAjvStates() {
+    let _initialValueAjvStates = {};
+
+    _initialValueAjvStates.measurement_id = {errors: []};
+    _initialValueAjvStates.name = {errors: []};
+    _initialValueAjvStates.method = {errors: []};
+    _initialValueAjvStates.reference = {errors: []};
+    _initialValueAjvStates.reference_link = {errors: []};
+    _initialValueAjvStates.value = {errors: []};
+    _initialValueAjvStates.unit = {errors: []};
+    _initialValueAjvStates.short_name = {errors: []};
+    _initialValueAjvStates.comments = {errors: []};
+    _initialValueAjvStates.field_unit_id = {errors: []};
+    _initialValueAjvStates.individual_id = {errors: []}; //FK
+    _initialValueAjvStates.accession_id = {errors: []}; //FK
+
+    return _initialValueAjvStates;
+  }
+
   function areThereAcceptableFields() {
     let a = Object.entries(valueOkStates);
     for(let i=0; i<a.length; ++i) {
@@ -262,6 +283,48 @@ export default function MeasurementCreatePanel(props) {
       variables.addIndividual = individualIdsToAdd.current[0];
     } else {
       //do nothing
+    }
+  }
+
+  function setAjvErrors(err) {
+    //check
+    if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
+      let errors = err.response.data.errors;
+      
+      //for each error
+      for(let i=0; i<errors.length; ++i) {
+        let e=errors[i];
+        //check
+        if(e && typeof e === 'object' && Array.isArray(e.details)){
+          let details = e.details;
+          
+          for(let d=0; d<details.length; ++d) {
+            let detail = details[d];
+
+            //check
+            if(detail && typeof detail === 'object' && detail.dataPath && detail.message) {
+              /**
+               * In this point, the error is considered as an AJV error.
+               * 
+               * It will be set in a ajvStatus reference and at the end of this function 
+               * the ajvStatus state will be updated.
+               */
+              //set reference
+              addAjvErrorToField(detail);
+            }
+          }
+        }
+      }
+      //update state
+      setValueAjvStates({...valuesAjvRefs.current});
+    }
+  }
+
+  function addAjvErrorToField(error) {
+    let dataPath = error.dataPath.slice(1);
+    
+    if(valuesAjvRefs.current[dataPath] !== undefined){
+      valuesAjvRefs.current[dataPath].errors.push(error.message);
     }
   }
 
@@ -402,6 +465,10 @@ export default function MeasurementCreatePanel(props) {
         if(err.isCanceled) {
           return
         } else {
+          //set ajv errors
+          setAjvErrors(err);
+
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -691,6 +758,7 @@ export default function MeasurementCreatePanel(props) {
             <MeasurementAttributesPage
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />

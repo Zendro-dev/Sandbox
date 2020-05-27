@@ -369,9 +369,6 @@ export default function TaxonUpdatePanel(props) {
 
 
 function setAjvErrors(err) {
-    //clear
-    valuesAjvRefs.current = getInitialValueAjvStates();
-    
     //check
     if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
       let errors = err.response.data.errors;
@@ -388,13 +385,11 @@ function setAjvErrors(err) {
 
             //check
             if(detail && typeof detail === 'object' && detail.dataPath && detail.message) {
-              console.log("@@Ajv error found: ", detail);
-
               /**
                * In this point, the error is considered as an AJV error.
                * 
-               * will be set to a okStatus reference and at the end of this function 
-               * the okStatus state will be updated.
+               * It will be set in a ajvStatus reference and at the end of this function 
+               * the ajvStatus state will be updated.
                */
               //set reference
               addAjvErrorToField(detail);
@@ -425,6 +420,7 @@ function setAjvErrors(err) {
     */
   function doSave(event) {
     errors.current = [];
+    valuesAjvRefs.current = getInitialValueAjvStates();
 
     /*
       Variables setup

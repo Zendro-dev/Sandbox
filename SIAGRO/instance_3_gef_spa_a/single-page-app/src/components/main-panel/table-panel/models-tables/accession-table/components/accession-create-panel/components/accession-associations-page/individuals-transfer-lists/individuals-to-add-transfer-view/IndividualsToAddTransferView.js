@@ -1457,8 +1457,8 @@ export default function IndividualsToAddTransferView(props) {
                   <List dense component="div" role="list" >
                     {items.map(it => {
                       let key = it.name;
-                      let label = it.name;
-                      let sublabel = undefined;
+                      let label = it.origin;
+                      let sublabel = it.description;
                       
                       return (
                         <ListItem key={key} 
@@ -1689,8 +1689,8 @@ export default function IndividualsToAddTransferView(props) {
                   <List dense component="div" role="list">
                     {itemsB.map(it => {
                       let key = it.name;
-                      let label = it.name;
-                      let sublabel = undefined;
+                      let label = it.origin;
+                      let sublabel = it.description;
                       
                       return (
                         <ListItem key={key} 

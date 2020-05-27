@@ -230,7 +230,7 @@ export default function IndividualsToRemoveTransferViewToolbar(props) {
                 
                 {/* Label */}
                 <Grid item xs={8}>
-                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>&nbsp;&nbsp;&nbsp;name</b></Typography>
+                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>&nbsp;&nbsp;&nbsp;origin</b></Typography>
                 </Grid>
               
               </Grid>

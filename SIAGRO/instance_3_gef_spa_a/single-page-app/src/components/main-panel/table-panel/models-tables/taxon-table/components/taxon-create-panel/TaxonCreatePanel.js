@@ -64,6 +64,7 @@ export default function TaxonCreatePanel(props) {
   const [open, setOpen] = useState(true);
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmationTitle, setConfirmationTitle] = useState('');
@@ -76,6 +77,7 @@ export default function TaxonCreatePanel(props) {
 
   const values = useRef(getInitialValues());
   const valuesOkRefs = useRef(getInitialValueOkStates());
+  const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
   const [accessionsIdsToAddState, setAccessionsIdsToAddState] = useState([]);
   const accessionsIdsToAdd = useRef([]);
@@ -212,6 +214,28 @@ export default function TaxonCreatePanel(props) {
     return initialValueOkStates;
   }
 
+  function getInitialValueAjvStates() {
+    let _initialValueAjvStates = {};
+
+    _initialValueAjvStates.id = {errors: []};
+    _initialValueAjvStates.taxon = {errors: []};
+    _initialValueAjvStates.categoria = {errors: []};
+    _initialValueAjvStates.estatus = {errors: []};
+    _initialValueAjvStates.nombreAutoridad = {errors: []};
+    _initialValueAjvStates.citaNomenclatural = {errors: []};
+    _initialValueAjvStates.fuente = {errors: []};
+    _initialValueAjvStates.ambiente = {errors: []};
+    _initialValueAjvStates.grupoSNIB = {errors: []};
+    _initialValueAjvStates.categoriaResidencia = {errors: []};
+    _initialValueAjvStates.nom = {errors: []};
+    _initialValueAjvStates.cites = {errors: []};
+    _initialValueAjvStates.iucn = {errors: []};
+    _initialValueAjvStates.prioritarias = {errors: []};
+    _initialValueAjvStates.endemismo = {errors: []};
+
+    return _initialValueAjvStates;
+  }
+
   function areThereAcceptableFields() {
     let a = Object.entries(valueOkStates);
     for(let i=0; i<a.length; ++i) {
@@ -242,6 +266,48 @@ export default function TaxonCreatePanel(props) {
     return false;
   }
 
+
+  function setAjvErrors(err) {
+    //check
+    if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
+      let errors = err.response.data.errors;
+      
+      //for each error
+      for(let i=0; i<errors.length; ++i) {
+        let e=errors[i];
+        //check
+        if(e && typeof e === 'object' && Array.isArray(e.details)){
+          let details = e.details;
+          
+          for(let d=0; d<details.length; ++d) {
+            let detail = details[d];
+
+            //check
+            if(detail && typeof detail === 'object' && detail.dataPath && detail.message) {
+              /**
+               * In this point, the error is considered as an AJV error.
+               * 
+               * It will be set in a ajvStatus reference and at the end of this function 
+               * the ajvStatus state will be updated.
+               */
+              //set reference
+              addAjvErrorToField(detail);
+            }
+          }
+        }
+      }
+      //update state
+      setValueAjvStates({...valuesAjvRefs.current});
+    }
+  }
+
+  function addAjvErrorToField(error) {
+    let dataPath = error.dataPath.slice(1);
+    
+    if(valuesAjvRefs.current[dataPath] !== undefined){
+      valuesAjvRefs.current[dataPath].errors.push(error.message);
+    }
+  }
 
   /**
     * doSave
@@ -377,6 +443,10 @@ export default function TaxonCreatePanel(props) {
         if(err.isCanceled) {
           return
         } else {
+          //set ajv errors
+          setAjvErrors(err);
+
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -626,6 +696,7 @@ export default function TaxonCreatePanel(props) {
             <TaxonAttributesPage
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
               handleSetValue={handleSetValue}
             />
           </Grid>

@@ -254,8 +254,8 @@ const showMessageB = useCallback((message, withDetail) => {
     /*
       API Request: readOneAccession
     */
-    let label = 'name';
-    let sublabel = '';
+    let label = 'origin';
+    let sublabel = 'description';
     let variables = {
       pagination: {
         after: isForwardPagination.current ? pageInfo.current.endCursor : null,
@@ -1529,8 +1529,8 @@ const showMessageB = useCallback((message, withDetail) => {
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.name;
-                        let label = it.name;
-                        let sublabel = undefined;
+                        let label = it.origin;
+                        let sublabel = it.description;
                         let disabled = lidsToRemove.current.find(name=> name=== it.name) !== undefined;
 
                         return (
@@ -1767,8 +1767,8 @@ const showMessageB = useCallback((message, withDetail) => {
                     <List dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.name;
-                        let label = it.name;
-                        let sublabel = undefined;
+                        let label = it.origin;
+                        let sublabel = it.description;
                         
                         return (
                           <ListItem key={key} 

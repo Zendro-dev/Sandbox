@@ -725,7 +725,7 @@ export default function AccessionEnhancedTable(props) {
         }
 
         //check: csvTableTemplateAccession type
-        if(typeof csvTableTemplateAccession !== 'string') {
+        if(!Array.isArray(csvTableTemplateAccession)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1304,17 +1304,18 @@ function resetReloadData() {
                                 }
 
                                 {/* Item fields */}
-
-                                {/* Accession_id */}
+                                {/* accession_id*/}
                                 <TableCell
                                   key='accession_id'
                                   align='left'
-                                  padding="default"
+                                  padding="checkbox"
                                 >
-                                  {String((item.accession_id!==null)?item.accession_id:'')}
+                                  <Tooltip title={ 'accession_id: ' + item.accession_id}>
+                                    <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.accession_id}</Typography>
+                                  </Tooltip>
                                 </TableCell>
 
-                                {/* Collectors_name */}
+                                {/* collectors_name */}
                                 <TableCell
                                   key='collectors_name'
                                   align='left'
@@ -1323,7 +1324,7 @@ function resetReloadData() {
                                   {String((item.collectors_name!==null)?item.collectors_name:'')}
                                 </TableCell>
 
-                                {/* Collectors_initials */}
+                                {/* collectors_initials */}
                                 <TableCell
                                   key='collectors_initials'
                                   align='left'
@@ -1332,7 +1333,7 @@ function resetReloadData() {
                                   {String((item.collectors_initials!==null)?item.collectors_initials:'')}
                                 </TableCell>
 
-                                {/* Sampling_date */}
+                                {/* sampling_date */}
                                 <TableCell
                                   key='sampling_date'
                                   align='left'
@@ -1341,7 +1342,7 @@ function resetReloadData() {
                                   {String((item.sampling_date!==null)?moment(item.sampling_date, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
                                 </TableCell>
 
-                                {/* Sampling_number */}
+                                {/* sampling_number */}
                                 <TableCell
                                   key='sampling_number'
                                   align='left'
@@ -1350,7 +1351,7 @@ function resetReloadData() {
                                   {String((item.sampling_number!==null)?item.sampling_number:'')}
                                 </TableCell>
 
-                                {/* Catalog_number */}
+                                {/* catalog_number */}
                                 <TableCell
                                   key='catalog_number'
                                   align='left'
@@ -1359,7 +1360,7 @@ function resetReloadData() {
                                   {String((item.catalog_number!==null)?item.catalog_number:'')}
                                 </TableCell>
 
-                                {/* Institution_deposited */}
+                                {/* institution_deposited */}
                                 <TableCell
                                   key='institution_deposited'
                                   align='left'
@@ -1368,7 +1369,7 @@ function resetReloadData() {
                                   {String((item.institution_deposited!==null)?item.institution_deposited:'')}
                                 </TableCell>
 
-                                {/* Collection_name */}
+                                {/* collection_name */}
                                 <TableCell
                                   key='collection_name'
                                   align='left'
@@ -1377,7 +1378,7 @@ function resetReloadData() {
                                   {String((item.collection_name!==null)?item.collection_name:'')}
                                 </TableCell>
 
-                                {/* Collection_acronym */}
+                                {/* collection_acronym */}
                                 <TableCell
                                   key='collection_acronym'
                                   align='left'
@@ -1386,7 +1387,7 @@ function resetReloadData() {
                                   {String((item.collection_acronym!==null)?item.collection_acronym:'')}
                                 </TableCell>
 
-                                {/* Identified_by */}
+                                {/* identified_by */}
                                 <TableCell
                                   key='identified_by'
                                   align='left'
@@ -1395,7 +1396,7 @@ function resetReloadData() {
                                   {String((item.identified_by!==null)?item.identified_by:'')}
                                 </TableCell>
 
-                                {/* Identification_date */}
+                                {/* identification_date */}
                                 <TableCell
                                   key='identification_date'
                                   align='left'
@@ -1404,7 +1405,7 @@ function resetReloadData() {
                                   {String((item.identification_date!==null)?moment(item.identification_date, "YYYY-MM-DD").format("YYYY-MM-DD"):'')}
                                 </TableCell>
 
-                                {/* Abundance */}
+                                {/* abundance */}
                                 <TableCell
                                   key='abundance'
                                   align='left'
@@ -1413,7 +1414,7 @@ function resetReloadData() {
                                   {String((item.abundance!==null)?item.abundance:'')}
                                 </TableCell>
 
-                                {/* Habitat */}
+                                {/* habitat */}
                                 <TableCell
                                   key='habitat'
                                   align='left'
@@ -1422,7 +1423,7 @@ function resetReloadData() {
                                   {String((item.habitat!==null)?item.habitat:'')}
                                 </TableCell>
 
-                                {/* Observations */}
+                                {/* observations */}
                                 <TableCell
                                   key='observations'
                                   align='left'
@@ -1431,7 +1432,7 @@ function resetReloadData() {
                                   {String((item.observations!==null)?item.observations:'')}
                                 </TableCell>
 
-                                {/* Family */}
+                                {/* family */}
                                 <TableCell
                                   key='family'
                                   align='left'
@@ -1440,7 +1441,7 @@ function resetReloadData() {
                                   {String((item.family!==null)?item.family:'')}
                                 </TableCell>
 
-                                {/* Genus */}
+                                {/* genus */}
                                 <TableCell
                                   key='genus'
                                   align='left'
@@ -1449,7 +1450,7 @@ function resetReloadData() {
                                   {String((item.genus!==null)?item.genus:'')}
                                 </TableCell>
 
-                                {/* Species */}
+                                {/* species */}
                                 <TableCell
                                   key='species'
                                   align='left'
@@ -1458,7 +1459,7 @@ function resetReloadData() {
                                   {String((item.species!==null)?item.species:'')}
                                 </TableCell>
 
-                                {/* Subspecies */}
+                                {/* subspecies */}
                                 <TableCell
                                   key='subspecies'
                                   align='left'
@@ -1467,7 +1468,7 @@ function resetReloadData() {
                                   {String((item.subspecies!==null)?item.subspecies:'')}
                                 </TableCell>
 
-                                {/* Variety */}
+                                {/* variety */}
                                 <TableCell
                                   key='variety'
                                   align='left'
@@ -1476,7 +1477,7 @@ function resetReloadData() {
                                   {String((item.variety!==null)?item.variety:'')}
                                 </TableCell>
 
-                                {/* Race */}
+                                {/* race */}
                                 <TableCell
                                   key='race'
                                   align='left'
@@ -1485,7 +1486,7 @@ function resetReloadData() {
                                   {String((item.race!==null)?item.race:'')}
                                 </TableCell>
 
-                                {/* Form */}
+                                {/* form */}
                                 <TableCell
                                   key='form'
                                   align='left'
@@ -1494,7 +1495,7 @@ function resetReloadData() {
                                   {String((item.form!==null)?item.form:'')}
                                 </TableCell>
 
-                                {/* Taxon_id */}
+                                {/* taxon_id */}
                                 <TableCell
                                   key='taxon_id'
                                   align='left'
@@ -1503,7 +1504,7 @@ function resetReloadData() {
                                   {String((item.taxon_id!==null)?item.taxon_id:'')}
                                 </TableCell>
 
-                                {/* Collection_deposit */}
+                                {/* collection_deposit */}
                                 <TableCell
                                   key='collection_deposit'
                                   align='left'
@@ -1512,7 +1513,7 @@ function resetReloadData() {
                                   {String((item.collection_deposit!==null)?item.collection_deposit:'')}
                                 </TableCell>
 
-                                {/* Collect_number */}
+                                {/* collect_number */}
                                 <TableCell
                                   key='collect_number'
                                   align='left'
@@ -1521,7 +1522,7 @@ function resetReloadData() {
                                   {String((item.collect_number!==null)?item.collect_number:'')}
                                 </TableCell>
 
-                                {/* Collect_source */}
+                                {/* collect_source */}
                                 <TableCell
                                   key='collect_source'
                                   align='left'
@@ -1530,7 +1531,7 @@ function resetReloadData() {
                                   {String((item.collect_source!==null)?item.collect_source:'')}
                                 </TableCell>
 
-                                {/* Collected_seeds */}
+                                {/* collected_seeds */}
                                 <TableCell
                                   key='collected_seeds'
                                   align='right'
@@ -1539,7 +1540,7 @@ function resetReloadData() {
                                   {String((item.collected_seeds!==null)?item.collected_seeds:'')}
                                 </TableCell>
 
-                                {/* Collected_plants */}
+                                {/* collected_plants */}
                                 <TableCell
                                   key='collected_plants'
                                   align='right'
@@ -1548,7 +1549,7 @@ function resetReloadData() {
                                   {String((item.collected_plants!==null)?item.collected_plants:'')}
                                 </TableCell>
 
-                                {/* Collected_other */}
+                                {/* collected_other */}
                                 <TableCell
                                   key='collected_other'
                                   align='left'
@@ -1557,7 +1558,7 @@ function resetReloadData() {
                                   {String((item.collected_other!==null)?item.collected_other:'')}
                                 </TableCell>
 
-                                {/* Habit */}
+                                {/* habit */}
                                 <TableCell
                                   key='habit'
                                   align='left'
@@ -1566,7 +1567,7 @@ function resetReloadData() {
                                   {String((item.habit!==null)?item.habit:'')}
                                 </TableCell>
 
-                                {/* Local_name */}
+                                {/* local_name */}
                                 <TableCell
                                   key='local_name'
                                   align='left'
@@ -1575,7 +1576,7 @@ function resetReloadData() {
                                   {String((item.local_name!==null)?item.local_name:'')}
                                 </TableCell>
 
-                                {/* LocationId */}
+                                {/* locationId */}
                                 <TableCell
                                   key='locationId'
                                   align='left'

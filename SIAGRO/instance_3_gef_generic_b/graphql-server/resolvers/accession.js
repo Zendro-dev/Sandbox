@@ -19,8 +19,6 @@ const globals = require('../config/globals');
 
 const associationArgsDef = {
     'addTaxon': 'taxon',
-    'addLocation': 'location',
-    'addIndividuals': 'individual',
     'addMeasurements': 'measurement'
 }
 
@@ -65,154 +63,7 @@ accession.prototype.taxon = async function({
         };
     }
 }
-/**
- * accession.prototype.location - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-accession.prototype.location = async function({
-    search
-}, context) {
-    if (helper.isNotUndefinedAndNotNull(this.locationId)) {
-        try {
-            if (search === undefined) {
-                return resolvers.readOneLocation({
-                    [models.location.idAttribute()]: this.locationId
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.location.idAttribute(),
-                    "value": {
-                        "value": this.locationId
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.locations({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found[0]
-                }
-                return found;
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
-    }
-}
 
-/**
- * accession.prototype.individualsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-accession.prototype.individualsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    try {
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "accession_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return resolvers.individuals({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
-}
-
-/**
- * accession.prototype.countFilteredIndividuals - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-accession.prototype.countFilteredIndividuals = function({
-    search
-}, context) {
-    try {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "accession_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return resolvers.countIndividuals({
-            search: nsearch
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
-}
-
-/**
- * accession.prototype.individualsConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-accession.prototype.individualsConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-    try {
-
-        //build new search filter
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": "accession_id",
-            "value": {
-                "value": this.getIdValue()
-            },
-            "operator": "eq"
-        });
-
-        return resolvers.individualsConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    } catch (error) {
-        console.error(error);
-        handleError(error);
-    };
-}
 /**
  * accession.prototype.measurementsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
@@ -321,6 +172,131 @@ accession.prototype.measurementsConnection = function({
     };
 }
 
+/**
+ * accession.prototype.location - Return associated record
+ *
+ * @param  {object} search    Search argument to match the associated record.
+ * @param  {object} context   Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}             Associated record.
+ */
+accession.prototype.location = async function({
+    search
+}, context) {
+    return checkAuthorization(context, 'Location', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCount(search, context, "location");
+            let resultRecords = await this.locationImpl({
+                search
+            }, context);
+            checkCountAgainAndAdaptLimit(context, resultRecords.length, "location");
+            return resultRecords;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
+        console.error(error);
+        handleError(error);
+    });
+}
+
+/**
+ * accession.prototype.individualsFilter - Check user authorization and return certain 
+ * number, specified in pagination argument, of records associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search      Search argument for filtering associated records.
+ * @param  {array}  order       Type of sorting (ASC, DESC) for each field.
+ * @param  {object} pagination  Offset and limit to get the records from and to respectively.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}              Array of associated records holding conditions specified by search, order and pagination argument.
+ */
+accession.prototype.individualsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+    return checkAuthorization(context, 'Individual', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCount(search, context, "individualsFilter");
+            let resultRecords = await this.individualsFilterImpl({
+                search,
+                order,
+                pagination
+            }, context);
+            checkCountAgainAndAdaptLimit(context, resultRecords.length, "individualsFilter");
+            return resultRecords;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
+        console.error(error);
+        handleError(error);
+    });
+}
+
+/**
+ * accession.prototype.countFilteredIndividuals - Count number of associated records that 
+ * holds the conditions specified in the search argument.
+ *
+ * @param  {object} {search}  Search argument for filtering associated records.
+ * @param  {object} context   Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}             Number of associated records that holds the conditions specified in the search argument.
+ */
+accession.prototype.countFilteredIndividuals = function({
+    search
+}, context) {
+    return checkAuthorization(context, 'Individual', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCount(search, context, "countFilteredIndividuals");
+            let resultRecords = await this.countFilteredIndividualsImpl({
+                search
+            }, context);
+            checkCountAgainAndAdaptLimit(context, resultRecords.length, "countFilteredIndividuals");
+            return resultRecords;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
+        console.error(error);
+        handleError(error);
+    });
+}
+
+/**
+ * accession.prototype.individualsConnection - Check user authorization and return 
+ * certain number, specified in pagination argument, of records associated with the current instance, this records 
+ * should also holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search      Search argument for filtering associated records.
+ * @param  {array}  order       Type of sorting (ASC, DESC) for each field.
+ * @param  {object} pagination  Cursor and first (indicating the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}              Array of records as grapqhql connections holding conditions specified by search, order and pagination argument.
+ */
+accession.prototype.individualsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+    return checkAuthorization(context, 'Individual', 'read').then(async authorization => {
+        if (authorization === true) {
+            await checkCount(search, context, "individualsConnection");
+            let resultRecords = await this.individualsConnectionImpl({
+                search,
+                order,
+                pagination
+            }, context);
+            checkCountAgainAndAdaptLimit(context, resultRecords.length, "individualsConnection");
+            return resultRecords;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    }).catch(error => {
+        console.error(error);
+        handleError(error);
+    });
+}
+
 
 /**
  * handleAssociations - handles the given associations in the create and update case.
@@ -331,11 +307,11 @@ accession.prototype.measurementsConnection = function({
 accession.prototype.handleAssociations = async function(input, context) {
     try {
         let promises = [];
-        if (helper.isNonEmptyArray(input.addIndividuals)) {
-            promises.push(this.add_individuals(input, context));
-        }
         if (helper.isNonEmptyArray(input.addMeasurements)) {
             promises.push(this.add_measurements(input, context));
+        }
+        if (helper.isNonEmptyArray(input.addIndividuals)) {
+            promises.push(this.add_individuals(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.addTaxon)) {
             promises.push(this.add_taxon(input, context));
@@ -343,11 +319,11 @@ accession.prototype.handleAssociations = async function(input, context) {
         if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
             promises.push(this.add_location(input, context));
         }
-        if (helper.isNonEmptyArray(input.removeIndividuals)) {
-            promises.push(this.remove_individuals(input, context));
-        }
         if (helper.isNonEmptyArray(input.removeMeasurements)) {
             promises.push(this.remove_measurements(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeIndividuals)) {
+            promises.push(this.remove_individuals(input, context));
         }
         if (helper.isNotUndefinedAndNotNull(input.removeTaxon)) {
             promises.push(this.remove_taxon(input, context));
@@ -360,19 +336,6 @@ accession.prototype.handleAssociations = async function(input, context) {
     } catch (error) {
         throw error
     }
-}
-
-/**
- * add_individuals - field Mutation for to_many associations to add 
- *
- * @param {object} input   Info of input Ids to add  the association
- */
-accession.prototype.add_individuals = async function(input) {
-    let results = [];
-    for await (associatedRecordId of input.addIndividuals) {
-        results.push(models.individual.add_accession_id(associatedRecordId, this.getIdValue()));
-    }
-    await Promise.all(results);
 }
 
 /**
@@ -398,29 +361,7 @@ accession.prototype.add_taxon = async function(input) {
     await accession.add_taxon_id(this.getIdValue(), input.addTaxon);
     this.taxon_id = input.addTaxon;
 }
-/**
- * add_location - field Mutation for to_one associations to add 
- *
- * @param {object} input   Info of input Ids to add  the association
- */
-accession.prototype.add_location = async function(input) {
-    await accession.add_locationId(this.getIdValue(), input.addLocation);
-    this.locationId = input.addLocation;
-}
 
-
-/**
- * remove_individuals - field Mutation for to_many associations to remove 
- *
- * @param {object} input   Info of input Ids to remove  the association
- */
-accession.prototype.remove_individuals = async function(input) {
-    let results = [];
-    for await (associatedRecordId of input.removeIndividuals) {
-        results.push(models.individual.remove_accession_id(associatedRecordId, this.getIdValue()));
-    }
-    await Promise.all(results);
-}
 
 /**
  * remove_measurements - field Mutation for to_many associations to remove 
@@ -448,16 +389,46 @@ accession.prototype.remove_taxon = async function(input) {
     }
 }
 /**
- * remove_location - field Mutation for to_one associations to remove 
+ * add_location - field Mutation for generic_to_one associations to add
  *
- * @param {object} input   Info of input Ids to remove  the association
+ * @param {object} input   Object with all the current attributes of the Accession model record to be updated,
+ *                         including info of input id to add as association.
+ */
+accession.prototype.add_location = async function(input) {
+    await accession.add_locationImpl(input);
+}
+
+/**
+ * add_individuals - field Mutation for generic_to_many associations to add
+ *
+ * @param {object} input   Object with all the current attributes of the Accession model record to be updated,
+ *                         including info of input ids to add as associations.
+ */
+accession.prototype.add_individuals = async function(input) {
+    await accession.add_individualsImpl(input);
+}
+
+
+/**
+ * remove_location - field Mutation for generic_to_one associations to remove
+ *
+ * @param {object} input   Object with all the current attributes of the Accession model record to be updated,
+ *                         including info of input id to remove as association.
  */
 accession.prototype.remove_location = async function(input) {
-    if (input.removeLocation === this.locationId) {
-        await accession.remove_locationId(this.getIdValue(), input.removeLocation);
-        this.locationId = null;
-    }
+    await accession.remove_locationImpl(input);
 }
+
+/**
+ * remove_individuals - field Mutation for generic_to_many associations to remove
+ *
+ * @param {object} input   Object with all the current attributes of the Accession model record to be updated,
+ *                         including info of input ids to remove as associations.
+ */
+accession.prototype.remove_individuals = async function(input) {
+    await accession.remove_individualsImpl(input);
+}
+
 
 
 /**
@@ -522,19 +493,25 @@ async function countAllAssociatedRecords(id, context) {
     if (accession === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let promises_generic_to_many = [];
+    let promises_generic_to_one = [];
 
-    promises_to_many.push(accession.countFilteredIndividuals({}, context));
     promises_to_many.push(accession.countFilteredMeasurements({}, context));
     promises_to_one.push(accession.taxon({}, context));
-    promises_to_one.push(accession.location({}, context));
+    promises_generic_to_many.push(accession.countFilteredIndividuals({}, context));
+    promises_generic_to_one.push(accession.location({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
+    let result_generic_to_many = await Promise.all(promises_generic_to_many);
+    let result_generic_to_one = await Promise.all(promises_generic_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
+    let get_generic_to_many_associated = result_generic_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_generic_to_one_associated = result_generic_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated + get_generic_to_many_associated + get_generic_to_one_associated;
 }
 
 /**

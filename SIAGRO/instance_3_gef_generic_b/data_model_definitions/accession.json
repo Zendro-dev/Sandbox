@@ -38,12 +38,13 @@
   "associations": {
 
     "individuals": {
-      "type": "to_many",
-      "target": "Individual",
-      "targetKey": "accession_id",
-      "keyIn" : "Individual",
-      "targetStorageType": "generic",
-      "label": "name"
+      "type": "generic_to_many",
+      "target": "Individual"
+    },
+
+    "location": {
+      "type": "generic_to_one",
+      "target": "Location"
     },
 
     "taxon": {
@@ -54,16 +55,6 @@
       "targetStorageType": "webservice",
       "label": "scientificName",
       "sublabel": "taxonRank"
-    },
-
-    "location": {
-      "type": "to_one",
-      "target": "Location",
-      "targetKey": "locationId",
-      "keyIn" : "Accession",
-      "targetStorageType": "generic",
-      "label": "country",
-      "sublabel": "state"
     },
 
     "measurements": {

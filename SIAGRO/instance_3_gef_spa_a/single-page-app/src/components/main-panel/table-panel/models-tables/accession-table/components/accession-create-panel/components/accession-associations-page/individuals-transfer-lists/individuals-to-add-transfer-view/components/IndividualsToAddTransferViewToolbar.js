@@ -230,7 +230,7 @@ export default function IndividualsToAddTransferViewToolbar(props) {
                 
                 {/* Label */}
                 <Grid item xs={8}>
-                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>name</b></Typography>
+                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>origin</b></Typography>
                 </Grid>
               
               </Grid>

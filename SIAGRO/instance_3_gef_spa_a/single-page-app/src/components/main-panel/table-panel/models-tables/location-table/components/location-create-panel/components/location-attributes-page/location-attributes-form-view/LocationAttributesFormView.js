@@ -8,6 +8,8 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
+import Tooltip from '@material-ui/core/Tooltip';
 
 
 import StringField from './components/StringField'
@@ -38,6 +40,7 @@ export default function LocationAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -77,18 +80,35 @@ export default function LocationAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
+            {/*
+              Internal ID
+            */}
             {/* locationId */}
             <CardContent key='locationId' className={classes.cardContent} >
-              <StringField
-                itemKey='locationId'
-                name='locationId'
-                label='locationId'
-                valueOk={valueOkStates.locationId}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+
+                  <StringField
+                    itemKey='locationId'
+                    name='locationId'
+                    label='locationId'
+                    valueOk={valueOkStates.locationId}
+                    valueAjv={valueAjvStates.locationId}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+
+                </Grid>
+
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* country */}
             <CardContent key='country' className={classes.cardContent} >
@@ -97,6 +117,7 @@ export default function LocationAttributesFormView(props) {
                 name='country'
                 label='country'
                 valueOk={valueOkStates.country}
+                valueAjv={valueAjvStates.country}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -108,6 +129,7 @@ export default function LocationAttributesFormView(props) {
                 name='state'
                 label='state'
                 valueOk={valueOkStates.state}
+                valueAjv={valueAjvStates.state}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -119,6 +141,7 @@ export default function LocationAttributesFormView(props) {
                 name='municipality'
                 label='municipality'
                 valueOk={valueOkStates.municipality}
+                valueAjv={valueAjvStates.municipality}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -130,6 +153,7 @@ export default function LocationAttributesFormView(props) {
                 name='locality'
                 label='locality'
                 valueOk={valueOkStates.locality}
+                valueAjv={valueAjvStates.locality}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -141,6 +165,7 @@ export default function LocationAttributesFormView(props) {
                 name='latitude'
                 label='latitude'
                 valueOk={valueOkStates.latitude}
+                valueAjv={valueAjvStates.latitude}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -152,6 +177,7 @@ export default function LocationAttributesFormView(props) {
                 name='longitude'
                 label='longitude'
                 valueOk={valueOkStates.longitude}
+                valueAjv={valueAjvStates.longitude}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -163,6 +189,7 @@ export default function LocationAttributesFormView(props) {
                 name='altitude'
                 label='altitude'
                 valueOk={valueOkStates.altitude}
+                valueAjv={valueAjvStates.altitude}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -174,6 +201,7 @@ export default function LocationAttributesFormView(props) {
                 name='natural_area'
                 label='natural_area'
                 valueOk={valueOkStates.natural_area}
+                valueAjv={valueAjvStates.natural_area}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -185,6 +213,7 @@ export default function LocationAttributesFormView(props) {
                 name='natural_area_name'
                 label='natural_area_name'
                 valueOk={valueOkStates.natural_area_name}
+                valueAjv={valueAjvStates.natural_area_name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -196,6 +225,7 @@ export default function LocationAttributesFormView(props) {
                 name='georeference_method'
                 label='georeference_method'
                 valueOk={valueOkStates.georeference_method}
+                valueAjv={valueAjvStates.georeference_method}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -207,6 +237,7 @@ export default function LocationAttributesFormView(props) {
                 name='georeference_source'
                 label='georeference_source'
                 valueOk={valueOkStates.georeference_source}
+                valueAjv={valueAjvStates.georeference_source}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -218,6 +249,7 @@ export default function LocationAttributesFormView(props) {
                 name='datum'
                 label='datum'
                 valueOk={valueOkStates.datum}
+                valueAjv={valueAjvStates.datum}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -229,6 +261,7 @@ export default function LocationAttributesFormView(props) {
                 name='vegetation'
                 label='vegetation'
                 valueOk={valueOkStates.vegetation}
+                valueAjv={valueAjvStates.vegetation}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -240,6 +273,7 @@ export default function LocationAttributesFormView(props) {
                 name='stoniness'
                 label='stoniness'
                 valueOk={valueOkStates.stoniness}
+                valueAjv={valueAjvStates.stoniness}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -251,6 +285,7 @@ export default function LocationAttributesFormView(props) {
                 name='sewer'
                 label='sewer'
                 valueOk={valueOkStates.sewer}
+                valueAjv={valueAjvStates.sewer}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -262,6 +297,7 @@ export default function LocationAttributesFormView(props) {
                 name='topography'
                 label='topography'
                 valueOk={valueOkStates.topography}
+                valueAjv={valueAjvStates.topography}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -273,6 +309,7 @@ export default function LocationAttributesFormView(props) {
                 name='slope'
                 label='slope'
                 valueOk={valueOkStates.slope}
+                valueAjv={valueAjvStates.slope}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -285,5 +322,6 @@ export default function LocationAttributesFormView(props) {
 }
 LocationAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

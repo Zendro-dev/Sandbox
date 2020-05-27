@@ -724,7 +724,7 @@ export default function RoleToUserEnhancedTable(props) {
         }
 
         //check: csvTableTemplateRole_to_user type
-        if(typeof csvTableTemplateRole_to_user !== 'string') {
+        if(!Array.isArray(csvTableTemplateRole_to_user)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -1314,7 +1314,7 @@ function resetReloadData() {
                                   </Tooltip>
                                 </TableCell>
 
-                                {/* UserId */}
+                                {/* userId */}
                                 <TableCell
                                   key='userId'
                                   align='right'
@@ -1323,7 +1323,7 @@ function resetReloadData() {
                                   {String((item.userId!==null)?item.userId:'')}
                                 </TableCell>
 
-                                {/* RoleId */}
+                                {/* roleId */}
                                 <TableCell
                                   key='roleId'
                                   align='right'

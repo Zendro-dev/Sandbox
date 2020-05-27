@@ -72,6 +72,7 @@ module.exports = `
 
     individual(search: searchIndividualInput): Individual
   accession(search: searchAccessionInput): Accession
+    
     }
 type MeasurementConnection{
   edges: [MeasurementEdge]
@@ -128,8 +129,8 @@ type MeasurementEdge{
     measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput ): MeasurementConnection
   }
     type Mutation {
-    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID , skipAssociationsExistenceChecks:Boolean = false): Measurement!
-    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID  , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+    addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+    updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
   deleteMeasurement(measurement_id: ID!): String!
   bulkAddMeasurementCsv: [Measurement] }
 

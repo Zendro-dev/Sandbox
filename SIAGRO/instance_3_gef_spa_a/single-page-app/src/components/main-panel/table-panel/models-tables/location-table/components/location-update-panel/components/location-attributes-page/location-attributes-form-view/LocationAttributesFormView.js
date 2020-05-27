@@ -4,10 +4,12 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
 
 
 import StringField from './components/StringField'
@@ -79,22 +81,22 @@ export default function LocationAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
-            
-
-            {/* locationId */}
-            <CardContent key='locationId' className={classes.cardContent} >
-              <StringField
-                itemKey='locationId'
-                name='locationId'
-                label='locationId'
-                text={item.locationId}
-                valueOk={valueOkStates.locationId}
-                valueAjv={valueAjvStates.locationId}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+            {/* locationId*/}
+            <CardContent key='locationId' className={classes.cardContent}>
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+                  <Typography variant="h6" display="inline">locationId:</Typography>
+                  <Typography variant="h6" display="inline" color="textSecondary">&nbsp;{item.locationId}</Typography>
+                </Grid>
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* country */}
             <CardContent key='country' className={classes.cardContent} >

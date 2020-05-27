@@ -4,10 +4,12 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
 
 
 import StringField from './components/StringField'
@@ -81,22 +83,22 @@ export default function MeasurementAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
-            
-
-            {/* measurement_id */}
-            <CardContent key='measurement_id' className={classes.cardContent} >
-              <StringField
-                itemKey='measurement_id'
-                name='measurement_id'
-                label='measurement_id'
-                text={item.measurement_id}
-                valueOk={valueOkStates.measurement_id}
-                valueAjv={valueAjvStates.measurement_id}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+            {/* measurement_id*/}
+            <CardContent key='measurement_id' className={classes.cardContent}>
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+                  <Typography variant="h6" display="inline">measurement_id:</Typography>
+                  <Typography variant="h6" display="inline" color="textSecondary">&nbsp;{item.measurement_id}</Typography>
+                </Grid>
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* name */}
             <CardContent key='name' className={classes.cardContent} >

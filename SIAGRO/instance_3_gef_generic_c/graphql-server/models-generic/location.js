@@ -61,7 +61,6 @@ module.exports = class Location {
      *
      * @param  {obejct} input    Data for the new instances. Input for each field of the model.
      */
-
     constructor({
         locationId,
         country,
@@ -118,6 +117,11 @@ module.exports = class Location {
      * Returned value:
      *    new Location(record)
      * 
+     * Thrown on:
+     *    * No record found.
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where record is an object with all its properties set from the record fetched.
      * @see: constructor() of the class Location;
      * 
@@ -136,6 +140,10 @@ module.exports = class Location {
      * countRecords - Count the number of records of model Location that match the filters provided
      * in the @search parameter. Returns the number of records counted.
      * @see: Cenzontle specifications for search object.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {object} search Object with search filters.
      * @return {int} Number of records counted, that match the search filters.
@@ -159,6 +167,10 @@ module.exports = class Location {
      * Returned value:
      *    for each record
      *    array.push( new Location(record) )
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Location;
@@ -188,6 +200,10 @@ module.exports = class Location {
      * 
      * Returned value:
      *    { edges, pageInfo }
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class Location;
@@ -361,7 +377,7 @@ module.exports = class Location {
      * on @input object.
      * Only if record was created successfully, returns an instance of this class 
      * (Location), with all its properties set from the new record created.
-     * If this function fails to create the new record, returns null.
+     * If this function fails to create the new record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are set to 
@@ -373,12 +389,16 @@ module.exports = class Location {
      * Returned value:
      *    new Location(newRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where newRecord is an object with all its properties set from the new record created.
      * @see: constructor() of the class Location;
      * 
      * @param  {String} id The id of the record that needs to be fetched.
-     * @return {Location|null} If successfully created, returns an instance of 
-     * Location class constructed with the new record, otherwise returns null.
+     * @return {Location} If successfully created, returns an instance of 
+     * Location class constructed with the new record, otherwise throws an error.
      */
     static async addOne(input) {
         /*
@@ -392,7 +412,7 @@ module.exports = class Location {
      * of id attribute: 'locationId', which should be on received as input.
      * Only if record was updated successfully, returns an instance of this class 
      * (Location), with all its properties set from the record updated.
-     * If this function fails to update the record, returns null.
+     * If this function fails to update the record, should throw an error.
      * 
      * Conventions on input's attributes values.
      *    1. undefined value: attributes with value equal to undefined are NOT
@@ -403,14 +423,18 @@ module.exports = class Location {
      * Returned value:
      *    new Location(updatedRecord)
      * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
+     * 
      * where updatedRecord is an object with all its properties set from the record updated.
      * @see: constructor() of the class Location;
      * 
      * @param  {object} input Input with properties to be updated. The special id 
      * attribute: 'locationId' should contains the id value of the record
      * that will be updated. 
-     * @return {Location|null} If successfully created, returns an instance of 
-     * Location class constructed with the new record, otherwise returns null.
+     * @return {Location} If successfully created, returns an instance of 
+     * Location class constructed with the new record, otherwise throws an error.
      */
     static async updateOne(input) {
         /*
@@ -422,10 +446,14 @@ module.exports = class Location {
     /**
      * deleteOne - Delete the record whose id is equal to the @id received as parameter.
      * Only if record was deleted successfully, returns the id of the deleted record.
-     * If this function fails to delete the record, returns null.
+     * If this function fails to delete the record, should throw an error.
+     * 
+     * Thrown on:
+     *    * Error.
+     *    * Operation failed.
      * 
      * @param  {String} id The id of the record that will be deleted.
-     * @return {int|null} id of the record deleted or null if the operation failed.
+     * @return {int} id of the record deleted or throws an error if the operation failed.
      */
     static async deleteOne(id) {
         /*
@@ -447,6 +475,11 @@ module.exports = class Location {
         */
         throw new Error('csvTableTemplateLocation is not implemented');
     }
+
+
+
+
+
 
 
 

@@ -10,6 +10,7 @@ import { makeCancelable } from '../../../../../../../../../../utils'
 import RolesCompactViewToolbar from './components/RolesCompactViewToolbar';
 import RolesCompactViewCursorPagination from './components/RolesCompactViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
@@ -17,8 +18,11 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import Divider from '@material-ui/core/Divider';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import Avatar from '@material-ui/core/Avatar';
 import Fade from '@material-ui/core/Fade';
+import Key from '@material-ui/icons/VpnKey';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -52,14 +56,6 @@ const useStyles = makeStyles(theme => ({
   },
   row: {
     maxHeight: 70,
-  },
-  id: {
-    width: 50,
-  },
-  dividerV: {
-    height: 50,
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
   },
 }));
 
@@ -746,7 +742,7 @@ function resetReloadData() {
                       {items.map(it => {
                         let key = it.id;
                         let label = it.name;
-                        let sublabel = it.id;
+                        let sublabel = undefined;
        
                         return (
                           <ListItem key={key} 
@@ -757,35 +753,47 @@ function resetReloadData() {
                               handleRowClicked(event, it);
                             }}
                           >
-                            <Grid container justify='center' alignItems='center'>
-                              <Grid item xs={12}>
-                                <Grid container justify='flex-start' alignItems='center' wrap='nowrap'>
-                                  
+                            <ListItemAvatar>
+                              <Avatar>{"role".slice(0,1)}</Avatar>
+                            </ListItemAvatar>
+
+                            <ListItemText
+                              primary={
+                                <React.Fragment>
                                   {/* id*/}
-                                  <Grid item>
-                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.id}</Typography>
+                                  <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                                    <Grid item>
+                                      <Tooltip title={ 'id' }>
+                                        <Typography variant="h6" display="block" noWrap={true}>{it.id}</Typography>
+                                      </Tooltip>
+                                    </Grid>
+                                    {/*Key icon*/}
+                                    <Grid item>
+                                      <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                                        <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                                      </Tooltip>
+                                    </Grid>
                                   </Grid>
-
-                                  {/* Divider */}
-                                  <Grid item>
-                                    <Divider className={classes.dividerV} orientation="vertical" />
-                                  </Grid>
-
-                                  <Grid item xs={10}>
-
-                                    {/* Label */}
-                                    {(label !== undefined && label !== null) && (
-                                      <Typography variant="body1" display="block" noWrap={true}>{label}</Typography>
-                                    )}
-                                    
-                                    {/* Sublabel */}
-                                    {(sublabel !== undefined && sublabel !== null) && (
-                                      <Typography variant="caption" display="block" color='textSecondary' noWrap={true}>{sublabel}<b></b> </Typography>
-                                    )}
-                                  </Grid>
-                                </Grid>
-                              </Grid>
-                            </Grid>
+                                </React.Fragment>
+                              }
+                              secondary={
+                                <React.Fragment>
+                                  {/* Label */}
+                                  {(label) && (
+                                    <Tooltip title={ 'name' }>
+                                      <Typography component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
+                                    </Tooltip>
+                                  )}
+                                  
+                                  {/* Sublabel */}
+                                  {(sublabel) && (
+                                    <Tooltip title={ 'id' }>
+                                      <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
+                                    </Tooltip>
+                                  )}
+                                </React.Fragment>
+                              }
+                            />
                           </ListItem>
                         );
                       })}

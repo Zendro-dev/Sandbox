@@ -104,7 +104,8 @@ module.exports = `
     @count-request
     """
     countFilteredAccessions(search: searchAccessionInput) : Int
-  }
+  
+    }
 type TaxonConnection{
   edges: [TaxonEdge]
   pageInfo: pageInfo!
@@ -163,8 +164,8 @@ type TaxonEdge{
     taxonsConnection(search:searchTaxonInput, order: [ orderTaxonInput ], pagination: paginationCursorInput ): TaxonConnection
   }
     type Mutation {
-    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], skipAssociationsExistenceChecks:Boolean = false): Taxon!
-    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], removeAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String   , addAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String   , addAccessions:[ID], removeAccessions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Taxon!
   deleteTaxon(id: ID!): String!
   bulkAddTaxonCsv: [Taxon] }
 

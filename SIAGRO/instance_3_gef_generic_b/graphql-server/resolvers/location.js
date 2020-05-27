@@ -132,6 +132,8 @@ location.prototype.accessionsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -182,6 +184,11 @@ location.prototype.remove_accessions = async function(input) {
     }
     await Promise.all(results);
 }
+
+
+
+
+
 
 
 
@@ -248,16 +255,22 @@ async function countAllAssociatedRecords(id, context) {
     if (location === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
+    let promises_generic_to_many = [];
+    let promises_generic_to_one = [];
 
     promises_to_many.push(location.countFilteredAccessions({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
+    let result_generic_to_many = await Promise.all(promises_generic_to_many);
+    let result_generic_to_one = await Promise.all(promises_generic_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
+    let get_generic_to_many_associated = result_generic_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
+    let get_generic_to_one_associated = result_generic_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated;
+    return get_to_one_associated + get_to_many_associated + get_generic_to_many_associated + get_generic_to_one_associated;
 }
 
 /**

@@ -36,6 +36,7 @@ export default function RoleAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -76,6 +77,7 @@ export default function RoleAttributesFormView(props) {
               Fields 
             */}
 
+
             {/* name */}
             <CardContent key='name' className={classes.cardContent} >
               <StringField
@@ -83,7 +85,7 @@ export default function RoleAttributesFormView(props) {
                 name='name'
                 label='name'
                 valueOk={valueOkStates.name}
-                autoFocus={true}
+                valueAjv={valueAjvStates.name}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -95,6 +97,7 @@ export default function RoleAttributesFormView(props) {
                 name='description'
                 label='description'
                 valueOk={valueOkStates.description}
+                valueAjv={valueAjvStates.description}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -107,5 +110,6 @@ export default function RoleAttributesFormView(props) {
 }
 RoleAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

@@ -36,6 +36,7 @@ export default function UserAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -76,6 +77,7 @@ export default function UserAttributesFormView(props) {
               Fields 
             */}
 
+
             {/* email */}
             <CardContent key='email' className={classes.cardContent} >
               <StringField
@@ -83,7 +85,7 @@ export default function UserAttributesFormView(props) {
                 name='email'
                 label='email'
                 valueOk={valueOkStates.email}
-                autoFocus={true}
+                valueAjv={valueAjvStates.email}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -95,6 +97,7 @@ export default function UserAttributesFormView(props) {
                 name='password'
                 label='password'
                 valueOk={valueOkStates.password}
+                valueAjv={valueAjvStates.password}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -107,5 +110,6 @@ export default function UserAttributesFormView(props) {
 }
 UserAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

@@ -6,6 +6,9 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Tooltip from '@material-ui/core/Tooltip';
+import Key from '@material-ui/icons/VpnKey';
 
 export default function LocationEnhancedTableHead(props) {
   const { t } = useTranslation();
@@ -51,22 +54,29 @@ export default function LocationEnhancedTableHead(props) {
           Headers 
         */}
 
-
+        {/* locationId*/}
         <TableCell
           key='locationId'
           align='left'
-          padding="default"
+          padding="checkbox"
           sortDirection={orderBy === 'locationId' ? order : false}
         >
-          {/* locationId */}
           <TableSortLabel
-              active={orderBy === 'locationId'}
-              direction={order}
-              onClick={(event) => {onRequestSort(event, 'locationId')}}
+            active={orderBy === 'locationId'}
+            direction={order}
+            onClick={(event) => { onRequestSort(event, 'locationId') }}
           >
-            <Typography color="inherit" variant="caption">
-              locationId
-            </Typography>
+          <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+            <Grid item>
+              <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Typography color="inherit" variant="caption" display='inline' noWrap={true}>
+                locationId              </Typography>
+            </Grid>
+          </Grid>
           </TableSortLabel>
         </TableCell>
 

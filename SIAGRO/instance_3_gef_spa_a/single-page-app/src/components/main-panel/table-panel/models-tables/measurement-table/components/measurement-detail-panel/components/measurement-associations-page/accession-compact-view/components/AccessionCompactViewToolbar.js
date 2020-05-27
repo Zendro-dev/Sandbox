@@ -11,7 +11,6 @@ import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import Divider from '@material-ui/core/Divider';
 import ClearInactive from '@material-ui/icons/BackspaceOutlined';
 import ClearActive from '@material-ui/icons/Backspace';
 import Search from '@material-ui/icons/Search';
@@ -213,31 +212,6 @@ export default function AccessionCompactViewToolbar(props) {
                 </Grid>
               </Grid>
             )}
-
-            {/* Headers */}
-            <Grid item xs={12} className={classes.headers}>
-              <Grid container justify='flex-start' alignItems='center' wrap='nowrap'>
-
-                {/* measurement_id*/}
-                <Grid item>
-                  <Typography className={classes.id} variant="caption" display="block" noWrap={true}><b>accession_id</b></Typography>
-                </Grid>
-                
-                {/* Label */}
-                <Grid item xs={10}>
-                  <Typography className={classes.label} variant="caption" display="block" noWrap={true}><b>accession_id</b></Typography>
-                </Grid>
-              
-              </Grid>
-            </Grid>
-
-            <Grid container justify='center' alignItems='center' wrap='wrap'>
-              <Grid item xs={12}>
-                {/* Divider */}
-                <Divider orientation="horizontal" />
-              </Grid>
-            </Grid>
-
           </Grid>
         </Grid>
       </Grid>

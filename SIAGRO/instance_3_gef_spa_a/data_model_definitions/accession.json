@@ -43,7 +43,9 @@
       "targetKey": "accession_id",
       "keyIn" : "Individual",
       "targetStorageType": "sql",
-      "label": "name"
+      "label": "origin",
+      "sublabel": "description"
+
     },
 
     "taxon": {

@@ -32,7 +32,8 @@ module.exports = `
     @count-request
     """
     countFilteredRoles(search: searchRoleInput) : Int
-  }
+  
+    }
 type UserConnection{
   edges: [UserEdge]
   pageInfo: pageInfo!
@@ -79,8 +80,8 @@ type UserEdge{
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput ): UserConnection
   }
     type Mutation {
-    addUser( email: String, password: String  , addRoles:[ID], skipAssociationsExistenceChecks:Boolean = false): user!
-    updateUser(id: ID!, email: String, password: String  , addRoles:[ID], removeRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    addUser( email: String, password: String   , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, email: String, password: String   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
   deleteUser(id: ID!): String!
   bulkAddUserCsv: [user] }
 

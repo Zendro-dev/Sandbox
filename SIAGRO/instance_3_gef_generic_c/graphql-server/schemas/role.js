@@ -32,7 +32,8 @@ module.exports = `
     @count-request
     """
     countFilteredUsers(search: searchUserInput) : Int
-  }
+  
+    }
 type RoleConnection{
   edges: [RoleEdge]
   pageInfo: pageInfo!
@@ -79,8 +80,8 @@ type RoleEdge{
     rolesConnection(search:searchRoleInput, order: [ orderRoleInput ], pagination: paginationCursorInput ): RoleConnection
   }
     type Mutation {
-    addRole( name: String, description: String  , addUsers:[ID], skipAssociationsExistenceChecks:Boolean = false): role!
-    updateRole(id: ID!, name: String, description: String  , addUsers:[ID], removeUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
+    addRole( name: String, description: String   , addUsers:[ID] , skipAssociationsExistenceChecks:Boolean = false): role!
+    updateRole(id: ID!, name: String, description: String   , addUsers:[ID], removeUsers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): role!
   deleteRole(id: ID!): String!
   bulkAddRoleCsv: [role] }
 

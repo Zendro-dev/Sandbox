@@ -8,6 +8,8 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
+import Key from '@material-ui/icons/VpnKey';
+import Tooltip from '@material-ui/core/Tooltip';
 
 
 import StringField from './components/StringField'
@@ -36,6 +38,7 @@ export default function TaxonAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { valueOkStates,
+          valueAjvStates,
           handleSetValue,
         } = props;
 
@@ -75,18 +78,35 @@ export default function TaxonAttributesFormView(props) {
             {/* 
               Fields 
             */}
-
+            {/*
+              Internal ID
+            */}
             {/* id */}
             <CardContent key='id' className={classes.cardContent} >
-              <StringField
-                itemKey='id'
-                name='id'
-                label='id'
-                valueOk={valueOkStates.id}
-                autoFocus={true}
-                handleSetValue={handleSetValue}
-              />
+              <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid item>
+
+                  <StringField
+                    itemKey='id'
+                    name='id'
+                    label='id'
+                    valueOk={valueOkStates.id}
+                    valueAjv={valueAjvStates.id}
+                    autoFocus={true}
+                    handleSetValue={handleSetValue}
+                  />
+
+                </Grid>
+
+                {/*Key icon*/}
+                <Grid item>
+                  <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                    <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
+                  </Tooltip>
+                </Grid>
+              </Grid>
             </CardContent>
+
 
             {/* taxon */}
             <CardContent key='taxon' className={classes.cardContent} >
@@ -95,6 +115,7 @@ export default function TaxonAttributesFormView(props) {
                 name='taxon'
                 label='taxon'
                 valueOk={valueOkStates.taxon}
+                valueAjv={valueAjvStates.taxon}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -106,6 +127,7 @@ export default function TaxonAttributesFormView(props) {
                 name='categoria'
                 label='categoria'
                 valueOk={valueOkStates.categoria}
+                valueAjv={valueAjvStates.categoria}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -117,6 +139,7 @@ export default function TaxonAttributesFormView(props) {
                 name='estatus'
                 label='estatus'
                 valueOk={valueOkStates.estatus}
+                valueAjv={valueAjvStates.estatus}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -128,6 +151,7 @@ export default function TaxonAttributesFormView(props) {
                 name='nombreAutoridad'
                 label='nombreAutoridad'
                 valueOk={valueOkStates.nombreAutoridad}
+                valueAjv={valueAjvStates.nombreAutoridad}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -139,6 +163,7 @@ export default function TaxonAttributesFormView(props) {
                 name='citaNomenclatural'
                 label='citaNomenclatural'
                 valueOk={valueOkStates.citaNomenclatural}
+                valueAjv={valueAjvStates.citaNomenclatural}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -150,6 +175,7 @@ export default function TaxonAttributesFormView(props) {
                 name='fuente'
                 label='fuente'
                 valueOk={valueOkStates.fuente}
+                valueAjv={valueAjvStates.fuente}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -161,6 +187,7 @@ export default function TaxonAttributesFormView(props) {
                 name='ambiente'
                 label='ambiente'
                 valueOk={valueOkStates.ambiente}
+                valueAjv={valueAjvStates.ambiente}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -172,6 +199,7 @@ export default function TaxonAttributesFormView(props) {
                 name='grupoSNIB'
                 label='grupoSNIB'
                 valueOk={valueOkStates.grupoSNIB}
+                valueAjv={valueAjvStates.grupoSNIB}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -183,6 +211,7 @@ export default function TaxonAttributesFormView(props) {
                 name='categoriaResidencia'
                 label='categoriaResidencia'
                 valueOk={valueOkStates.categoriaResidencia}
+                valueAjv={valueAjvStates.categoriaResidencia}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -194,6 +223,7 @@ export default function TaxonAttributesFormView(props) {
                 name='nom'
                 label='nom'
                 valueOk={valueOkStates.nom}
+                valueAjv={valueAjvStates.nom}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -205,6 +235,7 @@ export default function TaxonAttributesFormView(props) {
                 name='cites'
                 label='cites'
                 valueOk={valueOkStates.cites}
+                valueAjv={valueAjvStates.cites}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -216,6 +247,7 @@ export default function TaxonAttributesFormView(props) {
                 name='iucn'
                 label='iucn'
                 valueOk={valueOkStates.iucn}
+                valueAjv={valueAjvStates.iucn}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -227,6 +259,7 @@ export default function TaxonAttributesFormView(props) {
                 name='prioritarias'
                 label='prioritarias'
                 valueOk={valueOkStates.prioritarias}
+                valueAjv={valueAjvStates.prioritarias}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -238,6 +271,7 @@ export default function TaxonAttributesFormView(props) {
                 name='endemismo'
                 label='endemismo'
                 valueOk={valueOkStates.endemismo}
+                valueAjv={valueAjvStates.endemismo}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -250,5 +284,6 @@ export default function TaxonAttributesFormView(props) {
 }
 TaxonAttributesFormView.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
+  valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
