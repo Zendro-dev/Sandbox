@@ -250,7 +250,7 @@ module.exports = class Accession {
                       }
               }`;
 
-              //let errMessageIfNeeded = `Remote service ${url} returned error(s).`
+              let errMessageIfNeeded = `Remote service ${url} returned error(s).`
               //let dataAndBeningErrors = { data: {}, beningErrors: [] }
 
               benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef( benignErrorReporter );
@@ -264,9 +264,8 @@ module.exports = class Accession {
                 // STATUS-CODE is 200 -
                 // NO ERROR as such has been detected by the server (Express),
                 // though there might be errors from the remote GraphQL instance.
-
+                errorHelper.handleErrorsInGraphQlResponse(response.data, benignErrorReporter);
                 if (response && response.data && response.data.data) {
-                    errorHelper.handleErrorsInGraphQlResponse(response.data, benignErrorReporter);
                     return new Accession(response.data.data.addAccession);
                 }
 
