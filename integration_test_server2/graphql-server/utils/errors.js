@@ -1,4 +1,6 @@
-const { GraphQLError } = require('graphql');
+const {
+  GraphQLError
+} = require('graphql');
 const helper = require('./helper')
 const globals = require('../config/globals');
 
@@ -6,7 +8,7 @@ const globals = require('../config/globals');
  * Class representing a Cenzontle Error containing according to GraphQL Errors spec.
  * @extends Error
  */
-module.exports.CenzontleError = class CenzontleError extends Error{
+module.exports.CenzontleError = class CenzontleError extends Error {
   /**
    * Create a Cenzontle Error.
    * @param {String} message - A message describing the Error for debugging purposes..
@@ -15,48 +17,59 @@ module.exports.CenzontleError = class CenzontleError extends Error{
    * @param {Array} locations - An array of { line, column } locations within the source GraphQL document
    * which correspond to this error.
    * @param {Object} extensions - Extension fields to add to the formatted error.
+   *
+   * @return {CenzontleError} An instance of CenzontleError with extensions always
+   * initialized to at least an empty object.
    */
-  constructor({message, path, locations, extensions}) {
+  constructor({
+    message,
+    path,
+    locations,
+    extensions
+  }) {
     super();
     this.message = message;
     this.path = path;
     this.locations = locations;
-    this.extensions = extensions
+    this.extensions = helper.isNotUndefinedAndNotNull(extensions) ?
+      extensions : {}
   }
 }
 
 /**
  * handleRemoteErrors - handles incoming errors from remote servers
  * @param {Array} errs - Array of errors (benign) or single more serious error send in the response from the remote server
- * @param {Array} multErrsMessage - Error message to be used by the returned Cenzontle Error
- *
+ * @param {Array} remoteServiceUrl - Error message to be used by the returned Cenzontle Error
+ * 
  * @return {CenzontleError} If serious single Error return as Cenzontle Error, else build custom Cenzontle Error
  * with given message and Errors in Extensions
  */
-module.exports.handleRemoteErrors = function( errs, multErrsMessage ) {
-  if ( helper.isNonEmptyArray( errs ) ) {
-    // Only a SINGLE error was sent
-    if ( errs.length === 1 ) {
-      let e = errs[0]
-      // properties of e will be automatically extracted
-      // with named arguments (destructuring)
-      return new module.exports.CenzontleError( e )
-    } else if ( errs.length > 1 ) {  // actually length > 1 is a given here, isn't it?
-      return new module.exports.CenzontleError( {message: multErrsMessage, extensions: errs} )
-    }
+module.exports.handleRemoteErrors = function(errs, remoteServiceUrl) {
+  if (helper.isNonEmptyArray(errs)) {
+    return errs.map(function(remoteError) {
+      // Making the 'remoteError' an instance of CenzontleError ensures:
+      // 1. message, path, locations, and extensions are retained, and
+      // 2. extensions are initialized, if the were not already
+      let remoteCenzontleError = new module.exports.CenzontleError(remoteError);
+      // add the information that the 'remoteError' was received from another
+      // web-service
+      remoteCenzontleError.extensions.receivedFrom = helper.isNonEmptyArray(remoteCenzontleError.extensions.receivedFrom) ? remoteCenzontleError.extensions.receivedFrom.concat(remoteServiceUrl) : [remoteServiceUrl];
+      return remoteCenzontleError
+    })
   } else {
-   return null
+    return null
   }
 }
 
 /**
  * isRemoteGraphQlError - checks if an Error is a remote GraphQLError
  * @param {Error} error - The error to check
- *
+ * 
  * @return {Boolean} True if the error has the properties of a GraphQLError send by a remote Server
  */
-module.exports.isRemoteGraphQlError = function( err ) {
-  return err.response && err.response.data && Array.isArray( err.response.data.errors )
+module.exports.isRemoteGraphQlError = function(err) {
+  return err.response && err.response.data && Array.isArray(err.response.data
+    .errors)
 }
 
 /**
@@ -80,16 +93,17 @@ module.exports.stringifyCompletely = function(error, replacer, space) {
  * customErrorLog - Log the errors depending on the env Variable "ERROR_LOG".
  *                  Default is "compact". If specifically set to "verbose" errors
  *                  will be logged with all properties (including graphQLError properties)
- *
+ * 
  * @param {Error} error - error to be logged
  */
 module.exports.customErrorLog = function(error) {
   if (globals.ERROR_LOG.toUpperCase() === "VERBOSE") {
-    console.error(module.exports.stringifyCompletely(error,null,2))
+    console.error(module.exports.stringifyCompletely(error, null, 2))
   } else { //if not verbose default should be "compact", if for some reason another env was given it should still be compact
     console.error(error)
     if (error.originalError !== undefined) {
-      console.error("OriginalError:\n" + JSON.stringify(error.originalError,null,2));
+      console.error("OriginalError:\n" + JSON.stringify(error.originalError,
+        null, 2));
     }
   }
 }
@@ -126,11 +140,12 @@ module.exports.BenignErrorReporter = class BenignErrorReporter {
  * @param {Object} httpResponseData - Data send from the remote server, that might contain benignErrors
  * @param {BenignErrorReporter} benignErrorReporter - The BenignErrorReporter that holds the context
  */
-module.exports.handleErrorsInGraphQlResponse = function(httpResponseData, benignErrorReporter) {
+module.exports.handleErrorsInGraphQlResponse = function(httpResponseData,
+  benignErrorReporter) {
   // TODO
   // check if has errors
   // if so extract - and maybe even convert?
-  benignErrorReporter.reportError( httpResponseData.errors )
+  benignErrorReporter.reportError(httpResponseData.errors)
 }
 
 /**
@@ -138,7 +153,7 @@ module.exports.handleErrorsInGraphQlResponse = function(httpResponseData, benign
  * will instead be used (Used mainly for being able to require a model independently of a given context)
  */
 module.exports.defaultBenignErrorReporter = {
-  reportError: function( errors ) {
+  reportError: function(errors) {
     throw errors
   }
 }
@@ -148,14 +163,31 @@ module.exports.defaultBenignErrorReporter = {
  * if not return the defaultBenignErrorReporter Object
  * @param {BenignErrorReporter} benignErrorReporter - The BenignErrorReporter that holds the context
  */
-module.exports.getDefaultBenignErrorReporterIfUndef = function(benignErrorReporter) {
-  return ( !helper.isNotUndefinedAndNotNull(benignErrorReporter) ) ? module.exports.defaultBenignErrorReporter : benignErrorReporter
+module.exports.getDefaultBenignErrorReporterIfUndef = function(
+  benignErrorReporter) {
+  return (!helper.isNotUndefinedAndNotNull(benignErrorReporter)) ? module
+    .exports.defaultBenignErrorReporter : benignErrorReporter
+}
+
+/**
+* See GraphQL Error spec: <url> 
+*
+* @param error {GraphQLError} the error generated by graphql-js
+*
+* @return {object} the extensions object.
+*/
+module.exports.formatGraphQLErrorExtensions = function(error) {
+  if (helper.isNotUndefinedAndNotNull(error.extensions)){
+    return error.extensions 
+  }else if(error.message === 'validation failed'){
+    return {validationErrors: error.originalError.errors}
+  }else if(error.name === "SequelizeValidationError"){
+    return {validationErrors: error.originalError.errors}
+  }
 }
 
 
-
-
-module.exports.handleError = function(error){
+module.exports.handleError = function(error) {
   throw new Error(error);
 }
 

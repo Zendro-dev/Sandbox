@@ -260,7 +260,6 @@ module.exports = class Accession {
                     query: query,
                     variables: input
                 })
-                console.log(response)
                 // STATUS-CODE is 200 -
                 // NO ERROR as such has been detected by the server (Express),
                 // though there might be errors from the remote GraphQL instance.
@@ -271,11 +270,13 @@ module.exports = class Accession {
 
               } catch (error) {
                 if (!errorHelper.isRemoteGraphQlError(error)) {
+                    // Non remote error:
                     throw error
                 } else {
                     // STATUS CODE is NOT 200,
                     // which means a rather serious error was sent by the remote server.
-                    throw errorHelper.handleRemoteErrors(error.response.data.errors, errMessageIfNeeded)
+                    benignErrorReporter.reportError(errorHelper.handleRemoteErrors(error.response.data.errors, url));
+                    throw new Error(`Web-service ${url} returned attached (see below) error(s).`)
                 }
               }
 
