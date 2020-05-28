@@ -6,12 +6,12 @@ module.exports = {
       allows: [{
         resources: [
           'role',
+          'role_to_user',
           'user',
           'accession',
           'individual',
           'location',
           'measurement',
-          'role_to_user',
           'taxon',
         ],
         permissions: '*'
@@ -140,37 +140,6 @@ module.exports = {
       roles: 'measurement_delete',
       allows: [{
         resources: 'measurement',
-        permissions: 'delete'
-      }]
-    },
-    {
-      /**
-       * Model: role_to_user
-       */
-      roles: 'role_to_user_create',
-      allows: [{
-        resources: 'role_to_user',
-        permissions: 'create'
-      }]
-    },
-    {
-      roles: 'role_to_user_read',
-      allows: [{
-        resources: 'role_to_user',
-        permissions: 'read'
-      }]
-    },
-    {
-      roles: 'role_to_user_update',
-      allows: [{
-        resources: 'role_to_user',
-        permissions: 'update'
-      }]
-    },
-    {
-      roles: 'role_to_user_delete',
-      allows: [{
-        resources: 'role_to_user',
         permissions: 'delete'
       }]
     },

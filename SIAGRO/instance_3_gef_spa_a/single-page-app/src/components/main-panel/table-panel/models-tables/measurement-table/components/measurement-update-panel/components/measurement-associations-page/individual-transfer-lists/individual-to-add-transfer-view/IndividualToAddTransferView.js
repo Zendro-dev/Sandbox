@@ -17,7 +17,10 @@ import Card from '@material-ui/core/Card';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import Divider from '@material-ui/core/Divider';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Avatar from '@material-ui/core/Avatar';
 import Hidden from '@material-ui/core/Hidden';
 import Fade from '@material-ui/core/Fade';
 import Button from '@material-ui/core/Button';
@@ -26,6 +29,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Add from '@material-ui/icons/AddCircle';
 import Remove from '@material-ui/icons/RemoveCircle';
 import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
+import Key from '@material-ui/icons/VpnKey';
+import { green, grey } from '@material-ui/core/colors';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -65,14 +70,6 @@ const useStyles = makeStyles(theme => ({
   },
   row: {
     maxHeight: 70,
-  },
-  id: {
-    width: 33,
-  },
-  dividerV: {
-    height: 50,
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
   },
 }));
 
@@ -1759,7 +1756,7 @@ export default function IndividualToAddTransferView(props) {
                     <List dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.name;
-                        let label = it.name;
+                        let label = undefined;
                         let sublabel = undefined;
                         
                         return (
@@ -1771,54 +1768,66 @@ export default function IndividualToAddTransferView(props) {
                               handleRowClicked(event, it);
                             }}
                           >
-                            <Grid container justify='center' alignItems='center'>
-                              <Grid item xs={12}>
-                                <Grid container justify='center' alignItems='center' wrap='nowrap'>
-                                  
-                                  {/* InternalId */}
-                                  <Grid item>
-                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.name}</Typography>
-                                  </Grid>
+                            <ListItemAvatar>
+                              <Tooltip title={ (associatedItem.name===it.name) ? 'Individual — ' + t('modelPanels.associated', 'Associated') : 'Individual '}>
+                                <Avatar>
+                                  {"individual".slice(0,1)}
+                                </Avatar>
+                              </Tooltip>
+                            </ListItemAvatar>
 
-                                  {/* Divider */}
-                                  <Grid item>
-                                    <Divider className={classes.dividerV} orientation="vertical" />
-                                  </Grid>
-
-                                  <Grid item xs={8}>
-                                    {/* Label */}
-                                    {(label !== undefined && label !== null) && (
-                                      <Typography variant="body1" display="block" noWrap={true}>{label}</Typography>
-                                    )}
-                                    
-                                    {/* Sublabel */}
-                                    {(sublabel !== undefined && sublabel !== null) && (
-                                      <Typography variant="caption" display="block" color='textSecondary' noWrap={true}>{sublabel}<b></b> </Typography>
-                                    )}
-                                  </Grid>
-
-                                  {/* Button: Add */}
-                                  <Grid item xs={2}>
-                                    <Grid container justify='flex-end'>
-                                      <Grid item>
-                                        <Tooltip title={ t('modelPanels.transferToAdd') }>
-                                          <IconButton
-                                            color="primary"
-                                            className={classes.iconButton}
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleAddItem(event, it);
-                                            }}
-                                          >
-                                            <Add htmlColor="#4CAF50" />
-                                          </IconButton>
-                                        </Tooltip>
-                                      </Grid>
+                            <ListItemText
+                              primary={
+                                <React.Fragment>
+                                  {/* measurement_id*/}
+                                  <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                                    <Grid item>
+                                      <Tooltip title={ 'name' }>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.name}</Typography>
+                                      </Tooltip>
+                                    </Grid>
+                                    {/*Key icon*/}
+                                    <Grid item>
+                                      <Tooltip title={ (associatedItem.name===it.name) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associated', 'Associated') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.name===it.name) ? green[500] : grey[400]}} />
+                                      </Tooltip>
                                     </Grid>
                                   </Grid>
-                                </Grid>
-                              </Grid>
-                            </Grid>
+                                </React.Fragment>
+                              }
+                              secondary={
+                                <React.Fragment>
+                                  {/* Label */}
+                                  {(label) && (
+                                    <Tooltip title={ 'name' }>
+                                      <Typography component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
+                                    </Tooltip>
+                                  )}
+                                  
+                                  {/* Sublabel */}
+                                  {(sublabel) && (
+                                    <Tooltip title={ '' }>
+                                      <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
+                                    </Tooltip>
+                                  )}
+                                </React.Fragment>
+                              }
+                            />
+                            {/* Button: Add */}
+                            <ListItemSecondaryAction>
+                              <Tooltip title={ t('modelPanels.transferToAdd') }>
+                                <IconButton
+                                  color="primary"
+                                  className={classes.iconButton}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleAddItem(event, it);
+                                  }}
+                                >
+                                  <Add htmlColor="#4CAF50" />
+                                </IconButton>
+                              </Tooltip>
+                            </ListItemSecondaryAction>
                           </ListItem>
                         );
                       })}
@@ -1994,8 +2003,9 @@ export default function IndividualToAddTransferView(props) {
                     <List dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.name;
-                        let label = it.name;
+                        let label = undefined;
                         let sublabel = undefined;
+
                         
                         return (
                           <ListItem key={key} 
@@ -2006,50 +2016,65 @@ export default function IndividualToAddTransferView(props) {
                               handleRowClicked(event, it);
                             }}
                           >
-                            <Grid container justify='flex-end' alignItems='center'>
-                              <Grid item xs={12}>
-                                <Grid container justify='space-evenly' alignItems='center' alignContent='stretch' wrap='nowrap'>
-                                  
-                                  {/* InternalId */}
-                                  <Grid item>
-                                    <Typography className={classes.id} variant="caption" display="block" noWrap={true}>{it.name}</Typography>
+                            <ListItemAvatar>
+                              <Tooltip title={ (associatedItem.name===it.name) ? 'Individual — ' + t('modelPanels.associated', 'Associated') : 'Individual '}>
+                                <Avatar>
+                                  {"individual".slice(0,1)}
+                                </Avatar>
+                              </Tooltip>
+                            </ListItemAvatar>
+
+                            <ListItemText
+                              primary={
+                                <React.Fragment>
+                                  {/* measurement_id*/}
+                                  <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                                    <Grid item>
+                                      <Tooltip title={ 'name' }>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.name}</Typography>
+                                      </Tooltip>
+                                    </Grid>
+                                    {/*Key icon*/}
+                                    <Grid item>
+                                      <Tooltip title={ (associatedItem.name===it.name) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associated', 'Associated') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.name===it.name) ? green[500] : grey[400]}} />
+                                      </Tooltip>
+                                    </Grid>
                                   </Grid>
-
-                                  {/* Divider */}
-                                  <Grid item>
-                                    <Divider className={classes.dividerV} orientation="vertical" />
-                                  </Grid>
-
-                                  <Grid item xs={8}>
-
-                                    {/* Label */}
-                                    {(label !== undefined && label !== null) && (
-                                      <Typography variant="body1" display="block" noWrap={true}>{label}</Typography>
-                                    )}
-                                    
-                                    {/* Sublabel */}
-                                    {(sublabel !== undefined && sublabel !== null) && (
-                                      <Typography variant="caption" display="block" color='textSecondary' noWrap={true}>{sublabel}<b></b> </Typography>
-                                    )}
-                                  </Grid>
-
-                                  {/* Button: Add */}
-                                  <Grid item xs={2}>
-                                    <Tooltip title={ t('modelPanels.untransferToAdd') }>
-                                      <IconButton
-                                        color="primary"
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          handleRemoveItem(event, it);
-                                        }}
-                                      >
-                                        <Remove color="primary" />
-                                      </IconButton>
+                                </React.Fragment>
+                              }
+                              secondary={
+                                <React.Fragment>
+                                  {/* Label */}
+                                  {(label) && (
+                                    <Tooltip title={ 'name' }>
+                                      <Typography component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
-                                  </Grid>
-                                </Grid>
-                              </Grid>
-                            </Grid>
+                                  )}
+                                  
+                                  {/* Sublabel */}
+                                  {(sublabel) && (
+                                    <Tooltip title={ '' }>
+                                      <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
+                                    </Tooltip>
+                                  )}
+                                </React.Fragment>
+                              }
+                            />
+                            {/* Button: Remove */}
+                            <ListItemSecondaryAction>
+                              <Tooltip title={ t('modelPanels.untransferToAdd') }>
+                                <IconButton
+                                  color="primary"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleRemoveItem(event, it);
+                                  }}
+                                >
+                                  <Remove color="primary" />
+                                </IconButton>
+                              </Tooltip>
+                            </ListItemSecondaryAction>
                           </ListItem>
                         );
                       })}

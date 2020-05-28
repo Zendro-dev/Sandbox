@@ -252,7 +252,7 @@ export default function LocationDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -268,6 +268,8 @@ export default function LocationDetailPanel(props) {
     
     //variables
     let variables = {};
+    //locationId
+    variables.locationId = item.locationId;
 
     /*
       API Request: deleteLocation

@@ -27,12 +27,6 @@ export default () => ({
     },
     {
       id: 4,
-      name: 'role_to_user',
-      title: 'Role_to_user',
-      url: '/main/model/role_to_user',
-    },
-    {
-      id: 5,
       name: 'taxon',
       title: 'Taxon',
       url: '/main/model/taxon',
@@ -40,10 +34,16 @@ export default () => ({
   ],
   adminModels: [
     {
-      id: 6,
+      id: 5,
       name: 'role',
       title: 'Role',
       url: '/main/admin/role',
+    },
+    {
+      id: 6,
+      name: 'role_to_user',
+      title: 'Role_to_user',
+      url: '/main/admin/role_to_user',
     },
     {
       id: 7,

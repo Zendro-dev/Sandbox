@@ -261,7 +261,7 @@ export default function MeasurementDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -277,6 +277,8 @@ export default function MeasurementDetailPanel(props) {
     
     //variables
     let variables = {};
+    //measurement_id
+    variables.measurement_id = item.measurement_id;
 
     /*
       API Request: deleteMeasurement

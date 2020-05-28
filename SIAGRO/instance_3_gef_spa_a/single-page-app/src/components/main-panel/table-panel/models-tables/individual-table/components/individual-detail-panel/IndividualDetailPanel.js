@@ -261,7 +261,7 @@ export default function IndividualDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -277,6 +277,8 @@ export default function IndividualDetailPanel(props) {
     
     //variables
     let variables = {};
+    //name
+    variables.name = item.name;
 
     /*
       API Request: deleteIndividual

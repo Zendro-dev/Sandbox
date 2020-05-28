@@ -754,7 +754,9 @@ function resetReloadData() {
                             }}
                           >
                             <ListItemAvatar>
-                              <Avatar>{"accession".slice(0,1)}</Avatar>
+                              <Tooltip title={ 'Accession' }>
+                                <Avatar>{"accession".slice(0,1)}</Avatar>
+                              </Tooltip>
                             </ListItemAvatar>
 
                             <ListItemText
@@ -764,7 +766,7 @@ function resetReloadData() {
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ 'accession_id' }>
-                                        <Typography variant="h6" display="block" noWrap={true}>{it.accession_id}</Typography>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.accession_id}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}

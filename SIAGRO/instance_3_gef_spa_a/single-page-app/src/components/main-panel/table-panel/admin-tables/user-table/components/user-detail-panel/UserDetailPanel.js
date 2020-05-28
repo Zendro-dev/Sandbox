@@ -252,7 +252,7 @@ export default function UserDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -268,7 +268,8 @@ export default function UserDetailPanel(props) {
     
     //variables
     let variables = {};
-    //id    variables.id= item.id;
+    //id
+    variables.id = item.id;
 
     /*
       API Request: deleteUser

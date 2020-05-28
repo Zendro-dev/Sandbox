@@ -79,12 +79,6 @@ export default function getAttributes(filterName) {
         "individual_id": "String",
         "accession_id": "String",
       };
-    case 'role_to_user':
-      return {
-        "id": "Int",
-        "userId": "Int",
-        "roleId": "Int",
-      };
     case 'taxon':
       return {
         "id": "String",
@@ -108,6 +102,12 @@ export default function getAttributes(filterName) {
         "id": "Int",
         "name": "String",
         "description": "String",
+    };
+    case 'role_to_user':
+      return {
+        "id": "Int",
+        "userId": "Int",
+        "roleId": "Int",
     };
     case 'user':
       return {

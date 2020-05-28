@@ -279,7 +279,7 @@ export default function AccessionDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -295,6 +295,8 @@ export default function AccessionDetailPanel(props) {
     
     //variables
     let variables = {};
+    //accession_id
+    variables.accession_id = item.accession_id;
 
     /*
       API Request: deleteAccession

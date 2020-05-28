@@ -259,7 +259,8 @@ export default function RoleToUserDetailPanel(props) {
     
     //variables
     let variables = {};
-    //id    variables.id= item.id;
+    //id
+    variables.id = item.id;
 
     /*
       API Request: deleteRole_to_user

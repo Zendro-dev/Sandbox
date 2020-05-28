@@ -252,7 +252,7 @@ export default function TaxonDetailPanel(props) {
    */
 
   function clearRequestDoDelete() {
-    //nothing to do.
+    delayedCloseDeleteConfirmationAccept(null, 500);
   }
 
   /**
@@ -268,6 +268,8 @@ export default function TaxonDetailPanel(props) {
     
     //variables
     let variables = {};
+    //id
+    variables.id = item.id;
 
     /*
       API Request: deleteTaxon

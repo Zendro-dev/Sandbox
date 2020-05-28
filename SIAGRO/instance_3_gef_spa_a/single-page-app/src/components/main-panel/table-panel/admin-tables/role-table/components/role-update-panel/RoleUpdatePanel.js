@@ -377,7 +377,8 @@ function setAjvErrors(err) {
     let keys = Object.keys(values.current);
     let variables = {};
 
-    //id    variables.id= item.id;
+    //id
+    variables.id = item.id;
 
     //attributes
     for(let i=0; i<keys.length; i++) {

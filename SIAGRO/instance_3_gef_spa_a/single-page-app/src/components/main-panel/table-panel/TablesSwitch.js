@@ -9,9 +9,9 @@ import AccessionTable from './models-tables/accession-table/AccessionEnhancedTab
 import IndividualTable from './models-tables/individual-table/IndividualEnhancedTable'
 import LocationTable from './models-tables/location-table/LocationEnhancedTable'
 import MeasurementTable from './models-tables/measurement-table/MeasurementEnhancedTable'
-import RoleToUserTable from './models-tables/role_to_user-table/Role_to_userEnhancedTable'
 import TaxonTable from './models-tables/taxon-table/TaxonEnhancedTable'
 import RoleTable from './admin-tables/role-table/RoleEnhancedTable'
+import RoleToUserTable from './admin-tables/role_to_user-table/Role_to_userEnhancedTable'
 import UserTable from './admin-tables/user-table/UserEnhancedTable'
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
@@ -52,13 +52,6 @@ export default function TablesSwitch(props) {
             &&(permissions.measurement.includes('read') || permissions.measurement.includes('*')))
             ? ((props) => <MeasurementTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
-        <Route exact path="/main/model/role_to_user" 
-          render={
-            /* acl check */
-            (permissions&&permissions.role_to_user&&Array.isArray(permissions.role_to_user)
-            &&(permissions.role_to_user.includes('read') || permissions.role_to_user.includes('*')))
-            ? ((props) => <RoleToUserTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
-        } />
         <Route exact path="/main/model/taxon" 
           render={
             /* acl check */
@@ -74,6 +67,13 @@ export default function TablesSwitch(props) {
             (permissions&&permissions.role&&Array.isArray(permissions.role)
             &&(permissions.role.includes('read') || permissions.role.includes('*')))
             ? ((props) => <RoleTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/admin/role_to_user" 
+          render={
+            /* acl check */
+            (permissions&&permissions.role_to_user&&Array.isArray(permissions.role_to_user)
+            &&(permissions.role_to_user.includes('read') || permissions.role_to_user.includes('*')))
+            ? ((props) => <RoleToUserTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/admin/user" 
           render={

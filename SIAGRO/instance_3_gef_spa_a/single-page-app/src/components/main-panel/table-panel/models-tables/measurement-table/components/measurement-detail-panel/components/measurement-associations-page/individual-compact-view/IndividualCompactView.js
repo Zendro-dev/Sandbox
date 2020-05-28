@@ -710,7 +710,9 @@ function resetReloadData() {
                             }}
                           >
                             <ListItemAvatar>
-                              <Avatar>{"individual".slice(0,1)}</Avatar>
+                              <Tooltip title={ 'Individual' }>
+                                <Avatar>{"individual".slice(0,1)}</Avatar>
+                              </Tooltip>
                             </ListItemAvatar>
 
                             <ListItemText
@@ -720,7 +722,7 @@ function resetReloadData() {
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
                                       <Tooltip title={ 'name' }>
-                                        <Typography variant="h6" display="block" noWrap={true}>{it.name}</Typography>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.name}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
