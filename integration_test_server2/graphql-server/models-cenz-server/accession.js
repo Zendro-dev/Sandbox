@@ -233,11 +233,11 @@ module.exports = class Accession {
             .then(async (valSuccess) => {
                 let query = `
               mutation addAccession(
-                      $accession_id:ID!  
+                      $accession_id:ID!
                 $collectors_name:String
                 $collectors_initials:String
                 $sampling_date:Date              ){
-                addAccession(                accession_id:$accession_id  
+                addAccession(                accession_id:$accession_id
                 collectors_name:$collectors_name
                 collectors_initials:$collectors_initials
                 sampling_date:$sampling_date){
@@ -262,6 +262,7 @@ module.exports = class Accession {
                     error['url'] = url;
                     handleError(error);
                 });
+
             });
     }
 
@@ -293,20 +294,20 @@ module.exports = class Accession {
                 let query = `
               mutation
                 updateAccession(
-                  $accession_id:ID! 
-                  $collectors_name:String 
-                  $collectors_initials:String 
+                  $accession_id:ID!
+                  $collectors_name:String
+                  $collectors_initials:String
                   $sampling_date:Date                 ){
                   updateAccession(
-                    accession_id:$accession_id 
-                    collectors_name:$collectors_name 
-                    collectors_initials:$collectors_initials 
+                    accession_id:$accession_id
+                    collectors_name:$collectors_name
+                    collectors_initials:$collectors_initials
                     sampling_date:$sampling_date                   ){
-                    accession_id 
-                    collectors_name 
-                    collectors_initials 
-                    sampling_date 
-                    locationId 
+                    accession_id
+                    collectors_name
+                    collectors_initials
+                    sampling_date
+                    locationId
                   }
                 }`
 
