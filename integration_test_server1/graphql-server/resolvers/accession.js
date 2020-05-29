@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addLocation': 'location',
     'addMeasurements': 'measurement'
@@ -155,6 +153,8 @@ accession.prototype.measurementsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -200,7 +200,6 @@ accession.prototype.add_location = async function(input) {
     await accession.add_locationId(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
-
 /**
  * remove_measurements - field Mutation for to_many associations to remove
  *
@@ -225,6 +224,10 @@ accession.prototype.remove_location = async function(input) {
         this.locationId = null;
     }
 }
+
+
+
+
 
 
 /**
@@ -321,7 +324,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read' === true)) {
+        if (await checkAuthorization(context, 'Accession', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "accessions");
             return await accession.readAll(search, order, pagination);
         } else {
@@ -414,8 +417,6 @@ module.exports = {
     addAccession: async function(input, context) {
         let authorization = await checkAuthorization(context, 'Accession', 'create');
         if (authorization === true) {
-          context.benignErrors.push(new Error('benign error from server one when creating an accession'));
-          context.benignErrors.push(new Error('ANOTHER benign error from server one when creating an accession'));
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
@@ -424,8 +425,6 @@ module.exports = {
             }
             let createdAccession = await accession.addOne(inputSanitized);
             await createdAccession.handleAssociations(inputSanitized, context);
-
-
             return createdAccession;
         } else {
             throw new Error("You don't have authorization to perform this action");

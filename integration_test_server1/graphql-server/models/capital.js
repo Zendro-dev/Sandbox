@@ -12,7 +12,7 @@ const email = require('../utils/email');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const uuidv4 = require('uuidv4');
+const uuidv4 = require('uuidv4').uuid;
 const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const moment = require('moment');
@@ -435,6 +435,8 @@ module.exports = class capital extends Sequelize.Model {
     }
 
 
+
+
     /**
      * add_country_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *
@@ -477,6 +479,10 @@ module.exports = class capital extends Sequelize.Model {
         });
         return updated;
     }
+
+
+
+
 
 
     /**

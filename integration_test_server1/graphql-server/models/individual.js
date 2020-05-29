@@ -12,7 +12,7 @@ const email = require('../utils/email');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const uuidv4 = require('uuidv4');
+const uuidv4 = require('uuidv4').uuid;
 const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const moment = require('moment');
@@ -423,6 +423,12 @@ module.exports = class individual extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(individual);
     }
+
+
+
+
+
+
 
 
 

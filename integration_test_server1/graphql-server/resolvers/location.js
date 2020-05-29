@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addAccessions': 'accession'
 }
@@ -118,6 +116,8 @@ location.prototype.accessionsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -148,7 +148,6 @@ location.prototype.add_accessions = async function(input) {
     await Promise.all(results);
 }
 
-
 /**
  * remove_accessions - field Mutation for to_many associations to remove
  *
@@ -161,6 +160,10 @@ location.prototype.remove_accessions = async function(input) {
     }
     await Promise.all(results);
 }
+
+
+
+
 
 
 
@@ -257,7 +260,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Location', 'read' === true)) {
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "locations");
             return await location.readAll(search, order, pagination);
         } else {

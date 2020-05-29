@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addIndividual': 'individual',
     'addAminoacidsequence': 'aminoacidsequence'
@@ -99,6 +97,8 @@ transcript_count.prototype.aminoacidsequence = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -142,7 +142,6 @@ transcript_count.prototype.add_aminoacidsequence = async function(input) {
     await transcript_count.add_aminoacidsequence_id(this.getIdValue(), input.addAminoacidsequence);
     this.aminoacidsequence_id = input.addAminoacidsequence;
 }
-
 /**
  * remove_individual - field Mutation for to_one associations to remove
  *
@@ -165,6 +164,10 @@ transcript_count.prototype.remove_aminoacidsequence = async function(input) {
         this.aminoacidsequence_id = null;
     }
 }
+
+
+
+
 
 
 /**
@@ -261,7 +264,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read' === true)) {
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "transcript_counts");
             return await transcript_count.readAll(search, order, pagination);
         } else {

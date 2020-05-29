@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     id: ID
-
     """
     @original-field
     
@@ -27,8 +26,8 @@ module.exports = `
     @count-request
     """
     countFilteredTranscript_counts(search: searchTranscript_countInput) : Int
-  }
-
+  
+    }
 type IndividualConnection{
   edges: [IndividualEdge]
   pageInfo: pageInfo!
@@ -50,12 +49,10 @@ type IndividualEdge{
     from: Int
     to: Int
   }
-
   enum individualField {
     id
     name
   }
-
   input searchIndividualInput {
     field: individualField
     value: typeValue
@@ -67,7 +64,6 @@ type IndividualEdge{
     field: individualField
     order: Order
   }
-
   type Query {
     individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput ): [individual]
     readOneIndividual(id: ID!): individual
@@ -76,10 +72,9 @@ type IndividualEdge{
 
     individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput ): IndividualConnection
   }
-
     type Mutation {
-    addIndividual( name: String  , addTranscript_counts:[ID], skipAssociationsExistenceChecks:Boolean = false): individual!
-    updateIndividual(id: ID!, name: String  , addTranscript_counts:[ID], removeTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
+    addIndividual( name: String   , addTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
+    updateIndividual(id: ID!, name: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
   deleteIndividual(id: ID!): String!
   bulkAddIndividualCsv: [individual] }
 

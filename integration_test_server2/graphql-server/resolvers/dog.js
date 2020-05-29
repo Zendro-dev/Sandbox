@@ -14,6 +14,7 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addPerson': 'person'
@@ -58,6 +59,8 @@ dog.prototype.person = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -97,6 +100,11 @@ dog.prototype.remove_person = async function(input) {
         this.person_id = null;
     }
 }
+
+
+
+
+
 
 
 /**
@@ -361,6 +369,9 @@ module.exports = {
     countDogs: async function({
         search
     }, context) {
+        //construct benignErrors reporter with context
+        let underhoodContext = new errorHelper.BenignErrorReporter(context);
+
         //check: adapters
         let registeredAdapters = Object.values(dog.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -376,18 +387,20 @@ module.exports = {
         //check: auth adapters
         let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
         if (authorizationCheck.authorizedAdapters.length > 0) {
-
-            let countObj = await dog.countRecords(search, authorizationCheck.authorizedAdapters);
             //check adapter authorization Errors
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
+
+            return await dog.countRecords(search, authorizationCheck.authorizedAdapters, underhoodContext);
+            //let countObj = await dog.countRecords(search, authorizationCheck.authorizedAdapters);
+
             //check Errors returned by the model layer (time-outs, unreachable, etc...)
-            if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(countObj.errors)
-                delete countObj['errors']
-            }
-            return countObj.sum;
+            // if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
+            //     context.benignErrors = context.benignErrors.concat(countObj.errors)
+            //     delete countObj['errors']
+            // }
+            //return countObj.sum;
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {

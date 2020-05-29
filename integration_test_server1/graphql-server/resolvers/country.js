@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addUnique_capital': 'capital'
 }
@@ -63,6 +61,8 @@ country.prototype.unique_capital = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -90,7 +90,6 @@ country.prototype.handleAssociations = async function(input, context) {
 country.prototype.add_unique_capital = async function(input) {
     await models.capital.add_country_id(input.addUnique_capital, this.getIdValue());
 }
-
 /**
  * remove_unique_capital - field Mutation for to_one associations to remove
  *
@@ -99,6 +98,10 @@ country.prototype.add_unique_capital = async function(input) {
 country.prototype.remove_unique_capital = async function(input) {
     await models.capital.remove_country_id(input.removeUnique_capital, this.getIdValue());
 }
+
+
+
+
 
 
 /**
@@ -194,7 +197,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'country', 'read' === true)) {
+        if (await checkAuthorization(context, 'country', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "countries");
             return await country.readAll(search, order, pagination);
         } else {

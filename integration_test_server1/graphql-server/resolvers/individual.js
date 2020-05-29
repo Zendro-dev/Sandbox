@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addTranscript_counts': 'transcript_count'
 }
@@ -118,6 +116,8 @@ individual.prototype.transcript_countsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -148,7 +148,6 @@ individual.prototype.add_transcript_counts = async function(input) {
     await Promise.all(results);
 }
 
-
 /**
  * remove_transcript_counts - field Mutation for to_many associations to remove
  *
@@ -161,6 +160,10 @@ individual.prototype.remove_transcript_counts = async function(input) {
     }
     await Promise.all(results);
 }
+
+
+
+
 
 
 
@@ -257,7 +260,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'individual', 'read' === true)) {
+        if (await checkAuthorization(context, 'individual', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "individuals");
             return await individual.readAll(search, order, pagination);
         } else {

@@ -5,7 +5,7 @@ const axios_general = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const os = require('os');
-const uuidv4 = require('uuidv4');
+const uuidv4 = require('uuidv4').uuid;
 const globals = require('../config/globals');
 const validatorUtil = require('../utils/validatorUtil');
 const helper = require('../utils/helper');
@@ -283,6 +283,41 @@ module.exports = class capital {
             });
     }
 
+    static bulkAddCsv(context) {
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        return context.request.files.csv_file.mv(tmpFile).then(() => {
+            let query = `mutation {bulkAddCapitalCsv{capital_id}}`;
+            let formData = new FormData();
+            formData.append('csv_file', fs.createReadStream(tmpFile));
+            formData.append('query', query);
+
+            return axios.post(url, formData, {
+                headers: formData.getHeaders()
+            }).then(res => {
+                return res.data.data.bulkAddCapitalCsv;
+            });
+
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+    static csvTableTemplate() {
+        let query = `query { csvTableTemplateCapital }`;
+        return axios.post(url, {
+            query: query
+        }).then(res => {
+            return res.data.data.csvTableTemplateCapital;
+        }).catch(error => {
+            error['url'] = url;
+            handleError(error);
+        });
+    }
+
+
+
     /**
      * add_country_id - field Mutation (adapter-layer) for to_one associationsArguments to add
      *
@@ -346,38 +381,10 @@ module.exports = class capital {
     }
 
 
-    static bulkAddCsv(context) {
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
-        return context.request.files.csv_file.mv(tmpFile).then(() => {
-            let query = `mutation {bulkAddCapitalCsv{capital_id}}`;
-            let formData = new FormData();
-            formData.append('csv_file', fs.createReadStream(tmpFile));
-            formData.append('query', query);
 
-            return axios.post(url, formData, {
-                headers: formData.getHeaders()
-            }).then(res => {
-                return res.data.data.bulkAddCapitalCsv;
-            });
 
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
-    static csvTableTemplate() {
-        let query = `query { csvTableTemplateCapital }`;
-        return axios.post(url, {
-            query: query
-        }).then(res => {
-            return res.data.data.csvTableTemplateCapital;
-        }).catch(error => {
-            error['url'] = url;
-            handleError(error);
-        });
-    }
 
     static get definition() {
         return definition;

@@ -15,8 +15,6 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
-
-
 const associationArgsDef = {
     'addAccession': 'accession'
 }
@@ -62,6 +60,8 @@ measurement.prototype.accession = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -90,7 +90,6 @@ measurement.prototype.add_accession = async function(input) {
     await measurement.add_accessionId(this.getIdValue(), input.addAccession);
     this.accessionId = input.addAccession;
 }
-
 /**
  * remove_accession - field Mutation for to_one associations to remove
  *
@@ -102,6 +101,10 @@ measurement.prototype.remove_accession = async function(input) {
         this.accessionId = null;
     }
 }
+
+
+
+
 
 
 /**
@@ -197,7 +200,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Measurement', 'read' === true)) {
+        if (await checkAuthorization(context, 'Measurement', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "measurements");
             return await measurement.readAll(search, order, pagination);
         } else {

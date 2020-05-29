@@ -14,7 +14,7 @@ const helpersAcl = require('../utils/helpers-acl');
 const email = require('../utils/email');
 const fs = require('fs');
 const os = require('os');
-const uuidv4 = require('uuidv4');
+const uuidv4 = require('uuidv4').uuid;
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 
 const remoteCenzontleURL = "";
@@ -110,6 +110,8 @@ module.exports = class dog_instance2 extends Sequelize.Model {
     }
 
     static countRecords(search) {
+      return 20;
+
         let options = {};
 
         /*

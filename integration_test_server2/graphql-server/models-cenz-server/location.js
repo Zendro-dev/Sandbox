@@ -5,7 +5,7 @@ const axios_general = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const os = require('os');
-const uuidv4 = require('uuidv4');
+const uuidv4 = require('uuidv4').uuid;
 const globals = require('../config/globals');
 const validatorUtil = require('../utils/validatorUtil');
 const helper = require('../utils/helper');
@@ -312,9 +312,6 @@ module.exports = class Location {
             });
     }
 
-
-
-
     static bulkAddCsv(context) {
         let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
 
@@ -347,6 +344,16 @@ module.exports = class Location {
             handleError(error);
         });
     }
+
+
+
+
+
+
+
+
+
+
 
     static get definition() {
         return definition;

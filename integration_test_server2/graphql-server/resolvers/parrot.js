@@ -58,6 +58,8 @@ parrot.prototype.unique_person = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -97,6 +99,11 @@ parrot.prototype.remove_unique_person = async function(input) {
         this.person_id = null;
     }
 }
+
+
+
+
+
 
 
 /**

@@ -58,6 +58,8 @@ dog.prototype.person = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -97,6 +99,11 @@ dog.prototype.remove_person = async function(input) {
         this.person_id = null;
     }
 }
+
+
+
+
+
 
 
 /**

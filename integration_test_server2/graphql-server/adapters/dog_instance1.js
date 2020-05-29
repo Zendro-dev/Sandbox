@@ -32,9 +32,9 @@ module.exports = class dog_instance1 {
             {
               readOneDog(dog_id:"${iri}")
               {
-                dog_id 
-                name 
-                person_id 
+                dog_id
+                name
+                person_id
               }
             }`;
 
@@ -53,7 +53,13 @@ module.exports = class dog_instance1 {
         });
     }
 
-    static countRecords(search) {
+    static async countRecords(search) {
+        // return new Promise( (res, rej) =>{
+        //     rej( new Error('Something went wrong in cenz adapter') )
+        // });
+       return await Promise.reject(new Error('Something went wrong in cenz adapter'));
+      //throw new Error("Something went wrong in cenz adapter");
+
         let query = `
       query countDogs($search: searchDogInput){
         countDogs(search: $search)
@@ -111,9 +117,9 @@ module.exports = class dog_instance1 {
     static addOne(input) {
         let query = `
           mutation addDog(
-              $dog_id:ID!  
+              $dog_id:ID!
             $name:String          ){
-            addDog(            dog_id:$dog_id  
+            addDog(            dog_id:$dog_id
             name:$name){
               dog_id                name
                 person_id
@@ -162,14 +168,14 @@ module.exports = class dog_instance1 {
         let query = `
           mutation
             updateDog(
-              $dog_id:ID! 
+              $dog_id:ID!
               $name:String             ){
               updateDog(
-                dog_id:$dog_id 
+                dog_id:$dog_id
                 name:$name               ){
-                dog_id 
-                name 
-                person_id 
+                dog_id
+                name
+                person_id
               }
             }`
 

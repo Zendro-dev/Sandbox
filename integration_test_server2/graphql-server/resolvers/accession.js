@@ -14,8 +14,6 @@ const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
-const errorHelper = require('../utils/errors');
-
 
 const associationArgsDef = {
     'addLocation': 'location',
@@ -155,6 +153,8 @@ accession.prototype.measurementsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -200,7 +200,6 @@ accession.prototype.add_location = async function(input) {
     await accession.add_locationId(this.getIdValue(), input.addLocation);
     this.locationId = input.addLocation;
 }
-
 /**
  * remove_measurements - field Mutation for to_many associations to remove
  *
@@ -225,6 +224,10 @@ accession.prototype.remove_location = async function(input) {
         this.locationId = null;
     }
 }
+
+
+
+
 
 
 /**
@@ -321,7 +324,7 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Accession', 'read' === true)) {
+        if (await checkAuthorization(context, 'Accession', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "accessions");
             return await accession.readAll(search, order, pagination);
         } else {
@@ -420,8 +423,7 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let underhoodContext = new errorHelper.BenignErrorReporter(context);
-            let createdAccession = await accession.addOne(inputSanitized, underhoodContext);
+            let createdAccession = await accession.addOne(inputSanitized);
             await createdAccession.handleAssociations(inputSanitized, context);
             return createdAccession;
         } else {

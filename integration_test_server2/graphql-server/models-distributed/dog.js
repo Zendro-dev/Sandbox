@@ -5,6 +5,7 @@ const globals = require('../config/globals');
 const helper = require('../utils/helper');
 const models = require(path.join(__dirname, '..', 'models_index.js'));
 const validatorUtil = require('../utils/validatorUtil');
+const errorHelper = require('../utils/errors');
 
 const definition = {
     model: 'dog',
@@ -111,7 +112,7 @@ module.exports = class dog {
         }
     }
 
-    static countRecords(search, authorizedAdapters) {
+    static async countRecords(search, authorizedAdapters, benignErrorReporter) {
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -129,48 +130,89 @@ module.exports = class dog {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        let promises = authAdapters.map(adapter => {
-            /**
-             * Differentiated cases:
-             *   sql-adapter:
-             *      resolve with current parameters.
-             *
-             *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
-             *   generic-adapter:
-             *      add exclusions to search.excludeAdapterNames parameter.
-             */
-            switch (adapter.adapterType) {
-                case 'ddm-adapter':
-                case 'generic-adapter':
-                    let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
-                    return adapter.countRecords(nsearch).catch(benignErrors => benignErrors);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef( benignErrorReporter );
 
-                case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
-                    return adapter.countRecords(search).catch(benignErrors => benignErrors);
+        // let promises = authAdapters.map(adapter => {
+        //     /**
+        //      * Differentiated cases:
+        //      *   sql-adapter:
+        //      *      resolve with current parameters.
+        //      *
+        //      *   ddm-adapter:
+        //      *   cenzontle-webservice-adapter:
+        //      *   generic-adapter:
+        //      *      add exclusions to search.excludeAdapterNames parameter.
+        //      */
+        //     switch (adapter.adapterType) {
+        //         case 'ddm-adapter':
+        //         case 'generic-adapter':
+        //             let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
+        //             //return adapter.countRecords(nsearch).catch(benignErrors => benignErrors);
+        //             return adapter.countRecords(nsearch, benignErrorReporter); //.catch(benignErrors => benignErrors);
+        //
+        //         case 'sql-adapter':
+        //         case 'cenzontle-webservice-adapter':
+        //             //return adapter.countRecords(search).catch(benignErrors => benignErrors);
+        //             return adapter.countRecords(search, benignErrorReporter); //.catch(benignErrors => benignErrors);
+        //
+        //         case 'default':
+        //             throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
+        //     }
+        // });
 
-                case 'default':
-                    throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
-            }
-        });
+        let promises = [];
 
-        return Promise.all(promises).then(results => {
+        for await (let adapter of authAdapters){
+              switch (adapter.adapterType) {
+                  case 'ddm-adapter':
+                  case 'generic-adapter':
+                      let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
+                       promises.push( adapter.countRecords(nsearch, benignErrorReporter) );
+                       break;
+
+                  case 'sql-adapter':
+                  case 'cenzontle-webservice-adapter':
+                      promises.push( adapter.countRecords(search, benignErrorReporter) );
+                      break;
+                  case 'default':
+                      throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
+              }
+
+        }
+
+        console.log("GOT HERE");
+        return Promise.allSettled(promises).then(results => {
+            console.log("RESULTS: ", results);
             return results.reduce((total, current) => {
                 //check if current is Error
-                if (current instanceof Error) {
-                    total.errors.push(current);
+                if (current.status === 'rejected') {
+                    benignErrorReporter.reportError(current.reason);
                 }
                 //check current result
-                else if (current) {
-                    total.sum += current;
+                else if (current.status === 'fulfilled') {
+                    total += current.value;
                 }
                 return total;
-            }, {
-                sum: 0,
-                errors: []
-            });
+            }, 0 );
         });
+
+        // return Promise.all(promises).then(results => {
+        //     return results.reduce((total, current) => {
+        //         //check if current is Error
+        //         if (current instanceof Error) {
+        //             total.errors.push(current);
+        //         }
+        //         //check current result
+        //         else if (current) {
+        //             total.sum += current;
+        //         }
+        //         return total;
+        //     }, {
+        //         sum: 0,
+        //         errors: []
+        //     });
+        // });
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {
@@ -359,6 +401,16 @@ module.exports = class dog {
             });
     }
 
+    static bulkAddCsv(context) {
+        throw new Error("dog.bulkAddCsv is not implemented.")
+    }
+
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(dog);
+    }
+
+
+
     /**
      * add_person_id - field Mutation (model-layer) for to_one associationsArguments to add
      *
@@ -383,11 +435,7 @@ module.exports = class dog {
 
 
 
-    static bulkAddCsv(context) {
-        throw new Error("dog.bulkAddCsv is not implemented.")
-    }
 
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(dog);
-    }
+
+
 }

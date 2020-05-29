@@ -122,6 +122,8 @@ person.prototype.dogsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -187,6 +189,11 @@ person.prototype.remove_dogs = async function(input) {
 person.prototype.remove_unique_parrot = async function(input) {
     await models.parrot.remove_person_id(input.removeUnique_parrot, this.getIdValue());
 }
+
+
+
+
+
 
 
 /**
