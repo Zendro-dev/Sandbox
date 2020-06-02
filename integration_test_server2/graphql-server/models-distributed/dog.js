@@ -133,55 +133,34 @@ module.exports = class dog {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef( benignErrorReporter );
 
-        // let promises = authAdapters.map(adapter => {
-        //     /**
-        //      * Differentiated cases:
-        //      *   sql-adapter:
-        //      *      resolve with current parameters.
-        //      *
-        //      *   ddm-adapter:
-        //      *   cenzontle-webservice-adapter:
-        //      *   generic-adapter:
-        //      *      add exclusions to search.excludeAdapterNames parameter.
-        //      */
-        //     switch (adapter.adapterType) {
-        //         case 'ddm-adapter':
-        //         case 'generic-adapter':
-        //             let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
-        //             //return adapter.countRecords(nsearch).catch(benignErrors => benignErrors);
-        //             return adapter.countRecords(nsearch, benignErrorReporter); //.catch(benignErrors => benignErrors);
-        //
-        //         case 'sql-adapter':
-        //         case 'cenzontle-webservice-adapter':
-        //             //return adapter.countRecords(search).catch(benignErrors => benignErrors);
-        //             return adapter.countRecords(search, benignErrorReporter); //.catch(benignErrors => benignErrors);
-        //
-        //         case 'default':
-        //             throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
-        //     }
-        // });
+        let promises = authAdapters.map(adapter => {
+            /**
+             * Differentiated cases:
+             *   sql-adapter:
+             *      resolve with current parameters.
+             *
+             *   ddm-adapter:
+             *   cenzontle-webservice-adapter:
+             *   generic-adapter:
+             *      add exclusions to search.excludeAdapterNames parameter.
+             */
+            switch (adapter.adapterType) {
+                case 'ddm-adapter':
+                case 'generic-adapter':
+                    let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
+                    //return adapter.countRecords(nsearch).catch(benignErrors => benignErrors);
+                    return adapter.countRecords(nsearch, benignErrorReporter); //.catch(benignErrors => benignErrors);
 
-        let promises = [];
+                case 'sql-adapter':
+                case 'cenzontle-webservice-adapter':
+                    //return adapter.countRecords(search).catch(benignErrors => benignErrors);
+                    return adapter.countRecords(search, benignErrorReporter); //.catch(benignErrors => benignErrors);
 
-        for await (let adapter of authAdapters){
-              switch (adapter.adapterType) {
-                  case 'ddm-adapter':
-                  case 'generic-adapter':
-                      let nsearch = helper.addExclusions(search, adapter.adapterName, Object.values(this.registeredAdapters));
-                       promises.push( adapter.countRecords(nsearch, benignErrorReporter) );
-                       break;
+                case 'default':
+                    throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
+            }
+        });
 
-                  case 'sql-adapter':
-                  case 'cenzontle-webservice-adapter':
-                      promises.push( adapter.countRecords(search, benignErrorReporter) );
-                      break;
-                  case 'default':
-                      throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
-              }
-
-        }
-
-        console.log("GOT HERE");
         return Promise.allSettled(promises).then(results => {
             console.log("RESULTS: ", results);
             return results.reduce((total, current) => {
@@ -196,23 +175,6 @@ module.exports = class dog {
                 return total;
             }, 0 );
         });
-
-        // return Promise.all(promises).then(results => {
-        //     return results.reduce((total, current) => {
-        //         //check if current is Error
-        //         if (current instanceof Error) {
-        //             total.errors.push(current);
-        //         }
-        //         //check current result
-        //         else if (current) {
-        //             total.sum += current;
-        //         }
-        //         return total;
-        //     }, {
-        //         sum: 0,
-        //         errors: []
-        //     });
-        // });
     }
 
     static readAllCursor(search, order, pagination, authorizedAdapters) {

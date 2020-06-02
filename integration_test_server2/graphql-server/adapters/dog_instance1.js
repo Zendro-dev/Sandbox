@@ -57,8 +57,8 @@ module.exports = class dog_instance1 {
         // return new Promise( (res, rej) =>{
         //     rej( new Error('Something went wrong in cenz adapter') )
         // });
-       return await Promise.reject(new Error('Something went wrong in cenz adapter'));
-      //throw new Error("Something went wrong in cenz adapter");
+       //return await Promise.reject(new Error('Something went wrong in cenz adapter'));
+      throw new Error("Something went wrong in cenz adapter");
 
         let query = `
       query countDogs($search: searchDogInput){
