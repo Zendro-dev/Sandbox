@@ -5,66 +5,56 @@ type Measurement{
   """
   measurement_id: ID
 
-"""
+  """
   @original-field
   
   """
   name: String
-
 """
   @original-field
   
   """
   method: String
-
 """
   @original-field
   
   """
   reference: String
-
 """
   @original-field
   
   """
   reference_link: String
-
 """
   @original-field
   
   """
   value: Float
-
 """
   @original-field
   
   """
   unit: String
-
 """
   @original-field
   
   """
   short_name: String
-
 """
   @original-field
   
   """
   comments: String
-
 """
   @original-field
   
   """
   field_unit_id: Int
-
 """
   @original-field
   
   """
   individual_id: String
-
 """
   @original-field
   
@@ -73,6 +63,7 @@ type Measurement{
 
 individual(search: searchIndividualInput): Individual
 accession(search: searchAccessionInput): Accession
+
 }
 
 type MeasurementConnection{
@@ -126,7 +117,6 @@ input orderMeasurementInput{
 }
 
 type Query {
-  measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput ): [Measurement]
   readOneMeasurement(measurement_id: ID!): Measurement
   countMeasurements(search: searchMeasurementInput ): Int
   vueTableMeasurement : VueTableMeasurement  csvTableTemplateMeasurement: [String]
@@ -135,8 +125,8 @@ type Query {
 }
 
   type Mutation {
-  addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID  ): Measurement!
-  updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID  ): Measurement!
+  addMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
+  updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String, reference_link: String, value: Float, unit: String, short_name: String, comments: String, field_unit_id: Int , addIndividual:ID, removeIndividual:ID , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
 deleteMeasurement(measurement_id: ID!): String!
 bulkAddMeasurementCsv: [Measurement] }
 

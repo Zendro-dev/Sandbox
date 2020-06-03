@@ -5,30 +5,26 @@ type Individual{
   """
   name: ID
 
-"""
+  """
   @original-field
   
   """
   origin: String
-
 """
   @original-field
   
   """
   description: String
-
 """
   @original-field
   
   """
   accession_id: String
-
 """
   @original-field
   
   """
   genotypeId: Int
-
 """
   @original-field
   
@@ -36,16 +32,15 @@ type Individual{
   field_unit_id: Int
 
 accession(search: searchAccessionInput): Accession
-
   """
   @search-request
   """
   measurementsConnection(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput): MeasurementConnection
-
   """
   @count-request
   """
   countFilteredMeasurements(search: searchMeasurementInput) : Int
+
 }
 
 type IndividualConnection{
@@ -93,7 +88,6 @@ input orderIndividualInput{
 }
 
 type Query {
-  individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput ): [Individual]
   readOneIndividual(name: ID!): Individual
   countIndividuals(search: searchIndividualInput ): Int
   vueTableIndividual : VueTableIndividual  csvTableTemplateIndividual: [String]
@@ -102,8 +96,8 @@ type Query {
 }
 
   type Mutation {
-  addIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID , addMeasurements:[ID] ): Individual!
-  updateIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID, removeAccession:ID  , addMeasurements:[ID], removeMeasurements:[ID] ): Individual!
+  addIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Individual!
+  updateIndividual(name: ID!, origin: String, description: String, genotypeId: Int, field_unit_id: Int , addAccession:ID, removeAccession:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Individual!
 deleteIndividual(name: ID!): String!
 bulkAddIndividualCsv: [Individual] }
 

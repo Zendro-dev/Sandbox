@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     id: ID
-
     """
     @original-field
     
@@ -33,8 +32,8 @@ module.exports = `
     @count-request
     """
     countFilteredRoles(search: searchRoleInput) : Int
-  }
-
+  
+    }
 type UserConnection{
   edges: [UserEdge]
   pageInfo: pageInfo!
@@ -56,13 +55,11 @@ type UserEdge{
     from: Int
     to: Int
   }
-
   enum userField {
     id
     email
     password
   }
-
   input searchUserInput {
     field: userField
     value: typeValue
@@ -74,7 +71,6 @@ type UserEdge{
     field: userField
     order: Order
   }
-
   type Query {
     users(search: searchUserInput, order: [ orderUserInput ], pagination: paginationInput ): [user]
     readOneUser(id: ID!): user
@@ -83,10 +79,9 @@ type UserEdge{
 
     usersConnection(search:searchUserInput, order: [ orderUserInput ], pagination: paginationCursorInput ): UserConnection
   }
-
     type Mutation {
-    addUser( email: String, password: String  , addRoles:[ID] ): user!
-    updateUser(id: ID!, email: String, password: String  , addRoles:[ID], removeRoles:[ID] ): user!
+    addUser( email: String, password: String   , addRoles:[ID] , skipAssociationsExistenceChecks:Boolean = false): user!
+    updateUser(id: ID!, email: String, password: String   , addRoles:[ID], removeRoles:[ID]  , skipAssociationsExistenceChecks:Boolean = false): user!
   deleteUser(id: ID!): String!
   bulkAddUserCsv: [user] }
 

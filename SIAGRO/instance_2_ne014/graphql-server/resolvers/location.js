@@ -93,6 +93,62 @@ location.prototype.accessionsConnection = function({
 }
 
 
+
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+location.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+        if (helper.isNonEmptyArray(input.addAccessions)) {
+            promises.push(this.add_accessions(input, context));
+        }
+        if (helper.isNonEmptyArray(input.removeAccessions)) {
+            promises.push(this.remove_accessions(input, context));
+        }
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
+/**
+ * add_accessions - field Mutation for to_many associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+location.prototype.add_accessions = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.addAccessions) {
+        results.push(models.accession.add_locationId(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
+}
+
+/**
+ * remove_accessions - field Mutation for to_many associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+location.prototype.remove_accessions = async function(input) {
+    let results = [];
+    for await (associatedRecordId of input.removeAccessions) {
+        results.push(models.accession.remove_locationId(associatedRecordId, this.getIdValue()));
+    }
+    await Promise.all(results);
+}
+
+
+
+
+
+
+
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -103,41 +159,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await location.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await location.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneLocation"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -286,7 +331,15 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, location.adapterForIri(input.locationId), 'create');
             if (authorizationCheck === true) {
-                return location.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let createdRecord = await location.addOne(inputSanitized);
+                await createdRecord.handleAssociations(inputSanitized, context);
+                return createdRecord;
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }
@@ -359,7 +412,15 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, location.adapterForIri(input.locationId), 'update');
             if (authorizationCheck === true) {
-                return location.updateOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let updatedRecord = await location.updateOne(inputSanitized);
+                await updatedRecord.handleAssociations(inputSanitized, context);
+                return updatedRecord;
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }

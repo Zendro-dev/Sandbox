@@ -30,6 +30,7 @@ const associationArgsDef = {
 measurement.prototype.individual = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.individual_id)) {
         try {
             if (search === undefined) {
@@ -70,6 +71,7 @@ measurement.prototype.individual = async function({
 measurement.prototype.accession = async function({
     search
 }, context) {
+
     if (helper.isNotUndefinedAndNotNull(this.accession_id)) {
         try {
             if (search === undefined) {
@@ -103,6 +105,84 @@ measurement.prototype.accession = async function({
 
 
 
+
+
+/**
+ * handleAssociations - handles the given associations in the create and update case.
+ *
+ * @param {object} input   Info of each field to create the new record
+ * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ */
+measurement.prototype.handleAssociations = async function(input, context) {
+    try {
+        let promises = [];
+
+        if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
+            promises.push(this.add_individual(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.addAccession)) {
+            promises.push(this.add_accession(input, context));
+        }
+
+        if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
+            promises.push(this.remove_individual(input, context));
+        }
+        if (helper.isNotUndefinedAndNotNull(input.removeAccession)) {
+            promises.push(this.remove_accession(input, context));
+        }
+
+        await Promise.all(promises);
+    } catch (error) {
+        throw error
+    }
+}
+/**
+ * add_individual - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+measurement.prototype.add_individual = async function(input) {
+    await measurement.add_individual_id(this.getIdValue(), input.addIndividual);
+    this.individual_id = input.addIndividual;
+}
+/**
+ * add_accession - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ */
+measurement.prototype.add_accession = async function(input) {
+    await measurement.add_accession_id(this.getIdValue(), input.addAccession);
+    this.accession_id = input.addAccession;
+}
+/**
+ * remove_individual - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+measurement.prototype.remove_individual = async function(input) {
+    if (input.removeIndividual == this.individual_id) {
+        await measurement.remove_individual_id(this.getIdValue(), input.removeIndividual);
+        this.individual_id = null;
+    }
+}
+/**
+ * remove_accession - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ */
+measurement.prototype.remove_accession = async function(input) {
+    if (input.removeAccession == this.accession_id) {
+        await measurement.remove_accession_id(this.getIdValue(), input.removeAccession);
+        this.accession_id = null;
+    }
+}
+
+
+
+
+
+
+
 /**
  * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
  *
@@ -113,41 +193,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await measurement.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await measurement.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneMeasurement"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -297,7 +366,15 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, measurement.adapterForIri(input.measurement_id), 'create');
             if (authorizationCheck === true) {
-                return measurement.addOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let createdRecord = await measurement.addOne(inputSanitized);
+                await createdRecord.handleAssociations(inputSanitized, context);
+                return createdRecord;
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }
@@ -370,7 +447,15 @@ module.exports = {
         try {
             let authorizationCheck = await checkAuthorization(context, measurement.adapterForIri(input.measurement_id), 'update');
             if (authorizationCheck === true) {
-                return measurement.updateOne(input);
+                let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+                await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+                await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
+                let updatedRecord = await measurement.updateOne(inputSanitized);
+                await updatedRecord.handleAssociations(inputSanitized, context);
+                return updatedRecord;
             } else { //adapter not auth
                 throw new Error("You don't have authorization to perform this action on adapter");
             }

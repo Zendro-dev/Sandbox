@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     id: ID
-
     """
     @original-field
     
@@ -105,8 +104,8 @@ module.exports = `
     @count-request
     """
     countFilteredAccessions(search: searchAccessionInput) : Int
-  }
-
+  
+    }
 type TaxonConnection{
   edges: [TaxonEdge]
   pageInfo: pageInfo!
@@ -128,7 +127,6 @@ type TaxonEdge{
     from: Int
     to: Int
   }
-
   enum TaxonField {
     id
     taxon
@@ -146,7 +144,6 @@ type TaxonEdge{
     prioritarias
     endemismo
   }
-
   input searchTaxonInput {
     field: TaxonField
     value: typeValue
@@ -158,7 +155,6 @@ type TaxonEdge{
     field: TaxonField
     order: Order
   }
-
   type Query {
     taxons(search: searchTaxonInput, order: [ orderTaxonInput ], pagination: paginationInput ): [Taxon]
     readOneTaxon(id: ID!): Taxon
@@ -167,10 +163,9 @@ type TaxonEdge{
 
     taxonsConnection(search:searchTaxonInput, order: [ orderTaxonInput ], pagination: paginationCursorInput ): TaxonConnection
   }
-
     type Mutation {
-    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID] ): Taxon!
-    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String  , addAccessions:[ID], removeAccessions:[ID] ): Taxon!
+    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String   , addAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String   , addAccessions:[ID], removeAccessions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Taxon!
   deleteTaxon(id: ID!): String!
   bulkAddTaxonCsv: [Taxon] }
 

@@ -16,7 +16,6 @@ const models = require(path.join(__dirname, '..', 'models_index.js'));
 const globals = require('../config/globals');
 
 
-
 const associationArgsDef = {
     'addAccessions': 'accession'
 }
@@ -133,6 +132,8 @@ taxon.prototype.accessionsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -154,34 +155,37 @@ taxon.prototype.handleAssociations = async function(input, context) {
         throw error
     }
 }
-
 /**
- * add_accessions - field Mutation for to_many associations to add 
+ * add_accessions - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  */
 taxon.prototype.add_accessions = async function(input) {
     let results = [];
     for await (associatedRecordId of input.addAccessions) {
-        results.push(models.accession._addTaxon(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.add_taxon_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
 
 
-
 /**
- * remove_accessions - field Mutation for to_many associations to remove 
+ * remove_accessions - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  */
 taxon.prototype.remove_accessions = async function(input) {
     let results = [];
     for await (associatedRecordId of input.removeAccessions) {
-        results.push(models.accession._removeTaxon(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.remove_taxon_id(associatedRecordId, this.getIdValue()));
     }
     await Promise.all(results);
 }
+
+
+
+
+
 
 
 
@@ -195,41 +199,30 @@ function errorMessageForRecordsLimit(query) {
 }
 
 /**
- * checkCount(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} query The query that makes this check
  */
-async function checkCount(search, context, query) {
-    if (await taxon.countRecords(search) > context.recordsLimit) {
+async function checkCountAndReduceRecordsLimit(search, context, query) {
+    let count = (await taxon.countRecords(search)).sum;
+    if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
+    context.recordsLimit -= count;
 }
 
 /**
- * checkCountForOne(context) - Make sure that the record limit is not exhausted before requesting a single record
+ * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
  *
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
-function checkCountForOne(context) {
+function checkCountForOneAndReduceRecordsLimit(context) {
     if (1 > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit("readOneTaxon"));
     }
-}
-
-/**
- * checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {number} numberOfFoundItems number of items that were found, to be subtracted from the current record limit
- * @param {string} query The query that makes this check
- */
-function checkCountAgainAndAdaptLimit(context, numberOfFoundItems, query) {
-    if (numberOfFoundItems > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= numberOfFoundItems;
+    context.recordsLimit -= 1;
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -291,10 +284,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "taxons");
-                let resultRecords = await taxon.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "taxons");
-                return resultRecords;
+                await checkCountAndReduceRecordsLimit(search, context, "taxons");
+                return await taxon.readAll(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -321,9 +312,7 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                await checkCount(search, context, "taxonsConnection");
-                let resultRecords = await taxon.readAll(search, order, pagination);
-                checkCountAgainAndAdaptLimit(context, resultRecords.length, "taxonsConnection");
+                await checkCountAndReduceRecordsLimit(search, context, "taxonsConnection");
                 return taxon.readAllCursor(search, order, pagination);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -346,11 +335,8 @@ module.exports = {
     }, context) {
         return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
             if (authorization === true) {
-                checkCountForOne(context);
-                let resultRecords = taxon.readById(id);
-                checkCountForOne(context);
-                context.recordsLimit = context.recordsLimit - 1;
-                return resultRecords;
+                checkCountForOneAndReduceRecordsLimit(context);
+                return taxon.readById(id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -367,12 +353,12 @@ module.exports = {
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countTaxons: function({
+    countTaxons: async function({
         search
     }, context) {
-        return checkAuthorization(context, 'Taxon', 'read').then(authorization => {
+        return await checkAuthorization(context, 'Taxon', 'read').then(async authorization => {
             if (authorization === true) {
-                return taxon.countRecords(search);
+                return (await taxon.countRecords(search)).sum;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -418,7 +404,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef)
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let createdTaxon = await taxon.addOne(inputSanitized);
                 await createdTaxon.handleAssociations(inputSanitized, context);
                 return createdTaxon;
@@ -490,7 +478,9 @@ module.exports = {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+                }
                 let updatedTaxon = await taxon.updateOne(inputSanitized);
                 await updatedTaxon.handleAssociations(inputSanitized, context);
                 return updatedTaxon;

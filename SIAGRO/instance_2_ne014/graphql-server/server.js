@@ -152,6 +152,7 @@ app.use('/export', cors(), (req, res) =>{
  }
 
  let body_info = req.query;
+ console.log("@@req.query: ", req.query);
 
  simpleExport(context, body_info ,res).then( () =>{
    res.end();
@@ -162,6 +163,8 @@ app.use('/export', cors(), (req, res) =>{
          path: error.path
      };
      res.status(500).send(formattedError);
+
+     console.log("@@req.error: ", error);
  });
 
 
