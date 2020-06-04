@@ -218,20 +218,24 @@ module.exports = {
             throw new Error('All adapters was excluded for data model "dog"');
         } //else
 
+        //construct benignErrors reporter with context
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
         //check: auth adapters
         let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
         if (authorizationCheck.authorizedAdapters.length > 0) {
-            let connectionObj = await dog.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
+            //let connectionObj = await dog.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
             //check adapter authorization Errors
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
             //check Errors returned by the model layer (time-outs, unreachable, etc...)
-            if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(connectionObj.errors)
-                delete connectionObj['errors']
-            }
-            return connectionObj;
+            // if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
+            //     context.benignErrors = context.benignErrors.concat(connectionObj.errors)
+            //     delete connectionObj['errors']
+            // }
+            // return connectionObj;
+            return await dog.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
