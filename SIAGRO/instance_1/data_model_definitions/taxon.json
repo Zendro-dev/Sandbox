@@ -1,0 +1,38 @@
+{
+    "model": "taxon",
+    "storageType": "webservice",
+
+    "attributes": {
+        "id": "String",
+        "taxon": "String",
+        "categoria": "String",
+        "estatus": "String",
+        "nombreAutoridad": "String",
+        "citaNomenclatural": "String",
+        "fuente": "String",
+        "ambiente":"String",
+        "grupoSNIB": "String",
+        "categoriaResidencia": "String",
+        "nom": "String",
+        "cites": "String",
+        "iucn": "String",
+        "prioritarias": "String",
+        "endemismo": "String"
+      },
+      
+      "associations": {
+        "cuadrantes": {
+          "type": "to_many",
+          "target": "cuadrante",
+          "targetKey": "taxon_id",
+          "keyIn": "cuadrante",
+          "targetStorageType": "sql",
+          "label": "nombre_comun_grupo_enfoque"
+        }
+      },
+      
+      "internalId": "id"
+  }
+
+
+  

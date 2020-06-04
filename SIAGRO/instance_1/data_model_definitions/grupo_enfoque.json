@@ -1,0 +1,44 @@
+{
+	"model": "grupo_enfoque",
+	"storageType": "sql",
+	"attributes": {
+		"grupo_id": "String",
+		"tipo_grupo": "String",
+		"numero_participantes": "Int",
+		"fecha": "Date",
+		"lista_especies": "String",
+		"foto_produccion": "String",
+		"foto_autoconsumo": "String",
+		"foto_venta": "String",
+		"foto_compra": "String",
+		"observaciones": "String",
+		"justificacion_produccion_cuadrante1": "String",
+		"justificacion_produccion_cuadrante2": "String",
+		"justificacion_produccion_cuadrante3": "String",
+		"justificacion_produccion_cuadrante4": "String",
+		"location_id": "String"
+  },
+  
+	"associations": {
+		"location": {
+			"type": "to_one",
+			"target": "location",
+			"targetKey": "location_id",
+			"keyIn": "grupo_enfoque",
+			"targetStorageType": "sql",
+			"label": "estado",
+			"sublabel": "municipio"
+    },
+    
+		"cuadrantes": {
+			"type": "to_many",
+			"target": "cuadrante",
+			"targetKey": "grupo_enfoque_id",
+			"keyIn": "cuadrante",
+			"targetStorageType": "sql",
+			"label": "nombre_comun_grupo_enfoque"
+		}
+  },
+  
+	"internalId": "grupo_id"
+}
