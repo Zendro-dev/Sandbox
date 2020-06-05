@@ -16,14 +16,14 @@
 		"justificacion_produccion_cuadrante2": "String",
 		"justificacion_produccion_cuadrante3": "String",
 		"justificacion_produccion_cuadrante4": "String",
-		"location_id": "String"
+		"sitio_id": "String"
   },
   
 	"associations": {
-		"location": {
+		"sitio": {
 			"type": "to_one",
-			"target": "location",
-			"targetKey": "location_id",
+			"target": "sitio",
+			"targetKey": "sitio_id",
 			"keyIn": "grupo_enfoque",
 			"targetStorageType": "sql",
 			"label": "estado",
@@ -42,3 +42,4 @@
   
 	"internalId": "grupo_id"
 }
+

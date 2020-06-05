@@ -58,6 +58,16 @@ fs.readdirSync(__dirname + "/models-webservice")
         console.log("loaded model: " + file);
         let model = require(`./${path.join("./models-webservice", file)}`);
 
+        let validator_patch = path.join('./validations', file);
+        if(fs.existsSync(validator_patch)){
+            model = require(`./${validator_patch}`).validator_patch(model);
+        }
+
+        let patches_patch = path.join('./patches',file);
+        if(fs.existsSync(patches_patch)){
+            model = require(`./${patches_patch}`).logic_patch(model);
+        }
+
         if(models[model.name])
             throw Error(`Duplicated model name ${model.name}`);
 
@@ -74,6 +84,16 @@ fs.readdirSync(__dirname + "/models-cenz-server")
     .forEach(function(file) {
         console.log("loaded model: " + file);
         let model = require(`./${path.join("./models-cenz-server", file)}`);
+
+        let validator_patch = path.join('./validations', file);
+        if(fs.existsSync(validator_patch)){
+            model = require(`./${validator_patch}`).validator_patch(model);
+        }
+
+        let patches_patch = path.join('./patches',file);
+        if(fs.existsSync(patches_patch)){
+            model = require(`./${patches_patch}`).logic_patch(model);
+        }
 
         if(models[model.name])
             throw Error(`Duplicated model name ${model.name}`);
@@ -92,22 +112,10 @@ fs.readdirSync(__dirname + "/models-distributed")
         console.log("loaded model: " + file);
         let model = require(`./${path.join("./models-distributed", file)}`);
 
-        if(models[model.name])
-            throw Error(`Duplicated model name ${model.name}`);
-
-        models[model.name] = model;
-    });
-
-// **********************************************************************************
-// IMPORT GENERIC MODELS
-
-fs.readdirSync(__dirname + "/models-generic")
-    .filter(function(file) {
-        return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file.slice(-3) === '.js');
-    })
-    .forEach(function(file) {
-        console.log("loaded model: " + file);
-        let model = require(`./${path.join("./models-generic", file)}`);
+        let validator_patch = path.join('./validations', file);
+        if(fs.existsSync(validator_patch)){
+            model = require(`./${validator_patch}`).validator_patch(model);
+        }
 
         if(models[model.name])
             throw Error(`Duplicated model name ${model.name}`);

@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+ sdb_science_db_app_server_internal:
+   build:
+     context: ./spa_internal/single-page-app
+     dockerfile: Dockerfile.app
+   ports:
+     - 3002:3002
+   environment:
+     - PORT=3002
+     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://accesiones.conabio.gob.mx:3000/graphql
+     - REACT_APP_CENZ_LOGIN_URL=http://accesiones.conabio.gob.mx:3000/login
+     - REACT_APP_CENZ_EXPORT_URL=http://accesiones.conabio.gob.mx:3000/export
+     - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
+   volumes:
+     - ./spa_internal:/usr/ScienceDbStarterPack
+   networks:
+     - CONABIO
+   # Install dependencies and start single-page-app-server in development
+   # mode.
+   command:
+     - /bin/sh
+     - -c
+     - |
+       npm install
+       npm start
+
+networks:
+  CONABIO:
+    external: true

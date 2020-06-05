@@ -1,0 +1,24 @@
+{
+	"model": "sitio",
+  	"storageType": "sql",
+	"attributes": {
+		"sitio_id": "String",
+		"pais": "String",
+		"estado": "String",
+		"municipio": "String",
+		"localidad": "String"
+  },
+	"associations": {
+		"grupo_enfoque": {
+			"type": "to_many",
+			"target": "grupo_enfoque",
+			"targetKey": "sitio_id",
+      			"keyIn": "grupo_enfoque",
+			"targetStorageType": "sql",
+			"label": "grupo_id",
+			"sublabel": "fecha"
+		}
+  },
+	"internalId": "sitio_id"
+}
+

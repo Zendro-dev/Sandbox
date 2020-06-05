@@ -1,8 +1,6 @@
 {
 	"model": "cuadrante",
-	
-  "storageType": "sql",
-  
+ 	"storageType": "sql",
 	"attributes": {
 		"cuadrante_id": "String",
 		"tipo_planta": "String",
@@ -18,7 +16,6 @@
 		"grupo_enfoque_id": "String",
 		"taxon_id": "String"
   },
-  
 	"associations": {
 		"grupo_enfoque": {
 			"type" : "to_one",
@@ -29,16 +26,15 @@
 			"label": "grupo_id",
 			"sublabel": "fecha"
     },
-    
-		"taxonomic_information": {
+		"informacion_taxonomica": {
 			"type" : "to_one",
 			"target": "taxon",
 			"targetKey": "taxon_id",
 			"keyIn": "cuadrante",
-			"targetStorageType": "sql",
+			"targetStorageType": "webservice",
 			"label": "taxon"
 		}
   },
-  
 	"internalId": "cuadrante_id"
 }	
+
