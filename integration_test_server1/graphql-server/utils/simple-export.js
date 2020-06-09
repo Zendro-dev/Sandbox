@@ -46,7 +46,7 @@ function wait(ms) {
 module.exports = async function(context, body_info, writableStream ){
       //get resolver name for model
       let model_name = body_info.model;
-      let getter_resolver = inflection.pluralize(model_name.slice(0,1).toLowerCase() + model_name.slice(1, model_name.length));
+      let getter_resolver = inflection.pluralize(model_name.slice(0,1).toLowerCase() + model_name.slice(1, model_name.length)) + 'Connection';
 
       //get count resolver
       let count_resolver = 'count'+inflection.pluralize(model_name.slice(0,1).toUpperCase() + model_name.slice(1, model_name.length));
@@ -55,9 +55,10 @@ module.exports = async function(context, body_info, writableStream ){
 
       //pagination
       let batch_step = {
-        limit: 1,
-        offset: 0
+        first: 2
       }
+
+      let hasNextPage = total_records > 0;
 
       // http send stream header
       let timestamp = new Date().getTime();
@@ -71,16 +72,20 @@ module.exports = async function(context, body_info, writableStream ){
       let csv_header = crateHeaderCSV(attributes);
       await writableStream.write(csv_header);
 
-      while(batch_step.offset < total_records){
+      while(hasNextPage){
 
         try{
-           data = await resolvers[getter_resolver]({pagination: batch_step},context);
+          let data = await resolvers[getter_resolver]({pagination: batch_step},context);
+          let nodes = data.edges.map( e => e.node );
+          let endCursor = data.pageInfo.endCursor;
+          hasNextPage = data.pageInfo.hasNextPage;
 
-           await asyncForEach(data, async (record) =>{
-              let row = jsonToCSV(record.dataValues, attributes);
-              await  writableStream.write(row);
-           })
-          batch_step.offset = batch_step.offset + batch_step.limit;
+           batch_step['after'] = endCursor;
+
+           for await( record of nodes ){
+             let row = jsonToCSV(record, attributes);
+             await  writableStream.write(row);
+           }
         }catch(err){
           /*
               We can't throw an error to Express server at this stage because the response Content-Type

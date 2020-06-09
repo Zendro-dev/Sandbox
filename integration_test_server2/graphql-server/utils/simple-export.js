@@ -17,12 +17,6 @@ crateHeaderCSV = function(attributes){
   return str_header;
 }
 
-asyncForEach = async function(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-}
-
 jsonToCSV = function(row_data, attributes){
   let str_csv = "";
   attributes.forEach( att => {
@@ -54,19 +48,11 @@ module.exports = async function(context, body_info, writableStream ){
       console.log("TOTAL NUMBER OF RECORDS TO STREAM: ", total_records);
 
       //pagination
-      // let batch_step = {
-      //   limit: 1,
-      //   offset: 0
-      // }
-
-
       let batch_step = {
         first: 2
       }
 
       let hasNextPage = total_records > 0;
-
-      console.log("HAS NEXT PAGE",  hasNextPage);
 
       // http send stream header
       let timestamp = new Date().getTime();
@@ -83,29 +69,17 @@ module.exports = async function(context, body_info, writableStream ){
       while(hasNextPage){
 
         try{
-           data = await resolvers[getter_resolver]({pagination: batch_step},context);
+          let data = await resolvers[getter_resolver]({pagination: batch_step},context);
+          let nodes = data.edges.map( e => e.node );
+          let endCursor = data.pageInfo.endCursor;
+          hasNextPage = data.pageInfo.hasNextPage;
 
-
-           nodes = data.edges.map( e => e.node );
-           hasNextPage = data.pageInfo.hasNextPage;
-           endCursor = data.pageInfo.endCursor;
-
-           console.log("NODES: ", nodes);
-
-           console.log("DATA FROM RESOLVER ",  data);
-
-           //hasNextPage = false;
            batch_step['after'] = endCursor;
 
-           console.log("BATCH STEP: ", batch_step);
-
-           await asyncForEach(data, async (record) =>{
-              console.log("RECORD", record);
-              //let row = jsonToCSV(record.dataValues, attributes);
-              //await  writableStream.write(row);
-           })
-
-          //batch_step.offset = batch_step.offset + batch_step.limit;
+           for await( record of nodes ){
+             let row = jsonToCSV(record, attributes);
+             await  writableStream.write(row);
+           }
         }catch(err){
           /*
               We can't throw an error to Express server at this stage because the response Content-Type
