@@ -201,7 +201,7 @@ app.use('/graphql', cors(), graphqlHTTP((req) => ({
      extensions: extensions,
      path: error.path
    };
-   
+
  }
 })));
 
@@ -250,7 +250,7 @@ app.post('/meta_query', cors(), async (req, res, next) => {
          queries = newQueries;
        }
 
-       let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);          
+       let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);
        let output;
        if (helper.isNotUndefinedAndNotNull(jq)) { // jq
          output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});

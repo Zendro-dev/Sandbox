@@ -110,7 +110,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
     }
 
     static countRecords(search) {
-      return 20;
+      //return 20;
 
         let options = {};
 
