@@ -106,11 +106,6 @@ taxon.prototype.cuadrantesConnection = function({
         "operator": "eq"
     });
 
-    console.log("@@.on.cuadrantesConnection: search: ", search);
-    console.log("@@.on.cuadrantesConnection: nsearch: ", nsearch);
-    console.log("@@.on.cuadrantesConnection: order: ", order);
-    console.log("@@.on.cuadrantesConnection: pagination: ", pagination);
-
     return resolvers.cuadrantesConnection({
         search: nsearch,
         order: order,
