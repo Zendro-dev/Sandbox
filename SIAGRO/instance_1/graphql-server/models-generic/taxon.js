@@ -1,6 +1,9 @@
 const _ = require('lodash');
 const globals = require('../config/globals');
 const helper = require('../utils/helper');
+const axios = require('axios');
+const errorHelper = require('../utils/errors');
+
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
@@ -123,12 +126,48 @@ module.exports = class taxon {
      * @return {taxon} Instance of taxon class.
      */
     static async readById(id, benignErrorReporter) {
-
-        /*
-        YOUR CODE GOES HERE
-         */
-        throw new Error('readById() is not implemented for model taxon');
-    }
+      /**
+       * Patch: Taxon
+       */
+      let query = `
+       query
+         taxon
+         {
+           taxon(id:"${id}")
+           {
+             id
+             taxon
+             categoria
+             estatus
+             nombreAutoridad
+             citaNomenclatural
+             fuente
+             ambiente
+             grupoSNIB
+             categoriaResidencia
+             nom
+             cites
+             iucn
+             prioritarias
+             endemismo
+           }
+         }`;
+         try {
+           // Send an HTTP request to the remote server
+           let response = await axios.post("http://zacatuche.conabio.gob.mx:4000/graphql", {query:query});
+           // STATUS-CODE is 200
+           // NO ERROR as such has been detected by the server (Express)
+           // check if data was send
+           if (response && response.data && response.data.data) {
+             return response.data.data.taxon;
+           } else {
+             throw new Error(`Invalid response from remote cenz-server: Zacatuche`);
+           }
+         } catch(error) {
+           //handle caught errors
+           errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, "http://zacatuche.conabio.gob.mx:4000/graphql");
+         }
+    } 
 
     /**
      * countRecords - Count the number of records of model taxon that match the filters provided
