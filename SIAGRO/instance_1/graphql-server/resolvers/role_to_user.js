@@ -7,9 +7,6 @@ const role_to_user = require(path.join(__dirname, '..', 'models_index.js')).role
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
@@ -29,19 +26,15 @@ const associationArgsDef = {}
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-role_to_user.prototype.handleAssociations = async function(input, context) {
+role_to_user.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
 
 
     await Promise.all(promises);
 }
-
-
-
-
 
 
 /**

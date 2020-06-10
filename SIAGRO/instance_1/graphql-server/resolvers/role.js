@@ -7,9 +7,6 @@ const role = require(path.join(__dirname, '..', 'models_index.js')).role;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
@@ -106,15 +103,15 @@ role.prototype.countFilteredUsers = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-role.prototype.handleAssociations = async function(input, context) {
+role.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addUsers)) {
-        promises.push(this.add_users(input, context));
+        promises.push(this.add_users(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeUsers)) {
-        promises.push(this.remove_users(input, context));
+        promises.push(this.remove_users(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -136,10 +133,6 @@ role.prototype.add_users = async function(input) {
 role.prototype.remove_users = async function(input) {
     await models.role.remove_userId(this, input.removeUsers);
 }
-
-
-
-
 
 
 

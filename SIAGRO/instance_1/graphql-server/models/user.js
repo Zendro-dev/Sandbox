@@ -634,7 +634,6 @@ module.exports = class user extends Sequelize.Model {
     }
 
 
-
     /**
      * add_roleId - field Mutation (model-layer) for to_one associationsArguments to add 
      *

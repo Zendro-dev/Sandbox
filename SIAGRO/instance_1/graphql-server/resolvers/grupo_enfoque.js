@@ -7,9 +7,6 @@ const grupo_enfoque = require(path.join(__dirname, '..', 'models_index.js')).gru
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
@@ -160,21 +157,21 @@ grupo_enfoque.prototype.cuadrantesConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-grupo_enfoque.prototype.handleAssociations = async function(input, context) {
+grupo_enfoque.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addCuadrantes)) {
-        promises.push(this.add_cuadrantes(input, context));
+        promises.push(this.add_cuadrantes(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addSitio)) {
-        promises.push(this.add_sitio(input, context));
+        promises.push(this.add_sitio(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeCuadrantes)) {
-        promises.push(this.remove_cuadrantes(input, context));
+        promises.push(this.remove_cuadrantes(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeSitio)) {
-        promises.push(this.remove_sitio(input, context));
+        promises.push(this.remove_sitio(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -183,11 +180,12 @@ grupo_enfoque.prototype.handleAssociations = async function(input, context) {
  * add_cuadrantes - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-grupo_enfoque.prototype.add_cuadrantes = async function(input) {
+grupo_enfoque.prototype.add_cuadrantes = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addCuadrantes) {
-        results.push(models.cuadrante.add_grupo_enfoque_id(associatedRecordId, this.getIdValue()));
+        results.push(models.cuadrante.add_grupo_enfoque_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -196,20 +194,23 @@ grupo_enfoque.prototype.add_cuadrantes = async function(input) {
  * add_sitio - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-grupo_enfoque.prototype.add_sitio = async function(input) {
-    await grupo_enfoque.add_sitio_id(this.getIdValue(), input.addSitio);
+grupo_enfoque.prototype.add_sitio = async function(input, benignErrorReporter) {
+    await grupo_enfoque.add_sitio_id(this.getIdValue(), input.addSitio, benignErrorReporter);
     this.sitio_id = input.addSitio;
 }
+
 /**
  * remove_cuadrantes - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-grupo_enfoque.prototype.remove_cuadrantes = async function(input) {
+grupo_enfoque.prototype.remove_cuadrantes = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeCuadrantes) {
-        results.push(models.cuadrante.remove_grupo_enfoque_id(associatedRecordId, this.getIdValue()));
+        results.push(models.cuadrante.remove_grupo_enfoque_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -218,16 +219,14 @@ grupo_enfoque.prototype.remove_cuadrantes = async function(input) {
  * remove_sitio - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-grupo_enfoque.prototype.remove_sitio = async function(input) {
+grupo_enfoque.prototype.remove_sitio = async function(input, benignErrorReporter) {
     if (input.removeSitio == this.sitio_id) {
-        await grupo_enfoque.remove_sitio_id(this.getIdValue(), input.removeSitio);
+        await grupo_enfoque.remove_sitio_id(this.getIdValue(), input.removeSitio, benignErrorReporter);
         this.sitio_id = null;
     }
 }
-
-
-
 
 
 

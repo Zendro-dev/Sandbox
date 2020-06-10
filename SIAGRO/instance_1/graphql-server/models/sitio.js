@@ -451,7 +451,6 @@ module.exports = class sitio extends Sequelize.Model {
 
 
 
-
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
      *

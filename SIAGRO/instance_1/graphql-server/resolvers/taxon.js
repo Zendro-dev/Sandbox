@@ -7,9 +7,6 @@ const taxon = require(path.join(__dirname, '..', 'models_index.js')).taxon;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
@@ -123,15 +120,15 @@ taxon.prototype.cuadrantesConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-taxon.prototype.handleAssociations = async function(input, context) {
+taxon.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addCuadrantes)) {
-        promises.push(this.add_cuadrantes(input, context));
+        promises.push(this.add_cuadrantes(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeCuadrantes)) {
-        promises.push(this.remove_cuadrantes(input, context));
+        promises.push(this.remove_cuadrantes(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -140,11 +137,12 @@ taxon.prototype.handleAssociations = async function(input, context) {
  * add_cuadrantes - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-taxon.prototype.add_cuadrantes = async function(input) {
+taxon.prototype.add_cuadrantes = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addCuadrantes) {
-        results.push(models.cuadrante.add_taxon_id(associatedRecordId, this.getIdValue()));
+        results.push(models.cuadrante.add_taxon_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -153,18 +151,15 @@ taxon.prototype.add_cuadrantes = async function(input) {
  * remove_cuadrantes - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-taxon.prototype.remove_cuadrantes = async function(input) {
+taxon.prototype.remove_cuadrantes = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeCuadrantes) {
-        results.push(models.cuadrante.remove_taxon_id(associatedRecordId, this.getIdValue()));
+        results.push(models.cuadrante.remove_taxon_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
-
-
-
-
 
 
 

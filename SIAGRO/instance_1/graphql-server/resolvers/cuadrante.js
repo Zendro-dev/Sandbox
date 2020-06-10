@@ -7,9 +7,6 @@ const cuadrante = require(path.join(__dirname, '..', 'models_index.js')).cuadran
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models_index.js'));
@@ -104,23 +101,23 @@ cuadrante.prototype.informacion_taxonomica = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cuadrante.prototype.handleAssociations = async function(input, context) {
+cuadrante.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
     if (helper.isNotUndefinedAndNotNull(input.addGrupo_enfoque)) {
-        promises.push(this.add_grupo_enfoque(input, context));
+        promises.push(this.add_grupo_enfoque(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addInformacion_taxonomica)) {
-        promises.push(this.add_informacion_taxonomica(input, context));
+        promises.push(this.add_informacion_taxonomica(input, benignErrorReporter));
     }
 
     if (helper.isNotUndefinedAndNotNull(input.removeGrupo_enfoque)) {
-        promises.push(this.remove_grupo_enfoque(input, context));
+        promises.push(this.remove_grupo_enfoque(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeInformacion_taxonomica)) {
-        promises.push(this.remove_informacion_taxonomica(input, context));
+        promises.push(this.remove_informacion_taxonomica(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -129,45 +126,49 @@ cuadrante.prototype.handleAssociations = async function(input, context) {
  * add_grupo_enfoque - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cuadrante.prototype.add_grupo_enfoque = async function(input) {
-    await cuadrante.add_grupo_enfoque_id(this.getIdValue(), input.addGrupo_enfoque);
+cuadrante.prototype.add_grupo_enfoque = async function(input, benignErrorReporter) {
+    await cuadrante.add_grupo_enfoque_id(this.getIdValue(), input.addGrupo_enfoque, benignErrorReporter);
     this.grupo_enfoque_id = input.addGrupo_enfoque;
 }
+
 /**
  * add_informacion_taxonomica - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cuadrante.prototype.add_informacion_taxonomica = async function(input) {
-    await cuadrante.add_taxon_id(this.getIdValue(), input.addInformacion_taxonomica);
+cuadrante.prototype.add_informacion_taxonomica = async function(input, benignErrorReporter) {
+    await cuadrante.add_taxon_id(this.getIdValue(), input.addInformacion_taxonomica, benignErrorReporter);
     this.taxon_id = input.addInformacion_taxonomica;
 }
+
 /**
  * remove_grupo_enfoque - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cuadrante.prototype.remove_grupo_enfoque = async function(input) {
+cuadrante.prototype.remove_grupo_enfoque = async function(input, benignErrorReporter) {
     if (input.removeGrupo_enfoque == this.grupo_enfoque_id) {
-        await cuadrante.remove_grupo_enfoque_id(this.getIdValue(), input.removeGrupo_enfoque);
+        await cuadrante.remove_grupo_enfoque_id(this.getIdValue(), input.removeGrupo_enfoque, benignErrorReporter);
         this.grupo_enfoque_id = null;
     }
 }
+
 /**
  * remove_informacion_taxonomica - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cuadrante.prototype.remove_informacion_taxonomica = async function(input) {
+cuadrante.prototype.remove_informacion_taxonomica = async function(input, benignErrorReporter) {
     if (input.removeInformacion_taxonomica == this.taxon_id) {
-        await cuadrante.remove_taxon_id(this.getIdValue(), input.removeInformacion_taxonomica);
+        await cuadrante.remove_taxon_id(this.getIdValue(), input.removeInformacion_taxonomica, benignErrorReporter);
         this.taxon_id = null;
     }
 }
-
-
-
 
 
 

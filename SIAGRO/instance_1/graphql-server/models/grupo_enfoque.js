@@ -506,7 +506,6 @@ module.exports = class grupo_enfoque extends Sequelize.Model {
 
 
 
-
     /**
      * add_sitio_id - field Mutation (model-layer) for to_one associationsArguments to add 
      *

@@ -1,6 +1,6 @@
 {
     "model": "taxon",
-    "storageType": "webservice",
+    "storageType": "generic",
 
     "attributes": {
         "id": "String",

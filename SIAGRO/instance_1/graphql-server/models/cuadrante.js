@@ -60,7 +60,7 @@ const definition = {
             target: 'taxon',
             targetKey: 'taxon_id',
             keyIn: 'cuadrante',
-            targetStorageType: 'webservice',
+            targetStorageType: 'generic',
             label: 'taxon',
             name: 'informacion_taxonomica',
             name_lc: 'informacion_taxonomica',
@@ -491,7 +491,6 @@ module.exports = class cuadrante extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(cuadrante);
     }
-
 
 
 

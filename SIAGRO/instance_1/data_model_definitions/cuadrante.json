@@ -31,7 +31,7 @@
 			"target": "taxon",
 			"targetKey": "taxon_id",
 			"keyIn": "cuadrante",
-			"targetStorageType": "webservice",
+			"targetStorageType": "generic",
 			"label": "taxon"
 		}
   },
