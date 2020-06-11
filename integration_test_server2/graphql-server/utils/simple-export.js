@@ -38,6 +38,12 @@ function wait(ms) {
 
 
 module.exports = async function(context, body_info, writableStream ){
+
+      //await setTimeout( function(){console.log("Reached 4 seconds")}, 4000 );
+
+
+
+      try{
       //get resolver name for model
       let model_name = body_info.model;
       let getter_resolver = inflection.pluralize(model_name.slice(0,1).toLowerCase() + model_name.slice(1, model_name.length)) + 'Connection';
@@ -68,7 +74,7 @@ module.exports = async function(context, body_info, writableStream ){
 
       while(hasNextPage){
 
-        try{
+
           let data = await resolvers[getter_resolver]({pagination: batch_step},context);
           let nodes = data.edges.map( e => e.node );
           let endCursor = data.pageInfo.endCursor;
@@ -80,15 +86,17 @@ module.exports = async function(context, body_info, writableStream ){
              let row = jsonToCSV(record, attributes);
              await  writableStream.write(row);
            }
-        }catch(err){
-          /*
-              We can't throw an error to Express server at this stage because the response Content-Type
-              was already sent. So we can try to attach it to the end of file.
-           */
-          console.log(err);
-          await writableStream.write(`{error : ${err.message}}\n`);
-          return;
-        }
 
+           await new Promise(resolve => setTimeout(resolve, 5000));
       }
+
+    }catch(err){
+      /*
+          We can't throw an error to Express server at this stage because the response Content-Type
+          was already sent. So we can try to attach it to the end of file.
+       */
+      console.log("CATCH ERROR", err);
+      //await writableStream.write(`{error : ${err.message}}\n`);
+      throw err;
+    }
 }

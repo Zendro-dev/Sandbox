@@ -60,17 +60,21 @@ module.exports = async function(context, body_info, writableStream ){
 
       let hasNextPage = total_records > 0;
 
+
+      let csv_header = crateHeaderCSV(attributes);
       // http send stream header
       let timestamp = new Date().getTime();
-      writableStream.writeHead(200, {'Content-Type': 'application/force-download',
-          'Content-disposition': `attachment; filename = ${timestamp}.csv`});
+      if(!writableStream.headersSent){
+        writableStream.writeHead(200, {'Content-Type': 'application/force-download',
+            'Content-disposition': `attachment; filename = ${timestamp}.csv`});
+            //write csv header
+        await writableStream.write(csv_header);
+      }else{
+        throw new Error("Response has been sent");
+      }
 
       //get attributes names
       let attributes = getAttributes(model_name);
-
-      //write csv header
-      let csv_header = crateHeaderCSV(attributes);
-      await writableStream.write(csv_header);
 
       while(hasNextPage){
 
@@ -84,7 +88,11 @@ module.exports = async function(context, body_info, writableStream ){
 
            for await( record of nodes ){
              let row = jsonToCSV(record, attributes);
-             await  writableStream.write(row);
+             if(!writableStream.headersSent){
+               await  writableStream.write(row);
+             }else{
+               throw new Error("Response has been sent");
+             }
            }
         }catch(err){
           /*

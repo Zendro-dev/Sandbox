@@ -147,33 +147,58 @@ app.use('/join', cors(), (req, res) => {
 
 app.use('/export', cors(), (req, res) =>{
 
+//   //set MAX_TIME_OUT
+// res.setTimeout(4000, function(){ res.send("TIMEOUT EXCEEDS")})
+//
+//  let context = {
+//    request: req,
+//    acl : acl,
+//    benignErrors: [],
+//    recordsLimit: globals.LIMIT_RECORDS
+//  }
+//
+//  let body_info = req.query;
+//
+//  simpleExport(context, body_info ,res).then( () =>{
+//    res.end();
+//  }).catch( error => {
+//
+//      //send error other than timeout
+//      if(!res.headersSent){
+//        res.status(500).send(error);
+//      }else{
+//         console.error(error);
+//      }
+//
+//  });
+
+
  let context = {
    request: req,
    acl : acl,
    benignErrors: [],
    recordsLimit: globals.LIMIT_RECORDS
  }
+  let body_info = req.query;
+  const execute_export = simpleExport(context, body_info, res);
 
- let body_info = req.query;
+  const time_out = new Promise(resolve => {
 
- simpleExport(context, body_info ,res).then( () =>{
-   res.end();
- }).catch( error => {
-     let formattedError = {
-         message: error.message,
-         details: error.originalError && error.originalError.errors ? error.originalError.errors : "",
-         path: error.path
-     };
-     res.status(500).send(formattedError);
- });
+    const timeout_ms = 4 * 1000;
+    setTimeout(() => resolve({ statusCode: 504 }), timeout_ms);
+  });
 
+  return Promise.race([ execute_export, time_out ])
+  .then(({ statusCode = 200}) => {
+    const response = res.status(statusCode);
+
+    return (statusCode == 200)
+      ? response.end()
+      : response.end("TIME OUT EXCEEDS ");
+  })
+  .catch(() => res.status(500).end());
 
 });
-
-
-
-
-
 
 app.use(fileUpload());
 /*request is passed as context by default  */
@@ -200,7 +225,7 @@ app.use('/graphql', cors(), graphqlHTTP((req) => ({
       extensions: extensions,
       path: error.path
     };
-    
+
   }
 })));
 
@@ -249,7 +274,7 @@ app.post('/meta_query', cors(), async (req, res, next) => {
           queries = newQueries;
         }
 
-        let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);          
+        let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);
         let output;
         if (helper.isNotUndefinedAndNotNull(jq)) { // jq
           output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});
