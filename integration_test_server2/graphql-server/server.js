@@ -145,33 +145,19 @@ app.use('/join', cors(), (req, res) => {
 
 
 
-app.use('/export', cors(), (req, res) =>{
+app.use('/export', cors(), (req, res, next) =>{
 
-//   //set MAX_TIME_OUT
-// res.setTimeout(4000, function(){ res.send("TIMEOUT EXCEEDS")})
-//
-//  let context = {
-//    request: req,
-//    acl : acl,
-//    benignErrors: [],
-//    recordsLimit: globals.LIMIT_RECORDS
-//  }
-//
-//  let body_info = req.query;
-//
-//  simpleExport(context, body_info ,res).then( () =>{
-//    res.end();
-//  }).catch( error => {
-//
-//      //send error other than timeout
-//      if(!res.headersSent){
-//        res.status(500).send(error);
-//      }else{
-//         console.error(error);
-//      }
-//
-//  });
+  //set checker for using in the local method simpleExport
+  res['responseSent'] = false;
 
+  //set MAX_TIME_OUT
+  res.setTimeout(globals.EXPORT_TIME_OUT * 1000, function(){
+    res.end("TIMEOUT EXCEEDS");
+  });
+
+  res.on('finish', ()=>{
+    res['responseSent'] = true;
+  })
 
  let context = {
    request: req,
@@ -179,24 +165,47 @@ app.use('/export', cors(), (req, res) =>{
    benignErrors: [],
    recordsLimit: globals.LIMIT_RECORDS
  }
-  let body_info = req.query;
-  const execute_export = simpleExport(context, body_info, res);
 
-  const time_out = new Promise(resolve => {
+ let body_info = req.query;
 
-    const timeout_ms = 4 * 1000;
-    setTimeout(() => resolve({ statusCode: 504 }), timeout_ms);
+  simpleExport(context, body_info ,res).then( () =>{
+    res.end();
+  }).catch(error =>{
+
+   if(!res.responseSent){
+     res.status(500).send(error);
+   }else{
+      console.error("ERROR IN EXPORT AFTER SENDING THE RESPONSE:", error);
+   }
+
   });
 
-  return Promise.race([ execute_export, time_out ])
-  .then(({ statusCode = 200}) => {
-    const response = res.status(statusCode);
 
-    return (statusCode == 200)
-      ? response.end()
-      : response.end("TIME OUT EXCEEDS ");
-  })
-  .catch(() => res.status(500).end());
+
+ // let context = {
+ //   request: req,
+ //   acl : acl,
+ //   benignErrors: [],
+ //   recordsLimit: globals.LIMIT_RECORDS
+ // }
+ //  let body_info = req.query;
+ //  const execute_export = simpleExport(context, body_info, res);
+ //
+ //  const time_out = new Promise(resolve => {
+ //
+ //    const timeout_ms = 4 * 1000;
+ //    setTimeout(() => resolve({ statusCode: 504 }), timeout_ms);
+ //  });
+ //
+ //  return Promise.race([ execute_export, time_out ])
+ //  .then(({ statusCode = 200}) => {
+ //    const response = res.status(statusCode);
+ //
+ //    return (statusCode == 200)
+ //      ? response.end()
+ //      : response.end("TIME OUT EXCEEDS ");
+ //  })
+ //  .catch(() => res.status(500).end());
 
 });
 

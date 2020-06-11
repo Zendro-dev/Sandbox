@@ -39,10 +39,6 @@ function wait(ms) {
 
 module.exports = async function(context, body_info, writableStream ){
 
-      //await setTimeout( function(){console.log("Reached 4 seconds")}, 4000 );
-
-
-
       try{
       //get resolver name for model
       let model_name = body_info.model;
@@ -62,19 +58,25 @@ module.exports = async function(context, body_info, writableStream ){
 
       // http send stream header
       let timestamp = new Date().getTime();
-      writableStream.writeHead(200, {'Content-Type': 'application/force-download',
-          'Content-disposition': `attachment; filename = ${timestamp}.csv`});
+
 
       //get attributes names
       let attributes = getAttributes(model_name);
 
       //write csv header
       let csv_header = crateHeaderCSV(attributes);
-      await writableStream.write(csv_header);
+
+      if(!writableStream.responseSent){
+        writableStream.writeHead(200, {'Content-Type': 'application/force-download',
+            'Content-disposition': `attachment; filename = ${timestamp}.csv`});
+        await writableStream.write(csv_header);
+      }else{
+        throw new Error("RESPONSE ALREADY SENT, MOST LIKELY BY TIMEOUT EXCEEDS" );
+      }
 
       while(hasNextPage){
 
-
+        //  await new Promise(resolve => setTimeout(resolve, 5000));
           let data = await resolvers[getter_resolver]({pagination: batch_step},context);
           let nodes = data.edges.map( e => e.node );
           let endCursor = data.pageInfo.endCursor;
@@ -84,19 +86,19 @@ module.exports = async function(context, body_info, writableStream ){
 
            for await( record of nodes ){
              let row = jsonToCSV(record, attributes);
-             await  writableStream.write(row);
+             if(!writableStream.responseSent){
+               await  writableStream.write(row);
+             }else{
+               throw new Error("RESPONSE ALREADY SENT, MOST LIKELY BY TIMEOUT EXCEEDS" );
+             }
+
+
            }
 
-           await new Promise(resolve => setTimeout(resolve, 5000));
+
       }
 
     }catch(err){
-      /*
-          We can't throw an error to Express server at this stage because the response Content-Type
-          was already sent. So we can try to attach it to the end of file.
-       */
-      console.log("CATCH ERROR", err);
-      //await writableStream.write(`{error : ${err.message}}\n`);
       throw err;
     }
 }
