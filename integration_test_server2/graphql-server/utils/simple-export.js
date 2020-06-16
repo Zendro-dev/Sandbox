@@ -59,7 +59,6 @@ module.exports = async function(context, body_info, writableStream ){
       // http send stream header
       let timestamp = new Date().getTime();
 
-
       //get attributes names
       let attributes = getAttributes(model_name);
 
@@ -91,13 +90,8 @@ module.exports = async function(context, body_info, writableStream ){
              }else{
                throw new Error("RESPONSE ALREADY SENT, MOST LIKELY BY TIMEOUT EXCEEDS" );
              }
-
-
            }
-
-
       }
-
     }catch(err){
       throw err;
     }

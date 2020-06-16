@@ -392,20 +392,29 @@ module.exports = class Accession extends Sequelize.Model {
         return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
             .then(async (valSuccess) => {
                 try {
-                    let result = await sequelize.transaction(async (t) => {
-                        let promises_associations = [];
-                        let item = await super.findByPk(input[this.idAttribute()], {
-                            transaction: t
-                        });
-                        if (item === null) {
-                            throw new Error(`Record with ID = ${id} does not exist`);
-                        }
-                        let updated = await item.update(input, {
-                            transaction: t
-                        });
-                        return updated;
-                    });
-                    return result;
+                     let result = await sequelize.transaction(async (t) => {
+                     let updated = await super.update( input, { where:{ [this.idAttribute()] : input[this.idAttribute()] }, returning: true } );
+                     return updated;
+
+                    //     let promises_associations = [];
+                    //     let item = await super.findByPk(input[this.idAttribute()], {
+                    //         transaction: t
+                    //     });
+                    //     if (item === null) {
+                    //         throw new Error(`Record with ID = ${id} does not exist`);
+                    //     }
+                    //     let updated = await item.update(input, {
+                    //         transaction: t
+                    //     });
+                    //     return updated;
+                     });
+                     if(result[0] === 0){
+                       throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                     }
+                     console.log("RESULT: ", result);
+                     return result[1][0];
+
+                    //return result;
                 } catch (error) {
                     throw error;
                 }
@@ -470,10 +479,10 @@ module.exports = class Accession extends Sequelize.Model {
 
 
     /**
-     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
+     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
      */
     static async add_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
@@ -491,10 +500,10 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     /**
-     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove 
+     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
      */
     static async remove_locationId(accession_id, locationId) {
         let updated = await sequelize.transaction(async transaction => {
