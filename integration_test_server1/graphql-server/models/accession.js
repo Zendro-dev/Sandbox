@@ -369,22 +369,31 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static deleteOne(id) {
-        return super.findByPk(id)
-            .then(item => {
+        // return super.findByPk(id)
+        //     .then(item => {
+        //
+        //         if (item === null) return new Error(`Record with ID = ${id} does not exist`);
 
-                if (item === null) return new Error(`Record with ID = ${id} does not exist`);
-
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, item)
-                    .then((valSuccess) => {
-                        return item
-                            .destroy()
-                            .then(() => {
-                                return 'Item successfully deleted';
-                            });
-                    }).catch((err) => {
-                        return err
+                return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id)
+                    .then(async (valSuccess) => {
+                        //return item
+                        //
+                          let destroyed = await super.destroy({where:{[this.idAttribute()] : id} });
+                          console.log("DESTROYED: ",destroyed);
+                          if(destroyed !== 0){
+                            return 'Item successfully deleted';
+                          }else{
+                            return new Error(`Record with ID = ${id} does not exist or could not been deleted`);
+                          }
+                            // .destroy()
+                            // .then(() => {
+                            //     return 'Item successfully deleted';
+                            // });
+                    }).catch((error) => {
+                        //return err
+                        throw error;
                     })
-            });
+            // });
 
     }
 
@@ -393,7 +402,7 @@ module.exports = class Accession extends Sequelize.Model {
             .then(async (valSuccess) => {
                 try {
                      let result = await sequelize.transaction(async (t) => {
-                     let updated = await super.update( input, { where:{ [this.idAttribute()] : input[this.idAttribute()] }, returning: true } );
+                     let updated = await super.update( input, { where:{ [this.idAttribute()] : input[this.idAttribute()] }, returning: true, transaction: t } );
                      return updated;
 
                     //     let promises_associations = [];
