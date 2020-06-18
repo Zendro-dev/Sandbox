@@ -98,6 +98,6 @@ type AccessionEdge{
     addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
     updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
   deleteAccession(accession_id: ID!): String!
-  bulkAddAccessionCsv: [Accession] }
+  bulkAddAccessionCsv: String! }
 
 `;

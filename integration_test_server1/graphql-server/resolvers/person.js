@@ -3,17 +3,15 @@
 */
 
 const path = require('path');
-const person = require(path.join(__dirname, '..', 'models_index.js')).person;
+const person = require(path.join(__dirname, '..', 'models', 'index.js')).person;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addUnique_parrot': 'parrot',
@@ -128,21 +126,21 @@ person.prototype.dogsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-person.prototype.handleAssociations = async function(input, context) {
+person.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addDogs)) {
-        promises.push(this.add_dogs(input, context));
+        promises.push(this.add_dogs(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addUnique_parrot)) {
-        promises.push(this.add_unique_parrot(input, context));
+        promises.push(this.add_unique_parrot(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeDogs)) {
-        promises.push(this.remove_dogs(input, context));
+        promises.push(this.remove_dogs(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeUnique_parrot)) {
-        promises.push(this.remove_unique_parrot(input, context));
+        promises.push(this.remove_unique_parrot(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -151,11 +149,12 @@ person.prototype.handleAssociations = async function(input, context) {
  * add_dogs - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-person.prototype.add_dogs = async function(input) {
+person.prototype.add_dogs = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addDogs) {
-        results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue()));
+        results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -164,19 +163,22 @@ person.prototype.add_dogs = async function(input) {
  * add_unique_parrot - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-person.prototype.add_unique_parrot = async function(input) {
-    await models.parrot.add_person_id(input.addUnique_parrot, this.getIdValue());
+person.prototype.add_unique_parrot = async function(input, benignErrorReporter) {
+    await models.parrot.add_person_id(input.addUnique_parrot, this.getIdValue(), benignErrorReporter);
 }
+
 /**
  * remove_dogs - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-person.prototype.remove_dogs = async function(input) {
+person.prototype.remove_dogs = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeDogs) {
-        results.push(models.dog.remove_person_id(associatedRecordId, this.getIdValue()));
+        results.push(models.dog.remove_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -185,14 +187,11 @@ person.prototype.remove_dogs = async function(input) {
  * remove_unique_parrot - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-person.prototype.remove_unique_parrot = async function(input) {
-    await models.parrot.remove_person_id(input.removeUnique_parrot, this.getIdValue());
+person.prototype.remove_unique_parrot = async function(input, benignErrorReporter) {
+    await models.parrot.remove_person_id(input.removeUnique_parrot, this.getIdValue(), benignErrorReporter);
 }
-
-
-
-
 
 
 
@@ -213,7 +212,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await person.countRecords(search)).sum;
+    let count = (await person.countRecords(search));
     if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
@@ -296,6 +295,9 @@ module.exports = {
         order,
         pagination
     }, context) {
+
+        //construct benignErrors reporter with context
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         //check: adapters
         let registeredAdapters = Object.values(person.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -311,17 +313,11 @@ module.exports = {
         //check: auth adapters
         let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
         if (authorizationCheck.authorizedAdapters.length > 0) {
-            let connectionObj = await person.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters);
             //check adapter authorization Errors
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            //check Errors returned by the model layer (time-outs, unreachable, etc...)
-            if (connectionObj.errors !== undefined && Array.isArray(connectionObj.errors) && connectionObj.errors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(connectionObj.errors)
-                delete connectionObj['errors']
-            }
-            return connectionObj;
+            return await person.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -346,7 +342,10 @@ module.exports = {
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, person.adapterForIri(person_id), 'read');
         if (authorizationCheck === true) {
-            return person.readById(person_id);
+            //construct benignErrors reporter with context
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            return person.readById(person_id, benignErrorReporter);
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }
@@ -374,7 +373,10 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdRecord = await person.addOne(inputSanitized);
+            //construct benignErrors reporter with context
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            let createdRecord = await person.addOne(inputSanitized, benignErrorReporter);
             await createdRecord.handleAssociations(inputSanitized, context);
             return createdRecord;
         } else { //adapter not auth
@@ -391,7 +393,9 @@ module.exports = {
      */
     bulkAddPersonCsv: async function(_, context) {
         if (await checkAuthorization(context, 'person', 'create') === true) {
-            return person.bulkAddCsv(context);
+            //construct benignErrors reporter with context
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return person.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -411,7 +415,9 @@ module.exports = {
         let authorizationCheck = await checkAuthorization(context, person.adapterForIri(person_id), 'delete');
         if (authorizationCheck === true) {
             if (await validForDeletion(person_id, context)) {
-                return person.deleteOne(person_id);
+                //construct benignErrors reporter with context
+                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+                return person.deleteOne(person_id, benignErrorReporter);
             }
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -440,7 +446,9 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedRecord = await person.updateOne(inputSanitized);
+            //construct benignErrors reporter with context
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let updatedRecord = await person.updateOne(inputSanitized, benignErrorReporter);
             await updatedRecord.handleAssociations(inputSanitized, context);
             return updatedRecord;
         } else { //adapter not auth
@@ -459,6 +467,9 @@ module.exports = {
     countPeople: async function({
         search
     }, context) {
+        //construct benignErrors reporter with context
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
         //check: adapters
         let registeredAdapters = Object.values(person.registeredAdapters);
         if (registeredAdapters.length === 0) {
@@ -474,18 +485,12 @@ module.exports = {
         //check: auth adapters
         let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
         if (authorizationCheck.authorizedAdapters.length > 0) {
-
-            let countObj = await person.countRecords(search, authorizationCheck.authorizedAdapters);
             //check adapter authorization Errors
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            //check Errors returned by the model layer (time-outs, unreachable, etc...)
-            if (countObj.errors !== undefined && Array.isArray(countObj.errors) && countObj.errors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(countObj.errors)
-                delete countObj['errors']
-            }
-            return countObj.sum;
+
+            return await person.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -505,7 +510,9 @@ module.exports = {
      */
     csvTableTemplatePerson: async function(_, context) {
         if (await checkAuthorization(context, 'person', 'read') === true) {
-            return person.csvTableTemplate();
+            //construct benignErrors reporter with context
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return person.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

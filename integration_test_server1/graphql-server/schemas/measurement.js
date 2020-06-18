@@ -82,6 +82,6 @@ type MeasurementEdge{
     addMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
     updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
   deleteMeasurement(measurement_id: ID!): String!
-  bulkAddMeasurementCsv: [Measurement] }
+  bulkAddMeasurementCsv: String! }
 
 `;

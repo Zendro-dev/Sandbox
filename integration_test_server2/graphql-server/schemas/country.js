@@ -61,6 +61,6 @@ type CountryEdge{
     addCountry(country_id: ID!, name: String , addUnique_capital:ID   , skipAssociationsExistenceChecks:Boolean = false): country!
     updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID    , skipAssociationsExistenceChecks:Boolean = false): country!
   deleteCountry(country_id: ID!): String!
-  bulkAddCountryCsv: [country] }
+  bulkAddCountryCsv: String! }
 
 `;

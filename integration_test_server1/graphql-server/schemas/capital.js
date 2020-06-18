@@ -68,6 +68,6 @@ type CapitalEdge{
     addCapital(capital_id: ID!, name: String , addUnique_country:ID   , skipAssociationsExistenceChecks:Boolean = false): capital!
     updateCapital(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID    , skipAssociationsExistenceChecks:Boolean = false): capital!
   deleteCapital(capital_id: ID!): String!
-  bulkAddCapitalCsv: [capital] }
+  bulkAddCapitalCsv: String! }
 
 `;

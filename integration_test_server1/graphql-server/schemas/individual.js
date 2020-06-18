@@ -76,6 +76,6 @@ type IndividualEdge{
     addIndividual( name: String   , addTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
     updateIndividual(id: ID!, name: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
   deleteIndividual(id: ID!): String!
-  bulkAddIndividualCsv: [individual] }
+  bulkAddIndividualCsv: String! }
 
 `;

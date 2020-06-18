@@ -37,6 +37,13 @@ function wait(ms) {
 }
 
 
+/**
+ * simpleExport - Export data from a single model, no associations are included.
+ *
+ * @param  {Object} context        Context created from the request
+ * @param  {Object} body_info      Body info from the request which will containg which model will be exported.
+ * @param  {Object} writableStream Response passed directly from the route in the server. The CSV will be streamed in the response. 
+ */
 module.exports = async function(context, body_info, writableStream ){
 
       try{
@@ -47,7 +54,6 @@ module.exports = async function(context, body_info, writableStream ){
       //get count resolver
       let count_resolver = 'count'+inflection.pluralize(model_name.slice(0,1).toUpperCase() + model_name.slice(1, model_name.length));
       let total_records = await resolvers[count_resolver]({}, context);
-      console.log("TOTAL NUMBER OF RECORDS TO STREAM: ", total_records);
 
       //pagination
       let batch_step = {
@@ -74,8 +80,6 @@ module.exports = async function(context, body_info, writableStream ){
       }
 
       while(hasNextPage){
-
-        //  await new Promise(resolve => setTimeout(resolve, 5000));
           let data = await resolvers[getter_resolver]({pagination: batch_step},context);
           let nodes = data.edges.map( e => e.node );
           let endCursor = data.pageInfo.endCursor;

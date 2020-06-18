@@ -83,6 +83,6 @@ type AminoacidsequenceEdge{
     addAminoacidsequence( accession: String, sequence: String   , addTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
     updateAminoacidsequence(id: ID!, accession: String, sequence: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
   deleteAminoacidsequence(id: ID!): String!
-  bulkAddAminoacidsequenceCsv: [aminoacidsequence] }
+  bulkAddAminoacidsequenceCsv: String! }
 
 `;

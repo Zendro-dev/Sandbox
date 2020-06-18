@@ -73,6 +73,6 @@ type Query {
   addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
   updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
 deleteDog(dog_id: ID!): String!
-bulkAddDogCsv: [dog] }
+bulkAddDogCsv: String }
 
 `;

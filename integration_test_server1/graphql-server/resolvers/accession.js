@@ -3,17 +3,15 @@
 */
 
 const path = require('path');
-const accession = require(path.join(__dirname, '..', 'models_index.js')).accession;
+const accession = require(path.join(__dirname, '..', 'models', 'index.js')).accession;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addLocation': 'location',
@@ -159,21 +157,21 @@ accession.prototype.measurementsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-accession.prototype.handleAssociations = async function(input, context) {
+accession.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addMeasurements)) {
-        promises.push(this.add_measurements(input, context));
+        promises.push(this.add_measurements(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
-        promises.push(this.add_location(input, context));
+        promises.push(this.add_location(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeMeasurements)) {
-        promises.push(this.remove_measurements(input, context));
+        promises.push(this.remove_measurements(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
-        promises.push(this.remove_location(input, context));
+        promises.push(this.remove_location(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -182,11 +180,12 @@ accession.prototype.handleAssociations = async function(input, context) {
  * add_measurements - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-accession.prototype.add_measurements = async function(input) {
+accession.prototype.add_measurements = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addMeasurements) {
-        results.push(models.measurement.add_accessionId(associatedRecordId, this.getIdValue()));
+        results.push(models.measurement.add_accessionId(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -195,20 +194,23 @@ accession.prototype.add_measurements = async function(input) {
  * add_location - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-accession.prototype.add_location = async function(input) {
-    await accession.add_locationId(this.getIdValue(), input.addLocation);
+accession.prototype.add_location = async function(input, benignErrorReporter) {
+    await accession.add_locationId(this.getIdValue(), input.addLocation, benignErrorReporter);
     this.locationId = input.addLocation;
 }
+
 /**
  * remove_measurements - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-accession.prototype.remove_measurements = async function(input) {
+accession.prototype.remove_measurements = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeMeasurements) {
-        results.push(models.measurement.remove_accessionId(associatedRecordId, this.getIdValue()));
+        results.push(models.measurement.remove_accessionId(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -217,16 +219,14 @@ accession.prototype.remove_measurements = async function(input) {
  * remove_location - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-accession.prototype.remove_location = async function(input) {
+accession.prototype.remove_location = async function(input, benignErrorReporter) {
     if (input.removeLocation == this.locationId) {
-        await accession.remove_locationId(this.getIdValue(), input.removeLocation);
+        await accession.remove_locationId(this.getIdValue(), input.removeLocation, benignErrorReporter);
         this.locationId = null;
     }
 }
-
-
-
 
 
 
@@ -247,7 +247,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await accession.countRecords(search)).sum;
+    let count = (await accession.countRecords(search));
     if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
@@ -326,7 +326,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "accessions");
-            return await accession.readAll(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await accession.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -349,7 +350,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "accessionsConnection");
-            return accession.readAllCursor(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await accession.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -367,7 +369,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
-            return accession.readById(accession_id);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await accession.readById(accession_id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -384,7 +387,8 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            return (await accession.countRecords(search)).sum;
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await accession.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -423,7 +427,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdAccession = await accession.addOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let createdAccession = await accession.addOne(inputSanitized, benignErrorReporter);
             await createdAccession.handleAssociations(inputSanitized, context);
             return createdAccession;
         } else {
@@ -439,7 +444,8 @@ module.exports = {
      */
     bulkAddAccessionCsv: async function(_, context) {
         if (await checkAuthorization(context, 'Accession', 'create') === true) {
-            return accession.bulkAddCsv(context);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return accession.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -457,7 +463,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Accession', 'delete') === true) {
             if (await validForDeletion(accession_id, context)) {
-                return accession.deleteOne(accession_id);
+                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+                return accession.deleteOne(accession_id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -482,7 +489,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedAccession = await accession.updateOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let updatedAccession = await accession.updateOne(inputSanitized, benignErrorReporter);
             await updatedAccession.handleAssociations(inputSanitized, context);
             return updatedAccession;
         } else {
@@ -499,7 +507,8 @@ module.exports = {
      */
     csvTableTemplateAccession: async function(_, context) {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
-            return accession.csvTableTemplate();
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return accession.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

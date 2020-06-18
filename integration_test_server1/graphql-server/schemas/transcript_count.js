@@ -97,6 +97,6 @@ type Transcript_countEdge{
     addTranscript_count( gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, addAminoacidsequence:ID   , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
     updateTranscript_count(id: ID!, gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, removeIndividual:ID , addAminoacidsequence:ID, removeAminoacidsequence:ID    , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
   deleteTranscript_count(id: ID!): String!
-  bulkAddTranscript_countCsv: [transcript_count] }
+  bulkAddTranscript_countCsv: String! }
 
 `;

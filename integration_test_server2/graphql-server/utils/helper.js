@@ -2,7 +2,8 @@ const checkAuthorization = require('./check-authorization');
 const objectAssign = require('object-assign');
 const math = require('mathjs');
 const _ = require('lodash');
-const models_index = require('../models_index');
+const models_index = require('../models/index');
+const { Op } = require("sequelize");
 
   /**
    * paginate - Creates pagination argument as needed in sequelize cotaining limit and offset accordingly to the current
@@ -172,67 +173,37 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * modelAttributes - Return info about each column in the model's table
-   *
-   * @param  {Object} model Sequelize model from which the info will be given.
-   * @return {Array}       Array of objects, each object contains info for each attribute in the model
-   */
-  modelAttributes = function(model) {
-      return model.sequelize.query(
-        "SELECT column_name, data_type, is_nullable, column_default " +
-        "FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" +
-        model.tableName + "'", {
-          type: model.sequelize.QueryTypes.SELECT
-        }
-      )
-    }
-
-  //attributes to discard
-  discardModelAttributes = ['createdAt', 'updatedAt']
-
-  /**
-   * filterModelAttributesForCsv - Filter attributes from a given model
-   *
-   * @param  {Object} model        Sequelize model from which the attributes will be filtered
-   * @param  {Array} discardAttrs Array of attributes to discard
-   * @return {Array}              Filtered attributes
-   */
-  filterModelAttributesForCsv = function(model, discardAttrs) {
-    discardAttrs = discardAttrs || discardModelAttributes
-    modelPrimaryKey = model.primaryKeyField
-    if (modelPrimaryKey)
-      discardAttrs = discardAttrs.concat([modelPrimaryKey])
-    return modelAttributes(model).then(function(x) {
-      return x.filter(function(i) {
-        return discardAttrs.indexOf(i.column_name) < 0
-      })
-    })
-  }
-
-  /**
    * csvTableTemplate - Returns template of model, i.e. header of each column an its type
    *
-   * @param  {Object} model         Sequelize model from which the template will be returned.
-   * @param  {Array} discardAttrs Attributes to discard from the template
-   * @return {Array}              Array of strings, one for header and one for the attribute't type.
+   * @param  {Object} modelDefinition  Model definition as especified on model.
+   * @return {Array}  Array of two strings, one for the header and other one for the attribute's types.
    */
-  module.exports.csvTableTemplate = function(model, discardAttrs) {
-    return filterModelAttributesForCsv(model,
-      discardAttrs).then(function(x) {
-      csvHeader = []
-      csvExmplRow = []
-      x.forEach(function(i) {
-        csvStr = i.data_type
-        if (i.is_nullable.toLowerCase() === 'false' || i.is_nullable.toLowerCase() ===
-          'no' || i.is_nullable === 0)
-          csvStr += ",required"
-        if (i.column_default)
-          csvStr += ",default:" + i.column_default
-        csvHeader = csvHeader.concat([i.column_name])
-        csvExmplRow = csvExmplRow.concat([csvStr])
-      })
-      return [csvHeader.join(','), csvExmplRow.join(',')]
+  module.exports.csvTableTemplate = function(modelDefinition) {
+    let csvHeader = [];
+    let csvTypes = [];
+    let id = modelDefinition.id;
+    let attributes = modelDefinition.attributes;
+
+    /**
+     * Internal id first.
+     */
+    if(modelDefinition.internalId) {
+      csvHeader.push(id.name);
+      csvTypes.push(id.type);
+    }
+
+    /**
+     * Other attributes then.
+     */
+    Object.keys(attributes).forEach((key) => {
+      //not internal id
+      if(key !== id.name) {
+        csvHeader.push(key);
+        csvTypes.push(attributes[key]);
+      }
     })
+
+    return [csvHeader.join(','), csvTypes.join(',')]
   }
 
   /**
@@ -310,15 +281,15 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operator for base step.
        */
     //set operator according to order type.
-    let operator = order[last_index][1] === 'ASC' ? '$gte' : '$lte';
+    let operator = order[last_index][1] === 'ASC' ? 'gte' : 'lte';
     //set strictly '>' or '<' for idAttribute (condition (1)).
-    if (!includeCursor && order[last_index][0] === idAttribute) { operator = operator.substring(0, 3); }
+    if (!includeCursor && order[last_index][0] === idAttribute) { operator = operator.substring(0, 2); }
 
       /*
        * Produce condition for base step.
        */
     let where_statement = {
-      [order[last_index][0]]: { [operator]: cursor[order[last_index][0]] }
+      [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
     }
 
     /*
@@ -330,31 +301,31 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operators
        */
       //set relaxed operator '>=' or '<=' for condition (2.a or 2.b)
-      operator = order[i][1] === 'ASC' ? '$gte' : '$lte';
+      operator = order[i][1] === 'ASC' ? 'gte' : 'lte';
       //set strict operator '>' or '<' for condition (2.a).
-      let strict_operator = order[i][1] === 'ASC' ? '$gt' : '$lt';
+      let strict_operator = order[i][1] === 'ASC' ? 'gt' : 'lt';
       //set strictly '>' or '<' for idAttribute (condition (1)).
-      if(!includeCursor && order[i][0] === idAttribute){ operator = operator.substring(0, 3);}
+      if(!includeCursor && order[i][0] === idAttribute){ operator = operator.substring(0, 2);}
 
       /**
        * Produce: AND/OR conditions
        */
       where_statement = {
-        ['$and'] :[
+        [Op['and']] :[
           /**
            * Set
            * condition (1) in the case of idAttribute or
            * condition (2.a or 2.b) for other fields.
            */
-          { [order[i][0] ] : { [ operator ]: cursor[ order[i][0] ] } },
+          { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } },
 
-          { ['$or'] :[
+          { [Op['or']] :[
             /**
              * Set
              * condition (1) in the case of idAttribute or
              * condition (2.a) for other fields.
              */
-            { [order[i][0]]: { [strict_operator]: cursor[ order[i][0] ]} },
+            { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
 
             /**
              * Add the previous produced conditions.
@@ -443,15 +414,15 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operator for base step.
        */
     //set operator according to order type.
-    let operator = order[last_index][1] === 'ASC' ? '$lte' : '$gte';
+    let operator = order[last_index][1] === 'ASC' ? 'lte' : 'gte';
     //set strictly '>' or '<' for idAttribute (condition (1)).
-    if (!includeCursor && order[last_index][0] === idAttribute) { operator = operator.substring(0, 3); }
+    if (!includeCursor && order[last_index][0] === idAttribute) { operator = operator.substring(0, 2); }
 
       /*
        * Produce condition for base step.
        */
     let where_statement = {
-      [order[last_index][0]]: { [operator]: cursor[order[last_index][0]] }
+      [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
     }
 
     /*
@@ -463,31 +434,31 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operators
        */
       //set relaxed operator '>=' or '<=' for condition (2.a or 2.b)
-      operator = order[i][1] === 'ASC' ? '$lte' : '$gte';
+      operator = order[i][1] === 'ASC' ? 'lte' : 'gte';
       //set strict operator '>' or '<' for condition (2.a).
-      let strict_operator = order[i][1] === 'ASC' ? '$lt' : '$gt';
+      let strict_operator = order[i][1] === 'ASC' ? 'lt' : 'gt';
       //set strictly '>' or '<' for idAttribute (condition (1)).
-      if(!includeCursor && order[i][0] === idAttribute){ operator = operator.substring(0, 3);}
+      if(!includeCursor && order[i][0] === idAttribute){ operator = operator.substring(0, 2);}
 
       /**
        * Produce: AND/OR conditions
        */
       where_statement = {
-        ['$and'] :[
+        [Op['and']] :[
           /**
            * Set
            * condition (1) in the case of idAttribute or
            * condition (2.a or 2.b) for other fields.
            */
-          { [order[i][0] ] : { [ operator ]: cursor[ order[i][0] ] } },
+          { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } },
 
-          { ['$or'] :[
+          { [Op['or']] :[
             /**
              * Set
              * condition (1) in the case of idAttribute or
              * condition (2.a) for other fields.
              */
-            { [order[i][0]]: { [strict_operator]: cursor[ order[i][0] ]} },
+            { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
 
             /**
              * Add the previous produced conditions.
@@ -586,7 +557,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
        *
        * Equivalent to non-generic segment:
        *    let where_statement = {
-       *      [order[last_index][0]]: { [operator]: cursor[order[last_index][0]] }
+       *      [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
        *    }
        */
       let search_field = helper.addSearchField({
@@ -596,8 +567,8 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
         /**
          * Add particular search argument provided as input parámeter.
-         * The filters on this serch argument will be the last to apply.
-         *
+         * The filters on this serch argument will be the last to apply. 
+         * 
          * On non-generic version, this step is done outside this function.
          */
         "search" : search,
@@ -627,14 +598,14 @@ module.exports.vueTable = function(req, model, strAttributes) {
            * Set
            * condition (1) in the case of idAttribute or
            * condition (2.a or 2.b) for other fields.
-           *
+           * 
            * Equivalent to non-generic segment:
-           *    { [order[i][0] ] : { [ operator ]: cursor[ order[i][0] ] } }
+           *    { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } }
            */
           "field": order[i][0],
           "value": {"value": cursor[order[i][0]]},
           "operator": operator,
-
+          
           //and:
 
           "search": helper.addSearchField({
@@ -643,9 +614,9 @@ module.exports.vueTable = function(req, model, strAttributes) {
              * Set
              * condition (1) in the case of idAttribute or
              * condition (2.a) for other fields.
-             *
+             * 
              * Equivalent to non-generic segment:
-             *    { [order[i][0]]: { [strict_operator]: cursor[ order[i][0] ]} },
+             *    { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
              */
             "field": order[i][0],
             "value": {"value": cursor[order[i][0]]},
@@ -656,7 +627,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
             /**
              * Add the previous produced conditions.
              * This will include the base step condition as the most right condition.
-             *
+             * 
              * Equivalent to non-generic segment:
              *    where_statement  ]
              */
@@ -664,17 +635,17 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
             /**
              * Set inner recursive search operator.
-             *
+             * 
              * Equivalent to non-generic segment:
-             *    { ['$or'] :[
+             *    { [Op['or']] :[
              */
           }, 'or'),
 
           /**
            * Set outer recursive search operator.
-           *
+           * 
            * Equivalent to non-generic segment:
-           *    ['$and'] :[
+           *    [Op['and']] :[
            */
         }, 'and'
       );
@@ -768,7 +739,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
        *
        * Equivalent to non-generic segment:
        *    let where_statement = {
-       *      [order[last_index][0]]: { [operator]: cursor[order[last_index][0]] }
+       *      [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
        *    }
        */
       let search_field = helper.addSearchField({
@@ -778,8 +749,8 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
         /**
          * Add particular search argument provided as input parámeter.
-         * The filters on this serch argument will be the last to apply.
-         *
+         * The filters on this serch argument will be the last to apply. 
+         * 
          * On non-generic version, this step is done outside this function.
          */
         "search" : search,
@@ -809,14 +780,14 @@ module.exports.vueTable = function(req, model, strAttributes) {
            * Set
            * condition (1) in the case of idAttribute or
            * condition (2.a or 2.b) for other fields.
-           *
+           * 
            * Equivalent to non-generic segment:
-           *    { [order[i][0] ] : { [ operator ]: cursor[ order[i][0] ] } }
+           *    { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } }
            */
           "field": order[i][0],
           "value": {"value": cursor[order[i][0]]},
           "operator": operator,
-
+          
           //and:
 
           "search": helper.addSearchField({
@@ -825,9 +796,9 @@ module.exports.vueTable = function(req, model, strAttributes) {
              * Set
              * condition (1) in the case of idAttribute or
              * condition (2.a) for other fields.
-             *
+             * 
              * Equivalent to non-generic segment:
-             *    { [order[i][0]]: { [strict_operator]: cursor[ order[i][0] ]} },
+             *    { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
              */
             "field": order[i][0],
             "value": {"value": cursor[order[i][0]]},
@@ -838,7 +809,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
             /**
              * Add the previous produced conditions.
              * This will include the base step condition as the most right condition.
-             *
+             * 
              * Equivalent to non-generic segment:
              *    where_statement  ]
              */
@@ -846,17 +817,17 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
             /**
              * Set inner recursive search operator.
-             *
+             * 
              * Equivalent to non-generic segment:
-             *    { ['$or'] :[
+             *    { [Op['or']] :[
              */
           }, 'or'),
 
           /**
            * Set outer recursive search operator.
-           *
+           * 
            * Equivalent to non-generic segment:
-           *    ['$and'] :[
+           *    [Op['and']] :[
            */
         }, 'and'
       );
@@ -867,14 +838,14 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
     /**
    * checkExistence - Get the IDs (out of a given list) that are not in use in a given model
-   *
+   * 
    * @param{Array | object} ids_to_check The IDs that are to be checked, as an array or as a single value
    * @param{object} model The model for which the IDs shall be checked
    * @returns{Promise<boolean>} Are all IDs in use?
    */
   module.exports.checkExistence = async function(ids_to_check, model){
     //check
-    if (!module.exports.isNotUndefinedAndNotNull(ids_to_check)) {
+    if (!module.exports.isNotUndefinedAndNotNull(ids_to_check)) { 
       throw new Error(`Invalid arguments on checkExistence(), 'ids' argument should not be 'null' or 'undefined'`);
     }
     //check existence by count
@@ -899,7 +870,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
   /**
    * validateExistence - Make sure that all given IDs correspond to existing records in a given model
-   *
+   * 
    * @param{Array | object} idsToExist The IDs that are supposed to exist, as an array or as a single value
    * @param{object} model The model for which the IDs should exist
    * @throws If there is an ID given without a corresponding record in the model, in which case the first ID not to exist is given in the error message
@@ -1025,10 +996,10 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * Returns a new array instance with the set of adapters that remains after
+   * Returns a new array instance with the set of adapters that remains after 
    * remove all excluded adapters, specified on the search.excludeAdapterNames
-   * input, from the @adapters array.
-   *
+   * input, from the @adapters array. 
+   * 
    * This function does not modify the @adapter param, but instead, returns a new
    * array instance.
    *
@@ -1042,20 +1013,20 @@ module.exports.vueTable = function(req, model, strAttributes) {
    */
   module.exports.removeExcludedAdapters = function(search, adapters) {
     let result = Array.from(adapters);
-
+    
     //check: @adapters
     if(adapters.length === 0) {
       return [];
     }//else
-
+    
     //check: @search
     if((!search || typeof search !== 'object') //has not search object
       || (!search.excludeAdapterNames //or has search object but has not exclusions
-          || !Array.isArray(search.excludeAdapterNames)
+          || !Array.isArray(search.excludeAdapterNames) 
           || search.excludeAdapterNames.length === 0)) {
       return result;
     }//else
-
+    
     //do: exclusion
     let i = 0;
     while (i < result.length) {
@@ -1075,12 +1046,12 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * the @excludeAdapterNames on search object.
    *
    * @param {object} search - Search object.
-   * @param {string} currentAdapterName - String of the current adapterName.
+   * @param {string} currentAdapterName - String of the current adapterName. 
    * @param {array} registeredAdapters - Array of registered adapters for the calling ddm.
    *
-   * @return {object} New search object that includes the excluded adapters on the
+   * @return {object} New search object that includes the excluded adapters on the 
    * attribute @excludeAdapterNames. This functions does not modify the @search object,
-   * instead a new one is returned.
+   * instead a new one is returned. 
    */
   module.exports.addExclusions = function(search, currentAdapterName, registeredAdapters) {
     let nsearch = {};
@@ -1113,7 +1084,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     }
 
     /*
-     * append all @registeredAdapters, except the @currentAdapter,
+     * append all @registeredAdapters, except the @currentAdapter, 
      * to search.excludeAdapterNames array.
      */
     registeredAdapters.forEach(a => {
@@ -1134,7 +1105,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * @param {object} context - The GraphQL context passed to the resolver.
    * @param {array} resultObj - Connection- or CountObj returned by ddm readMany.
    *
-   * @return {array} Returns the changed resultObj and context with the added benignErrors
+   * @return {array} Returns the changed resultObj and context with the added benignErrors 
    */
   module.exports.writeBenignErrors = function(authorizationCheck, context, resultObj) {
     //check adapter authorization Errors
@@ -1152,11 +1123,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * addSearchField - Creates a new search object which one will include the new search
+   * addSearchField - Creates a new search object which one will include the new search 
    * instance (@field, @value, @operator) with values passed as arguments.
-   *
+   * 
    * This function preserves the attribute @excludeAdapterNames if exists on the @search argument.
-   *
+   * 
    * This function does not modifies the @search object received, instead creates a new one.
    *
    * @param  {string} field Field to filter. Must be defined.
@@ -1170,7 +1141,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    */
   module.exports.addSearchField = function ({search, field, value, operator}, recursiveOperator) {
     let nsearch = {};
-    let recursiveOp = recursiveOperator ? recursiveOperator : 'and';
+    let recursiveOp = recursiveOperator ? recursiveOperator : 'and'; 
 
     //check
     if(operator === undefined || field === undefined || value === undefined) {
@@ -1179,7 +1150,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
     /**
      * Case 1: @search is undefined.
-     *
+     * 
      * Create a new search object with received parameters.
      */
     if(search === undefined) {
@@ -1189,20 +1160,20 @@ module.exports.vueTable = function(req, model, strAttributes) {
         "operator": operator
       };
     } else {
-
+      
       //check
       if(typeof search !== 'object') {
         throw new Error('Illegal "@search" argument type, it must be an object.');
       }
-
+      
       /**
        * Case 2: @search is defined but has not search-operation attributes defined.
-       *
+       * 
        * Create a new search object with received parameters and preserve @excludeAdapterNames
        * attribute.
        */
       if(search.operator === undefined || (search.value === undefined && search.search === undefined)) {
-
+        
         search = {
           "field": field,
           "value": value,
@@ -1212,14 +1183,14 @@ module.exports.vueTable = function(req, model, strAttributes) {
       } else {
         /**
          * Case 3: @search is defined and has search-operation attributes defined.
-         *
+         * 
          * Create a new recursive search object with received parameters and preserve @excludeAdapterNames
          * attribute.
          */
         let csearch = {...search};
         let excludeAdapterNames = csearch.excludeAdapterNames;
         delete csearch.excludeAdapterNames;
-
+        
         nsearch = {
           "operator": recursiveOp,
           "search": [{
@@ -1230,13 +1201,13 @@ module.exports.vueTable = function(req, model, strAttributes) {
           "excludeAdapterNames": excludeAdapterNames
         };
       }
-    }
+    }  
     return nsearch;
   }
 
   /**
    * isNonEmtpyArray - Test a value for being a non-empty array
-   *
+   * 
    * @param {any} a value to be tested for being a non-empty array
    * @returns {boolean} result
    */
@@ -1324,7 +1295,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
         let storageType = targetModel.definition.storageType;
 
         // Look into the definition of the associated data model and ask for its storage type.
-        // TWO CASES:
+        // TWO CASES: 
         // 1) target model storage type: NON distributed (any other)
         if (storageType !== 'distributed-data-model') {
           return await permissions.reduce(async (prev, curr) => {
@@ -1347,18 +1318,18 @@ module.exports.vueTable = function(req, model, strAttributes) {
           if (module.exports.isNonEmptyArray(newErrors)) {
             throw new Error(newErrors[0]);
           }
-          return acc && newErrors !== [];
+          return acc && newErrors !== []; 
         }, Promise.resolve(true))
       } else {
        return acc
-
+      
       }
     }, Promise.resolve(true));
   }
 
    /** validateAssociationArgsExistence - Receives arrays of ids on @input, and checks if these ids exists. Returns true
    * if all received ids exist, and throws an error if at least one of the ids does not exist.
-   *
+   * 
    * @param  {object} input   Object with sanitized entries of the form: <add>Association:[id1, ..., idn].
    * @param  {object} context Object with mutation context attributes.
    * @param  {object} associationArgsDef  The definition of the association arguments
@@ -1369,7 +1340,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
   module.exports.validateAssociationArgsExistence = async function(input, context, associationArgsDef, modelsIndex = models_index) {
     await Object.keys(associationArgsDef).reduce(async function(prev, curr){
       let acc = await prev;
-
+      
       //get ids (Int or Array)
       let currAssocIds = input[curr];
 
@@ -1399,11 +1370,11 @@ module.exports.vueTable = function(req, model, strAttributes) {
   /** checkAndAdjustRecordLimitForCreateUpdate - If the number of records affected by the input
    * exceeds the current value of recordLimit throws an error, otherwise adjusts context.recordLimit
    * and returns totalCount.
-   *
+   * 
    * @param  {object} input   Input Object.
    * @param  {object} context Object with context attributes.
    * @param  {object} associationArgsDef  Object with entries of the form {'<add>Association' : model}
-   * @return {int} If the number of records affected by the input exceeds the current value of
+   * @return {int} If the number of records affected by the input exceeds the current value of 
    * recordLimit throws an error, otherwise adjusts context.recordLimit and returns totalCount.
    */
   module.exports.checkAndAdjustRecordLimitForCreateUpdate = function(input, context, associationArgsDef) {

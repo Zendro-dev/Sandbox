@@ -73,6 +73,6 @@ type Query {
   addParrot(parrot_id: ID!, name: String , addUnique_person:ID   , skipAssociationsExistenceChecks:Boolean = false): parrot!
   updateParrot(parrot_id: ID!, name: String , addUnique_person:ID, removeUnique_person:ID    , skipAssociationsExistenceChecks:Boolean = false): parrot!
 deleteParrot(parrot_id: ID!): String!
-bulkAddParrotCsv: [parrot] }
+bulkAddParrotCsv: String }
 
 `;

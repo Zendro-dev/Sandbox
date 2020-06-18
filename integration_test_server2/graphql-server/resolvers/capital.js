@@ -3,17 +3,15 @@
 */
 
 const path = require('path');
-const capital = require(path.join(__dirname, '..', 'models_index.js')).capital;
+const capital = require(path.join(__dirname, '..', 'models', 'index.js')).capital;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addUnique_country': 'country'
@@ -66,17 +64,17 @@ capital.prototype.unique_country = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-capital.prototype.handleAssociations = async function(input, context) {
+capital.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
     if (helper.isNotUndefinedAndNotNull(input.addUnique_country)) {
-        promises.push(this.add_unique_country(input, context));
+        promises.push(this.add_unique_country(input, benignErrorReporter));
     }
 
     if (helper.isNotUndefinedAndNotNull(input.removeUnique_country)) {
-        promises.push(this.remove_unique_country(input, context));
+        promises.push(this.remove_unique_country(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -85,25 +83,25 @@ capital.prototype.handleAssociations = async function(input, context) {
  * add_unique_country - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-capital.prototype.add_unique_country = async function(input) {
-    await capital.add_country_id(this.getIdValue(), input.addUnique_country);
+capital.prototype.add_unique_country = async function(input, benignErrorReporter) {
+    await capital.add_country_id(this.getIdValue(), input.addUnique_country, benignErrorReporter);
     this.country_id = input.addUnique_country;
 }
+
 /**
  * remove_unique_country - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-capital.prototype.remove_unique_country = async function(input) {
+capital.prototype.remove_unique_country = async function(input, benignErrorReporter) {
     if (input.removeUnique_country == this.country_id) {
-        await capital.remove_country_id(this.getIdValue(), input.removeUnique_country);
+        await capital.remove_country_id(this.getIdValue(), input.removeUnique_country, benignErrorReporter);
         this.country_id = null;
     }
 }
-
-
-
 
 
 
@@ -124,7 +122,7 @@ function errorMessageForRecordsLimit(query) {
  * @param {string} query The query that makes this check
  */
 async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await capital.countRecords(search)).sum;
+    let count = (await capital.countRecords(search));
     if (count > context.recordsLimit) {
         throw new Error(errorMessageForRecordsLimit(query));
     }
@@ -202,7 +200,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "capitals");
-            return await capital.readAll(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await capital.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -225,7 +224,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "capitalsConnection");
-            return capital.readAllCursor(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await capital.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -243,7 +243,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
-            return capital.readById(capital_id);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await capital.readById(capital_id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -260,7 +261,8 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
-            return (await capital.countRecords(search)).sum;
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await capital.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -299,7 +301,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdCapital = await capital.addOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let createdCapital = await capital.addOne(inputSanitized, benignErrorReporter);
             await createdCapital.handleAssociations(inputSanitized, context);
             return createdCapital;
         } else {
@@ -315,7 +318,8 @@ module.exports = {
      */
     bulkAddCapitalCsv: async function(_, context) {
         if (await checkAuthorization(context, 'capital', 'create') === true) {
-            return capital.bulkAddCsv(context);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return capital.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -333,7 +337,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'capital', 'delete') === true) {
             if (await validForDeletion(capital_id, context)) {
-                return capital.deleteOne(capital_id);
+                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+                return capital.deleteOne(capital_id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -358,7 +363,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedCapital = await capital.updateOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let updatedCapital = await capital.updateOne(inputSanitized, benignErrorReporter);
             await updatedCapital.handleAssociations(inputSanitized, context);
             return updatedCapital;
         } else {
@@ -375,7 +381,8 @@ module.exports = {
      */
     csvTableTemplateCapital: async function(_, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
-            return capital.csvTableTemplate();
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return capital.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
