@@ -1,0 +1,42 @@
+{
+	"model" : "field_plot",
+	"storageType" : "sql",
+	"attributes" : {
+		"field_name" : "String",
+		"coordinates_or_name" : "String",
+		"year": "String",
+		"area_sqm": "Float",
+		"type": "String",
+    "genotype_id": "Int",
+    "field_plot_treatment_id": "Int"
+	},
+	"associations" : {
+		"genotype" : {
+			"type" : "to_one",
+			"target" : "genotype",
+			"targetKey" : "genotype_id",
+			"keyIn" : "field_plot",
+			"targetStorageType" : "sql",
+			"label": "name",
+			"sublabel": "id"
+		},
+		"field_plot_treatment" : {
+			"type" : "to_one",
+			"target" : "field_plot_treatment",
+			"targetKey" : "field_plot_treatment_id",
+			"keyIn" : "field_plot",
+			"targetStorageType" : "sql",
+			"label": "name",
+      "sublabel": "id"
+		},
+		"measurements": {
+			"type" : "to_many",
+			"target" : "measurement",
+			"targetKey" : "field_plot_id",
+			"keyIn" : "measurement",
+			"targetStorageType" : "sql",
+			"label": "method",
+      "sublabel": "id"
+		}
+	}
+}

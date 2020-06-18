@@ -1,0 +1,908 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import Snackbar from '../../../../../../snackbar/Snackbar';
+import GenotypeAttributesPage from './components/genotype-attributes-page/GenotypeAttributesPage'
+import GenotypeAssociationsPage from './components/genotype-associations-page/GenotypeAssociationsPage'
+import GenotypeTabsA from './components/GenotypeTabsA'
+import GenotypeConfirmationDialog from './components/GenotypeConfirmationDialog'
+import BreedingPoolDetailPanel from '../../../breeding_pool-table/components/breeding_pool-detail-panel/Breeding_poolDetailPanel'
+import FieldPlotDetailPanel from '../../../field_plot-table/components/field_plot-detail-panel/Field_plotDetailPanel'
+import IndividualDetailPanel from '../../../individual-table/components/individual-detail-panel/IndividualDetailPanel'
+import api from '../../../../../../../requests/requests.index.js'
+import { makeCancelable } from '../../../../../../../utils'
+import { makeStyles } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Dialog from '@material-ui/core/Dialog';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import Slide from '@material-ui/core/Slide';
+import Fab from '@material-ui/core/Fab';
+import Tooltip from '@material-ui/core/Tooltip';
+import SaveIcon from '@material-ui/icons/Save';
+
+const debounceTimeout = 700;
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    minWidth: 450,
+  },
+  title: {
+    marginLeft: theme.spacing(2),
+    flex: 1,
+  },
+  tabsA: {
+    backgroundColor: "#ffffff",
+  },
+  fabButton: {
+    position: 'absolute',
+    zIndex: 1,
+    bottom: -26+3,
+    right: 10,
+    margin: '0 auto',
+  },
+}));
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+export default function GenotypeCreatePanel(props) {
+  const classes = useStyles();
+  const { t } = useTranslation();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const {
+    permissions,
+    handleClose,
+  } = props;
+
+  const [open, setOpen] = useState(true);
+  const [tabsValue, setTabsValue] = useState(0);
+  const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
+  const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
+  const [foreignKeys, setForeignKeys] = useState({});
+
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [confirmationTitle, setConfirmationTitle] = useState('');
+  const [confirmationText, setConfirmationText] = useState('');
+  const [confirmationAcceptText, setConfirmationAcceptText] = useState('');
+  const [confirmationRejectText, setConfirmationRejectText] = useState('');
+
+  const handleAccept = useRef(undefined);
+  const handleReject = useRef(undefined);
+
+  const values = useRef(getInitialValues());
+  const valuesOkRefs = useRef(getInitialValueOkStates());
+  const valuesAjvRefs = useRef(getInitialValueAjvStates());
+
+  const [breeding_poolIdsToAddState, setBreeding_poolIdsToAddState] = useState([]);
+  const breeding_poolIdsToAdd = useRef([]);
+  const [field_plotIdsToAddState, setField_plotIdsToAddState] = useState([]);
+  const field_plotIdsToAdd = useRef([]);
+  const [motherIdsToAddState, setMotherIdsToAddState] = useState([]);
+  const motherIdsToAdd = useRef([]);
+  const [fatherIdsToAddState, setFatherIdsToAddState] = useState([]);
+  const fatherIdsToAdd = useRef([]);
+  const [individualIdsToAddState, setIndividualIdsToAddState] = useState([]);
+  const individualIdsToAdd = useRef([]);
+
+  const [breeding_poolDetailDialogOpen, setBreeding_poolDetailDialogOpen] = useState(false);
+  const [breeding_poolDetailItem, setBreeding_poolDetailItem] = useState(undefined);
+  const [field_plotDetailDialogOpen, setField_plotDetailDialogOpen] = useState(false);
+  const [field_plotDetailItem, setField_plotDetailItem] = useState(undefined);
+  const [individualDetailDialogOpen, setIndividualDetailDialogOpen] = useState(false);
+  const [individualDetailItem, setIndividualDetailItem] = useState(undefined);
+
+  //debouncing & event contention
+  const cancelablePromises = useRef([]);
+  const isSaving = useRef(false);
+  const isCanceling = useRef(false);
+  const isClosing = useRef(false);
+  const isDebouncingTabsChange = useRef(false);
+  const currentTabValue = useRef(tabsValue);
+  const lastTabValue = useRef(tabsValue);
+
+  const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
+
+  //snackbar
+  const variant = useRef('info');
+  const errors = useRef([]);
+  const content = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errors.current}
+    variant={variant.current} />
+  ));
+  const actionText = useRef(t('modelPanels.gotIt', "Got it"));
+  const action = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionText.current}
+      </Button>
+    </> 
+  ));
+
+  /**
+   * Callbacks:
+   *  showMessage
+   */
+
+   /**
+    * showMessage
+    * 
+    * Show the given message in a notistack snackbar.
+    * 
+    */
+   const showMessage = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variant.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? action.current : undefined,
+      content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * Effects
+   */
+
+  useEffect(() => {
+
+    //cleanup on unmounted.
+    return function cleanup() {
+      cancelablePromises.current.forEach(p => p.cancel());
+      cancelablePromises.current = [];
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (breeding_poolDetailItem !== undefined) {
+      setBreeding_poolDetailDialogOpen(true);
+    }
+  }, [breeding_poolDetailItem]);
+
+  useEffect(() => {
+    if (field_plotDetailItem !== undefined) {
+      setField_plotDetailDialogOpen(true);
+    }
+  }, [field_plotDetailItem]);
+
+  useEffect(() => {
+    if (individualDetailItem !== undefined) {
+      setIndividualDetailDialogOpen(true);
+    }
+  }, [individualDetailItem]);
+
+
+  /**
+   * Utils
+   */
+  function clearRequestDoSave() {
+    //reset contention flags
+    isSaving.current = false;
+    isClosing.current = false;
+  }
+  
+  function getInitialValues() {
+    let initialValues = {};
+    
+    initialValues.name = null;
+    initialValues.description = null;
+    initialValues.pedigree_type = null;
+    initialValues.mother_id = null;
+    initialValues.father_id = null;
+    initialValues.breeding_pool_id = null;
+
+    return initialValues;
+  }
+
+  function getInitialValueOkStates() {
+    /*
+      status codes:
+        1: acceptable
+        0: unknown/not tested yet (this is set on initial render)/empty
+       -1: not acceptable
+       -2: foreing key
+    */
+    let initialValueOkStates = {};
+
+    initialValueOkStates.name = 0;
+    initialValueOkStates.description = 0;
+    initialValueOkStates.pedigree_type = 0;
+    initialValueOkStates.mother_id = -2; //FK
+    initialValueOkStates.father_id = -2; //FK
+    initialValueOkStates.breeding_pool_id = -2; //FK
+
+    return initialValueOkStates;
+  }
+
+  function getInitialValueAjvStates() {
+    let _initialValueAjvStates = {};
+
+    _initialValueAjvStates.name = {errors: []};
+    _initialValueAjvStates.description = {errors: []};
+    _initialValueAjvStates.pedigree_type = {errors: []};
+    _initialValueAjvStates.mother_id = {errors: []}; //FK
+    _initialValueAjvStates.father_id = {errors: []}; //FK
+    _initialValueAjvStates.breeding_pool_id = {errors: []}; //FK
+
+    return _initialValueAjvStates;
+  }
+
+  function areThereAcceptableFields() {
+    let a = Object.entries(valueOkStates);
+    for(let i=0; i<a.length; ++i) {
+      if(a[i][1] === 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function areThereNotAcceptableFields() {
+    let a = Object.entries(valueOkStates);
+    for(let i=0; i<a.length; ++i) {
+      if(a[i][1] === -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function areThereIncompleteFields() {
+    let a = Object.entries(valueOkStates);
+    for(let i=0; i<a.length; ++i) {
+      if(a[i][1] === 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function setAddBreeding_pool(variables) {
+    if(breeding_poolIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addBreeding_pool = breeding_poolIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
+  function setAddMother(variables) {
+    if(motherIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addMother = motherIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
+  function setAddFather(variables) {
+    if(fatherIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addFather = fatherIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
+  function setAddIndividual(variables) {
+    if(individualIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addIndividual = individualIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
+
+  function setAjvErrors(err) {
+    //check
+    if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
+      let errors = err.response.data.errors;
+      
+      //for each error
+      for(let i=0; i<errors.length; ++i) {
+        let e=errors[i];
+        //check
+        if(e && typeof e === 'object' && Array.isArray(e.details)){
+          let details = e.details;
+          
+          for(let d=0; d<details.length; ++d) {
+            let detail = details[d];
+
+            //check
+            if(detail && typeof detail === 'object' && detail.dataPath && detail.message) {
+              /**
+               * In this point, the error is considered as an AJV error.
+               * 
+               * It will be set in a ajvStatus reference and at the end of this function 
+               * the ajvStatus state will be updated.
+               */
+              //set reference
+              addAjvErrorToField(detail);
+            }
+          }
+        }
+      }
+      //update state
+      setValueAjvStates({...valuesAjvRefs.current});
+    }
+  }
+
+  function addAjvErrorToField(error) {
+    let dataPath = error.dataPath.slice(1);
+    
+    if(valuesAjvRefs.current[dataPath] !== undefined){
+      valuesAjvRefs.current[dataPath].errors.push(error.message);
+    }
+  }
+
+  /**
+    * doSave
+    * 
+    * Add new @item using GrahpQL Server mutation.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @item added.
+    * 
+    */
+  function doSave(event) {
+    errors.current = [];
+
+    /*
+      Variables setup
+    */
+    //variables
+    let keys = Object.keys(values.current);
+    let variables = {};
+
+    //attributes
+    for(let i=0; i<keys.length; i++) {
+      if(valuesOkRefs.current[keys[i]] !== -1) {
+        variables[keys[i]] = values.current[keys[i]];
+      }
+    }
+
+    //delete: fk's
+    delete variables.mother_id;
+    delete variables.father_id;
+    delete variables.breeding_pool_id;
+
+    //add: to_one's
+    setAddBreeding_pool(variables);
+    setAddMother(variables);
+    setAddFather(variables);
+    setAddIndividual(variables);
+    
+    //add: to_many's
+    variables.addField_plot = field_plotIdsToAdd.current;
+
+    /*
+      API Request: addGenotype
+    */
+    let cancelableApiReq = makeCancelable(api.genotype.createItem(graphqlServerUrl, variables));
+    cancelablePromises.current.push(cancelableApiReq);
+    cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        
+        //check: response data
+        if(!response.data ||!response.data.data) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
+          newError.locations=[{model: 'genotype', query: 'addGenotype', method: 'doSave()', request: 'api.genotype.createItem'}];
+          newError.path=['Genotypes', 'add'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
+          return;
+        }
+
+        //check: addGenotype
+        let addGenotype = response.data.data.addGenotype;
+        if(addGenotype === null) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'addGenotype ' + t('modelPanels.errors.data.e5', 'could not be completed.');
+          newError.locations=[{model: 'genotype', query: 'addGenotype', method: 'doSave()', request: 'api.genotype.createItem'}];
+          newError.path=['Genotypes', 'add'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
+          return;
+        }
+
+        //check: addGenotype type
+        if(typeof addGenotype !== 'object') {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = 'genotype ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
+          newError.locations=[{model: 'genotype', query: 'addGenotype', method: 'doSave()', request: 'api.genotype.createItem'}];
+          newError.path=['Genotypes', 'add'];
+          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
+          return;
+        }
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'addGenotype ' + t('modelPanels.errors.data.e6', 'completed with errors.');
+          newError.locations=[{model: 'genotype', query: 'addGenotype', method: 'doSave()', request: 'api.genotype.createItem'}];
+          newError.path=['Genotypes', 'add'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        //ok
+        enqueueSnackbar( t('modelPanels.messages.msg6', "Record created successfully."), {
+          variant: 'success',
+          preventDuplicate: false,
+          persist: false,
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+        });
+        onClose(event, true, addGenotype);
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.genotype.createItem
+        if(err.isCanceled) {
+          return
+        } else {
+          //set ajv errors
+          setAjvErrors(err);
+
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'genotype', query: 'addGenotype', method: 'doSave()', request: 'api.genotype.createItem'}];
+          newError.path=['Genotypes', 'add'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestDoSave();
+          return;
+        }
+      });
+  }
+
+  const handleTabsChange = (event, newValue) => {
+    //save last value
+    lastTabValue.current = newValue;
+    
+    if(!isDebouncingTabsChange.current){
+      //set last value
+      currentTabValue.current = newValue;
+      setTabsValue(newValue);
+
+      //debounce
+      isDebouncingTabsChange.current = true;
+      let cancelableTimer = startTimerToDebounceTabsChange();
+      cancelablePromises.current.push(cancelableTimer);
+      cancelableTimer
+        .promise
+        .then(() => {
+          //clear flag
+          isDebouncingTabsChange.current = false;
+          //delete from cancelables
+          cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableTimer), 1);
+          //check
+          if(lastTabValue.current !== currentTabValue.current){
+            setTabsValue(lastTabValue.current);
+            currentTabValue.current = lastTabValue.current;
+          }
+        })
+        .catch(() => {
+          return;
+        })
+    }
+  };
+
+  const handleSetValue = (value, status, key) => {
+    values.current[key] = value;
+    if(status !== valuesOkRefs.current[key]) {
+      valuesOkRefs.current[key] = status;
+      setValueOkStates({...valuesOkRefs.current});
+    }
+  }
+
+  const handleSave = (event) => {
+    if(areThereNotAcceptableFields()) {
+      setConfirmationTitle( t('modelPanels.invalidFields', "Some fields are not valid") );
+      setConfirmationText( t('modelPanels.invalidFieldsB', "To continue, please correct these fields.") );
+      setConfirmationAcceptText("");
+      setConfirmationRejectText( t('modelPanels.updateAccept', "I UNDERSTAND"));
+      handleAccept.current = () => {
+        isSaving.current = false;
+        setConfirmationOpen(false);
+      }
+      handleReject.current = () => {
+        isSaving.current = false;
+        setConfirmationOpen(false);
+      }
+      setConfirmationOpen(true);
+      return;
+    }
+
+    if(areThereIncompleteFields()) {
+      setConfirmationTitle( t('modelPanels.incompleteFields', "Some fields are empty") );
+      setConfirmationText( t('modelPanels.incompleteFieldsB', "Do you want to continue anyway?") );
+      setConfirmationAcceptText( t('modelPanels.saveIncompleteAccept', "YES, SAVE") );
+      setConfirmationRejectText( t('modelPanels.saveIncompleteReject', "DON'T SAVE YET") );
+      handleAccept.current = () => {
+        if(!isClosing.current) {
+          isClosing.current = true;
+          doSave(event);
+          setConfirmationOpen(false);
+        }
+      }
+      handleReject.current = () => {
+        isSaving.current = false;
+        setConfirmationOpen(false);
+      }
+      setConfirmationOpen(true);
+    } else {
+      doSave(event);
+    }
+  }
+
+  const handleCancel = (event) => {
+    if(areThereAcceptableFields()) {
+      setConfirmationTitle( t('modelPanels.cancelChanges', "The edited information has not been saved") );
+      setConfirmationText( t('modelPanels.cancelChangesB', "Some fields have been edited, if you continue without save, the changes will be lost, you want to continue?") );
+      setConfirmationAcceptText( t('modelPanels.cancelChangesAccept', "YES, EXIT") );
+      setConfirmationRejectText( t('modelPanels.cancelChangesReject', "STAY") );
+      handleAccept.current = () => {
+        if(!isClosing.current) {
+          isClosing.current = true;
+          setConfirmationOpen(false);
+          onClose(event, false, null);
+        }
+      }
+      handleReject.current = () => {
+        isCanceling.current = false;
+        setConfirmationOpen(false);
+      }
+        setConfirmationOpen(true);
+        return;
+    } else {
+      onClose(event, false, null);
+    }
+  }
+
+  const onClose = (event, status, newItem) => {
+    setOpen(false);
+    handleClose(event, status, newItem);
+  }
+
+  const handleConfirmationAccept = (event) => {
+    handleAccept.current();
+  }
+
+  const handleConfirmationReject = (event) => {
+    handleReject.current();
+  }
+  
+  const handleTransferToAdd = (associationKey, itemId) => {
+    switch(associationKey) {
+      case 'breeding_pool':
+        if(breeding_poolIdsToAdd.current.indexOf(itemId) === -1) {
+          breeding_poolIdsToAdd.current = [];
+          breeding_poolIdsToAdd.current.push(itemId);
+          setBreeding_poolIdsToAddState(breeding_poolIdsToAdd.current);
+          handleSetValue(itemId, 1, 'breeding_pool_id');
+          setForeignKeys({...foreignKeys, breeding_pool_id: itemId});
+        }
+        break;
+      case 'field_plot':
+        if(field_plotIdsToAdd.current.indexOf(itemId) === -1) {
+          field_plotIdsToAdd.current.push(itemId);
+          setField_plotIdsToAddState(field_plotIdsToAdd.current);
+        }
+        break;
+      case 'mother':
+        if(motherIdsToAdd.current.indexOf(itemId) === -1) {
+          motherIdsToAdd.current = [];
+          motherIdsToAdd.current.push(itemId);
+          setMotherIdsToAddState(motherIdsToAdd.current);
+          handleSetValue(itemId, 1, 'mother_id');
+          setForeignKeys({...foreignKeys, mother_id: itemId});
+        }
+        break;
+      case 'father':
+        if(fatherIdsToAdd.current.indexOf(itemId) === -1) {
+          fatherIdsToAdd.current = [];
+          fatherIdsToAdd.current.push(itemId);
+          setFatherIdsToAddState(fatherIdsToAdd.current);
+          handleSetValue(itemId, 1, 'father_id');
+          setForeignKeys({...foreignKeys, father_id: itemId});
+        }
+        break;
+      case 'individual':
+        if(individualIdsToAdd.current.indexOf(itemId) === -1) {
+          individualIdsToAdd.current = [];
+          individualIdsToAdd.current.push(itemId);
+          setIndividualIdsToAddState(individualIdsToAdd.current);
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  const handleUntransferFromAdd =(associationKey, itemId) => {
+    if(associationKey === 'breeding_pool') {
+      if(breeding_poolIdsToAdd.current.length > 0) {
+        breeding_poolIdsToAdd.current = [];
+        setBreeding_poolIdsToAddState([]);
+        handleSetValue(null, 0, 'breeding_pool_id');
+        setForeignKeys({...foreignKeys, breeding_pool_id: null});
+      }
+      return;
+    }//end: case 'breeding_pool'
+    if(associationKey === 'field_plot') {
+      let iof = field_plotIdsToAdd.current.indexOf(itemId);
+      if(iof !== -1) {
+        field_plotIdsToAdd.current.splice(iof, 1);
+      }
+      return;
+    }//end: case 'field_plot'
+    if(associationKey === 'mother') {
+      if(motherIdsToAdd.current.length > 0) {
+        motherIdsToAdd.current = [];
+        setMotherIdsToAddState([]);
+        handleSetValue(null, 0, 'mother_id');
+        setForeignKeys({...foreignKeys, mother_id: null});
+      }
+      return;
+    }//end: case 'mother'
+    if(associationKey === 'father') {
+      if(fatherIdsToAdd.current.length > 0) {
+        fatherIdsToAdd.current = [];
+        setFatherIdsToAddState([]);
+        handleSetValue(null, 0, 'father_id');
+        setForeignKeys({...foreignKeys, father_id: null});
+      }
+      return;
+    }//end: case 'father'
+    if(associationKey === 'individual') {
+      individualIdsToAdd.current = [];
+      setIndividualIdsToAddState([]);
+      return;
+    }//end: case 'individual'
+  }
+
+  const handleClickOnBreeding_poolRow = (event, item) => {
+    setBreeding_poolDetailItem(item);
+  };
+
+  const handleBreeding_poolDetailDialogClose = (event) => {
+    delayedCloseBreeding_poolDetailPanel(event, 500);
+  }
+
+  const delayedCloseBreeding_poolDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setBreeding_poolDetailDialogOpen(false);
+        setBreeding_poolDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+  const handleClickOnField_plotRow = (event, item) => {
+    setField_plotDetailItem(item);
+  };
+
+  const handleField_plotDetailDialogClose = (event) => {
+    delayedCloseField_plotDetailPanel(event, 500);
+  }
+
+  const delayedCloseField_plotDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setField_plotDetailDialogOpen(false);
+        setField_plotDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+  const handleClickOnIndividualRow = (event, item) => {
+    setIndividualDetailItem(item);
+  };
+
+  const handleIndividualDetailDialogClose = (event) => {
+    delayedCloseIndividualDetailPanel(event, 500);
+  }
+
+  const delayedCloseIndividualDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setIndividualDetailDialogOpen(false);
+        setIndividualDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const startTimerToDebounceTabsChange = () => {
+    return makeCancelable( new Promise(resolve => {
+      window.setTimeout(function() { 
+        resolve(); 
+      }, debounceTimeout);
+    }));
+  };
+
+  return (
+    
+    <Dialog fullScreen open={open} TransitionComponent={Transition}
+      onClose={(event) => {
+        if(!isCanceling.current){
+          isCanceling.current = true;
+          handleCancel(event);
+        }
+      }}
+    >
+      <CssBaseline />
+      <AppBar>
+        <Toolbar>
+          <Tooltip title={ t('modelPanels.cancel') }>
+            <IconButton 
+              edge="start" 
+              color="inherit"
+              onClick={(event) => {
+                if(!isCanceling.current){
+                  isCanceling.current = true;
+                  handleCancel(event);
+                }
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="h6" className={classes.title}>
+            {t('modelPanels.new') + ' Genotype'}
+          </Typography>
+          <Tooltip title={ t('modelPanels.save') + " genotype" }>
+            <Fab 
+              color="secondary" 
+              className={classes.fabButton}
+              onClick={(event) => {
+                if(!isSaving.current){
+                  isSaving.current = true;
+                  handleSave(event);
+                }
+              }}
+            >
+              <SaveIcon />
+            </Fab>
+          </Tooltip>
+        </Toolbar>
+      </AppBar>
+      <Toolbar />
+
+      <div className={classes.root}>
+        <Grid container justify='center' alignItems='flex-start' alignContent='flex-start'>
+          <Grid item xs={12}>  
+            {/* TabsA: Menú */}
+            <div className={classes.tabsA}>
+              <GenotypeTabsA
+                value={tabsValue}
+                handleChange={handleTabsChange}
+              />
+            </div>
+          </Grid>
+
+          <Grid item xs={12}>
+            {/* Attributes Page [0] */}
+            <GenotypeAttributesPage
+              hidden={tabsValue !== 0}
+              valueOkStates={valueOkStates}
+              valueAjvStates={valueAjvStates}
+              foreignKeys = {foreignKeys}
+              handleSetValue={handleSetValue}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            {/* Associations Page [1] */}
+            <GenotypeAssociationsPage
+              hidden={tabsValue !== 1}
+              breeding_poolIdsToAdd={breeding_poolIdsToAddState}
+              field_plotIdsToAdd={field_plotIdsToAddState}
+              motherIdsToAdd={motherIdsToAddState}
+              fatherIdsToAdd={fatherIdsToAddState}
+              individualIdsToAdd={individualIdsToAddState}
+              handleTransferToAdd={handleTransferToAdd}
+              handleUntransferFromAdd={handleUntransferFromAdd}
+              handleClickOnBreeding_poolRow={handleClickOnBreeding_poolRow}
+              handleClickOnField_plotRow={handleClickOnField_plotRow}
+              handleClickOnIndividualRow={handleClickOnIndividualRow}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Confirmation Dialog */}
+        <GenotypeConfirmationDialog
+          open={confirmationOpen}
+          title={confirmationTitle}
+          text={confirmationText}
+          acceptText={confirmationAcceptText}
+          rejectText={confirmationRejectText}
+          handleAccept={handleConfirmationAccept}
+          handleReject={handleConfirmationReject}
+        />
+
+        {/* Dialog: Breeding_pool Detail Panel */}
+        {(breeding_poolDetailDialogOpen) && (
+          <BreedingPoolDetailPanel
+            permissions={permissions}
+            item={breeding_poolDetailItem}
+            dialog={true}
+            handleClose={handleBreeding_poolDetailDialogClose}
+          />
+        )}
+        {/* Dialog: Field_plot Detail Panel */}
+        {(field_plotDetailDialogOpen) && (
+          <FieldPlotDetailPanel
+            permissions={permissions}
+            item={field_plotDetailItem}
+            dialog={true}
+            handleClose={handleField_plotDetailDialogClose}
+          />
+        )}
+        {/* Dialog: Individual Detail Panel */}
+        {(individualDetailDialogOpen) && (
+          <IndividualDetailPanel
+            permissions={permissions}
+            item={individualDetailItem}
+            dialog={true}
+            handleClose={handleIndividualDetailDialogClose}
+          />
+        )}
+      </div>
+
+    </Dialog>
+  );
+}
+GenotypeCreatePanel.propTypes = {
+  permissions: PropTypes.object,
+  handleClose: PropTypes.func.isRequired,
+};

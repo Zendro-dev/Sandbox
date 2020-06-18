@@ -1,0 +1,53 @@
+{
+	"model" : "sample",
+	"storageType" : "sql",
+	"attributes" : {
+		"name" : "String",
+		"sampling_date" : "String",
+		"type": "String",
+		"biological_replicate_no": "Int",
+		"lab_code": "String",
+		"treatment": "String",
+		"tissue": "String",
+    "individual_id": "Int",
+    "sequencing_experiment_id": "Int"
+	},
+	"associations" : {
+		"individual" : {
+			"type" : "to_one",
+			"target" : "individual",
+			"targetKey" : "individual_id",
+			"keyIn": "sample",
+			"targetStorageType" : "sql",
+			"label": "name",
+			"sublabel": "id"
+		},
+		"sequencing_experiment" : {
+			"type" : "to_one",
+			"target" : "sequencing_experiment",
+			"targetKey" : "sequencing_experiment_id",
+			"targetStorageType" : "sql",
+			"keyIn": "sample",
+			"label": "name",
+			"sublabel": "platform"
+		},
+		"library_data" : {
+			"type" : "to_many",
+			"target" : "nuc_acid_library_result",
+			"targetKey" : "sample_id",
+			"targetStorageType" : "sql",
+			"keyIn": "nuc_acid_library_result",
+			"label": "lab_code",
+			"sublabel": "file_name"
+		},
+		"transcript_counts": {
+			"type" : "to_many",
+			"target" : "transcript_count",
+			"targetKey" : "sample_id",
+			"targetStorageType" : "sql",
+			"keyIn": "transcript_count",
+			"label": "value",
+			"sublabel": "id"
+		}
+	}
+}

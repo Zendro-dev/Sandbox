@@ -1,0 +1,57 @@
+{
+	"model" : "individual",
+	"storageType" : "sql",
+	"attributes" : {
+		"name" : "String",
+		"description" : "String",
+    "genotype_id": "Int",
+    "individual_id": "Int"
+	},
+	"associations" : {
+		"genotype" : {
+			"type" : "to_one",
+			"target" : "genotype",
+			"targetKey" : "genotype_id",
+			"keyIn": "individual",
+			"targetStorageType" : "sql",
+			"label": "name",
+      "sublabel": "id"
+		},
+		"mother_to" : {
+			"type" : "to_one",
+			"target" : "genotype",
+			"targetKey" : "mother_id",
+			"keyIn": "genotype",
+			"targetStorageType" : "sql",
+			"label": "name",
+      "sublabel": "id"
+		},
+		"father_to" : {
+			"type" : "to_one",
+			"target" : "genotype",
+			"targetKey" : "father_id",
+			"keyIn": "genotype",
+			"targetStorageType" : "sql",
+			"label": "name",
+      "sublabel": "id"
+		},
+		"marker_data_snps" : {
+			"type" : "to_many",
+			"target" : "marker_data",
+			"targetKey" : "individual_id",
+			"keyIn": "marker_data",
+			"targetStorageType" : "sql",
+			"label": "marker_name",
+			"sublabel": "nucleotide"
+		},
+		"samples": {
+			"type" : "to_many",
+			"target" : "sample",
+			"targetKey" : "individual_id",
+			"keyIn": "sample",
+			"targetStorageType" : "sql",
+			"label": "name",
+			"sublabel": "type"
+		}
+	}
+}

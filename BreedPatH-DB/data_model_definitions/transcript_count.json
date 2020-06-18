@@ -1,0 +1,22 @@
+{
+  "model" : "transcript_count",
+  "storageType" : "sql",
+  "attributes" : {
+    "gene" : "String",
+    "value" : "Float",
+    "method": "String",
+    "reference_genome": "String",
+    "sample_id": "Int"
+  },
+  "associations" : {
+    "sample" : {
+      "type" : "to_one",
+      "target" : "sample",
+      "targetKey" : "sample_id",
+      "keyIn": "transcript_count",
+      "targetStorageType" : "sql",
+      "label": "name",
+      "sublabel": "tissue"
+    }
+  }
+}

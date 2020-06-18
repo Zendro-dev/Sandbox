@@ -1,0 +1,35 @@
+{
+	"model" : "nuc_acid_library_result",
+	"storageType" : "sql",
+	"attributes" : {
+		"lab_code" : "String",
+		"file_name" : "String",
+		"file_uri": "String",
+		"type": "String",
+		"insert_size": "Float",
+		"technical_replicate": "Int",
+		"trimmed": "Boolean",
+		"sample_id": "Int",
+		"sequencing_experiment_id": "Int"
+	},
+	"associations" : {
+		"sample" : {
+			"type" : "to_one",
+			"target" : "sample",
+			"targetKey" : "sample_id",
+			"keyIn": "nuc_acid_library_result",
+			"targetStorageType" : "sql",
+			"label": "name",
+			"sublabel": "tissue"
+		},
+		"sequencing_experiment": {
+			"type" : "to_one",
+			"target" : "sequencing_experiment",
+			"targetKey" : "sequencing_experiment_id",
+			"targetStorageType" : "sql",
+			"keyIn": "nuc_acid_library_result",
+			"label": "name",
+			"sublabel": "platform"
+		}
+	}
+}

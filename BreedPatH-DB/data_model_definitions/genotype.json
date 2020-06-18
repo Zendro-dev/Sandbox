@@ -1,0 +1,59 @@
+{
+  "model": "genotype",
+  "storageType": "sql",
+  "attributes": {
+    "name": "String",
+    "description": "String",
+    "pedigree_type": "String",
+    "mother_id": "Int",
+    "father_id": "Int",
+    "breeding_pool_id": "Int"
+  },
+  "associations": {
+    "mother": {
+      "type": "to_one",
+      "target": "individual",
+      "targetKey": "mother_id",
+      "keyIn": "genotype",
+      "targetStorageType": "sql",
+      "label": "name",
+      "sublabel": "id"
+    },
+    "father": {
+      "type": "to_one",
+      "target": "individual",
+      "targetKey": "father_id",
+      "keyIn": "genotype",
+      "targetStorageType": "sql",
+      "label": "name",
+      "sublabel": "id"
+    },
+    "individual" : {
+			"type" : "to_one",
+			"target" : "individual",
+			"targetKey" : "genotype_id",
+			"keyIn": "individual",
+			"targetStorageType" : "sql",
+			"label": "name",
+      "sublabel": "id"
+		},
+    "breeding_pool": {
+      "type": "to_one",
+      "target": "breeding_pool",
+      "targetKey": "breeding_pool_id",
+      "keyIn": "genotype",
+      "targetStorageType": "sql",
+      "label": "name",
+      "sublabel": "id"
+    },
+    "field_plot": {
+      "type": "to_many",
+      "target": "field_plot",
+      "targetKey": "genotype_id",
+      "keyIn": "field_plot",
+      "targetStorageType": "sql",
+      "label": "field_name",
+      "sublabel": "id"
+    }
+  }
+}

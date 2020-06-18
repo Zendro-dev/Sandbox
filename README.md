@@ -104,3 +104,13 @@ docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
 cd ./RemoteCenzontleInstance
 docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
 ```
+
+### BreedPatH-DB
+
+To start both graphql-server and SPA:
+
+```
+cd ./BreedPatH-DB
+docker-compose -f docker-compose-dev.yml up --force-recreate --remove-orphans
+```
+
