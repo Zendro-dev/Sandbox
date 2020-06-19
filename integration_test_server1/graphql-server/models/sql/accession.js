@@ -166,13 +166,17 @@ module.exports = class Accession extends Sequelize.Model {
                 throw new Error(`Request of total accessions exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
 
-            let records = super.findAll(options);
-            let result = [];
-            for await( r of records ){
-              validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, r)
-              .then( r => result.push[r] )
-              .catch(error => { benignErrorReporter.reportError(error) })
-            }
+            let records = await super.findAll(options);
+            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+            // let result = [];
+            // let c = 0;
+            // for await(let r of records ){
+            //   console.log("Record ", c++);
+            //   validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, r)
+            //   .then( success =>{ result.push(r); console.log(r) } )
+            //   .catch(error => { benignErrorReporter.reportError(error) })
+            // }
+            // return result;
         });
     }
 

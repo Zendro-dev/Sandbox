@@ -8,6 +8,13 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(accession) {
 
+    accession.prototype.validationControl = {
+      validateForCreate: true,
+      validateForUpdate: true,
+      validateForDelete: false,
+      validateAfterRead: true
+    }
+
     accession.prototype.validatorSchema = {
         "$async": true,
         "properties": {
@@ -64,9 +71,13 @@ module.exports.validator_patch = function(accession) {
         //TODO: on the input you have the record validated, no generic
         // validation checks are available.
 
-        return {
-            error: null
-        }
+        // return {
+        //     error: null
+        // }
+       if(record.accession_id === 'id_3'){
+         throw new Error(" Validation error for id:  " + record.accession_id);
+       }
+
     }
 
     return accession
