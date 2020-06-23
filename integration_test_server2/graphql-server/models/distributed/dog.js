@@ -332,13 +332,12 @@ module.exports = class dog {
 
     static addOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.dog_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new dog(result));
-            });
+        input = await validatorUtil.validateData('validateForCreate', this, input);
+
+        let responsibleAdapter = this.adapterForIri(input.dog_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new dog(result));
     }
 
     static async deleteOne(id, benignErrorReporter) {

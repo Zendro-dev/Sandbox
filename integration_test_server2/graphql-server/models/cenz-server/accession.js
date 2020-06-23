@@ -228,11 +228,13 @@ module.exports = class Accession {
             if (response && response.data && response.data.data) {
                 let data_edges = response.data.data.accessionsConnection.edges;
                 let pageInfo = response.data.data.accessionsConnection.pageInfo;
+                let nodes = data_edges.map(e => e.node);
+                let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
 
-                let edges = data_edges.map(e => {
+                let edges = valid_nodes.map(e => {
                     return {
-                        node: new Accession(e.node),
-                        cursor: e.cursor
+                        node: new Accession(e),
+                        cursor: this.base64Enconde(e)
                     }
                 })
 
@@ -250,6 +252,8 @@ module.exports = class Accession {
     }
 
     static async addOne(input, benignErrorReporter) {
+        input = await validatorUtil.validateData('validateForCreate', this, input);
+
         let query = `
             mutation addAccession(
                   $accession_id:ID!
@@ -271,7 +275,7 @@ module.exports = class Accession {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input);
+
             // Send an HTTP request to the remote server
             let response = await axios.post(remoteCenzontleURL, {
                 query: query,

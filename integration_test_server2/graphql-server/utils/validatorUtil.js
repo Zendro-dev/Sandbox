@@ -53,23 +53,23 @@ module.exports.bulkValidateData = async function(validatorFunction, dataModel, d
   return validatedData;
 }
 
-module.exports.validateData = async function( validationFunction, dataModel, data ){
-
-  console.log("TYPEOF :",  typeof dataModel.prototype['validationControl']);
-
-   if(typeof dataModel.prototype[validatorFunction] === "function" && typeof dataModel.prototype['validationControl'] === 'object'){
-     switch (validationFunction) {
-       case 'validateForCreate':
-         await dataModel.prototype[validationFunction](data);
-         return data;
-
-
-       default:
-
-     }
-   }
-   return data;
-}
+// module.exports.validateData = async function( validationFunction, dataModel, data ){
+//
+//   console.log("TYPEOF :",  typeof dataModel.prototype['validationControl']);
+//
+//    if(typeof dataModel.prototype[validatorFunction] === "function" && typeof dataModel.prototype['validationControl'] === 'object'){
+//      switch (validationFunction) {
+//        case 'validateForCreate':
+//          await dataModel.prototype[validationFunction](data);
+//          return data;
+//
+//
+//        default:
+//
+//      }
+//    }
+//    return data;
+// }
 
 /**
  * Adds AJV asynchronous keywords to the argument AJV instance that define ISO

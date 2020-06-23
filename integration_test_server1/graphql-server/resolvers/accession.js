@@ -327,7 +327,8 @@ module.exports = {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "accessions");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await accession.readAll(search, order, pagination, benignErrorReporter);
+            let result = await accession.readAll(search, order, pagination, benignErrorReporter);
+            return result;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

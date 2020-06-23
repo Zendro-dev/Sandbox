@@ -18,7 +18,8 @@ module.exports.validator_patch = function(accession) {
         "$async": true,
         "properties": {
             "accession_id": {
-                "type": ["string", "null"]
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9]+$"
             },
             "collectors_name": {
                 "type": ["string", "null"]
@@ -66,16 +67,18 @@ module.exports.validator_patch = function(accession) {
     }
 
     accession.prototype.validateAfterRead = async function(record) {
+      //console.log("Validating record ", record);
+      return await accession.prototype.asyncValidate(record);
 
-        //TODO: on the input you have the record validated, no generic
-        // validation checks are available.
-
-        // return {
-        //     error: null
+        // //TODO: on the input you have the record validated, no generic
+        // // validation checks are available.
+        //
+        // // return {
+        // //     error: null
+        // // }
+        // if(record.accession_id === 'id_3'){
+        //   throw new Error(" Validation error for id:  " + record.accession_id);
         // }
-        if(record.accession_id === 'id_3'){
-          throw new Error(" Validation error for id:  " + record.accession_id);
-        }
     }
 
     return accession

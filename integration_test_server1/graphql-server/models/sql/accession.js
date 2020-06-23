@@ -133,6 +133,7 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static readAll(search, order, pagination, benignErrorReporter) {
+      //return [];
         let options = {};
         if (search !== undefined) {
 
@@ -170,7 +171,9 @@ module.exports = class Accession extends Sequelize.Model {
             }
 
             let records = await super.findAll(options);
-            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+            let validatedData = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+            return validatedData;
+            //return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
             // let result = [];
             // let c = 0;
             // for await(let r of records ){
@@ -345,21 +348,27 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
-    static addOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                try {
-                    const result = await sequelize.transaction(async (t) => {
-                        let item = await super.create(input, {
-                            transaction: t
-                        });
-                        return item;
-                    });
-                    return result;
-                } catch (error) {
-                    throw error;
-                }
+    static async addOne(input) {
+
+      input = await validatorUtil.validateData('validateForCreate', this, input);
+
+      try {
+        const result = await sequelize.transaction(async (t) => {
+            let item = await super.create(input, {
+                transaction: t
             });
+            return item;
+        });
+        return result;
+      } catch (error) {
+        throw error;
+      }
+
+
+        // return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
+        //     .then(async (valSuccess) => {
+        //
+        //     });
     }
 
     static deleteOne(id) {

@@ -19,7 +19,8 @@ module.exports.validator_patch = function(accession) {
         "$async": true,
         "properties": {
             "accession_id": {
-                "type": ["string", "null"]
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9]+$"
             },
             "collectors_name": {
                 "type": ["string", "null"]
