@@ -243,8 +243,8 @@ module.exports = class dog {
                 }, []);
             })
             //phase 2: order & paginate
-            .then(nodes => {
-
+            .then(async nodes => {
+                nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
                 if (order === undefined) {
                     order = [{
                         field: "dog_id",

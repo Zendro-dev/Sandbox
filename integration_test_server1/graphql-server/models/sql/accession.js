@@ -107,10 +107,13 @@ module.exports = class Accession extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-            .then((valSuccess) => {
-                return item
-            });
+
+        return validatorUtil.validateData('validateAfterRead', this, item);
+
+        // return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
+        //     .then((valSuccess) => {
+        //         return item
+        //     });
     }
 
     static async countRecords(search) {
@@ -180,7 +183,7 @@ module.exports = class Accession extends Sequelize.Model {
         });
     }
 
-    static readAllCursor(search, order, pagination) {
+    static readAllCursor(search, order, pagination, benignErrorReporter) {
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -286,7 +289,9 @@ module.exports = class Accession extends Sequelize.Model {
                 /*
                  * Get records
                  */
-                return super.findAll(options).then(records => {
+                return super.findAll(options).then(async records => {
+                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+
                     let edges = [];
                     let pageInfo = {
                         hasPreviousPage: false,

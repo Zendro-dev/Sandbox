@@ -8,6 +8,13 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(dog) {
 
+  dog.prototype.validationControl = {
+    validateForCreate: true,
+    validateForUpdate: true,
+    validateForDelete: false,
+    validateAfterRead: true
+  }
+
     dog.prototype.validatorSchema = {
         "$async": true,
         "properties": {
@@ -54,6 +61,10 @@ module.exports.validator_patch = function(dog) {
         //TODO: on the input you have the record validated, no generic
         // validation checks are available.
 
+
+        if(record.dog_id === "instance1_dog_1"){
+          throw new Error("A validation error ocurred. ID: "+ record.dog_id );
+        }
         return {
             error: null
         }

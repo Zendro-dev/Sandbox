@@ -178,6 +178,7 @@ module.exports = class Accession {
             // check if data was send
             if (response && response.data && response.data.data) {
                 let data = response.data.data.accessions;
+                data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
                     return new Accession(item)
                 });
@@ -251,11 +252,11 @@ module.exports = class Accession {
     static async addOne(input, benignErrorReporter) {
         let query = `
             mutation addAccession(
-                  $accession_id:ID!  
+                  $accession_id:ID!
               $collectors_name:String
               $collectors_initials:String
               $sampling_date:Date            ){
-              addAccession(              accession_id:$accession_id  
+              addAccession(              accession_id:$accession_id
               collectors_name:$collectors_name
               collectors_initials:$collectors_initials
               sampling_date:$sampling_date){
@@ -332,20 +333,20 @@ module.exports = class Accession {
         let query = `
             mutation
               updateAccession(
-                $accession_id:ID! 
-                $collectors_name:String 
-                $collectors_initials:String 
+                $accession_id:ID!
+                $collectors_name:String
+                $collectors_initials:String
                 $sampling_date:Date               ){
                 updateAccession(
-                  accession_id:$accession_id 
-                  collectors_name:$collectors_name 
-                  collectors_initials:$collectors_initials 
+                  accession_id:$accession_id
+                  collectors_name:$collectors_name
+                  collectors_initials:$collectors_initials
                   sampling_date:$sampling_date                 ){
-                  accession_id 
-                  collectors_name 
-                  collectors_initials 
-                  sampling_date 
-                  locationId 
+                  accession_id
+                  collectors_name
+                  collectors_initials
+                  sampling_date
+                  locationId
                 }
               }`
 

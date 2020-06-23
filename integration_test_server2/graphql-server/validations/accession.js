@@ -74,7 +74,7 @@ module.exports.validator_patch = function(accession) {
         // return {
         //     error: null
         // }
-       if(record.accession_id === 'id_3'){
+       if(record.accession_id === 'id_3' || record.accession_id === 'id_2'){
          throw new Error(" Validation error for id:  " + record.accession_id);
        }
 
