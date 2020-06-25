@@ -330,7 +330,7 @@ module.exports = class dog {
         return true;
     }
 
-    static addOne(input, benignErrorReporter) {
+    static async addOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
         input = await validatorUtil.validateData('validateForCreate', this, input);
 

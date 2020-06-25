@@ -45,6 +45,7 @@ module.exports.bulkValidateData = async function(validatorFunction, dataModel, d
             await dataModel.prototype[validatorFunction](record);
             validatedData.push(record);
           }catch(error){
+            console.log("ERROR IN VALIDATOR: ", error);
             benignErrorReporter.reportError(error);
           };
         }
