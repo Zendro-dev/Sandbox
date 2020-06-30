@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     id: ID
-
     """
     @original-field
     
@@ -33,8 +32,8 @@ module.exports = `
     @count-request
     """
     countFilteredTranscript_counts(search: searchTranscript_countInput) : Int
-  }
-
+  
+    }
 type AminoacidsequenceConnection{
   edges: [AminoacidsequenceEdge]
   pageInfo: pageInfo!
@@ -56,13 +55,11 @@ type AminoacidsequenceEdge{
     from: Int
     to: Int
   }
-
   enum aminoacidsequenceField {
     id
     accession
     sequence
   }
-
   input searchAminoacidsequenceInput {
     field: aminoacidsequenceField
     value: typeValue
@@ -74,7 +71,6 @@ type AminoacidsequenceEdge{
     field: aminoacidsequenceField
     order: Order
   }
-
   type Query {
     aminoacidsequences(search: searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationInput ): [aminoacidsequence]
     readOneAminoacidsequence(id: ID!): aminoacidsequence
@@ -83,11 +79,10 @@ type AminoacidsequenceEdge{
 
     aminoacidsequencesConnection(search:searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationCursorInput ): AminoacidsequenceConnection
   }
-
     type Mutation {
-    addAminoacidsequence( accession: String, sequence: String  , addTranscript_counts:[ID], skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
-    updateAminoacidsequence(id: ID!, accession: String, sequence: String  , addTranscript_counts:[ID], removeTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
+    addAminoacidsequence( accession: String, sequence: String   , addTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
+    updateAminoacidsequence(id: ID!, accession: String, sequence: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
   deleteAminoacidsequence(id: ID!): String!
-  bulkAddAminoacidsequenceCsv: [aminoacidsequence] }
+  bulkAddAminoacidsequenceCsv: String! }
 
 `;

@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     accession_id: ID
-
     """
     @original-field
     
@@ -46,8 +45,8 @@ module.exports = `
     @count-request
     """
     countFilteredMeasurements(search: searchMeasurementInput) : Int
-  }
-
+  
+    }
 type AccessionConnection{
   edges: [AccessionEdge]
   pageInfo: pageInfo!
@@ -69,7 +68,6 @@ type AccessionEdge{
     from: Int
     to: Int
   }
-
   enum AccessionField {
     accession_id
     collectors_name
@@ -77,7 +75,6 @@ type AccessionEdge{
     sampling_date
     locationId
   }
-
   input searchAccessionInput {
     field: AccessionField
     value: typeValue
@@ -89,7 +86,6 @@ type AccessionEdge{
     field: AccessionField
     order: Order
   }
-
   type Query {
     accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
     readOneAccession(accession_id: ID!): Accession
@@ -98,11 +94,10 @@ type AccessionEdge{
 
     accessionsConnection(search:searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput ): AccessionConnection
   }
-
     type Mutation {
-    addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID , addMeasurements:[ID], skipAssociationsExistenceChecks:Boolean = false): Accession!
-    updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID  , addMeasurements:[ID], removeMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
+    addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
+    updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
   deleteAccession(accession_id: ID!): String!
-  bulkAddAccessionCsv: [Accession] }
+  bulkAddAccessionCsv: String! }
 
 `;

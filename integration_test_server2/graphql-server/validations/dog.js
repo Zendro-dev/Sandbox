@@ -12,8 +12,7 @@ module.exports.validator_patch = function(dog) {
         "$async": true,
         "properties": {
             "name": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9]+$"
+                "type": ["string", "null"]
             },
             "dog_id": {
                 "type": ["string", "null"]
@@ -29,17 +28,21 @@ module.exports.validator_patch = function(dog) {
     )
 
     dog.prototype.validateForCreate = async function(record) {
-        return await dog.prototype.asyncValidate(record)
+        let ret = await dog.prototype.asyncValidate(record);
+        console.log("\n\nret: " + ret + "\n\n")
+        console.log("\n\nret: " + JSON.stringify(ret) + "\n\n")
+        return ret;
     }
 
     dog.prototype.validateForUpdate = async function(record) {
         return await dog.prototype.asyncValidate(record)
     }
 
-    dog.prototype.validateForDelete = async function(record) {
+    dog.prototype.validateForDelete = async function(id) {
 
-        //TODO: on the input you have the record to be deleted, no generic
-        // validation checks are available.
+        //TODO: on the input you have the id of the record to be deleted, no generic
+        // validation checks are available. You might need to import the correspondant model
+        // in order to read the whole record info and the do the validation.
 
         return {
             error: null

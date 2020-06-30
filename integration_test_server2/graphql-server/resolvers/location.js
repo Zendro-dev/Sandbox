@@ -3,19 +3,15 @@
 */
 
 const path = require('path');
-const location = require(path.join(__dirname, '..', 'models_index.js')).location;
+const location = require(path.join(__dirname, '..', 'models', 'index.js')).location;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
-
-
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addAccessions': 'accession'
@@ -118,19 +114,21 @@ location.prototype.accessionsConnection = function({
 }
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-location.prototype.handleAssociations = async function(input, context) {
+location.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addAccessions)) {
-        promises.push(this.add_accessions(input, context));
+        promises.push(this.add_accessions(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeAccessions)) {
-        promises.push(this.remove_accessions(input, context));
+        promises.push(this.remove_accessions(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -139,53 +137,44 @@ location.prototype.handleAssociations = async function(input, context) {
  * add_accessions - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-location.prototype.add_accessions = async function(input) {
+location.prototype.add_accessions = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addAccessions) {
-        results.push(models.accession.add_locationId(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.add_locationId(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
-
 
 /**
  * remove_accessions - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-location.prototype.remove_accessions = async function(input) {
+location.prototype.remove_accessions = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeAccessions) {
-        results.push(models.accession.remove_locationId(associatedRecordId, this.getIdValue()));
+        results.push(models.accession.remove_locationId(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
 
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await location.countRecords(search)).sum;
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'location') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -194,10 +183,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneLocation"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneLocation")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -257,9 +243,10 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Location', 'read' === true)) {
+        if (await checkAuthorization(context, 'Location', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "locations");
-            return await location.readAll(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await location.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -282,7 +269,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "locationsConnection");
-            return location.readAllCursor(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await location.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -300,7 +288,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
-            return location.readById(locationId);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await location.readById(locationId, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -317,7 +306,8 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
-            return (await location.countRecords(search)).sum;
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await location.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -356,7 +346,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdLocation = await location.addOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let createdLocation = await location.addOne(inputSanitized, benignErrorReporter);
             await createdLocation.handleAssociations(inputSanitized, context);
             return createdLocation;
         } else {
@@ -372,7 +363,8 @@ module.exports = {
      */
     bulkAddLocationCsv: async function(_, context) {
         if (await checkAuthorization(context, 'Location', 'create') === true) {
-            return location.bulkAddCsv(context);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return location.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -390,7 +382,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Location', 'delete') === true) {
             if (await validForDeletion(locationId, context)) {
-                return location.deleteOne(locationId);
+                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+                return location.deleteOne(locationId, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -415,7 +408,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedLocation = await location.updateOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let updatedLocation = await location.updateOne(inputSanitized, benignErrorReporter);
             await updatedLocation.handleAssociations(inputSanitized, context);
             return updatedLocation;
         } else {
@@ -432,7 +426,8 @@ module.exports = {
      */
     csvTableTemplateLocation: async function(_, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
-            return location.csvTableTemplate();
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return location.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

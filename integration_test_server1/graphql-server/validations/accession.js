@@ -15,8 +15,7 @@ module.exports.validator_patch = function(accession) {
                 "type": ["string", "null"]
             },
             "collectors_name": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9]+$"
+                "type": ["string", "null"]
             },
             "collectors_initials": {
                 "type": ["string", "null"]
@@ -46,10 +45,11 @@ module.exports.validator_patch = function(accession) {
         return await accession.prototype.asyncValidate(record)
     }
 
-    accession.prototype.validateForDelete = async function(record) {
+    accession.prototype.validateForDelete = async function(id) {
 
-        //TODO: on the input you have the record to be deleted, no generic
-        // validation checks are available.
+        //TODO: on the input you have the id of the record to be deleted, no generic
+        // validation checks are available. You might need to import the correspondant model
+        // in order to read the whole record info and the do the validation.
 
         return {
             error: null

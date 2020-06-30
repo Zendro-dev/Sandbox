@@ -5,22 +5,22 @@ type person{
   """
   person_id: ID
 
-"""
+  """
   @original-field
   
   """
   name: String
 
-
+unique_parrot(search: searchParrotInput): parrot
   """
   @search-request
   """
   dogsConnection(search: searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput): DogConnection
-
   """
   @count-request
   """
   countFilteredDogs(search: searchDogInput) : Int
+
 }
 
 type PersonConnection{
@@ -72,9 +72,9 @@ type Query {
 }
 
   type Mutation {
-  addPerson(person_id: ID!, name: String  , addDogs:[ID], skipAssociationsExistenceChecks:Boolean = false): person!
-  updatePerson(person_id: ID!, name: String  , addDogs:[ID], removeDogs:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
+  addPerson(person_id: ID!, name: String , addUnique_parrot:ID  , addDogs:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
+  updatePerson(person_id: ID!, name: String , addUnique_parrot:ID, removeUnique_parrot:ID   , addDogs:[ID], removeDogs:[ID]  , skipAssociationsExistenceChecks:Boolean = false): person!
 deletePerson(person_id: ID!): String!
-bulkAddPersonCsv: [person] }
+bulkAddPersonCsv: String }
 
 `;

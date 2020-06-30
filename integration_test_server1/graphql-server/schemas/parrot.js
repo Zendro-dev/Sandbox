@@ -5,12 +5,11 @@ type parrot{
   """
   parrot_id: ID
 
-"""
+  """
   @original-field
   
   """
   name: String
-
 """
   @original-field
   
@@ -18,6 +17,7 @@ type parrot{
   person_id: String
 
 unique_person(search: searchPersonInput): person
+
 }
 
 type ParrotConnection{
@@ -70,9 +70,9 @@ type Query {
 }
 
   type Mutation {
-  addParrot(parrot_id: ID!, name: String , addUnique_person:ID , skipAssociationsExistenceChecks:Boolean = false): parrot!
-  updateParrot(parrot_id: ID!, name: String , addUnique_person:ID, removeUnique_person:ID  , skipAssociationsExistenceChecks:Boolean = false): parrot!
+  addParrot(parrot_id: ID!, name: String , addUnique_person:ID   , skipAssociationsExistenceChecks:Boolean = false): parrot!
+  updateParrot(parrot_id: ID!, name: String , addUnique_person:ID, removeUnique_person:ID    , skipAssociationsExistenceChecks:Boolean = false): parrot!
 deleteParrot(parrot_id: ID!): String!
-bulkAddParrotCsv: [parrot] }
+bulkAddParrotCsv: String }
 
 `;

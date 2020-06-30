@@ -3,7 +3,7 @@
     "storageType" : "ddm-adapter",
     "adapterName": "person_instance1",
     "regex": "instance1",
-    "url": "http://integration_test_server1-graphql-container:3000/graphql",
+    "url": "http://server1:3000/graphql",
     "attributes" : {
       "name" : "String",
       "person_id": "String"
@@ -14,6 +14,13 @@
         "target" : "dog",
         "targetKey" : "person_id",
         "keyIn": "dog",
+        "targetStorageType" : "distributed-data-model"
+      },
+      "unique_parrot": {
+        "type" : "to_one",
+        "target" : "parrot",
+        "targetKey" : "person_id",
+        "keyIn": "parrot",
         "targetStorageType" : "distributed-data-model"
       }
     },

@@ -3,19 +3,15 @@
 */
 
 const path = require('path');
-const transcript_count = require(path.join(__dirname, '..', 'models_index.js')).transcript_count;
+const transcript_count = require(path.join(__dirname, '..', 'models', 'index.js')).transcript_count;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
-const {
-    handleError
-} = require('../utils/errors');
 const os = require('os');
 const resolvers = require(path.join(__dirname, 'index.js'));
-const models = require(path.join(__dirname, '..', 'models_index.js'));
+const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
-
-
+const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
     'addIndividual': 'individual',
@@ -99,27 +95,29 @@ transcript_count.prototype.aminoacidsequence = async function({
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-transcript_count.prototype.handleAssociations = async function(input, context) {
+transcript_count.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
     if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
-        promises.push(this.add_individual(input, context));
+        promises.push(this.add_individual(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addAminoacidsequence)) {
-        promises.push(this.add_aminoacidsequence(input, context));
+        promises.push(this.add_aminoacidsequence(input, benignErrorReporter));
     }
 
     if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
-        promises.push(this.remove_individual(input, context));
+        promises.push(this.remove_individual(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeAminoacidsequence)) {
-        promises.push(this.remove_aminoacidsequence(input, context));
+        promises.push(this.remove_aminoacidsequence(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -128,18 +126,21 @@ transcript_count.prototype.handleAssociations = async function(input, context) {
  * add_individual - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-transcript_count.prototype.add_individual = async function(input) {
-    await transcript_count.add_individual_id(this.getIdValue(), input.addIndividual);
+transcript_count.prototype.add_individual = async function(input, benignErrorReporter) {
+    await transcript_count.add_individual_id(this.getIdValue(), input.addIndividual, benignErrorReporter);
     this.individual_id = input.addIndividual;
 }
+
 /**
  * add_aminoacidsequence - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-transcript_count.prototype.add_aminoacidsequence = async function(input) {
-    await transcript_count.add_aminoacidsequence_id(this.getIdValue(), input.addAminoacidsequence);
+transcript_count.prototype.add_aminoacidsequence = async function(input, benignErrorReporter) {
+    await transcript_count.add_aminoacidsequence_id(this.getIdValue(), input.addAminoacidsequence, benignErrorReporter);
     this.aminoacidsequence_id = input.addAminoacidsequence;
 }
 
@@ -147,48 +148,42 @@ transcript_count.prototype.add_aminoacidsequence = async function(input) {
  * remove_individual - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-transcript_count.prototype.remove_individual = async function(input) {
+transcript_count.prototype.remove_individual = async function(input, benignErrorReporter) {
     if (input.removeIndividual == this.individual_id) {
-        await transcript_count.remove_individual_id(this.getIdValue(), input.removeIndividual);
+        await transcript_count.remove_individual_id(this.getIdValue(), input.removeIndividual, benignErrorReporter);
         this.individual_id = null;
     }
 }
+
 /**
  * remove_aminoacidsequence - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-transcript_count.prototype.remove_aminoacidsequence = async function(input) {
+transcript_count.prototype.remove_aminoacidsequence = async function(input, benignErrorReporter) {
     if (input.removeAminoacidsequence == this.aminoacidsequence_id) {
-        await transcript_count.remove_aminoacidsequence_id(this.getIdValue(), input.removeAminoacidsequence);
+        await transcript_count.remove_aminoacidsequence_id(this.getIdValue(), input.removeAminoacidsequence, benignErrorReporter);
         this.aminoacidsequence_id = null;
     }
 }
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
+
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await transcript_count.countRecords(search)).sum;
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'transcript_count') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -197,10 +192,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneTranscript_count"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneTranscript_count")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -261,9 +253,10 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read' === true)) {
+        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "transcript_counts");
-            return await transcript_count.readAll(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await transcript_count.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -286,7 +279,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
             await checkCountAndReduceRecordsLimit(search, context, "transcript_countsConnection");
-            return transcript_count.readAllCursor(search, order, pagination);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await transcript_count.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -304,7 +298,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
-            return transcript_count.readById(id);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await transcript_count.readById(id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -321,7 +316,8 @@ module.exports = {
         search
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
-            return (await transcript_count.countRecords(search)).sum;
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await transcript_count.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -360,7 +356,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let createdTranscript_count = await transcript_count.addOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let createdTranscript_count = await transcript_count.addOne(inputSanitized, benignErrorReporter);
             await createdTranscript_count.handleAssociations(inputSanitized, context);
             return createdTranscript_count;
         } else {
@@ -376,7 +373,8 @@ module.exports = {
      */
     bulkAddTranscript_countCsv: async function(_, context) {
         if (await checkAuthorization(context, 'transcript_count', 'create') === true) {
-            return transcript_count.bulkAddCsv(context);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return transcript_count.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -394,7 +392,8 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'delete') === true) {
             if (await validForDeletion(id, context)) {
-                return transcript_count.deleteOne(id);
+                let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+                return transcript_count.deleteOne(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -419,7 +418,8 @@ module.exports = {
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            let updatedTranscript_count = await transcript_count.updateOne(inputSanitized);
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let updatedTranscript_count = await transcript_count.updateOne(inputSanitized, benignErrorReporter);
             await updatedTranscript_count.handleAssociations(inputSanitized, context);
             return updatedTranscript_count;
         } else {
@@ -436,7 +436,8 @@ module.exports = {
      */
     csvTableTemplateTranscript_count: async function(_, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
-            return transcript_count.csvTableTemplate();
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return transcript_count.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

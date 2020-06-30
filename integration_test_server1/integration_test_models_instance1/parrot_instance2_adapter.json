@@ -3,7 +3,7 @@
   "storageType" : "ddm-adapter",
   "adapterName": "parrot_instance2",
   "regex": "instance2",
-  "url": "http://integration_test_server2-graphql-container:3001/graphql",
+  "url": "http://server2:3030/graphql",
   "attributes" : {
     "name" : "String",
     "parrot_id": "String",

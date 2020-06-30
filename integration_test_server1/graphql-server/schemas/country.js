@@ -4,7 +4,6 @@ module.exports = `
     @original-field
     """
     country_id: ID
-
     """
     @original-field
     
@@ -12,8 +11,24 @@ module.exports = `
     name: String
 
     unique_capital(search: searchCapitalInput): capital
-    }
+    
+    """
+    @search-request
+    """
+    riversFilter(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput): [river]
 
+
+    """
+    @search-request
+    """
+    riversConnection(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput): RiverConnection
+
+    """
+    @count-request
+    """
+    countFilteredRivers(search: searchRiverInput) : Int
+  
+    }
 type CountryConnection{
   edges: [CountryEdge]
   pageInfo: pageInfo!
@@ -35,12 +50,10 @@ type CountryEdge{
     from: Int
     to: Int
   }
-
   enum countryField {
     country_id
     name
   }
-
   input searchCountryInput {
     field: countryField
     value: typeValue
@@ -52,7 +65,6 @@ type CountryEdge{
     field: countryField
     order: Order
   }
-
   type Query {
     countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput ): [country]
     readOneCountry(country_id: ID!): country
@@ -61,11 +73,10 @@ type CountryEdge{
 
     countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput ): CountryConnection
   }
-
     type Mutation {
-    addCountry(country_id: ID!, name: String , addUnique_capital:ID , skipAssociationsExistenceChecks:Boolean = false): country!
-    updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID  , skipAssociationsExistenceChecks:Boolean = false): country!
+    addCountry(country_id: ID!, name: String , addUnique_capital:ID  , addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): country!
+    updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID   , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): country!
   deleteCountry(country_id: ID!): String!
-  bulkAddCountryCsv: [country] }
+  bulkAddCountryCsv: String! }
 
 `;
