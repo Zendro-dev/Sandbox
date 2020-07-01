@@ -480,6 +480,16 @@ module.exports = class Measurement extends Sequelize.Model {
         return updated;
     }
 
+    static _bulkAssociateAccessionWithMeasurement({accessionId, measurement_id_Array}){
+        let updated = await Measurement.update({
+            accessionId: accession
+        }, {
+            where: {    
+                measurement_id: measurement_id_Array
+            }
+        });
+        return updated;
+    }
 
 
 

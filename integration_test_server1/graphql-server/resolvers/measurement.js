@@ -373,6 +373,12 @@ module.exports = {
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
-    }
+    },
+    
+    bulkAssociateAccessionWithMeasurement: async function(bulkAssociateInput, context){
+        for await(bulkAssociate of bulkAssociateInput){
+          models.measurement._bulkAssociateAccessionWithMeasurement(bulkAssociate)
+        }
+    },
 
 }
