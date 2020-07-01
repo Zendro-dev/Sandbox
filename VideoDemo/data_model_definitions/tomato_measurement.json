@@ -1,0 +1,21 @@
+{
+  "model" : "Tomato_Measurement",
+  "storageType" : "sql",
+  "attributes" : {
+    "tomato_ID" : "String",
+    "no_fruit" : "Int",
+    "sugar_content": "Float",
+    "plant_variant_ID": "String"
+  },
+  "associations" : {
+    "Plant_variant" : {
+      "type" : "to_one",
+      "target" : "Plant_variant",
+      "targetKey" : "plant_variant_ID",
+      "keyIn" : "Tomato_Measurement",
+      "targetStorageType" : "sql",
+      "label": "name"
+    }
+  },
+  "internalId": "tomato_ID"
+}

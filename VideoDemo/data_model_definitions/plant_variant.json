@@ -1,0 +1,21 @@
+{
+  "model" : "Plant_variant",
+  "storageType" : "sql",
+  "attributes" : {
+    "name" : "String",
+    "genotype" : "String",
+    "disease_resistances": "String",
+    "plant_variant_ID": "String"
+  },
+  "associations" : {
+    "Tomato_measurements" : {
+      "type" : "to_many",
+      "target" : "Tomato_Measurement",
+      "targetKey" : "plant_variant_ID",
+      "keyIn" : "Tomato_Measurement",
+      "targetStorageType" : "sql",
+      "label": "tomato_ID"
+    }
+  },
+  "internalId": "plant_variant_ID"
+}
