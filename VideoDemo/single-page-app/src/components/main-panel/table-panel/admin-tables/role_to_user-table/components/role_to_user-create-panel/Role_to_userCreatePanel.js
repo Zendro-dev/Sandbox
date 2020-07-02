@@ -220,19 +220,19 @@ export default function RoleToUserCreatePanel(props) {
     //check
     if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
       let errors = err.response.data.errors;
-      
       //for each error
       for(let i=0; i<errors.length; ++i) {
         let e=errors[i];
         //check
-        if(e && typeof e === 'object' && Array.isArray(e.extensions)){
-          let extensions = e.extensions;
-          
-          for(let d=0; d<extensions.length; ++d) {
-            let extension = extensions[d];
-
+        if(e && typeof e === 'object'
+        && e.extensions && typeof e.extensions === 'object' 
+        && Array.isArray(e.extensions.validationErrors)){
+          let validationErrors = e.extensions.validationErrors;
+          for(let j=0; j<validationErrors.length; ++j) {
+            let validationError = validationErrors[j];
             //check
-            if(extension && typeof extension === 'object' && extension.dataPath && extension.message) {
+            if(validationError && typeof validationError === 'object' 
+            && validationError.dataPath && validationError.message) {
               /**
                * In this point, the error is considered as an AJV error.
                * 
@@ -240,7 +240,7 @@ export default function RoleToUserCreatePanel(props) {
                * the ajvStatus state will be updated.
                */
               //set reference
-              addAjvErrorToField(extension);
+              addAjvErrorToField(validationError);
             }
           }
         }
