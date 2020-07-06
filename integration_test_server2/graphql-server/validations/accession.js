@@ -12,15 +12,14 @@ module.exports.validator_patch = function(accession) {
       validateForCreate: true,
       validateForUpdate: true,
       validateForDelete: false,
-      validateAfterRead: true
+      validateAfterRead: false
     }
 
     accession.prototype.validatorSchema = {
         "$async": true,
         "properties": {
             "accession_id": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9]+$"
+                "type": ["string", "null"]
             },
             "collectors_name": {
                 "type": ["string", "null"]

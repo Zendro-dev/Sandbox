@@ -228,13 +228,15 @@ module.exports = class Accession {
             if (response && response.data && response.data.data) {
                 let data_edges = response.data.data.accessionsConnection.edges;
                 let pageInfo = response.data.data.accessionsConnection.pageInfo;
+                //validate after read
                 let nodes = data_edges.map(e => e.node);
                 let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
 
                 let edges = valid_nodes.map(e => {
+                    let temp_node = new Accession(e);
                     return {
-                        node: new Accession(e),
-                        cursor: this.base64Enconde(e)
+                        node: temp_node,
+                        cursor: temp_node.base64Enconde()
                     }
                 })
 
