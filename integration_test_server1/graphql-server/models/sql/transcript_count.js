@@ -16,6 +16,7 @@ const uuidv4 = require('uuidv4').uuid;
 const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
 const moment = require('moment');
+const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'transcript_count',
@@ -102,10 +103,7 @@ module.exports = class transcript_count extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-            .then((valSuccess) => {
-                return item
-            });
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
@@ -124,7 +122,7 @@ module.exports = class transcript_count extends Sequelize.Model {
         return super.count(options);
     }
 
-    static readAll(search, order, pagination) {
+    static readAll(search, order, pagination, benignErrorReporter) {
         let options = {};
         if (search !== undefined) {
 
@@ -138,7 +136,10 @@ module.exports = class transcript_count extends Sequelize.Model {
             options['where'] = arg_sequelize;
         }
 
-        return super.count(options).then(items => {
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+
+        return super.count(options).then(async items => {
             if (order !== undefined) {
                 options['order'] = order.map((orderItem) => {
                     return [orderItem.field, orderItem.order];
@@ -160,11 +161,12 @@ module.exports = class transcript_count extends Sequelize.Model {
             if (globals.LIMIT_RECORDS < options['limit']) {
                 throw new Error(`Request of total transcript_counts exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
-            return super.findAll(options);
+            let records = await super.findAll(options);
+            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
         });
     }
 
-    static readAllCursor(search, order, pagination) {
+    static readAllCursor(search, order, pagination, benignErrorReporter) {
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -189,6 +191,9 @@ module.exports = class transcript_count extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
+
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         /*
          * Count
@@ -270,7 +275,10 @@ module.exports = class transcript_count extends Sequelize.Model {
                 /*
                  * Get records
                  */
-                return super.findAll(options).then(records => {
+                return super.findAll(options).then(async records => {
+                    //validate records
+                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+
                     let edges = [];
                     let pageInfo = {
                         hasPreviousPage: false,
@@ -324,64 +332,60 @@ module.exports = class transcript_count extends Sequelize.Model {
         });
     }
 
-    static addOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                try {
-                    const result = await sequelize.transaction(async (t) => {
-                        let item = await super.create(input, {
-                            transaction: t
-                        });
-                        return item;
-                    });
-                    return result;
-                } catch (error) {
-                    throw error;
-                }
-            });
-    }
-
-    static deleteOne(id) {
-
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id)
-            .then(async (valSuccess) => {
-                let destroyed = await super.destroy({
-                    where: {
-                        [this.idAttribute()]: id
-                    }
+    static async addOne(input) {
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        try {
+            const result = await sequelize.transaction(async (t) => {
+                let item = await super.create(input, {
+                    transaction: t
                 });
-                if (destroyed !== 0) {
-                    return 'Item successfully deleted';
-                } else {
-                    throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
-                }
-            }).catch((error) => {
-                throw error;
+                return item;
             });
+            return result;
+        } catch (error) {
+            throw error;
+        }
+
     }
 
-    static updateOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                try {
-                    let result = await sequelize.transaction(async (t) => {
-                        let updated = await super.update(input, {
-                            where: {
-                                [this.idAttribute()]: input[this.idAttribute()]
-                            },
-                            returning: true,
-                            transaction: t
-                        });
-                        return updated;
-                    });
-                    if (result[0] === 0) {
-                        throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-                    }
-                    return result[1][0];
-                } catch (error) {
-                    throw error;
-                }
+    static async deleteOne(id) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+        let destroyed = await super.destroy({
+            where: {
+                [this.idAttribute()]: id
+            }
+        });
+        if (destroyed !== 0) {
+            return 'Item successfully deleted';
+        } else {
+            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
+        }
+    }
+
+    static async updateOne(input) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        try {
+            let result = await sequelize.transaction(async (t) => {
+                let updated = await super.update(input, {
+                    where: {
+                        [this.idAttribute()]: input[this.idAttribute()]
+                    },
+                    returning: true,
+                    transaction: t
+                });
+                return updated;
             });
+            if (result[0] === 0) {
+                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+            }
+            return result[1][0];
+        } catch (error) {
+            throw error;
+        }
+
     }
 
     static bulkAddCsv(context) {
@@ -460,16 +464,12 @@ module.exports = class transcript_count extends Sequelize.Model {
      * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async add_individual_id(id, individual_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                individual_id: individual_id
-            }, {
-                where: {
-                    id: id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await transcript_count.update({
+            individual_id: individual_id
+        }, {
+            where: {
+                id: id
+            }
         });
         return updated;
     }
@@ -480,16 +480,12 @@ module.exports = class transcript_count extends Sequelize.Model {
      * @param {Id}   aminoacidsequence_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async add_aminoacidsequence_id(id, aminoacidsequence_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                aminoacidsequence_id: aminoacidsequence_id
-            }, {
-                where: {
-                    id: id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await transcript_count.update({
+            aminoacidsequence_id: aminoacidsequence_id
+        }, {
+            where: {
+                id: id
+            }
         });
         return updated;
     }
@@ -501,17 +497,13 @@ module.exports = class transcript_count extends Sequelize.Model {
      * @param {Id}   individual_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_individual_id(id, individual_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                individual_id: null
-            }, {
-                where: {
-                    id: id,
-                    individual_id: individual_id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await transcript_count.update({
+            individual_id: null
+        }, {
+            where: {
+                id: id,
+                individual_id: individual_id
+            }
         });
         return updated;
     }
@@ -522,17 +514,13 @@ module.exports = class transcript_count extends Sequelize.Model {
      * @param {Id}   aminoacidsequence_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_aminoacidsequence_id(id, aminoacidsequence_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return transcript_count.update({
-                aminoacidsequence_id: null
-            }, {
-                where: {
-                    id: id,
-                    aminoacidsequence_id: aminoacidsequence_id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await transcript_count.update({
+            aminoacidsequence_id: null
+        }, {
+            where: {
+                id: id,
+                aminoacidsequence_id: aminoacidsequence_id
+            }
         });
         return updated;
     }

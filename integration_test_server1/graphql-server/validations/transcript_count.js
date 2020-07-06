@@ -8,6 +8,13 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(transcript_count) {
 
+    transcript_count.prototype.validationControl = {
+        validateForCreate: true,
+        validateForUpdate: true,
+        validateForDelete: false,
+        validateAfterRead: false
+    }
+
     transcript_count.prototype.validatorSchema = {
         "$async": true,
         "properties": {
@@ -37,10 +44,7 @@ module.exports.validator_patch = function(transcript_count) {
     )
 
     transcript_count.prototype.validateForCreate = async function(record) {
-        let ret = await transcript_count.prototype.asyncValidate(record);
-        console.log("\n\nret: " + ret + "\n\n")
-        console.log("\n\nret: " + JSON.stringify(ret) + "\n\n")
-        return ret;
+        return await transcript_count.prototype.asyncValidate(record)
     }
 
     transcript_count.prototype.validateForUpdate = async function(record) {
@@ -59,13 +63,7 @@ module.exports.validator_patch = function(transcript_count) {
     }
 
     transcript_count.prototype.validateAfterRead = async function(record) {
-
-        //TODO: on the input you have the record validated, no generic
-        // validation checks are available.
-
-        return {
-            error: null
-        }
+        return await transcript_count.prototype.asyncValidate(record)
     }
 
     return transcript_count

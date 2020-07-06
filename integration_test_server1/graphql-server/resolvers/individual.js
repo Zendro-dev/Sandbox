@@ -120,7 +120,7 @@ individual.prototype.transcript_countsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 individual.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -137,7 +137,7 @@ individual.prototype.handleAssociations = async function(input, benignErrorRepor
  * add_transcript_counts - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 individual.prototype.add_transcript_counts = async function(input, benignErrorReporter) {
     let results = [];
@@ -151,7 +151,7 @@ individual.prototype.add_transcript_counts = async function(input, benignErrorRe
  * remove_transcript_counts - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 individual.prototype.remove_transcript_counts = async function(input, benignErrorReporter) {
     let results = [];
@@ -163,28 +163,18 @@ individual.prototype.remove_transcript_counts = async function(input, benignErro
 
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await individual.countRecords(search));
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'individual') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -193,10 +183,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneIndividual"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneIndividual")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -361,7 +348,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdIndividual = await individual.addOne(inputSanitized, benignErrorReporter);
-            await createdIndividual.handleAssociations(inputSanitized, context);
+            await createdIndividual.handleAssociations(inputSanitized, benignErrorReporter);
             return createdIndividual;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -423,7 +410,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedIndividual = await individual.updateOne(inputSanitized, benignErrorReporter);
-            await updatedIndividual.handleAssociations(inputSanitized, context);
+            await updatedIndividual.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedIndividual;
         } else {
             throw new Error("You don't have authorization to perform this action");

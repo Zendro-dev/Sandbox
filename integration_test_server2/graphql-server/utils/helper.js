@@ -4,6 +4,7 @@ const math = require('mathjs');
 const _ = require('lodash');
 const models_index = require('../models/index');
 const { Op } = require("sequelize");
+const globals = require('../config/globals')
 
   /**
    * paginate - Creates pagination argument as needed in sequelize cotaining limit and offset accordingly to the current
@@ -964,7 +965,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * (context) for the action (permission).
    *
    * @param {object} context - The GraphQL context passed to the resolver
-   * @param {array} adapters - Array of adapters (see Cenzontle distributed data
+   * @param {array} adapters - Array of adapters (see Zendro distributed data
    * models)
    * @param {string} permission - The action the user wants to perform on the
    * resources (adapters).
@@ -1004,7 +1005,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * array instance.
    *
    * @param {object} search - The GraphQL context passed to the resolver
-   * @param {array} adapters - Array of registered adapters (see Cenzontle distributed data
+   * @param {array} adapters - Array of registered adapters (see Zendro distributed data
    * models)
    *
    * @return {array} Array of resulting adapters, after removing those specified
@@ -1399,4 +1400,19 @@ module.exports.vueTable = function(req, model, strAttributes) {
         return acc;
       }
     }, 0);
+  }
+  
+  /** checkCountAndReduceRecordLimitHelper - given a count, checks whether it exceeds the
+   * defined record limit. Throws desriptive error if it exceeds. If not reduces the record Limit
+   * in the GraphQL context.
+   * 
+   * @param {Integer} count count to reduce from the recordsLimit
+   * @param {Object} context The GraphQL context passed to the resolver
+   * @param {String} resolverName The name of the resolver function
+   */
+  module.exports.checkCountAndReduceRecordLimitHelper = function(count, context, resolverName) {
+    if (count > context.recordsLimit) {
+      throw new Error(`Max record limit of ${globals.LIMIT_RECORDS} exceeded in ${resolverName}`);
+    }
+    context.recordsLimit -= count;
   }

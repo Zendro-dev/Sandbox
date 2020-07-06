@@ -16,6 +16,7 @@ const uuidv4 = require('uuidv4').uuid;
 const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
 const moment = require('moment');
+const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Accession',
@@ -107,13 +108,7 @@ module.exports = class Accession extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-
         return validatorUtil.validateData('validateAfterRead', this, item);
-
-        // return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-        //     .then((valSuccess) => {
-        //         return item
-        //     });
     }
 
     static async countRecords(search) {
@@ -133,7 +128,6 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static readAll(search, order, pagination, benignErrorReporter) {
-      //return [];
         let options = {};
         if (search !== undefined) {
 
@@ -146,6 +140,9 @@ module.exports = class Accession extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
+
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         return super.count(options).then(async items => {
             if (order !== undefined) {
@@ -169,20 +166,8 @@ module.exports = class Accession extends Sequelize.Model {
             if (globals.LIMIT_RECORDS < options['limit']) {
                 throw new Error(`Request of total accessions exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
-
             let records = await super.findAll(options);
-            let validatedData = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-            return validatedData;
-            //return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-            // let result = [];
-            // let c = 0;
-            // for await(let r of records ){
-            //   console.log("Record ", c++);
-            //   validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, r)
-            //   .then( success =>{ result.push(r); console.log(r) } )
-            //   .catch(error => { benignErrorReporter.reportError(error) })
-            // }
-            // return result;
+            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
         });
     }
 
@@ -211,6 +196,9 @@ module.exports = class Accession extends Sequelize.Model {
             let arg_sequelize = arg.toSequelize();
             options['where'] = arg_sequelize;
         }
+
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         /*
          * Count
@@ -293,6 +281,7 @@ module.exports = class Accession extends Sequelize.Model {
                  * Get records
                  */
                 return super.findAll(options).then(async records => {
+                    //validate records
                     records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
 
                     let edges = [];
@@ -349,69 +338,59 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     static async addOne(input) {
-
-      input = await validatorUtil.validateData('validateForCreate', this, input);
-
-      try {
-        const result = await sequelize.transaction(async (t) => {
-            let item = await super.create(input, {
-                transaction: t
-            });
-            return item;
-        });
-        return result;
-      } catch (error) {
-        throw error;
-      }
-
-
-        // return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-        //     .then(async (valSuccess) => {
-        //
-        //     });
-    }
-
-    static deleteOne(id) {
-
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id)
-            .then(async (valSuccess) => {
-                let destroyed = await super.destroy({
-                    where: {
-                        [this.idAttribute()]: id
-                    }
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        try {
+            const result = await sequelize.transaction(async (t) => {
+                let item = await super.create(input, {
+                    transaction: t
                 });
-                if (destroyed !== 0) {
-                    return 'Item successfully deleted';
-                } else {
-                    throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
-                }
-            }).catch((error) => {
-                throw error;
+                return item;
             });
+            return result;
+        } catch (error) {
+            throw error;
+        }
+
     }
 
-    static updateOne(input) {
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                try {
-                    let result = await sequelize.transaction(async (t) => {
-                        let updated = await super.update(input, {
-                            where: {
-                                [this.idAttribute()]: input[this.idAttribute()]
-                            },
-                            returning: true,
-                            transaction: t
-                        });
-                        return updated;
-                    });
-                    if (result[0] === 0) {
-                        throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-                    }
-                    return result[1][0];
-                } catch (error) {
-                    throw error;
-                }
+    static async deleteOne(id) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+        let destroyed = await super.destroy({
+            where: {
+                [this.idAttribute()]: id
+            }
+        });
+        if (destroyed !== 0) {
+            return 'Item successfully deleted';
+        } else {
+            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
+        }
+    }
+
+    static async updateOne(input) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        try {
+            let result = await sequelize.transaction(async (t) => {
+                let updated = await super.update(input, {
+                    where: {
+                        [this.idAttribute()]: input[this.idAttribute()]
+                    },
+                    returning: true,
+                    transaction: t
+                });
+                return updated;
             });
+            if (result[0] === 0) {
+                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+            }
+            return result[1][0];
+        } catch (error) {
+            throw error;
+        }
+
     }
 
     static bulkAddCsv(context) {
@@ -468,6 +447,62 @@ module.exports = class Accession extends Sequelize.Model {
         return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
+    static bulkAddXlsx(context) {
+
+        let delim = context.request.body.delim;
+        let cols = context.request.body.cols;
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.xlsx');
+
+        console.log("EMAIL: ", helpersAcl.getTokenFromContext(context).email);
+
+        // context.request.files.xlsx_file.mv(tmpFile).then(() => {
+        //
+        //     fileTools.parseXlsxStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
+        //         try {
+        //             console.log(`Sending ${addedZipFilePath} to the user.`);
+        //
+        //             let attach = [];
+        //             attach.push({
+        //                 filename: path.basename("added_data.zip"),
+        //                 path: addedZipFilePath
+        //             });
+        //
+        //             email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+        //                 'ScienceDB batch add',
+        //                 'Your data has been successfully added to the database.',
+        //                 attach).then(function(info) {
+        //                 fileTools.deleteIfExists(addedZipFilePath);
+        //                 console.log(info);
+        //             }).catch(function(err) {
+        //                 fileTools.deleteIfExists(addedZipFilePath);
+        //                 console.error(err);
+        //             });
+        //
+        //         } catch (error) {
+        //             console.error(error.message);
+        //         }
+        //
+        //         fs.unlinkSync(tmpFile);
+        //     }).catch((error) => {
+        //         email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+        //             'ScienceDB batch add', `${error.message}`).then(function(info) {
+        //             console.error(info);
+        //         }).catch(function(err) {
+        //             console.error(err);
+        //         });
+        //
+        //         fs.unlinkSync(tmpFile);
+        //     });
+        //
+        //
+        //
+        // }).catch((error) => {
+        //     throw new Error(error);
+        // });
+
+        return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+    }
+
     /**
      * csvTableTemplate - Allows the user to download a template in CSV format with the
      * properties and types of this model.
@@ -490,16 +525,12 @@ module.exports = class Accession extends Sequelize.Model {
      * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
      */
     static async add_locationId(accession_id, locationId) {
-        let updated = await sequelize.transaction(async transaction => {
-            return Accession.update({
-                locationId: locationId
-            }, {
-                where: {
-                    accession_id: accession_id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await Accession.update({
+            locationId: locationId
+        }, {
+            where: {
+                accession_id: accession_id
+            }
         });
         return updated;
     }
@@ -511,17 +542,13 @@ module.exports = class Accession extends Sequelize.Model {
      * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
      */
     static async remove_locationId(accession_id, locationId) {
-        let updated = await sequelize.transaction(async transaction => {
-            return Accession.update({
-                locationId: null
-            }, {
-                where: {
-                    accession_id: accession_id,
-                    locationId: locationId
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await Accession.update({
+            locationId: null
+        }, {
+            where: {
+                accession_id: accession_id,
+                locationId: locationId
+            }
         });
         return updated;
     }

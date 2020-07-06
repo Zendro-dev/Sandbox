@@ -64,7 +64,7 @@ measurement.prototype.accession = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 measurement.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -83,7 +83,7 @@ measurement.prototype.handleAssociations = async function(input, benignErrorRepo
  * add_accession - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 measurement.prototype.add_accession = async function(input, benignErrorReporter) {
     await measurement.add_accessionId(this.getIdValue(), input.addAccession, benignErrorReporter);
@@ -94,7 +94,7 @@ measurement.prototype.add_accession = async function(input, benignErrorReporter)
  * remove_accession - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 measurement.prototype.remove_accession = async function(input, benignErrorReporter) {
     if (input.removeAccession == this.accessionId) {
@@ -105,28 +105,18 @@ measurement.prototype.remove_accession = async function(input, benignErrorReport
 
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await measurement.countRecords(search));
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'measurement') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -135,10 +125,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneMeasurement"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneMeasurement")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -303,7 +290,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdMeasurement = await measurement.addOne(inputSanitized, benignErrorReporter);
-            await createdMeasurement.handleAssociations(inputSanitized, context);
+            await createdMeasurement.handleAssociations(inputSanitized, benignErrorReporter);
             return createdMeasurement;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -365,7 +352,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedMeasurement = await measurement.updateOne(inputSanitized, benignErrorReporter);
-            await updatedMeasurement.handleAssociations(inputSanitized, context);
+            await updatedMeasurement.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedMeasurement;
         } else {
             throw new Error("You don't have authorization to perform this action");

@@ -126,7 +126,7 @@ person.prototype.dogsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -149,7 +149,7 @@ person.prototype.handleAssociations = async function(input, benignErrorReporter)
  * add_dogs - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.add_dogs = async function(input, benignErrorReporter) {
     let results = [];
@@ -163,7 +163,7 @@ person.prototype.add_dogs = async function(input, benignErrorReporter) {
  * add_unique_parrot - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.add_unique_parrot = async function(input, benignErrorReporter) {
     await models.parrot.add_person_id(input.addUnique_parrot, this.getIdValue(), benignErrorReporter);
@@ -173,7 +173,7 @@ person.prototype.add_unique_parrot = async function(input, benignErrorReporter) 
  * remove_dogs - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.remove_dogs = async function(input, benignErrorReporter) {
     let results = [];
@@ -187,7 +187,7 @@ person.prototype.remove_dogs = async function(input, benignErrorReporter) {
  * remove_unique_parrot - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.remove_unique_parrot = async function(input, benignErrorReporter) {
     await models.parrot.remove_person_id(input.removeUnique_parrot, this.getIdValue(), benignErrorReporter);
@@ -195,28 +195,18 @@ person.prototype.remove_unique_parrot = async function(input, benignErrorReporte
 
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await person.countRecords(search));
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'person') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -225,10 +215,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOnePerson"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOnePerson")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -377,7 +364,7 @@ module.exports = {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
             let createdRecord = await person.addOne(inputSanitized, benignErrorReporter);
-            await createdRecord.handleAssociations(inputSanitized, context);
+            await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return createdRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -449,7 +436,7 @@ module.exports = {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedRecord = await person.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRecord.handleAssociations(inputSanitized, context);
+            await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");

@@ -13,38 +13,47 @@ const errorHelper = require('../../utils/errors');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Measurement',
-    storageType: 'cenz-server',
+    model: 'Accession',
+    storageType: 'zendro-server',
     url: 'http://integration_test_server1-graphql-container:3000/graphql',
     attributes: {
-        measurement_id: 'String',
-        name: 'String',
-        method: 'String',
-        reference: 'String',
-        accessionId: 'String'
+        accession_id: 'String',
+        collectors_name: 'String',
+        collectors_initials: 'String',
+        sampling_date: 'Date',
+        locationId: 'String'
     },
     associations: {
-        accession: {
+        location: {
             type: 'to_one',
-            target: 'Accession',
+            target: 'Location',
+            targetKey: 'locationId',
+            keyIn: 'Accession',
+            targetStorageType: 'sql',
+            label: 'country',
+            sublabel: 'state'
+        },
+        measurements: {
+            type: 'to_many',
+            target: 'Measurement',
             targetKey: 'accessionId',
             keyIn: 'Measurement',
             targetStorageType: 'sql',
-            label: 'accession_id'
+            label: 'name'
         }
     },
-    internalId: 'measurement_id',
+    internalId: 'accession_id',
     id: {
-        name: 'measurement_id',
+        name: 'accession_id',
         type: 'String'
     }
 };
 
-const remoteCenzontleURL = "http://integration_test_server1-graphql-container:3000/graphql";
+const remoteZendroURL = "http://integration_test_server1-graphql-container:3000/graphql";
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-module.exports = class Measurement {
+module.exports = class Accession {
 
     /**
      * constructor - Creates an instance of the model stored in webservice
@@ -53,28 +62,28 @@ module.exports = class Measurement {
      */
 
     constructor({
-        measurement_id,
-        name,
-        method,
-        reference,
-        accessionId
+        accession_id,
+        collectors_name,
+        collectors_initials,
+        sampling_date,
+        locationId
     }) {
-        this.measurement_id = measurement_id;
-        this.name = name;
-        this.method = method;
-        this.reference = reference;
-        this.accessionId = accessionId;
+        this.accession_id = accession_id;
+        this.collectors_name = collectors_name;
+        this.collectors_initials = collectors_initials;
+        this.sampling_date = sampling_date;
+        this.locationId = locationId;
     }
 
     static get name() {
-        return "measurement";
+        return "accession";
     }
 
     static async readById(id, benignErrorReporter) {
-        let query = `query readOneMeasurement{ readOneMeasurement(measurement_id: "${id}"){measurement_id       name
-          method
-          reference
-          accessionId
+        let query = `query readOneAccession{ readOneAccession(accession_id: "${id}"){accession_id       collectors_name
+          collectors_initials
+          sampling_date
+          locationId
      } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -82,32 +91,32 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let item = new Measurement(response.data.data.readOneMeasurement);
-                await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
+                let item = new Accession(response.data.data.readOneAccession);
+                await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async countRecords(search, benignErrorReporter) {
-        let query = `query countMeasurements($search: searchMeasurementInput){
-      countMeasurements(search: $search)
+        let query = `query countAccessions($search: searchAccessionInput){
+      countAccessions(search: $search)
     }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -115,7 +124,7 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search
@@ -123,28 +132,28 @@ module.exports = class Measurement {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.countMeasurements;
+                return response.data.data.countAccessions;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query measurements($search: searchMeasurementInput $pagination: paginationInput $order: [orderMeasurementInput]){
-      measurements(search:$search pagination:$pagination order:$order){measurement_id          name
-                method
-                reference
-                accessionId
+        let query = `query accessions($search: searchAccessionInput $pagination: paginationInput $order: [orderAccessionInput]){
+      accessions(search:$search pagination:$pagination order:$order){accession_id          collectors_name
+                collectors_initials
+                sampling_date
+                locationId
         } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -152,7 +161,7 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -162,22 +171,23 @@ module.exports = class Measurement {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data = response.data.data.measurements;
+                let data = response.data.data.accessions;
+                data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
-                    return new Measurement(item)
+                    return new Accession(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -188,11 +198,11 @@ module.exports = class Measurement {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
 
-        let query = `query measurementsConnection($search: searchMeasurementInput $pagination: paginationCursorInput $order: [orderMeasurementInput]){
-      measurementsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  measurement_id  name
-        method
-        reference
-        accessionId
+        let query = `query accessionsConnection($search: searchAccessionInput $pagination: paginationCursorInput $order: [orderAccessionInput]){
+      accessionsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  accession_id  collectors_name
+        collectors_initials
+        sampling_date
+        locationId
        } } pageInfo{startCursor endCursor hasPreviousPage hasNextPage  } } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -200,7 +210,7 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -210,19 +220,24 @@ module.exports = class Measurement {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data_edges = response.data.data.measurementsConnection.edges;
-                let pageInfo = response.data.data.measurementsConnection.pageInfo;
+                let data_edges = response.data.data.accessionsConnection.edges;
+                let pageInfo = response.data.data.accessionsConnection.pageInfo;
 
-                let edges = data_edges.map(e => {
+                //validate after read
+                let nodes = data_edges.map(e => e.node);
+                let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
+
+                let edges = valid_nodes.map(e => {
+                    let temp_node = new Accession(e);
                     return {
-                        node: new Measurement(e.node),
-                        cursor: e.cursor
+                        node: temp_node,
+                        cursor: temp_node.base64Enconde()
                     }
                 })
 
@@ -231,29 +246,32 @@ module.exports = class Measurement {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async addOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+
         let query = `
-            mutation addMeasurement(
-                  $measurement_id:ID!  
-              $name:String
-              $method:String
-              $reference:String            ){
-              addMeasurement(              measurement_id:$measurement_id  
-              name:$name
-              method:$method
-              reference:$reference){
-                measurement_id                    name
-                    method
-                    reference
-                    accessionId
+            mutation addAccession(
+                  $accession_id:ID!  
+              $collectors_name:String
+              $collectors_initials:String
+              $sampling_date:Date            ){
+              addAccession(              accession_id:$accession_id  
+              collectors_name:$collectors_name
+              collectors_initials:$collectors_initials
+              sampling_date:$sampling_date){
+                accession_id                    collectors_name
+                    collectors_initials
+                    sampling_date
+                    locationId
                   }
             }`;
 
@@ -261,82 +279,85 @@ module.exports = class Measurement {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Measurement(response.data.data.addMeasurement);
+                return new Accession(response.data.data.addAccession);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async deleteOne(id, benignErrorReporter) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+
         let query = `
               mutation
-                deleteMeasurement{
-                  deleteMeasurement(
-                    measurement_id: "${id}" )}`;
+                deleteAccession{
+                  deleteAccession(
+                    accession_id: "${id}" )}`;
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.deleteMeasurement;
+                return response.data.data.deleteAccession;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async updateOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
         let query = `
             mutation
-              updateMeasurement(
-                $measurement_id:ID! 
-                $name:String 
-                $method:String 
-                $reference:String               ){
-                updateMeasurement(
-                  measurement_id:$measurement_id 
-                  name:$name 
-                  method:$method 
-                  reference:$reference                 ){
-                  measurement_id 
-                  name 
-                  method 
-                  reference 
-                  accessionId 
+              updateAccession(
+                $accession_id:ID! 
+                $collectors_name:String 
+                $collectors_initials:String 
+                $sampling_date:Date               ){
+                updateAccession(
+                  accession_id:$accession_id 
+                  collectors_name:$collectors_name 
+                  collectors_initials:$collectors_initials 
+                  sampling_date:$sampling_date                 ){
+                  accession_id 
+                  collectors_name 
+                  collectors_initials 
+                  sampling_date 
+                  locationId 
                 }
               }`
 
@@ -344,27 +365,26 @@ module.exports = class Measurement {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Measurement(response.data.data.updateMeasurement);
+                return new Accession(response.data.data.updateAccession);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -376,23 +396,23 @@ module.exports = class Measurement {
 
         try {
             let csvRequestMv = await context.request.files.csv_file.mv(tmpFile);
-            let query = `mutation {bulkAddMeasurementCsv}`;
+            let query = `mutation {bulkAddAccessionCsv}`;
             let formData = new FormData();
             formData.append('csv_file', fs.createReadStream(tmpFile));
             formData.append('query', query);
 
-            let response = await axios.post(remoteCenzontleURL, formData, {
+            let response = await axios.post(remoteZendroURL, formData, {
                 headers: formData.getHeaders()
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.bulkAddMeasurementCsv;
+            return response.data.data.bulkAddAccessionCsv;
 
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -406,42 +426,42 @@ module.exports = class Measurement {
      * GraphQL response will have a non empty errors property.
      */
     static async csvTableTemplate(benignErrorReporter) {
-        let query = `query { csvTableTemplateMeasurement }`;
+        let query = `query { csvTableTemplateAccession }`;
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.csvTableTemplateMeasurement;
+            return response.data.data.csvTableTemplateAccession;
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
 
     /**
-     * add_accessionId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     * add_locationId - field Mutation (adapter-layer) for to_one associationsArguments to add
      *
-     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async add_accessionId(measurement_id, accessionId, benignErrorReporter) {
+    static async add_locationId(accession_id, locationId, benignErrorReporter) {
         let query = `
             mutation
-              updateMeasurement{
-                updateMeasurement(
-                  measurement_id:"${measurement_id}"
-                  addAccession:"${accessionId}"
+              updateAccession{
+                updateAccession(
+                  accession_id:"${accession_id}"
+                  addLocation:"${locationId}"
                 ){
-                  measurement_id                  accessionId                }
+                  accession_id                  locationId                }
               }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -449,43 +469,43 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Measurement(response.data.data.updateMeasurement);
+                return new Accession(response.data.data.updateAccession);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     /**
-     * remove_accessionId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     * remove_locationId - field Mutation (adapter-layer) for to_one associationsArguments to remove
      *
-     * @param {Id}   measurement_id   IdAttribute of the root model to be updated
-     * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {Id}   accession_id   IdAttribute of the root model to be updated
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async remove_accessionId(measurement_id, accessionId, benignErrorReporter) {
+    static async remove_locationId(accession_id, locationId, benignErrorReporter) {
         let query = `
             mutation
-              updateMeasurement{
-                updateMeasurement(
-                  measurement_id:"${measurement_id}"
-                  removeAccession:"${accessionId}"
+              updateAccession{
+                updateAccession(
+                  accession_id:"${accession_id}"
+                  removeLocation:"${locationId}"
                 ){
-                  measurement_id                  accessionId                }
+                  accession_id                  locationId                }
               }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -493,24 +513,24 @@ module.exports = class Measurement {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Measurement(response.data.data.updateMeasurement);
+                return new Accession(response.data.data.updateAccession);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -533,7 +553,7 @@ module.exports = class Measurement {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Measurement.definition.attributes);
+        let attributes = Object.keys(Accession.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
@@ -545,7 +565,7 @@ module.exports = class Measurement {
      */
 
     static idAttribute() {
-        return Measurement.definition.id.name;
+        return Accession.definition.id.name;
     }
 
     /**
@@ -555,16 +575,16 @@ module.exports = class Measurement {
      */
 
     static idAttributeType() {
-        return Measurement.definition.id.type;
+        return Accession.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Measurement.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Accession.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[Measurement.idAttribute()]
+        return this[Accession.idAttribute()]
     }
 };

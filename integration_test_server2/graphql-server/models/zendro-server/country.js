@@ -13,35 +13,34 @@ const errorHelper = require('../../utils/errors');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'capital',
-    storageType: 'cenz-server',
+    model: 'country',
+    storageType: 'zendro-server',
     url: 'http://integration_test_server1-graphql-container:3000/graphql',
     attributes: {
         name: 'String',
-        country_id: 'String',
-        capital_id: 'String'
+        country_id: 'String'
     },
     associations: {
-        unique_country: {
+        unique_capital: {
             type: 'to_one',
-            target: 'country',
+            target: 'capital',
             targetKey: 'country_id',
             keyIn: 'capital',
             targetStorageType: 'sql'
         }
     },
-    internalId: 'capital_id',
+    internalId: 'country_id',
     id: {
-        name: 'capital_id',
+        name: 'country_id',
         type: 'String'
     }
 };
 
-const remoteCenzontleURL = "http://integration_test_server1-graphql-container:3000/graphql";
+const remoteZendroURL = "http://integration_test_server1-graphql-container:3000/graphql";
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-module.exports = class capital {
+module.exports = class country {
 
     /**
      * constructor - Creates an instance of the model stored in webservice
@@ -50,22 +49,19 @@ module.exports = class capital {
      */
 
     constructor({
-        capital_id,
-        name,
-        country_id
+        country_id,
+        name
     }) {
-        this.capital_id = capital_id;
-        this.name = name;
         this.country_id = country_id;
+        this.name = name;
     }
 
     static get name() {
-        return "capital";
+        return "country";
     }
 
     static async readById(id, benignErrorReporter) {
-        let query = `query readOneCapital{ readOneCapital(capital_id: "${id}"){capital_id       name
-          country_id
+        let query = `query readOneCountry{ readOneCountry(country_id: "${id}"){country_id       name
      } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -73,32 +69,32 @@ module.exports = class capital {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let item = new capital(response.data.data.readOneCapital);
-                await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
+                let item = new country(response.data.data.readOneCountry);
+                await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async countRecords(search, benignErrorReporter) {
-        let query = `query countCapitals($search: searchCapitalInput){
-      countCapitals(search: $search)
+        let query = `query countCountries($search: searchCountryInput){
+      countCountries(search: $search)
     }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -106,7 +102,7 @@ module.exports = class capital {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search
@@ -114,26 +110,25 @@ module.exports = class capital {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.countCapitals;
+                return response.data.data.countCountries;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query capitals($search: searchCapitalInput $pagination: paginationInput $order: [orderCapitalInput]){
-      capitals(search:$search pagination:$pagination order:$order){capital_id          name
-                country_id
+        let query = `query countries($search: searchCountryInput $pagination: paginationInput $order: [orderCountryInput]){
+      countries(search:$search pagination:$pagination order:$order){country_id          name
         } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -141,7 +136,7 @@ module.exports = class capital {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -151,22 +146,23 @@ module.exports = class capital {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data = response.data.data.capitals;
+                let data = response.data.data.countries;
+                data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
-                    return new capital(item)
+                    return new country(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -177,9 +173,8 @@ module.exports = class capital {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
 
-        let query = `query capitalsConnection($search: searchCapitalInput $pagination: paginationCursorInput $order: [orderCapitalInput]){
-      capitalsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  capital_id  name
-        country_id
+        let query = `query countriesConnection($search: searchCountryInput $pagination: paginationCursorInput $order: [orderCountryInput]){
+      countriesConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  country_id  name
        } } pageInfo{startCursor endCursor hasPreviousPage hasNextPage  } } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -187,7 +182,7 @@ module.exports = class capital {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -197,19 +192,24 @@ module.exports = class capital {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data_edges = response.data.data.capitalsConnection.edges;
-                let pageInfo = response.data.data.capitalsConnection.pageInfo;
+                let data_edges = response.data.data.countriesConnection.edges;
+                let pageInfo = response.data.data.countriesConnection.pageInfo;
 
-                let edges = data_edges.map(e => {
+                //validate after read
+                let nodes = data_edges.map(e => e.node);
+                let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
+
+                let edges = valid_nodes.map(e => {
+                    let temp_node = new country(e);
                     return {
-                        node: new capital(e.node),
-                        cursor: e.cursor
+                        node: temp_node,
+                        cursor: temp_node.base64Enconde()
                     }
                 })
 
@@ -218,23 +218,25 @@ module.exports = class capital {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async addOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+
         let query = `
-            mutation addCapital(
-                  $capital_id:ID!  
+            mutation addCountry(
+                  $country_id:ID!  
               $name:String            ){
-              addCapital(              capital_id:$capital_id  
+              addCountry(              country_id:$country_id  
               name:$name){
-                capital_id                    name
-                    country_id
+                country_id                    name
                   }
             }`;
 
@@ -242,76 +244,78 @@ module.exports = class capital {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new capital(response.data.data.addCapital);
+                return new country(response.data.data.addCountry);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async deleteOne(id, benignErrorReporter) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+
         let query = `
               mutation
-                deleteCapital{
-                  deleteCapital(
-                    capital_id: "${id}" )}`;
+                deleteCountry{
+                  deleteCountry(
+                    country_id: "${id}" )}`;
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.deleteCapital;
+                return response.data.data.deleteCountry;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async updateOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
         let query = `
             mutation
-              updateCapital(
-                $capital_id:ID! 
+              updateCountry(
+                $country_id:ID! 
                 $name:String               ){
-                updateCapital(
-                  capital_id:$capital_id 
+                updateCountry(
+                  country_id:$country_id 
                   name:$name                 ){
-                  capital_id 
-                  name 
                   country_id 
+                  name 
                 }
               }`
 
@@ -319,27 +323,26 @@ module.exports = class capital {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new capital(response.data.data.updateCapital);
+                return new country(response.data.data.updateCountry);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -351,23 +354,23 @@ module.exports = class capital {
 
         try {
             let csvRequestMv = await context.request.files.csv_file.mv(tmpFile);
-            let query = `mutation {bulkAddCapitalCsv}`;
+            let query = `mutation {bulkAddCountryCsv}`;
             let formData = new FormData();
             formData.append('csv_file', fs.createReadStream(tmpFile));
             formData.append('query', query);
 
-            let response = await axios.post(remoteCenzontleURL, formData, {
+            let response = await axios.post(remoteZendroURL, formData, {
                 headers: formData.getHeaders()
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.bulkAddCapitalCsv;
+            return response.data.data.bulkAddCountryCsv;
 
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -381,113 +384,27 @@ module.exports = class capital {
      * GraphQL response will have a non empty errors property.
      */
     static async csvTableTemplate(benignErrorReporter) {
-        let query = `query { csvTableTemplateCapital }`;
+        let query = `query { csvTableTemplateCountry }`;
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.csvTableTemplateCapital;
+            return response.data.data.csvTableTemplateCountry;
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
 
-    /**
-     * add_country_id - field Mutation (adapter-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   capital_id   IdAttribute of the root model to be updated
-     * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
-     */
-    static async add_country_id(capital_id, country_id, benignErrorReporter) {
-        let query = `
-            mutation
-              updateCapital{
-                updateCapital(
-                  capital_id:"${capital_id}"
-                  addUnique_country:"${country_id}"
-                ){
-                  capital_id                  country_id                }
-              }`
 
-        //use default BenignErrorReporter if no BenignErrorReporter defined
-        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return new capital(response.data.data.updateCapital);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
-        }
-    }
-
-    /**
-     * remove_country_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   capital_id   IdAttribute of the root model to be updated
-     * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
-     */
-    static async remove_country_id(capital_id, country_id, benignErrorReporter) {
-        let query = `
-            mutation
-              updateCapital{
-                updateCapital(
-                  capital_id:"${capital_id}"
-                  removeUnique_country:"${country_id}"
-                ){
-                  capital_id                  country_id                }
-              }`
-
-        //use default BenignErrorReporter if no BenignErrorReporter defined
-        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return new capital(response.data.data.updateCapital);
-            } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
-        }
-    }
 
 
 
@@ -508,7 +425,7 @@ module.exports = class capital {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(capital.definition.attributes);
+        let attributes = Object.keys(country.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
@@ -520,7 +437,7 @@ module.exports = class capital {
      */
 
     static idAttribute() {
-        return capital.definition.id.name;
+        return country.definition.id.name;
     }
 
     /**
@@ -530,16 +447,16 @@ module.exports = class capital {
      */
 
     static idAttributeType() {
-        return capital.definition.id.type;
+        return country.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of capital.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of country.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[capital.idAttribute()]
+        return this[country.idAttribute()]
     }
 };

@@ -8,6 +8,13 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(individual) {
 
+    individual.prototype.validationControl = {
+        validateForCreate: true,
+        validateForUpdate: true,
+        validateForDelete: false,
+        validateAfterRead: false
+    }
+
     individual.prototype.validatorSchema = {
         "$async": true,
         "properties": {
@@ -22,10 +29,7 @@ module.exports.validator_patch = function(individual) {
     )
 
     individual.prototype.validateForCreate = async function(record) {
-        let ret = await individual.prototype.asyncValidate(record);
-        console.log("\n\nret: " + ret + "\n\n")
-        console.log("\n\nret: " + JSON.stringify(ret) + "\n\n")
-        return ret;
+        return await individual.prototype.asyncValidate(record)
     }
 
     individual.prototype.validateForUpdate = async function(record) {
@@ -44,13 +48,7 @@ module.exports.validator_patch = function(individual) {
     }
 
     individual.prototype.validateAfterRead = async function(record) {
-
-        //TODO: on the input you have the record validated, no generic
-        // validation checks are available.
-
-        return {
-            error: null
-        }
+        return await individual.prototype.asyncValidate(record)
     }
 
     return individual

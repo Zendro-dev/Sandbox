@@ -23,8 +23,16 @@ module.exports.ifHasValidatorFunctionInvoke = async function( validatorFunction,
     }
 };
 
+
+/**
+ * validateData - It will check if validation methods exist and swith is turned on for the given model, if so, it will validate data
+ *
+ * @param  {string} validatorFunction Name of the validator function
+ * @param  {object} dataModel         Data model which 'data' belongs to.
+ * @param  {object} data              Attributes data from a record to be validated. Note: in case of delete validation only id attribute might be used.
+ * @return {object}                   If no error occurs, then the same data will be returned, other wise error will be thrown.
+ */
 module.exports.validateData = async function(validatorFunction, dataModel, data ){
-  console.log("TYPEOF :",  typeof dataModel.prototype['validationControl']);
   if(typeof dataModel.prototype[validatorFunction] === "function"
      && typeof dataModel.prototype['validationControl'] === 'object'
       && dataModel.prototype['validationControl'][validatorFunction]){
@@ -34,9 +42,17 @@ module.exports.validateData = async function(validatorFunction, dataModel, data 
 }
 
 
+/**
+ * bulkValidateData - It will check if validation methods exist and swith is turned on, if so, it will validate data
+ *
+ * @param  {string} validatorFunction   Name of the validator function
+ * @param  {object} dataModel           Data model which 'data' belongs to.
+ * @param  {Array} data                Array of records to be validated.
+ * @param  {object} benignErrorReporter Error reporter in case any of the records doesn't pass validation.
+ * @return {Array}                     Filtered data by validation will be returned, the records which doesn't pass validation are added to the error reporter.
+ */
 module.exports.bulkValidateData = async function(validatorFunction, dataModel, data, benignErrorReporter){
   let validatedData = data;
-    console.log("TYPEOF :",  typeof dataModel.prototype['validationControl']);
   if(typeof dataModel.prototype[validatorFunction] === "function"
      && typeof dataModel.prototype['validationControl'] === 'object'
       && dataModel.prototype['validationControl'][validatorFunction]){
@@ -56,6 +72,7 @@ module.exports.bulkValidateData = async function(validatorFunction, dataModel, d
       }
   return validatedData;
 }
+
 
 /**
  * Adds AJV asynchronous keywords to the argument AJV instance that define ISO

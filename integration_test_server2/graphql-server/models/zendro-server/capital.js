@@ -13,47 +13,35 @@ const errorHelper = require('../../utils/errors');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Accession',
-    storageType: 'cenz-server',
+    model: 'capital',
+    storageType: 'zendro-server',
     url: 'http://integration_test_server1-graphql-container:3000/graphql',
     attributes: {
-        accession_id: 'String',
-        collectors_name: 'String',
-        collectors_initials: 'String',
-        sampling_date: 'Date',
-        locationId: 'String'
+        name: 'String',
+        country_id: 'String',
+        capital_id: 'String'
     },
     associations: {
-        location: {
+        unique_country: {
             type: 'to_one',
-            target: 'Location',
-            targetKey: 'locationId',
-            keyIn: 'Accession',
-            targetStorageType: 'sql',
-            label: 'country',
-            sublabel: 'state'
-        },
-        measurements: {
-            type: 'to_many',
-            target: 'Measurement',
-            targetKey: 'accessionId',
-            keyIn: 'Measurement',
-            targetStorageType: 'sql',
-            label: 'name'
+            target: 'country',
+            targetKey: 'country_id',
+            keyIn: 'capital',
+            targetStorageType: 'sql'
         }
     },
-    internalId: 'accession_id',
+    internalId: 'capital_id',
     id: {
-        name: 'accession_id',
+        name: 'capital_id',
         type: 'String'
     }
 };
 
-const remoteCenzontleURL = "http://integration_test_server1-graphql-container:3000/graphql";
+const remoteZendroURL = "http://integration_test_server1-graphql-container:3000/graphql";
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-module.exports = class Accession {
+module.exports = class capital {
 
     /**
      * constructor - Creates an instance of the model stored in webservice
@@ -62,28 +50,22 @@ module.exports = class Accession {
      */
 
     constructor({
-        accession_id,
-        collectors_name,
-        collectors_initials,
-        sampling_date,
-        locationId
+        capital_id,
+        name,
+        country_id
     }) {
-        this.accession_id = accession_id;
-        this.collectors_name = collectors_name;
-        this.collectors_initials = collectors_initials;
-        this.sampling_date = sampling_date;
-        this.locationId = locationId;
+        this.capital_id = capital_id;
+        this.name = name;
+        this.country_id = country_id;
     }
 
     static get name() {
-        return "accession";
+        return "capital";
     }
 
     static async readById(id, benignErrorReporter) {
-        let query = `query readOneAccession{ readOneAccession(accession_id: "${id}"){accession_id       collectors_name
-          collectors_initials
-          sampling_date
-          locationId
+        let query = `query readOneCapital{ readOneCapital(capital_id: "${id}"){capital_id       name
+          country_id
      } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -91,32 +73,32 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let item = new Accession(response.data.data.readOneAccession);
-                await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
+                let item = new capital(response.data.data.readOneCapital);
+                await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async countRecords(search, benignErrorReporter) {
-        let query = `query countAccessions($search: searchAccessionInput){
-      countAccessions(search: $search)
+        let query = `query countCapitals($search: searchCapitalInput){
+      countCapitals(search: $search)
     }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -124,7 +106,7 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search
@@ -132,28 +114,26 @@ module.exports = class Accession {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.countAccessions;
+                return response.data.data.countCapitals;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query accessions($search: searchAccessionInput $pagination: paginationInput $order: [orderAccessionInput]){
-      accessions(search:$search pagination:$pagination order:$order){accession_id          collectors_name
-                collectors_initials
-                sampling_date
-                locationId
+        let query = `query capitals($search: searchCapitalInput $pagination: paginationInput $order: [orderCapitalInput]){
+      capitals(search:$search pagination:$pagination order:$order){capital_id          name
+                country_id
         } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -161,7 +141,7 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -171,23 +151,23 @@ module.exports = class Accession {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data = response.data.data.accessions;
+                let data = response.data.data.capitals;
                 data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
-                    return new Accession(item)
+                    return new capital(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -198,11 +178,9 @@ module.exports = class Accession {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
 
-        let query = `query accessionsConnection($search: searchAccessionInput $pagination: paginationCursorInput $order: [orderAccessionInput]){
-      accessionsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  accession_id  collectors_name
-        collectors_initials
-        sampling_date
-        locationId
+        let query = `query capitalsConnection($search: searchCapitalInput $pagination: paginationCursorInput $order: [orderCapitalInput]){
+      capitalsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  capital_id  name
+        country_id
        } } pageInfo{startCursor endCursor hasPreviousPage hasNextPage  } } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -210,7 +188,7 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -220,20 +198,21 @@ module.exports = class Accession {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data_edges = response.data.data.accessionsConnection.edges;
-                let pageInfo = response.data.data.accessionsConnection.pageInfo;
+                let data_edges = response.data.data.capitalsConnection.edges;
+                let pageInfo = response.data.data.capitalsConnection.pageInfo;
+
                 //validate after read
                 let nodes = data_edges.map(e => e.node);
                 let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
 
                 let edges = valid_nodes.map(e => {
-                    let temp_node = new Accession(e);
+                    let temp_node = new capital(e);
                     return {
                         node: temp_node,
                         cursor: temp_node.base64Enconde()
@@ -245,31 +224,26 @@ module.exports = class Accession {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async addOne(input, benignErrorReporter) {
-        input = await validatorUtil.validateData('validateForCreate', this, input);
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
 
         let query = `
-            mutation addAccession(
-                  $accession_id:ID!
-              $collectors_name:String
-              $collectors_initials:String
-              $sampling_date:Date            ){
-              addAccession(              accession_id:$accession_id
-              collectors_name:$collectors_name
-              collectors_initials:$collectors_initials
-              sampling_date:$sampling_date){
-                accession_id                    collectors_name
-                    collectors_initials
-                    sampling_date
-                    locationId
+            mutation addCapital(
+                  $capital_id:ID!  
+              $name:String            ){
+              addCapital(              capital_id:$capital_id  
+              name:$name){
+                capital_id                    name
+                    country_id
                   }
             }`;
 
@@ -277,82 +251,79 @@ module.exports = class Accession {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Accession(response.data.data.addAccession);
+                return new capital(response.data.data.addCapital);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async deleteOne(id, benignErrorReporter) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+
         let query = `
               mutation
-                deleteAccession{
-                  deleteAccession(
-                    accession_id: "${id}" )}`;
+                deleteCapital{
+                  deleteCapital(
+                    capital_id: "${id}" )}`;
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.deleteAccession;
+                return response.data.data.deleteCapital;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async updateOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
         let query = `
             mutation
-              updateAccession(
-                $accession_id:ID!
-                $collectors_name:String
-                $collectors_initials:String
-                $sampling_date:Date               ){
-                updateAccession(
-                  accession_id:$accession_id
-                  collectors_name:$collectors_name
-                  collectors_initials:$collectors_initials
-                  sampling_date:$sampling_date                 ){
-                  accession_id
-                  collectors_name
-                  collectors_initials
-                  sampling_date
-                  locationId
+              updateCapital(
+                $capital_id:ID! 
+                $name:String               ){
+                updateCapital(
+                  capital_id:$capital_id 
+                  name:$name                 ){
+                  capital_id 
+                  name 
+                  country_id 
                 }
               }`
 
@@ -360,27 +331,26 @@ module.exports = class Accession {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Accession(response.data.data.updateAccession);
+                return new capital(response.data.data.updateCapital);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -392,23 +362,23 @@ module.exports = class Accession {
 
         try {
             let csvRequestMv = await context.request.files.csv_file.mv(tmpFile);
-            let query = `mutation {bulkAddAccessionCsv}`;
+            let query = `mutation {bulkAddCapitalCsv}`;
             let formData = new FormData();
             formData.append('csv_file', fs.createReadStream(tmpFile));
             formData.append('query', query);
 
-            let response = await axios.post(remoteCenzontleURL, formData, {
+            let response = await axios.post(remoteZendroURL, formData, {
                 headers: formData.getHeaders()
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.bulkAddAccessionCsv;
+            return response.data.data.bulkAddCapitalCsv;
 
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -422,42 +392,42 @@ module.exports = class Accession {
      * GraphQL response will have a non empty errors property.
      */
     static async csvTableTemplate(benignErrorReporter) {
-        let query = `query { csvTableTemplateAccession }`;
+        let query = `query { csvTableTemplateCapital }`;
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.csvTableTemplateAccession;
+            return response.data.data.csvTableTemplateCapital;
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
 
     /**
-     * add_locationId - field Mutation (adapter-layer) for to_one associationsArguments to add
+     * add_country_id - field Mutation (adapter-layer) for to_one associationsArguments to add
      *
-     * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {Id}   capital_id   IdAttribute of the root model to be updated
+     * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async add_locationId(accession_id, locationId, benignErrorReporter) {
+    static async add_country_id(capital_id, country_id, benignErrorReporter) {
         let query = `
             mutation
-              updateAccession{
-                updateAccession(
-                  accession_id:"${accession_id}"
-                  addLocation:"${locationId}"
+              updateCapital{
+                updateCapital(
+                  capital_id:"${capital_id}"
+                  addUnique_country:"${country_id}"
                 ){
-                  accession_id                  locationId                }
+                  capital_id                  country_id                }
               }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -465,43 +435,43 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Accession(response.data.data.updateAccession);
+                return new capital(response.data.data.updateCapital);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     /**
-     * remove_locationId - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     * remove_country_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
      *
-     * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {Id}   capital_id   IdAttribute of the root model to be updated
+     * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async remove_locationId(accession_id, locationId, benignErrorReporter) {
+    static async remove_country_id(capital_id, country_id, benignErrorReporter) {
         let query = `
             mutation
-              updateAccession{
-                updateAccession(
-                  accession_id:"${accession_id}"
-                  removeLocation:"${locationId}"
+              updateCapital{
+                updateCapital(
+                  capital_id:"${capital_id}"
+                  removeUnique_country:"${country_id}"
                 ){
-                  accession_id                  locationId                }
+                  capital_id                  country_id                }
               }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -509,24 +479,24 @@ module.exports = class Accession {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new Accession(response.data.data.updateAccession);
+                return new capital(response.data.data.updateCapital);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -549,7 +519,7 @@ module.exports = class Accession {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Accession.definition.attributes);
+        let attributes = Object.keys(capital.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
@@ -561,7 +531,7 @@ module.exports = class Accession {
      */
 
     static idAttribute() {
-        return Accession.definition.id.name;
+        return capital.definition.id.name;
     }
 
     /**
@@ -571,16 +541,16 @@ module.exports = class Accession {
      */
 
     static idAttributeType() {
-        return Accession.definition.id.type;
+        return capital.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Accession.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of capital.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[Accession.idAttribute()]
+        return this[capital.idAttribute()]
     }
 };

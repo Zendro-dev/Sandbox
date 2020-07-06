@@ -18,7 +18,7 @@
 
     switch(adapter.adapterType) {
       case 'ddm-adapter':
-      case 'cenzontle-webservice-adapter':
+      case 'zendro-webservice-adapter':
       case 'generic-adapter':
         adapters[adapter.adapterName] = adapter;
         break;

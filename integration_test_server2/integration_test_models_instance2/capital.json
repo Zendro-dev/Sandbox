@@ -1,6 +1,6 @@
 {
     "model" : "capital",
-    "storageType" : "cenz-server",
+    "storageType" : "zendro-server",
     "url": "http://integration_test_server1-graphql-container:3000/graphql",
     "attributes" : {
       "name" : "String",

@@ -7,19 +7,19 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(accession) {
-  accession.prototype.validationControl = {
-    validateForCreate: true,
-    validateForUpdate: true,
-    validateForDelete: false,
-    validateAfterRead: false
-  }
+
+    accession.prototype.validationControl = {
+        validateForCreate: true,
+        validateForUpdate: true,
+        validateForDelete: false,
+        validateAfterRead: false
+    }
 
     accession.prototype.validatorSchema = {
         "$async": true,
         "properties": {
             "accession_id": {
-                "type": "string",
-                "pattern": "^[a-zA-Z0-9]+$"
+                "type": ["string", "null"]
             },
             "collectors_name": {
                 "type": ["string", "null"]
@@ -45,10 +45,7 @@ module.exports.validator_patch = function(accession) {
     )
 
     accession.prototype.validateForCreate = async function(record) {
-        let ret = await accession.prototype.asyncValidate(record);
-        console.log("\n\nret: " + ret + "\n\n")
-        console.log("\n\nret: " + JSON.stringify(ret) + "\n\n")
-        return ret;
+        return await accession.prototype.asyncValidate(record)
     }
 
     accession.prototype.validateForUpdate = async function(record) {
@@ -67,18 +64,7 @@ module.exports.validator_patch = function(accession) {
     }
 
     accession.prototype.validateAfterRead = async function(record) {
-      //console.log("Validating record ", record);
-      return await accession.prototype.asyncValidate(record);
-
-        // //TODO: on the input you have the record validated, no generic
-        // // validation checks are available.
-        //
-        // // return {
-        // //     error: null
-        // // }
-        // if(record.accession_id === 'id_3'){
-        //   throw new Error(" Validation error for id:  " + record.accession_id);
-        // }
+        return await accession.prototype.asyncValidate(record)
     }
 
     return accession

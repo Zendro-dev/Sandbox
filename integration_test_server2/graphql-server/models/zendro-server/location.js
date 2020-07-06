@@ -13,34 +13,38 @@ const errorHelper = require('../../utils/errors');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'country',
-    storageType: 'cenz-server',
+    model: 'Location',
+    storageType: 'zendro-server',
     url: 'http://integration_test_server1-graphql-container:3000/graphql',
     attributes: {
-        name: 'String',
-        country_id: 'String'
+        locationId: 'String',
+        country: 'String',
+        state: 'String',
+        municipality: 'String',
+        locality: 'String'
     },
     associations: {
-        unique_capital: {
-            type: 'to_one',
-            target: 'capital',
-            targetKey: 'country_id',
-            keyIn: 'capital',
-            targetStorageType: 'sql'
+        accessions: {
+            type: 'to_many',
+            target: 'Accession',
+            targetKey: 'locationId',
+            keyIn: 'Accession',
+            targetStorageType: 'sql',
+            label: 'accession_id'
         }
     },
-    internalId: 'country_id',
+    internalId: 'locationId',
     id: {
-        name: 'country_id',
+        name: 'locationId',
         type: 'String'
     }
 };
 
-const remoteCenzontleURL = "http://integration_test_server1-graphql-container:3000/graphql";
+const remoteZendroURL = "http://integration_test_server1-graphql-container:3000/graphql";
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-module.exports = class country {
+module.exports = class Location {
 
     /**
      * constructor - Creates an instance of the model stored in webservice
@@ -49,19 +53,28 @@ module.exports = class country {
      */
 
     constructor({
-        country_id,
-        name
+        locationId,
+        country,
+        state,
+        municipality,
+        locality
     }) {
-        this.country_id = country_id;
-        this.name = name;
+        this.locationId = locationId;
+        this.country = country;
+        this.state = state;
+        this.municipality = municipality;
+        this.locality = locality;
     }
 
     static get name() {
-        return "country";
+        return "location";
     }
 
     static async readById(id, benignErrorReporter) {
-        let query = `query readOneCountry{ readOneCountry(country_id: "${id}"){country_id       name
+        let query = `query readOneLocation{ readOneLocation(locationId: "${id}"){locationId       country
+          state
+          municipality
+          locality
      } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -69,32 +82,32 @@ module.exports = class country {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let item = new country(response.data.data.readOneCountry);
-                await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
+                let item = new Location(response.data.data.readOneLocation);
+                await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async countRecords(search, benignErrorReporter) {
-        let query = `query countCountries($search: searchCountryInput){
-      countCountries(search: $search)
+        let query = `query countLocations($search: searchLocationInput){
+      countLocations(search: $search)
     }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -102,7 +115,7 @@ module.exports = class country {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search
@@ -110,25 +123,28 @@ module.exports = class country {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.countCountries;
+                return response.data.data.countLocations;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query countries($search: searchCountryInput $pagination: paginationInput $order: [orderCountryInput]){
-      countries(search:$search pagination:$pagination order:$order){country_id          name
+        let query = `query locations($search: searchLocationInput $pagination: paginationInput $order: [orderLocationInput]){
+      locations(search:$search pagination:$pagination order:$order){locationId          country
+                state
+                municipality
+                locality
         } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -136,7 +152,7 @@ module.exports = class country {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -146,22 +162,23 @@ module.exports = class country {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data = response.data.data.countries;
+                let data = response.data.data.locations;
+                data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
-                    return new country(item)
+                    return new Location(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -172,8 +189,11 @@ module.exports = class country {
             throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
         }
 
-        let query = `query countriesConnection($search: searchCountryInput $pagination: paginationCursorInput $order: [orderCountryInput]){
-      countriesConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  country_id  name
+        let query = `query locationsConnection($search: searchLocationInput $pagination: paginationCursorInput $order: [orderLocationInput]){
+      locationsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  locationId  country
+        state
+        municipality
+        locality
        } } pageInfo{startCursor endCursor hasPreviousPage hasNextPage  } } }`
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
@@ -181,7 +201,7 @@ module.exports = class country {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -191,19 +211,24 @@ module.exports = class country {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                let data_edges = response.data.data.countriesConnection.edges;
-                let pageInfo = response.data.data.countriesConnection.pageInfo;
+                let data_edges = response.data.data.locationsConnection.edges;
+                let pageInfo = response.data.data.locationsConnection.pageInfo;
 
-                let edges = data_edges.map(e => {
+                //validate after read
+                let nodes = data_edges.map(e => e.node);
+                let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
+
+                let edges = valid_nodes.map(e => {
+                    let temp_node = new Location(e);
                     return {
-                        node: new country(e.node),
-                        cursor: e.cursor
+                        node: temp_node,
+                        cursor: temp_node.base64Enconde()
                     }
                 })
 
@@ -212,22 +237,34 @@ module.exports = class country {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async addOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+
         let query = `
-            mutation addCountry(
-                  $country_id:ID!  
-              $name:String            ){
-              addCountry(              country_id:$country_id  
-              name:$name){
-                country_id                    name
+            mutation addLocation(
+                  $locationId:ID!  
+              $country:String
+              $state:String
+              $municipality:String
+              $locality:String            ){
+              addLocation(              locationId:$locationId  
+              country:$country
+              state:$state
+              municipality:$municipality
+              locality:$locality){
+                locationId                    country
+                    state
+                    municipality
+                    locality
                   }
             }`;
 
@@ -235,75 +272,87 @@ module.exports = class country {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new country(response.data.data.addCountry);
+                return new Location(response.data.data.addLocation);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async deleteOne(id, benignErrorReporter) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
+
         let query = `
               mutation
-                deleteCountry{
-                  deleteCountry(
-                    country_id: "${id}" )}`;
+                deleteLocation{
+                  deleteLocation(
+                    locationId: "${id}" )}`;
 
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return response.data.data.deleteCountry;
+                return response.data.data.deleteLocation;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     static async updateOne(input, benignErrorReporter) {
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
         let query = `
             mutation
-              updateCountry(
-                $country_id:ID! 
-                $name:String               ){
-                updateCountry(
-                  country_id:$country_id 
-                  name:$name                 ){
-                  country_id 
-                  name 
+              updateLocation(
+                $locationId:ID! 
+                $country:String 
+                $state:String 
+                $municipality:String 
+                $locality:String               ){
+                updateLocation(
+                  locationId:$locationId 
+                  country:$country 
+                  state:$state 
+                  municipality:$municipality 
+                  locality:$locality                 ){
+                  locationId 
+                  country 
+                  state 
+                  municipality 
+                  locality 
                 }
               }`
 
@@ -311,27 +360,26 @@ module.exports = class country {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            await validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input);
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
             if (response && response.data && response.data.data) {
-                return new country(response.data.data.updateCountry);
+                return new Location(response.data.data.updateLocation);
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -343,23 +391,23 @@ module.exports = class country {
 
         try {
             let csvRequestMv = await context.request.files.csv_file.mv(tmpFile);
-            let query = `mutation {bulkAddCountryCsv}`;
+            let query = `mutation {bulkAddLocationCsv}`;
             let formData = new FormData();
             formData.append('csv_file', fs.createReadStream(tmpFile));
             formData.append('query', query);
 
-            let response = await axios.post(remoteCenzontleURL, formData, {
+            let response = await axios.post(remoteZendroURL, formData, {
                 headers: formData.getHeaders()
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.bulkAddCountryCsv;
+            return response.data.data.bulkAddLocationCsv;
 
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -373,22 +421,22 @@ module.exports = class country {
      * GraphQL response will have a non empty errors property.
      */
     static async csvTableTemplate(benignErrorReporter) {
-        let query = `query { csvTableTemplateCountry }`;
+        let query = `query { csvTableTemplateLocation }`;
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         try {
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-            return response.data.data.csvTableTemplateCountry;
+            return response.data.data.csvTableTemplateLocation;
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -414,7 +462,7 @@ module.exports = class country {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(country.definition.attributes);
+        let attributes = Object.keys(Location.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
@@ -426,7 +474,7 @@ module.exports = class country {
      */
 
     static idAttribute() {
-        return country.definition.id.name;
+        return Location.definition.id.name;
     }
 
     /**
@@ -436,16 +484,16 @@ module.exports = class country {
      */
 
     static idAttributeType() {
-        return country.definition.id.type;
+        return Location.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of country.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Location.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[country.idAttribute()]
+        return this[Location.idAttribute()]
     }
 };

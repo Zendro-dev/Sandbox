@@ -14,7 +14,7 @@ const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
 const models = require(path.join(__dirname, '..', 'index.js'));
 
-const remoteCenzontleURL = "";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance1');
 
 // An exact copy of the the model definition that comes from the .json file
@@ -337,16 +337,12 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
 
 
     static async add_person_id(parrot_id, person_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return super.update({
-                person_id: person_id
-            }, {
-                where: {
-                    parrot_id: parrot_id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await super.update({
+            person_id: person_id
+        }, {
+            where: {
+                parrot_id: parrot_id
+            }
         });
         return updated;
     }
@@ -362,17 +358,13 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
 
 
     static async remove_person_id(parrot_id, person_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return super.update({
-                person_id: null
-            }, {
-                where: {
-                    parrot_id: parrot_id,
-                    person_id: person_id
-                }
-            }, {
-                transaction: transaction
-            })
+        let updated = await super.update({
+            person_id: null
+        }, {
+            where: {
+                parrot_id: parrot_id,
+                person_id: person_id
+            }
         });
         return updated;
     }

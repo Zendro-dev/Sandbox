@@ -157,7 +157,7 @@ accession.prototype.measurementsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 accession.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -180,7 +180,7 @@ accession.prototype.handleAssociations = async function(input, benignErrorReport
  * add_measurements - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 accession.prototype.add_measurements = async function(input, benignErrorReporter) {
     let results = [];
@@ -194,7 +194,7 @@ accession.prototype.add_measurements = async function(input, benignErrorReporter
  * add_location - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 accession.prototype.add_location = async function(input, benignErrorReporter) {
     await accession.add_locationId(this.getIdValue(), input.addLocation, benignErrorReporter);
@@ -205,7 +205,7 @@ accession.prototype.add_location = async function(input, benignErrorReporter) {
  * remove_measurements - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 accession.prototype.remove_measurements = async function(input, benignErrorReporter) {
     let results = [];
@@ -219,7 +219,7 @@ accession.prototype.remove_measurements = async function(input, benignErrorRepor
  * remove_location - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 accession.prototype.remove_location = async function(input, benignErrorReporter) {
     if (input.removeLocation == this.locationId) {
@@ -230,28 +230,18 @@ accession.prototype.remove_location = async function(input, benignErrorReporter)
 
 
 
-/**
- * errorMessageForRecordsLimit(query) - returns error message in case the record limit is exceeded.
- *
- * @param {string} query The query that failed
- */
-function errorMessageForRecordsLimit(query) {
-    return "Max record limit of " + globals.LIMIT_RECORDS + " exceeded in " + query;
-}
 
 /**
  * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
  *
  * @param {object} search  Search argument for filtering records
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} query The query that makes this check
+ * @param {string} resolverName The resolver that makes this check
+ * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, query) {
-    let count = (await accession.countRecords(search));
-    if (count > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit(query));
-    }
-    context.recordsLimit -= count;
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'accession') {
+    let count = (await models[modelName].countRecords(search));
+    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
 
 /**
@@ -260,10 +250,7 @@ async function checkCountAndReduceRecordsLimit(search, context, query) {
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    if (1 > context.recordsLimit) {
-        throw new Error(errorMessageForRecordsLimit("readOneAccession"));
-    }
-    context.recordsLimit -= 1;
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneAccession")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -429,7 +416,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdAccession = await accession.addOne(inputSanitized, benignErrorReporter);
-            await createdAccession.handleAssociations(inputSanitized, context);
+            await createdAccession.handleAssociations(inputSanitized, benignErrorReporter);
             return createdAccession;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -491,7 +478,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedAccession = await accession.updateOne(inputSanitized, benignErrorReporter);
-            await updatedAccession.handleAssociations(inputSanitized, context);
+            await updatedAccession.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedAccession;
         } else {
             throw new Error("You don't have authorization to perform this action");

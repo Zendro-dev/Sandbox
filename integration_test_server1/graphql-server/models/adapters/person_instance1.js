@@ -14,7 +14,7 @@ const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
 const models = require(path.join(__dirname, '..', 'index.js'));
 
-const remoteCenzontleURL = "";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance1');
 
 // An exact copy of the the model definition that comes from the .json file

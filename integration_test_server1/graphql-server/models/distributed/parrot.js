@@ -97,10 +97,7 @@ module.exports = class parrot {
             benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
             return adapters[responsibleAdapter[0]].readById(id, benignErrorReporter).then(result => {
                 let item = new parrot(result);
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-                    .then((valSuccess) => {
-                        return item;
-                    });
+                return validatorUtil.validateData('validateAfterRead', this, item);
             });
         }
     }
@@ -133,7 +130,7 @@ module.exports = class parrot {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -144,7 +141,7 @@ module.exports = class parrot {
                     return adapter.countRecords(nsearch, benignErrorReporter);
 
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
+                case 'zendro-webservice-adapter':
                     return adapter.countRecords(search, benignErrorReporter);
 
                 case 'default':
@@ -203,7 +200,7 @@ module.exports = class parrot {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -214,7 +211,7 @@ module.exports = class parrot {
 
                 case 'generic-adapter':
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
+                case 'zendro-webservice-adapter':
                     return adapter.readAllCursor(search, order, pagination, benignErrorReporter);
 
                 default:
@@ -242,9 +239,9 @@ module.exports = class parrot {
                     return total;
                 }, []);
             })
-            //phase 2: order & paginate
-            .then(nodes => {
-
+            //phase 2: validate & order & paginate
+            .then(async nodes => {
+                nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
                 if (order === undefined) {
                     order = [{
                         field: "parrot_id",
@@ -330,34 +327,34 @@ module.exports = class parrot {
         return true;
     }
 
-    static addOne(input, benignErrorReporter) {
+    static async addOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.parrot_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new parrot(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.parrot_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new parrot(result));
     }
 
     static async deleteOne(id, benignErrorReporter) {
-        await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
+        //validate input
+        await validatorUtil.validateData('validateForDelete', this, id);
         let responsibleAdapter = this.adapterForIri(id);
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         return adapters[responsibleAdapter].deleteOne(id, benignErrorReporter);
     }
 
-    static updateOne(input, benignErrorReporter) {
+    static async updateOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.parrot_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new parrot(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.parrot_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new parrot(result));
+
     }
 
     static bulkAddCsv(context) {
@@ -383,7 +380,7 @@ module.exports = class parrot {
      *
      * @param {Id}   parrot_id   IdAttribute of the root model to be updated
      * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
     static async add_person_id(parrot_id, person_id, benignErrorReporter) {
         let responsibleAdapter = this.adapterForIri(parrot_id);
@@ -395,7 +392,7 @@ module.exports = class parrot {
      *
      * @param {Id}   parrot_id   IdAttribute of the root model to be updated
      * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
     static async remove_person_id(parrot_id, person_id, benignErrorReporter) {
         let responsibleAdapter = this.adapterForIri(parrot_id);
