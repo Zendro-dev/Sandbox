@@ -16,6 +16,7 @@ const uuidv4 = require('uuidv4').uuid;
 const helper = require('../../utils/helper');
 
 const moment = require('moment');
+const { help } = require('mathjs');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Measurement',
@@ -480,7 +481,9 @@ module.exports = class Measurement extends Sequelize.Model {
         return updated;
     }
 
-    static _bulkAssociateAccessionWithMeasurement({accessionId, measurement_id_Array}){
+    static async _bulkAssociateMeasurementWithAccession(bulkAssociateInput){
+        let builtBulkAssociateInput = helper.buildBulkAssociateInput(builtBulkAssociateInput, "measurement_id", "accessionId")
+        var promises = [];
         let updated = await Measurement.update({
             accessionId: accession
         }, {

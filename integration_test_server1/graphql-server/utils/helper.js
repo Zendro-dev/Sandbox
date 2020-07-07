@@ -1416,3 +1416,16 @@ module.exports.vueTable = function(req, model, strAttributes) {
     }
     context.recordsLimit -= count;
   }
+
+  module.exports.mapForeignKeystoPrimaryKeyArray = function(bulkAssociateInput, primaryKey, foreignKey){
+    let uniquePrimaryKeys = [...new Set(bulkAssociateInput.map(item => item[foreignKey]))];
+    let buildBulkAssociateInput = [];
+    uniquePrimaryKeys.forEach(pK => {
+      let filteredForeignKeys = [...new Set(bulkAssociateInput.filter(item => item[foreignKey] === pK).map(item => item[primaryKey]))];
+      let primaryKeytofilteredForeignKeys = {}
+      primaryKeytofilteredForeignKeys[foreignKey] = pK;
+      primaryKeytofilteredForeignKeys[primaryKey] = filteredForeignKeys;
+      buildBulkAssociateInput.push(primaryKeytofilteredForeignKeys);
+    });
+    return buildBulkAssociateInput
+}

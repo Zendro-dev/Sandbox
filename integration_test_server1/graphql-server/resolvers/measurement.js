@@ -375,10 +375,8 @@ module.exports = {
         }
     },
     
-    bulkAssociateAccessionWithMeasurement: async function(bulkAssociateInput, context){
-        for await(bulkAssociate of bulkAssociateInput){
-          models.measurement._bulkAssociateAccessionWithMeasurement(bulkAssociate)
-        }
-    },
+    bulkAssociateMeasurementWithAccession: async function(bulkAssociateInput, context){
+        models.measurement._bulkAssociateMeasurementWithAccession(bulkAssociateInput)
+    }
 
 }
