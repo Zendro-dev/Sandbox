@@ -7,6 +7,7 @@ const awaitifyStream = require('awaitify-stream');
 const validatorUtil = require('./validatorUtil');
 const admZip = require('adm-zip');
 const exceljs = require('exceljs');
+const XlsxStreamReader = require("xlsx-stream-reader");
 
 /**
  * replaceNullStringsWithLiteralNulls - Replace null entries of columns with literal null types
@@ -110,15 +111,102 @@ exports.parseXlsxStream = async function(xlsxFilePath, model) {
   let options = {
 
   }
-  const workbookReader = new exceljs.stream.xlsx.WorkbookReader(xlsxFilePath);
-  let c = 1;
-  let r = 1;
-  for await (const worksheetReader of workbookReader) {
-      console.log("CHUNK", c++ , worksheetReader)
-    for await (const row of worksheetReader) {
-      console.log("row: ", r++ ,JSON.stringify(row.values) );
+//  let wb = new exceljs.Workbook();
+  // let c = 1;
+  // let r = 1;
+  // // let stream = fs.createReadStream(xlsxFilePath);
+  // // let data = await wb.xlsx.read(stream);
+  // let data = await wb.xlsx.readFile(xlsxFilePath);
+  // //console.log("DATA: ", data);
+  //
+  // for( const s of data.worksheets ){
+  //   console.log("SHEET ", c++ , s);
+  //   s.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+  //     console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));
+  //   });
+  // }
+  // let xlsxStream = awaitifyStream.createReader(
+  //   fs.createReadStream(xlsxFilePath).pipe(
+  //     wb.xlsx.read()
+  //   )
+  // );
+
+  //while (null !== (record = await csvStream.readAsync())) {
+  //
+  //   console.log("RECOOORD",record);
+  // }
+
+
+  // const workbookReader = new exceljs.stream.xlsx.WorkbookReader(xlsxFilePath);
+  // let c = 1;
+  // let r = 1;
+  // for await (const worksheetReader of workbookReader) {
+  //     console.log("CHUNK", c++ , worksheetReader)
+  //
+  //   for await (const row of worksheetReader) {
+  //     //console.log("row: ", r++ ,row.values );
+  //     row.values.forEach(function(rowVal, colnum){ console.log(typeof rowVal, " * ", rowVal); }  );
+  //     console.log("row: ", r++ ,JSON.stringify(row.values) );
+  //   }
+  // }
+  //
+  var workBookReader = new XlsxStreamReader();
+workBookReader.on('error', function (error) {
+    throw(error);
+});
+workBookReader.on('sharedStrings', function () {
+    // do not need to do anything with these,
+    // cached and used when processing worksheets
+    console.log(workBookReader.workBookSharedStrings);
+});
+
+workBookReader.on('styles', function () {
+    // do not need to do anything with these
+    // but not currently handled in any other way
+    console.log(workBookReader.workBookStyles);
+});
+
+workBookReader.on('worksheet', function (workSheetReader) {
+    if (workSheetReader.id > 1){
+        // we only want first sheet
+        //workSheetReader.skip();
+        //return;
     }
-  }
+    // print worksheet name
+    console.log(workSheetReader.name);
+
+    // if we do not listen for rows we will only get end event
+    // and have infor about the sheet like row count
+    workSheetReader.on('row', function (row) {
+        if (row.attributes.r == 1){
+            console.log("HEADERS: ", row);
+            // do something with row 1 like save as column names
+        }else{
+            // second param to forEach colNum is very important as
+            // null columns are not defined in the array, ie sparse array
+            console.log("ROW  ", typeof row);
+            console.log(JSON.stringify(row.values));
+
+            row.values.forEach(function(rowVal, colNum){
+              //console.log( typeof rowVal, rowVal);
+
+                // do something with row values
+            });
+        }
+    });
+    workSheetReader.on('end', function () {
+        console.log(workSheetReader.rowCount);
+    });
+
+    // call process after registering handlers
+    workSheetReader.process();
+});
+workBookReader.on('end', function () {
+  console.log("DONE! :D");
+    // end of workbook reached
+});
+
+fs.createReadStream(xlsxFilePath).pipe(workBookReader);
 
 }
 
