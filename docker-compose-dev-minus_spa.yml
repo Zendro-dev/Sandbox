@@ -15,7 +15,7 @@ services:
       - integration_test_server1
 
   integration_test_server1_graphql_server:
-    container_name: integration_test_server1-graphql-container
+    container_name: server1
     depends_on:
       - integration_test_server1_postgres
     build:
@@ -55,16 +55,16 @@ services:
       - integration_test_server2
 
   integration_test_server2_graphql_server:
-    container_name: integration_test_server2-graphql-container
+    container_name: server2
     depends_on:
       - integration_test_server2_postgres
     build:
       context: ./integration_test_server2/graphql-server
       dockerfile: Dockerfile.graphql_server
     ports:
-      - 3001:3001
+      - 3030:3030
     environment:
-      - PORT=3001
+      - PORT=3030
       - REQUIRE_SIGN_IN=false
     volumes:
       - ./integration_test_server2:/usr/ScienceDbStarterPack

@@ -452,12 +452,12 @@ module.exports = class Measurement extends Sequelize.Model {
      * @param {Id}   measurement_id   IdAttribute of the root model to be updated
      * @param {Id}   accessionId Foreign Key (stored in "Me") of the Association to be updated. 
      */
-    static async add_accessionId(measurement_id, accessionId) {
+    static async add_accessionId(measurement_id_array, accessionId) {
         let updated = await Measurement.update({
             accessionId: accessionId
         }, {
             where: {
-                measurement_id: measurement_id
+                measurement_id: measurement_id_array
             }
         });
         return updated;

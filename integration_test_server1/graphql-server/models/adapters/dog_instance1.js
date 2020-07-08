@@ -336,12 +336,12 @@ module.exports = class dog_instance1 extends Sequelize.Model {
 
 
 
-    static async add_person_id(dog_id, person_id) {
+    static async add_person_id(dog_id_array, person_id) {
         let updated = await super.update({
             person_id: person_id
         }, {
             where: {
-                dog_id: dog_id
+                dog_id: dog_id_array
             }
         });
         return updated;

@@ -70,12 +70,6 @@ type MeasurementEdge{
     field: MeasurementField
     order: Order
   }
-
-  input bulkAssociateMeasurementWithAccessionInput {
-    measurement_id: ID!
-    accession_id: ID!
-  }
-
   type Query {
     measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput ): [Measurement]
     readOneMeasurement(measurement_id: ID!): Measurement
@@ -84,13 +78,10 @@ type MeasurementEdge{
 
     measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput ): MeasurementConnection
   }
-
-  type Mutation {
+    type Mutation {
     addMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
     updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
-    deleteMeasurement(measurement_id: ID!): String!
-    bulkAddMeasurementCsv: String!
-    bulkAssociateMeasurementWithAccession([bulkAssociateMeasurementWithAccessionInput]): String!
-  }
+  deleteMeasurement(measurement_id: ID!): String!
+  bulkAddMeasurementCsv: String! }
 
 `;

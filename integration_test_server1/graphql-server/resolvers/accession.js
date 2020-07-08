@@ -183,11 +183,12 @@ accession.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
 accession.prototype.add_measurements = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.addMeasurements) {
-        results.push(models.measurement.add_accessionId(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    // let results = [];
+    // for await (associatedRecordId of input.addMeasurements) {
+    //     results.push(models.measurement.add_accessionId(associatedRecordId, this.getIdValue(), benignErrorReporter));
+    // }
+    // await Promise.all(results);
+    await models.measurement.add_accessionId(input.addMeasurements, this.getIdValue(), benignErrorReporter);
 }
 
 /**

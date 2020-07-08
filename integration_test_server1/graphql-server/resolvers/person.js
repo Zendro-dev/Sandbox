@@ -152,11 +152,12 @@ person.prototype.handleAssociations = async function(input, benignErrorReporter)
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
 person.prototype.add_dogs = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.addDogs) {
-        results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    // let results = [];
+    // for await (associatedRecordId of input.addDogs) {
+    //     results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+    // }
+    // await Promise.all(results);
+    await models.dog.add_person_id(input.addDogs, this.getIdValue(), benignErrorReporter);
 }
 
 /**

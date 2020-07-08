@@ -6,6 +6,7 @@ const helper = require('../../utils/helper');
 
 const validatorUtil = require('../../utils/validatorUtil');
 const errorHelper = require('../../utils/errors');
+const { result } = require('lodash');
 
 
 const definition = {
@@ -81,6 +82,16 @@ module.exports = class dog {
             throw new Error("IRI has no match WS");
         }
         return responsibleAdapter[0];
+    }
+
+    static mapIrisToAdapters(iris) {
+        let mappedIris = {};
+        console.log(iris);
+        iris.forEach(iri => {
+            console.log("adap: " + this.adapterForIri(iri))
+        });
+        iris.map(iri => mappedIris[this.adapterForIri(iri)] === undefined ? mappedIris[this.adapterForIri(iri)] = [iri] : mappedIris[this.adapterForIri(iri)].push(iri));
+        return mappedIris;
     }
 
     static readById(id, benignErrorReporter) {
@@ -385,9 +396,20 @@ module.exports = class dog {
      * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
      */
-    static async add_person_id(dog_id, person_id, benignErrorReporter) {
-        let responsibleAdapter = this.adapterForIri(dog_id);
-        return await adapters[responsibleAdapter].add_person_id(dog_id, person_id, benignErrorReporter);
+    static async add_person_id(dog_id_array, person_id, benignErrorReporter) {
+        // let responsibleAdapter = this.adapterForIri(dog_id);
+        console.log("dog_id_array: " + dog_id_array)
+        let mapped_dog_id_array = this.mapIrisToAdapters(dog_id_array);
+        console.log(JSON.stringify(mapped_dog_id_array))
+        var results = [];
+        Object.keys(mapped_dog_id_array).forEach(responsibleAdapter => {
+            results.push(adapters[responsibleAdapter].add_person_id(mapped_dog_id_array[responsibleAdapter], person_id, benignErrorReporter))
+        })
+        // for await (responsibleAdapter of Object.keys(mapped_dog_id_array)) {
+        //     results.push(adapters[responsibleAdapter].add_person_id(mapped_dog_id_array[responsibleAdapter], person_id, benignErrorReporter))
+        // }
+        await Promise.all(results);
+        // return await adapters[responsibleAdapter].add_person_id(dog_id, person_id, benignErrorReporter);
     }
 
     /**

@@ -86,8 +86,6 @@ type AccessionEdge{
     field: AccessionField
     order: Order
   }
-
-
   type Query {
     accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
     readOneAccession(accession_id: ID!): Accession
@@ -100,8 +98,6 @@ type AccessionEdge{
     addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
     updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
   deleteAccession(accession_id: ID!): String!
-  bulkAddAccessionCsv: String!
-  }
-  
+  bulkAddAccessionCsv: String! }
 
 `;
