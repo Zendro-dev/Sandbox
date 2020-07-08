@@ -6,7 +6,7 @@ const fs = require('fs');
 const awaitifyStream = require('awaitify-stream');
 const validatorUtil = require('./validatorUtil');
 const admZip = require('adm-zip');
-
+const exceljs = require('exceljs');
 
 /**
  * replaceNullStringsWithLiteralNulls - Replace null entries of columns with literal null types
@@ -100,6 +100,29 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 
 
 /**
+ * Parse by streaming a xlsx file and create the records in the correspondant table
+ * @function
+ * @param {string} xlsxFilePath - The path where the xlsx file is stored.
+ * @param {object} model - Sequelize model, record will be created through this model.
+ */
+exports.parseXlsxStream = async function(xlsxFilePath, model) {
+  console.log("PATH FILE: ", xlsxFilePath);
+  let options = {
+
+  }
+  const workbookReader = new exceljs.stream.xlsx.WorkbookReader(xlsxFilePath);
+  let c = 1;
+  let r = 1;
+  for await (const worksheetReader of workbookReader) {
+      console.log("CHUNK", c++ , worksheetReader)
+    for await (const row of worksheetReader) {
+      console.log("row: ", r++ ,JSON.stringify(row.values) );
+    }
+  }
+
+}
+
+/**
  * Parse by streaming a csv file and create the records in the correspondant table
  * @function
  * @param {string} csvFilePath - The path where the csv file is stored.
@@ -145,9 +168,9 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
 
     while (null !== (record = await csvStream.readAsync())) {
 
-      console.log(record);
+      console.log("RECOOORD",record);
       record = exports.replacePojoNullValueWithLiteralNull(record);
-      console.log(record);
+      //console.log(record);
 
 
       try {

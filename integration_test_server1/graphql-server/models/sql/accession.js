@@ -447,13 +447,15 @@ module.exports = class Accession extends Sequelize.Model {
         return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
-    static bulkAddXlsx(context) {
+    static async bulkAddXlsx(context) {
 
-        let delim = context.request.body.delim;
-        let cols = context.request.body.cols;
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.xlsx');
+        // let delim = context.request.body.delim;
+        // let cols = context.request.body.cols;
+       let tmpFile = path.join(os.tmpdir(), uuidv4() + '.xlsx');
+        await context.request.files.xlsx_file.mv(tmpFile);
+        await fileTools.parseXlsxStream(tmpFile, this);
 
-        console.log("EMAIL: ", helpersAcl.getTokenFromContext(context).email);
+        //console.log("EMAIL: ", helpersAcl.getTokenFromContext(context).email);
 
         // context.request.files.xlsx_file.mv(tmpFile).then(() => {
         //
@@ -500,7 +502,7 @@ module.exports = class Accession extends Sequelize.Model {
         //     throw new Error(error);
         // });
 
-        return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of Accession records started. You will be send an email to your email account informing you about success or errors`;
     }
 
     /**
