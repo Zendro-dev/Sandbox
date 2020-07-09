@@ -1,0 +1,55 @@
+--- taxon.js	2020-07-09 13:51:07.830987495 -0500
++++ taxon.patched.js	2020-07-09 13:55:53.646587198 -0500
+@@ -113,11 +113,47 @@
+      * @return {taxon} Instance of taxon class.
+      */
+     static async readById(id, benignErrorReporter) {
+-
+-        /*
+-        YOUR CODE GOES HERE
+-         */
+-        throw new Error('readById() is not implemented for model taxon');
++      /**
++       * Patch: Taxon
++       */
++      let query = `
++       query
++         taxon
++         {
++           taxon(id:"${id}")
++           {
++             id
++             taxon
++             categoria
++             estatus
++             nombreAutoridad
++             citaNomenclatural
++             fuente
++             ambiente
++             grupoSNIB
++             categoriaResidencia
++             nom
++             cites
++             iucn
++             prioritarias
++             endemismo
++           }
++         }`;
++      try {
++        // Send an HTTP request to the remote server
++        let response = await axios.post("http://zacatuche.conabio.gob.mx:4000/graphql", { query: query });
++        // STATUS-CODE is 200
++        // NO ERROR as such has been detected by the server (Express)
++        // check if data was send
++        if (response && response.data && response.data.data) {
++          return new taxon(response.data.data.taxon);
++        } else {
++          throw new Error(`Invalid response from remote cenz-server: Zacatuche`);
++        }
++      } catch (error) {
++        //handle caught errors
++        errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, "http://zacatuche.conabio.gob.mx:4000/graphql");
++      }
+     }
+ 
+     /**
