@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const globals = require('../../config/globals');
 const helper = require('../../utils/helper');
+const axios = require('axios');
+const errorHelper = require('../utils/errors');
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {

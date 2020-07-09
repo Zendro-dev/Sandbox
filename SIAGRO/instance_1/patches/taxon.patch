@@ -1,6 +1,15 @@
 --- taxon.js	2020-07-09 13:51:07.830987495 -0500
-+++ taxon.patched.js	2020-07-09 13:55:53.646587198 -0500
-@@ -113,11 +113,47 @@
++++ taxon.patched.js	2020-07-09 15:51:43.830618094 -0500
+@@ -1,6 +1,8 @@
+ const _ = require('lodash');
+ const globals = require('../../config/globals');
+ const helper = require('../../utils/helper');
++const axios = require('axios');
++const errorHelper = require('../utils/errors');
+ 
+ // An exact copy of the the model definition that comes from the .json file
+ const definition = {
+@@ -113,11 +115,47 @@
       * @return {taxon} Instance of taxon class.
       */
      static async readById(id, benignErrorReporter) {
