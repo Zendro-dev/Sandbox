@@ -9,12 +9,12 @@ services:
      - 3002:3002
    environment:
      - PORT=3002
-     - REACT_APP_CENZ_GRAPHQL_SERVER_URL=http://accesiones.conabio.gob.mx:3000/graphql
-     - REACT_APP_CENZ_LOGIN_URL=http://accesiones.conabio.gob.mx:3000/login
-     - REACT_APP_CENZ_EXPORT_URL=http://accesiones.conabio.gob.mx:3000/export
-     - REACT_APP_CENZ_MAX_UPLOAD_SIZE=500
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://accesiones.conabio.gob.mx:3000/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://accesiones.conabio.gob.mx:3000/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://accesiones.conabio.gob.mx:3000/export
+     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
    volumes:
-     - ./spa_internal:/usr/ScienceDbStarterPack
+     - ./spa_internal:/usr/Sandbox
    networks:
      - CONABIO
    # Install dependencies and start single-page-app-server in development

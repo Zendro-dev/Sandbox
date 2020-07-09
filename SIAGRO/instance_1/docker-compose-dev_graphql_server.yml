@@ -22,9 +22,9 @@ services:
       - PORT=3000
       - REQUIRE_SIGN_IN=false
     volumes:
-      - .:/usr/ScienceDbStarterPack
-      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
-      - ./graphql-server/config/config_postgres_docker.json:/usr/ScienceDbStarterPack/graphql-server/config/config.json
+      - .:/usr/Sandbox
+      # Use the Sequelize config adjusted for the Docker setup of Sandbox:
+      - ./graphql-server/config/config_postgres_docker.json:/usr/Sandbox/graphql-server/config/config.json
     networks:
       - backend
       - CONABIO

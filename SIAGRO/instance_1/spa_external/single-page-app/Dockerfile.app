@@ -1,7 +1,7 @@
 FROM node:13-alpine
 
 # Create app directory
-WORKDIR /usr/ScienceDbStarterPack/single-page-app
+WORKDIR /usr/Sandbox/single-page-app
 
 # Copy source code
 COPY . .
