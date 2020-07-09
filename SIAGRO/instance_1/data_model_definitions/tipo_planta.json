@@ -1,9 +1,9 @@
 {
-  "model": "tipo_plata",
+  "model": "tipo_planta",
   "storageType": "sql",
   "attributes": {
     "tipo_planta_id": "String",
-    "tipo_plata": "string",
+    "tipo_plata": "String",
     "foto_produccion": "String",
     "foto_autoconsumo": "String",
     "foto_venta": "String",
