@@ -3,7 +3,6 @@
  	"storageType": "sql",
 	"attributes": {
 		"cuadrante_id": "String",
-		"tipo_planta": "String",
 		"produccion_valor": "Int",
 		"produccion_etiqueta": "String",
 		"autoconsumo_valor": "Int",
@@ -14,7 +13,8 @@
 		"venta_etiqueta": "String",
 		"nombre_comun_grupo_enfoque": "String",
 		"grupo_enfoque_id": "String",
-		"taxon_id": "String"
+		"taxon_id": "String",
+    "tipo_planta_id": "String"
   },
 	"associations": {
 		"grupo_enfoque": {
@@ -33,8 +33,17 @@
 			"keyIn": "cuadrante",
 			"targetStorageType": "generic",
 			"label": "taxon"
-		}
+		},
+
+    "tipo_planta": {
+      "type" : "to_one",
+      "target": "tipo_planta",
+      "targetKey": "tipo_planta_id",
+      "keyIn": "cuadrante",
+      "targetStorageType": "sql",
+      "label": "grupo_id",
+      "sublabel": "fecha"
+    }
   },
 	"internalId": "cuadrante_id"
-}	
-
+}

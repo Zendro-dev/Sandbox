@@ -19,7 +19,7 @@
         "prioritarias": "String",
         "endemismo": "String"
       },
-      
+
       "associations": {
         "cuadrantes": {
           "type": "to_many",
@@ -30,7 +30,6 @@
           "label": "nombre_comun_grupo_enfoque"
         }
       },
-      
+
       "internalId": "id"
   }
-

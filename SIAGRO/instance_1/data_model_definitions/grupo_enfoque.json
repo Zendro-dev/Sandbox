@@ -7,18 +7,9 @@
 		"numero_participantes": "Int",
 		"fecha": "Date",
 		"lista_especies": "String",
-		"foto_produccion": "String",
-		"foto_autoconsumo": "String",
-		"foto_venta": "String",
-		"foto_compra": "String",
-		"observaciones": "String",
-		"justificacion_produccion_cuadrante1": "String",
-		"justificacion_produccion_cuadrante2": "String",
-		"justificacion_produccion_cuadrante3": "String",
-		"justificacion_produccion_cuadrante4": "String",
 		"sitio_id": "String"
   },
-  
+
 	"associations": {
 		"sitio": {
 			"type": "to_one",
@@ -29,7 +20,7 @@
 			"label": "estado",
 			"sublabel": "municipio"
     },
-    
+
 		"cuadrantes": {
 			"type": "to_many",
 			"target": "cuadrante",
@@ -39,7 +30,6 @@
 			"label": "nombre_comun_grupo_enfoque"
 		}
   },
-  
+
 	"internalId": "grupo_id"
 }
-

@@ -1,0 +1,30 @@
+{
+  "model": "tipo_plata",
+  "storageType": "sql",
+  "attributes": {
+    "tipo_planta_id": "String",
+    "tipo_plata": "string",
+    "foto_produccion": "String",
+    "foto_autoconsumo": "String",
+    "foto_venta": "String",
+    "foto_compra": "String",
+    "observaciones": "String",
+    "justificacion_produccion_cuadrante1": "String",
+    "justificacion_produccion_cuadrante2": "String",
+    "justificacion_produccion_cuadrante3": "String",
+    "justificacion_produccion_cuadrante4": "String"
+  },
+
+  "associations": {
+    "cuadrantes": {
+			"type": "to_many",
+			"target": "cuadrante",
+			"targetKey": "tipo_planta_id",
+			"keyIn": "cuadrante",
+			"targetStorageType": "sql",
+			"label": "nombre_comun_grupo_enfoque"
+		}
+  },
+
+  "internalId": "tipo_planta_id"
+}

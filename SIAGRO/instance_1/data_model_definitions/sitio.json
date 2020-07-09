@@ -4,16 +4,22 @@
 	"attributes": {
 		"sitio_id": "String",
 		"pais": "String",
+    "clave_region": "Int",
 		"estado": "String",
+    "clave_estado": "Int",
 		"municipio": "String",
-		"localidad": "String"
+    "clave_municipio": "Int",
+		"localidad": "String",
+    "clave_localidad": "Int",
+    "latitud": "Float",
+    "longitud": "Float"
   },
 	"associations": {
 		"grupo_enfoque": {
 			"type": "to_many",
 			"target": "grupo_enfoque",
 			"targetKey": "sitio_id",
-      			"keyIn": "grupo_enfoque",
+      "keyIn": "grupo_enfoque",
 			"targetStorageType": "sql",
 			"label": "grupo_id",
 			"sublabel": "fecha"
@@ -21,4 +27,3 @@
   },
 	"internalId": "sitio_id"
 }
-
