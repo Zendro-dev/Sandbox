@@ -2,6 +2,7 @@ version: "3.7"
 
 services:
  sdb_science_db_app_server_internal:
+   stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
    build:
      context: ./spa_internal/single-page-app
      dockerfile: Dockerfile.app
