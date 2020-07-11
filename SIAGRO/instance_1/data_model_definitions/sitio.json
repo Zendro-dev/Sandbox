@@ -4,13 +4,12 @@
 	"attributes": {
 		"sitio_id": "String",
 		"pais": "String",
-    "clave_region": "Int",
 		"estado": "String",
-    "clave_estado": "Int",
+    "clave_estado": "String",
 		"municipio": "String",
-    "clave_municipio": "Int",
+    "clave_municipio": "String",
 		"localidad": "String",
-    "clave_localidad": "Int",
+    "clave_localidad": "String",
     "latitud": "Float",
     "longitud": "Float"
   },
