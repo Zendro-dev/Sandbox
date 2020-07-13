@@ -482,16 +482,29 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     static async _bulkAssociateMeasurementWithAccession(bulkAssociateInput){
-        let builtBulkAssociateInput = helper.buildBulkAssociateInput(builtBulkAssociateInput, "measurement_id", "accessionId")
+        console.log("bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
+        let builtBulkAssociateInput = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociateInput.bulkAssociateInput, "measurement_id", "accessionId");
+        console.log("builtBulkAssociateInput: " + JSON.stringify(builtBulkAssociateInput))
         var promises = [];
-        let updated = await Measurement.update({
-            accessionId: accession
-        }, {
-            where: {    
-                measurement_id: measurement_id_Array
-            }
-        });
-        return updated;
+        builtBulkAssociateInput.forEach(({accessionId, measurement_id}) => {
+            promises.push(Measurement.update({
+                accessionId: accessionId
+                }, {
+                where: {    
+                    measurement_id: measurement_id
+                }
+            }));
+        })
+        await Promise.all(promises)
+        // let updated = await Measurement.update({
+        //     accessionId: accession
+        // }, {
+        //     where: {    
+        //         measurement_id: measurement_id_Array
+        //     }
+        // });
+        // return updated;
+        return "Records successfully associated!"
     }
 
 

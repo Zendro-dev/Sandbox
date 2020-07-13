@@ -348,4 +348,37 @@ module.exports = class dog_instance2 {
         }
     }
 
+    static async bulkAssociateDogWithPerson(bulkAssociateInput, benignErrorReporter){
+        let query = `mutation  bulkAssociateDogWithPerson($bulkAssociateInput: bulkAssociateDogWithPersonInput){
+            bulkAssociateDogWithPerson(bulkAssociateInput : $bulkAssociateInput) 
+        }`
+        console.log("QUERY to instance 2: " + query)
+        console.log("bulkAssociateInput in Query to instance 2:" + JSON.stringify(bulkAssociateInput))
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteCenzontleURL, {
+                query: query,
+                variables: bulkAssociateInput
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+
+            console.log("dog adapter instace 2: " +  JSON.stringify(response.data.data))
+
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkAssociateDogWithPerson;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+        }
+    }
+
 }

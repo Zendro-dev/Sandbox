@@ -424,6 +424,33 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         return `Bulk import of dog_instance2 records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
+    static async bulkAssociateDogWithPerson(bulkAssociateInput){
+        console.log("On instance 2 bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
+        let builtBulkAssociateInput = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociateInput, "dog_id", "person_id");
+        console.log("builtBulkAssociateInput: " + JSON.stringify(builtBulkAssociateInput))
+        var promises = [];
+        builtBulkAssociateInput.forEach(({person_id, dog_id}) => {
+            promises.push(super.update({
+                person_id: person_id
+                }, {
+                where: {    
+                    dog_id: dog_id
+                }
+            }));
+        })
+        await Promise.all(promises)
+        // let updated = await Measurement.update({
+        //     accessionId: accession
+        // }, {
+        //     where: {    
+        //         measurement_id: measurement_id_Array
+        //     }
+        // });
+        // return updated;
+        // return "Records successfully associated!"
+    }
+
+
     static csvTableTemplate() {
         return helper.csvTableTemplate(dog);
     }

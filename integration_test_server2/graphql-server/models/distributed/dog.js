@@ -92,6 +92,16 @@ module.exports = class dog {
         iris.map(iri => mappedIris[this.adapterForIri(iri)] === undefined ? mappedIris[this.adapterForIri(iri)] = [iri] : mappedIris[this.adapterForIri(iri)].push(iri));
         return mappedIris;
     }
+    
+    static mapBulkAssociateInputToAdapters(bulkAssociateInput){
+        let mappedInput = {}
+        console.log("mapBulkAssociateInputToAdapters instance 2: " + JSON.stringify(bulkAssociateInput))
+        bulkAssociateInput.map((idMap) => {
+            let responsibleAdapter = this.adapterForIri(idMap.dog_id);
+            mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
+        });
+        return mappedInput;
+    }
 
     static readById(id, benignErrorReporter) {
         if (id !== null) {
@@ -421,7 +431,16 @@ module.exports = class dog {
     }
 
 
-
+    static async _bulkAssociateDogWithPerson(bulkAssociateInput) {
+        let mappedBulkAssociateInput = this.mapBulkAssociateInputToAdapters(bulkAssociateInput);
+        console.log("DDM instance2 mappedBulkAssociateInput: " + JSON.stringify(mappedBulkAssociateInput))
+        var promises = [];
+        Object.keys(mappedBulkAssociateInput).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkAssociateDogWithPerson(mappedBulkAssociateInput[responsibleAdapter]))
+        });
+        await Promise.all(promises);
+        return "Records successfully associated!";
+    }
 
 
 

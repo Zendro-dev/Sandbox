@@ -369,6 +369,31 @@ module.exports = class dog_instance1 extends Sequelize.Model {
         return updated;
     }
 
+    static async bulkAssociateDogWithPerson(bulkAssociateInput){
+        console.log("On instance 1 bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
+        let builtBulkAssociateInput = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociateInput, "dog_id", "person_id");
+        console.log("builtBulkAssociateInput: " + JSON.stringify(builtBulkAssociateInput))
+        var promises = [];
+        builtBulkAssociateInput.forEach(({person_id, dog_id}) => {
+            promises.push(super.update({
+                person_id: person_id
+                }, {
+                where: {    
+                    dog_id: dog_id
+                }
+            }));
+        })
+        await Promise.all(promises)
+        // let updated = await Measurement.update({
+        //     accessionId: accession
+        // }, {
+        //     where: {    
+        //         measurement_id: measurement_id_Array
+        //     }
+        // });
+        // return updated;
+        // return "Records successfully associated!"
+    }
 
 
 

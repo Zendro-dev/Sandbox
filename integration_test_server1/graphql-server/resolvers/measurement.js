@@ -376,7 +376,11 @@ module.exports = {
     },
     
     bulkAssociateMeasurementWithAccession: async function(bulkAssociateInput, context){
-        models.measurement._bulkAssociateMeasurementWithAccession(bulkAssociateInput)
+        // checkExistence of id arrays (accession_ids, measurement_ids)
+        helper.validateExistence(bulkAssociateInput.map(({accessionId}) => accessionId), 'accession');
+        helper.validateExistence(bulkAssociateInput.map(({measurement_id}) => measurement_id), 'measurement');
+        
+        return await models.measurement._bulkAssociateMeasurementWithAccession(bulkAssociateInput)
     }
 
 }

@@ -61,6 +61,11 @@ input orderDogInput{
   order: Order
 }
 
+input bulkAssociateDogWithPersonInput{
+  dog_id: ID!
+  person_id: ID!
+}
+
 type Query {
   readOneDog(dog_id: ID!): dog
   countDogs(search: searchDogInput ): Int
@@ -73,6 +78,7 @@ type Query {
   addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
   updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
 deleteDog(dog_id: ID!): String!
-bulkAddDogCsv: String }
+bulkAddDogCsv: String
+bulkAssociateDogWithPerson(bulkAssociateInput: [bulkAssociateDogWithPersonInput]): String! }
 
 `;

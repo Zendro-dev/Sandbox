@@ -94,6 +94,16 @@ module.exports = class dog {
         return mappedIris;
     }
 
+    static mapBulkAssociateInputToAdapters(bulkAssociateInput){
+        let mappedInput = {}
+        console.log("mapBulkAssociateInputToAdapters: " + JSON.stringify(bulkAssociateInput))
+        bulkAssociateInput.map((idMap) => {
+            let responsibleAdapter = this.adapterForIri(idMap.dog_id);
+            mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
+        });
+        return mappedInput;
+    }
+
     static readById(id, benignErrorReporter) {
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
@@ -424,9 +434,15 @@ module.exports = class dog {
         return await adapters[responsibleAdapter].remove_person_id(dog_id, person_id, benignErrorReporter);
     }
 
-
-
-
-
+    static async _bulkAssociateDogWithPerson(bulkAssociateInput, benignErrorReporter) {
+        let mappedBulkAssociateInput = this.mapBulkAssociateInputToAdapters(bulkAssociateInput);
+        console.log("DDM mappedBulkAssociateInput: " + JSON.stringify(mappedBulkAssociateInput))
+        var promises = [];
+        Object.keys(mappedBulkAssociateInput).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkAssociateDogWithPerson(mappedBulkAssociateInput[responsibleAdapter], benignErrorReporter))
+        });
+        await Promise.all(promises);
+        return "Records successfully associated!";
+    }
 
 }

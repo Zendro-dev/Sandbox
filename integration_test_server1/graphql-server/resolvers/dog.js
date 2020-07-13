@@ -410,6 +410,15 @@ module.exports = {
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
+    },
+
+    bulkAssociateDogWithPerson: async function(bulkAssociateInput, context){
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        console.log("DDM resolver bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
+        await helper.validateExistence(bulkAssociateInput.bulkAssociateInput.map(({person_id}) => person_id), models.person);
+        await helper.validateExistence(bulkAssociateInput.bulkAssociateInput.map(({dog_id}) => dog_id), models.dog);
+        
+        return await dog._bulkAssociateDogWithPerson(bulkAssociateInput.bulkAssociateInput, benignErrorReporter)
     }
 
 }
