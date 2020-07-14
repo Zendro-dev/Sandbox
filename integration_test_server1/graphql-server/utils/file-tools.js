@@ -100,6 +100,21 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 };
 
 
+xlsxRowToObject = function( headers, row_values ){
+
+  let record_length = headers.length;
+  let record = {};
+  for(let index = 0; index < record_length; index++){
+    //if value no present or null in data, it won't be added to the record info.
+    if( row_values[ index ] !== undefined &&  row_values[ index ] !== null){
+      record[ headers[index] ] = row_values[ index];
+    }
+  }
+
+  return record;
+}
+
+
 /**
  * Parse by streaming a xlsx file and create the records in the correspondant table
  * @function
@@ -111,59 +126,41 @@ exports.parseXlsxStream = async function(xlsxFilePath, model) {
   let options = {
 
   }
-//  let wb = new exceljs.Workbook();
-  // let c = 1;
-  // let r = 1;
-  // // let stream = fs.createReadStream(xlsxFilePath);
-  // // let data = await wb.xlsx.read(stream);
-  // let data = await wb.xlsx.readFile(xlsxFilePath);
-  // //console.log("DATA: ", data);
-  //
-  // for( const s of data.worksheets ){
-  //   console.log("SHEET ", c++ , s);
-  //   s.eachRow({ includeEmpty: true }, function(row, rowNumber) {
-  //     console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));
-  //   });
-  // }
-  // let xlsxStream = awaitifyStream.createReader(
-  //   fs.createReadStream(xlsxFilePath).pipe(
-  //     wb.xlsx.read()
-  //   )
-  // );
+  let addedFilePath = csvFilePath.substr(0, csvFilePath.lastIndexOf(".")) +
+    ".json";
 
-  //while (null !== (record = await csvStream.readAsync())) {
-  //
-  //   console.log("RECOOORD",record);
-  // }
+  let addedZipFilePath = csvFilePath.substr(0, csvFilePath.lastIndexOf(".")) +
+      ".zip";
 
+  // Create an output file stream
+  let addedRecords = awaitifyStream.createWriter(
+    fs.createWriteStream(addedFilePath)
+  );
 
-  // const workbookReader = new exceljs.stream.xlsx.WorkbookReader(xlsxFilePath);
-  // let c = 1;
-  // let r = 1;
-  // for await (const worksheetReader of workbookReader) {
-  //     console.log("CHUNK", c++ , worksheetReader)
-  //
-  //   for await (const row of worksheetReader) {
-  //     //console.log("row: ", r++ ,row.values );
-  //     row.values.forEach(function(rowVal, colnum){ console.log(typeof rowVal, " * ", rowVal); }  );
-  //     console.log("row: ", r++ ,JSON.stringify(row.values) );
-  //   }
-  // }
-  //
+  // Wrap all database actions within a transaction:
+  let transaction = await model.sequelize.transaction();
+
+  let record;
+  let errors = [];
+  let headers = [];
   var workBookReader = new XlsxStreamReader();
-workBookReader.on('error', function (error) {
+workBookReader.on('error', async function (error) {
+  await transaction.rollback();
+
+  exports.deleteIfExists(addedFilePath);
+  exports.deleteIfExists(addedZipFilePath);
     throw(error);
 });
 workBookReader.on('sharedStrings', function () {
     // do not need to do anything with these,
     // cached and used when processing worksheets
-    console.log(workBookReader.workBookSharedStrings);
+    //console.log(workBookReader.workBookSharedStrings);
 });
 
 workBookReader.on('styles', function () {
     // do not need to do anything with these
     // but not currently handled in any other way
-    console.log(workBookReader.workBookStyles);
+    //console.log(workBookReader.workBookStyles);
 });
 
 workBookReader.on('worksheet', function (workSheetReader) {
@@ -177,24 +174,86 @@ workBookReader.on('worksheet', function (workSheetReader) {
 
     // if we do not listen for rows we will only get end event
     // and have infor about the sheet like row count
-    workSheetReader.on('row', function (row) {
+    workSheetReader.on('row', async function (row) {
         if (row.attributes.r == 1){
-            console.log("HEADERS: ", row);
+            //console.log("HEADERS: ", row);
+            headers = row.values.slice(1);
+            console.log("HEADERS: ", headers);
             // do something with row 1 like save as column names
         }else{
             // second param to forEach colNum is very important as
             // null columns are not defined in the array, ie sparse array
-            console.log("ROW  ", typeof row);
-            console.log(JSON.stringify(row.values));
+           record = xlsxRowToObject( headers, row.values.slice(1) );
+            console.log("RECORD: ", record);
 
-            row.values.forEach(function(rowVal, colNum){
-              //console.log( typeof rowVal, rowVal);
+            try {
+              let result = await validatorUtil.validateData(
+                'validateForCreate', model, record);
+              //console.log(result);
+              await model.create(record, {
+                transaction: transaction
+              }).then(created => {
 
-                // do something with row values
-            });
+                // this is async, here we just push new line into the parallel thread
+                // synchronization goes at endAsync;
+                addedRecords.writeAsync(`${JSON.stringify(created)}\n`);
+
+              }).catch(error => {
+                console.log(
+                  `Caught sequelize error during CSV batch upload: ${JSON.stringify(error)}`
+                );
+                error.record = record;
+                errors.push(error);
+              })
+            } catch (error) {
+              console.log(
+                `Validation error during CSV batch upload: ${JSON.stringify(error)}`
+              );
+              error['record'] = record;
+              errors.push(error);
+
+            }
         }
     });
-    workSheetReader.on('end', function () {
+    workSheetReader.on('end', async function () {
+
+
+
+      // close the addedRecords file so it can be sent afterwards
+      await addedRecords.endAsync();
+
+      if (errors.length > 0) {
+        let message =
+          "Some records could not be submitted. No database changes has been applied.\n";
+        message += "Please see the next list for details:\n";
+
+        errors.forEach(function(error) {
+          valErrMessages = error.errors.reduce((acc, val) => {
+            return acc.concat(val.dataPath).concat(" ").concat(val.message)
+              .concat(" ")
+          })
+          message +=
+            `record ${JSON.stringify(error.record)} ${error.message}: ${valErrMessages}; \n`;
+        });
+
+        throw new Error(message.slice(0, message.length - 1));
+      }
+
+
+      await transaction.commit();
+
+      // zip comitted data and return a corresponding file path
+      let zipper = new admZip();
+      zipper.addLocalFile(addedFilePath);
+      await zipper.writeZip(addedZipFilePath);
+
+      console.log(addedZipFilePath);
+
+      // At this moment the parseCsvStream caller is responsible in deleting the
+      // addedZipFilePath
+      //return addedZipFilePath;
+
+
         console.log(workSheetReader.rowCount);
     });
 
@@ -202,6 +261,7 @@ workBookReader.on('worksheet', function (workSheetReader) {
     workSheetReader.process();
 });
 workBookReader.on('end', function () {
+  exports.deleteIfExists(addedFilePath);
   console.log("DONE! :D");
     // end of workbook reached
 });
