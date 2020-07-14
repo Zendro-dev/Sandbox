@@ -415,8 +415,10 @@ module.exports = {
     bulkAssociateDogWithPerson: async function(bulkAssociateInput, context){
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         console.log("DDM resolver bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
-        await helper.validateExistence(bulkAssociateInput.bulkAssociateInput.map(({person_id}) => person_id), models.person);
-        await helper.validateExistence(bulkAssociateInput.bulkAssociateInput.map(({dog_id}) => dog_id), models.dog);
+        if (!bulkAssociateInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociateInput.bulkAssociateInput.map(({person_id}) => person_id)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociateInput.bulkAssociateInput.map(({dog_id}) => dog_id)), models.dog);
+        }
         
         return await dog._bulkAssociateDogWithPerson(bulkAssociateInput.bulkAssociateInput, benignErrorReporter)
     }

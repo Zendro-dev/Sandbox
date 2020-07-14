@@ -349,8 +349,8 @@ module.exports = class dog_instance2 {
     }
 
     static async bulkAssociateDogWithPerson(bulkAssociateInput, benignErrorReporter){
-        let query = `mutation  bulkAssociateDogWithPerson($bulkAssociateInput: bulkAssociateDogWithPersonInput){
-            bulkAssociateDogWithPerson(bulkAssociateInput : $bulkAssociateInput) 
+        let query = `mutation  bulkAssociateDogWithPerson($bulkAssociateInput: [bulkAssociateDogWithPersonInput]){
+            bulkAssociateDogWithPerson(bulkAssociateInput: $bulkAssociateInput, skipAssociationsExistenceChecks: true) 
         }`
         console.log("QUERY to instance 2: " + query)
         console.log("bulkAssociateInput in Query to instance 2:" + JSON.stringify(bulkAssociateInput))
@@ -358,7 +358,7 @@ module.exports = class dog_instance2 {
             // Send an HTTP request to the remote server
             let response = await axios.post(remoteCenzontleURL, {
                 query: query,
-                variables: bulkAssociateInput
+                variables: {bulkAssociateInput: bulkAssociateInput}
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {

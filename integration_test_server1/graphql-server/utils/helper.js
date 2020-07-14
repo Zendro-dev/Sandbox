@@ -1428,4 +1428,4 @@ module.exports.vueTable = function(req, model, strAttributes) {
       buildBulkAssociateInput.push(primaryKeytofilteredForeignKeys);
     });
     return buildBulkAssociateInput
-}
+  }
