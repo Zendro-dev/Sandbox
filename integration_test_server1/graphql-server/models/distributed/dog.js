@@ -98,6 +98,10 @@ module.exports = class dog {
         let mappedInput = {}
         console.log("mapBulkAssociateInputToAdapters: " + JSON.stringify(bulkAssociateInput))
         bulkAssociateInput.map((idMap) => {
+            if(idMap.dog_id === undefined && idMap.associatedRecordId !== undefined){
+                idMap['dog_id'] = idMap['associatedRecordId'];
+                delete idMap['associatedRecordId'];
+            }
             let responsibleAdapter = this.adapterForIri(idMap.dog_id);
             mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
         });

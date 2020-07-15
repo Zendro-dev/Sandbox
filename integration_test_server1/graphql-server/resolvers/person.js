@@ -157,7 +157,9 @@ person.prototype.add_dogs = async function(input, benignErrorReporter) {
     //     results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     // }
     // await Promise.all(results);
-    await models.dog.add_person_id(input.addDogs, this.getIdValue(), benignErrorReporter);
+    // await models.dog.add_person_id(input.addDogs, this.getIdValue(), benignErrorReporter);
+    let bulkAssociateInput = input.addDogs.map(associatedRecordId => {return {person_id: this.getIdValue(), associatedRecordId: associatedRecordId}})
+    await models.dog._bulkAssociateDogWithPerson(bulkAssociateInput, benignErrorReporter)
 }
 
 /**
