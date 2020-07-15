@@ -453,7 +453,10 @@ module.exports = class Accession extends Sequelize.Model {
         // let cols = context.request.body.cols;
        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.xlsx');
         await context.request.files.xlsx_file.mv(tmpFile);
-        await fileTools.parseXlsxStream(tmpFile, this);
+        fileTools.parseXlsxStream(tmpFile, this).then((file)=>{
+          console.log("FILE PROCESS DONE");
+          console.log(file);
+        });
 
         //console.log("EMAIL: ", helpersAcl.getTokenFromContext(context).email);
 

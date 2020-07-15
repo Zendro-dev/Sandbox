@@ -74,6 +74,7 @@ exports.parseXlsx = function(bstr) {
 exports.deleteIfExists = function(path) {
   console.log(`Removing ${path}`);
   fs.unlink(path, function(err) {
+    console.log(" File doesn't exist", path)
     // file may be already deleted
   });
 };
@@ -126,16 +127,23 @@ exports.parseXlsxStream = async function(xlsxFilePath, model) {
   let options = {
 
   }
-  let addedFilePath = csvFilePath.substr(0, csvFilePath.lastIndexOf(".")) +
+  let addedFilePath = xlsxFilePath.substr(0, xlsxFilePath.lastIndexOf(".")) +
     ".json";
 
-  let addedZipFilePath = csvFilePath.substr(0, csvFilePath.lastIndexOf(".")) +
+  let addedZipFilePath = xlsxFilePath.substr(0, xlsxFilePath.lastIndexOf(".")) +
       ".zip";
 
   // Create an output file stream
   let addedRecords = awaitifyStream.createWriter(
     fs.createWriteStream(addedFilePath)
   );
+  if(fs.existsSync(addedFilePath)){
+    console.log("FILES EXISTS");
+  }else{
+    console.log("FILE NO CREATED");
+  }
+
+  console.log(typeof addedRecords, " TYPE OF CREATED");
 
   // Wrap all database actions within a transaction:
   let transaction = await model.sequelize.transaction();
@@ -144,11 +152,16 @@ exports.parseXlsxStream = async function(xlsxFilePath, model) {
   let errors = [];
   let headers = [];
   var workBookReader = new XlsxStreamReader();
+
+
+
 workBookReader.on('error', async function (error) {
+  console.log("ERROR IN READER ", error);
   await transaction.rollback();
 
-  exports.deleteIfExists(addedFilePath);
-  exports.deleteIfExists(addedZipFilePath);
+  console.log("DELETE IN END");
+  //exports.deleteIfExists(addedFilePath);
+  //exports.deleteIfExists(addedZipFilePath);
     throw(error);
 });
 workBookReader.on('sharedStrings', function () {
@@ -200,9 +213,9 @@ workBookReader.on('worksheet', function (workSheetReader) {
 
               }).catch(error => {
                 console.log(
-                  `Caught sequelize error during CSV batch upload: ${JSON.stringify(error)}`
+                  `here Caught sequelize error during XLSX batch upload: ${JSON.stringify(error)}`
                 );
-                error.record = record;
+                error['record'] = record;
                 errors.push(error);
               })
             } catch (error) {
@@ -217,12 +230,19 @@ workBookReader.on('worksheet', function (workSheetReader) {
     });
     workSheetReader.on('end', async function () {
 
+      if(fs.existsSync(addedFilePath)){
+        console.log("FILES EXISTS IN reader end");
+      }else{
+        console.log("FILE NO CREATED IN reader end");
 
+      }
 
+      console.log("END SHEET READER");
       // close the addedRecords file so it can be sent afterwards
       await addedRecords.endAsync();
 
       if (errors.length > 0) {
+        console.log("GOT HERE 1");
         let message =
           "Some records could not be submitted. No database changes has been applied.\n";
         message += "Please see the next list for details:\n";
@@ -236,16 +256,19 @@ workBookReader.on('worksheet', function (workSheetReader) {
             `record ${JSON.stringify(error.record)} ${error.message}: ${valErrMessages}; \n`;
         });
 
+        console.log("GOT HERE 2");
         throw new Error(message.slice(0, message.length - 1));
       }
 
+      console.log("FINAL STEP BEFORE ADDING RECORDS");
+      await transaction.rollback();
 
-      await transaction.commit();
+      //await transaction.commit();
 
       // zip comitted data and return a corresponding file path
-      let zipper = new admZip();
-      zipper.addLocalFile(addedFilePath);
-      await zipper.writeZip(addedZipFilePath);
+      //let zipper = new admZip();
+      //zipper.addLocalFile(addedFilePath);
+      //await zipper.writeZip(addedZipFilePath);
 
       console.log(addedZipFilePath);
 
@@ -261,13 +284,43 @@ workBookReader.on('worksheet', function (workSheetReader) {
     workSheetReader.process();
 });
 workBookReader.on('end', function () {
-  exports.deleteIfExists(addedFilePath);
+  try{
+    console.log("DELETE IN END END");
+    //exports.deleteIfExists(addedFilePath);
+  }catch(error){
+    console.log("ERROR CATCHED: ", error);
+  }
+
+  if(fs.existsSync(addedFilePath)){
+    console.log("FILES EXISTS IN workbook end", addedFilePath);
+    exports.deleteIfExists(addedFilePath);
+  }else{
+    console.log("FILE NO CREATED IN workbook end");
+
+  }
   console.log("DONE! :D");
+  //return "SOME MESSAGE"
+  //return addedZipFilePath;
     // end of workbook reached
 });
 
-fs.createReadStream(xlsxFilePath).pipe(workBookReader);
 
+workBookReader.on('finished', function () {
+
+  console.log("WB FINISHED");
+})
+
+console.log(workBookReader);
+let stream = fs.createReadStream(xlsxFilePath);
+stream.on('end', function(){
+  console.log("DONE STREAMING");
+} );
+
+
+
+ await stream.pipe(workBookReader);
+
+//return;
 }
 
 /**
