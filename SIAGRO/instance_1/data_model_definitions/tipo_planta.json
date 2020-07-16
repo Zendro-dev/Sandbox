@@ -8,7 +8,6 @@
     "foto_autoconsumo": "String",
     "foto_venta": "String",
     "foto_compra": "String",
-    "observaciones": "String",
     "justificacion_produccion_cuadrante1": "String",
     "justificacion_produccion_cuadrante2": "String",
     "justificacion_produccion_cuadrante3": "String",
