@@ -526,6 +526,27 @@ return new Promise( (resolve, reject)=>{
 }
 
 
+exports.parseXlsxStreamTest = async function(xlsxFilePath, model){
+
+  const workbookReader = new exceljs.stream.xlsx.WorkbookReader(xlsxFilePath);
+  let headers;
+  for await (const worksheetReader of workbookReader) {
+    console.log("NAME: ", worksheetReader.name);
+    console.log(worksheetReader);
+    for await (const row of worksheetReader) {
+     console.log("ROW: ", row._number);
+
+     for(let i=0; i< row.values.length; i++){
+
+       console.log(i, row.values[i]);
+       if(i === 4 && row._number!==1){
+         console.log(i, new Date(row.values[i]))
+       }
+     }
+     console.log(row.values);
+     }
+   }
+}
 
 /**
  * Parse by streaming a csv file and create the records in the correspondant table
