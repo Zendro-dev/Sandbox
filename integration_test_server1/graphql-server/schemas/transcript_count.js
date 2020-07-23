@@ -85,18 +85,27 @@ type Transcript_countEdge{
     field: transcript_countField
     order: Order
   }
+
+  input bulkAssociateTranscript_countWithIndividualInput{
+    id: ID!
+    individual_id: ID!
+  }
+  input bulkAssociateTranscript_countWithAminoacidsequenceInput{
+    id: ID!
+    aminoacidsequence_id: ID!
+  }
   type Query {
     transcript_counts(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput ): [transcript_count]
     readOneTranscript_count(id: ID!): transcript_count
     countTranscript_counts(search: searchTranscript_countInput ): Int
     vueTableTranscript_count : VueTableTranscript_count    csvTableTemplateTranscript_count: [String]
-
     transcript_countsConnection(search:searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput ): Transcript_countConnection
   }
-    type Mutation {
+
+  type Mutation {
     addTranscript_count( gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, addAminoacidsequence:ID   , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
     updateTranscript_count(id: ID!, gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, removeIndividual:ID , addAminoacidsequence:ID, removeAminoacidsequence:ID    , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
-  deleteTranscript_count(id: ID!): String!
-  bulkAddTranscript_countCsv: String! }
-
+    deleteTranscript_count(id: ID!): String!
+    bulkAddTranscript_countCsv: String!
+    bulkAssociateTranscript_countWithIndividual(bulkAssociationInput: [bulkAssociateTranscript_countWithIndividualInput], skipAssociationsExistenceChecks:Boolean = false): String!bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput: [bulkAssociateTranscript_countWithAminoacidsequenceInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 `;

@@ -12,9 +12,9 @@ const email = require('../../utils/email');
 const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
+const models = require(path.join(__dirname, '..', 'index.js'));
 
-
-const remoteCenzontleURL = "";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance2');
 
 // An exact copy of the the model definition that comes from the .json file
@@ -102,7 +102,7 @@ module.exports = class parrot_instance2 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -130,7 +130,7 @@ module.exports = class parrot_instance2 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -427,6 +427,60 @@ module.exports = class parrot_instance2 extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(parrot);
     }
+
+    /**
+     * bulkAssociateParrotWithPerson - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateParrotWithPerson(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "parrot_id", "person_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            person_id,
+            parrot_id
+        }) => {
+            promises.push(super.update({
+                accessionId: person_id
+            }, {
+                where: {
+                    parrot_id: parrot_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateParrotWithPerson(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "parrot_id", "person_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            person_id,
+            parrot_id
+        }) => {
+            promises.push(super.update({
+                accessionId: null
+            }, {
+                where: {
+                    parrot_id: parrot_id,
+                    person_id: person_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

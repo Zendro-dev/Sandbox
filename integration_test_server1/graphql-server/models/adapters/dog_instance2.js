@@ -7,7 +7,7 @@ const helper = require('../../utils/helper');
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-const remoteCenzontleURL = "http://server2:3030/graphql";
+const remoteZendroURL = "http://server2:3030/graphql";
 const iriRegex = new RegExp('instance2');
 
 module.exports = class dog_instance2 {
@@ -39,12 +39,12 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
@@ -52,11 +52,11 @@ module.exports = class dog_instance2 {
             if (response && response.data && response.data.data) {
                 return response.data.data.readOneDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -68,7 +68,7 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search
@@ -77,7 +77,7 @@ module.exports = class dog_instance2 {
 
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
@@ -85,11 +85,11 @@ module.exports = class dog_instance2 {
             if (response && response.data && response.data.data) {
                 return response.data.data.countDogs;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
 
     }
@@ -107,7 +107,7 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     search: search,
@@ -117,7 +117,7 @@ module.exports = class dog_instance2 {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
@@ -125,11 +125,11 @@ module.exports = class dog_instance2 {
             if (response && response.data && response.data.data) {
                 return response.data.data.dogsConnection;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -147,22 +147,22 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             if (response && response.data && response.data.data) {
                 return response.data.data.addDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -176,21 +176,21 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             if (response && response.data && response.data.data) {
                 return response.data.data.deleteDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -212,22 +212,22 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: input
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             if (response && response.data && response.data.data) {
                 return response.data.data.updateDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -237,7 +237,7 @@ module.exports = class dog_instance2 {
      *
      * @param {Id}   dog_id   IdAttribute of the root model to be updated
      * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services   
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services   
      */
 
     static async add_person_id(dog_id, person_id, benignErrorReporter) {
@@ -254,12 +254,12 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
@@ -267,11 +267,11 @@ module.exports = class dog_instance2 {
             if (response && response.data && response.data.data) {
                 return response.data.data.updateDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -283,7 +283,7 @@ module.exports = class dog_instance2 {
      *
      * @param {Id}   dog_id   IdAttribute of the root model to be updated
      * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services   
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services   
      */
 
     static async remove_person_id(dog_id, person_id, benignErrorReporter) {
@@ -300,12 +300,12 @@ module.exports = class dog_instance2 {
 
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
@@ -313,11 +313,11 @@ module.exports = class dog_instance2 {
             if (response && response.data && response.data.data) {
                 return response.data.data.updateDog;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -334,31 +334,38 @@ module.exports = class dog_instance2 {
         let query = `query { csvTableTemplateDog }`;
 
         try {
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             return response.data.data.csvTableTemplateDog;
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
-    static async bulkAssociateDogWithPerson(bulkAssociateInput, benignErrorReporter){
-        let query = `mutation  bulkAssociateDogWithPerson($bulkAssociateInput: [bulkAssociateDogWithPersonInput]){
-            bulkAssociateDogWithPerson(bulkAssociateInput: $bulkAssociateInput, skipAssociationsExistenceChecks: true) 
+    /**
+     * bulkAssociateDogWithPerson - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateDogWithPerson(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkAssociateDogWithPerson($bulkAssociationInput: [bulkAssociateDogWithPersonInput]){
+          bulkAssociateDogWithPerson(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
         }`
-        console.log("QUERY to instance 2: " + query)
-        console.log("bulkAssociateInput in Query to instance 2:" + JSON.stringify(bulkAssociateInput))
         try {
             // Send an HTTP request to the remote server
             let response = await axios.post(remoteCenzontleURL, {
                 query: query,
-                variables: {bulkAssociateInput: bulkAssociateInput}
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
+                }
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
@@ -367,8 +374,6 @@ module.exports = class dog_instance2 {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-
-            console.log("dog adapter instace 2: " +  JSON.stringify(response.data.data))
 
             if (response && response.data && response.data.data) {
                 return response.data.data.bulkAssociateDogWithPerson;
@@ -380,5 +385,44 @@ module.exports = class dog_instance2 {
             errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
         }
     }
+
+    /**
+     * bulkDisAssociateDogWithPerson - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateDogWithPerson(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkDisAssociateDogWithPerson($bulkAssociationInput: [bulkAssociateDogWithPersonInput]){
+          bulkDisAssociateDogWithPerson(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+        }`
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteCenzontleURL, {
+                query: query,
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
+                }
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkDisAssociateDogWithPerson;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+        }
+    }
+
 
 }

@@ -85,18 +85,19 @@ type LocationEdge{
     field: LocationField
     order: Order
   }
+
   type Query {
     locations(search: searchLocationInput, order: [ orderLocationInput ], pagination: paginationInput ): [Location]
     readOneLocation(locationId: ID!): Location
     countLocations(search: searchLocationInput ): Int
     vueTableLocation : VueTableLocation    csvTableTemplateLocation: [String]
-
     locationsConnection(search:searchLocationInput, order: [ orderLocationInput ], pagination: paginationCursorInput ): LocationConnection
   }
-    type Mutation {
+
+  type Mutation {
     addLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String   , addAccessions:[ID] , skipAssociationsExistenceChecks:Boolean = false): Location!
     updateLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String   , addAccessions:[ID], removeAccessions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Location!
-  deleteLocation(locationId: ID!): String!
-  bulkAddLocationCsv: String! }
-
+    deleteLocation(locationId: ID!): String!
+    bulkAddLocationCsv: String!
+    }
 `;

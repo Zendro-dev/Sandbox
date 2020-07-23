@@ -36,7 +36,10 @@ country.prototype.riversFilter = async function({
     pagination
 }, context) {
     if (await checkAuthorization(context, 'river', 'read') === true) {
-        await checkCountAndReduceRecordsLimit(search, context, 'riversFilter', 'river');
+        await checkCountAndReduceRecordsLimit({
+            search,
+            pagination
+        }, context, 'riversFilter', 'river');
         return this.riversFilterImpl({
             search,
             order,
@@ -64,7 +67,10 @@ country.prototype.riversConnection = async function({
     pagination
 }, context) {
     if (await checkAuthorization(context, 'river', 'read') === true) {
-        await checkCountAndReduceRecordsLimit(search, context, 'riversConnection', 'river');
+        await checkCountAndReduceRecordsLimit({
+            search,
+            pagination
+        }, context, 'riversConnection', 'river');
         return this.riversConnectionImpl({
             search,
             order,
@@ -140,7 +146,7 @@ country.prototype.unique_capital = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 country.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -172,7 +178,7 @@ country.prototype.add_rivers = async function(input) {
  * add_unique_capital - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 country.prototype.add_unique_capital = async function(input, benignErrorReporter) {
     await models.capital.add_country_id(input.addUnique_capital, this.getIdValue(), benignErrorReporter);
@@ -191,7 +197,7 @@ country.prototype.remove_rivers = async function(input) {
  * remove_unique_capital - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 country.prototype.remove_unique_capital = async function(input, benignErrorReporter) {
     await models.capital.remove_country_id(input.removeUnique_capital, this.getIdValue(), benignErrorReporter);
@@ -201,16 +207,46 @@ country.prototype.remove_unique_capital = async function(input, benignErrorRepor
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'country') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'country') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["country_id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "country_id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -280,7 +316,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'country', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "countries");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "countries");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await country.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -304,7 +343,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'country', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "countriesConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "countriesConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await country.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -384,7 +426,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdCountry = await country.addOne(inputSanitized, benignErrorReporter);
-            await createdCountry.handleAssociations(inputSanitized, context);
+            await createdCountry.handleAssociations(inputSanitized, benignErrorReporter);
             return createdCountry;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -446,12 +488,13 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedCountry = await country.updateOne(inputSanitized, benignErrorReporter);
-            await updatedCountry.handleAssociations(inputSanitized, context);
+            await updatedCountry.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedCountry;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
+
 
     /**
      * csvTableTemplateCountry - Returns table's template

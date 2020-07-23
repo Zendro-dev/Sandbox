@@ -61,18 +61,23 @@ input orderParrotInput{
   order: Order
 }
 
+input bulkAssociateParrotWithPersonInput{
+  parrot_id: ID!
+  person_id: ID!
+}
+
 type Query {
   readOneParrot(parrot_id: ID!): parrot
   countParrots(search: searchParrotInput ): Int
   vueTableParrot : VueTableParrot  csvTableTemplateParrot: [String]
-
   parrotsConnection(search:searchParrotInput, order: [ orderParrotInput ], pagination: paginationCursorInput ): ParrotConnection
 }
 
   type Mutation {
-  addParrot(parrot_id: ID!, name: String , addUnique_person:ID   , skipAssociationsExistenceChecks:Boolean = false): parrot!
-  updateParrot(parrot_id: ID!, name: String , addUnique_person:ID, removeUnique_person:ID    , skipAssociationsExistenceChecks:Boolean = false): parrot!
-deleteParrot(parrot_id: ID!): String!
-bulkAddParrotCsv: String }
+    addParrot(parrot_id: ID!, name: String , addUnique_person:ID   , skipAssociationsExistenceChecks:Boolean = false): parrot!
+    updateParrot(parrot_id: ID!, name: String , addUnique_person:ID, removeUnique_person:ID    , skipAssociationsExistenceChecks:Boolean = false): parrot!
+    deleteParrot(parrot_id: ID!): String!
+    bulkAddParrotCsv: String
+    bulkAssociateParrotWithPerson(bulkAssociationInput: [bulkAssociateParrotWithPersonInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 
 `;

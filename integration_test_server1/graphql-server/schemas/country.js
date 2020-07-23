@@ -65,18 +65,19 @@ type CountryEdge{
     field: countryField
     order: Order
   }
+
   type Query {
     countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput ): [country]
     readOneCountry(country_id: ID!): country
     countCountries(search: searchCountryInput ): Int
     vueTableCountry : VueTableCountry    csvTableTemplateCountry: [String]
-
     countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput ): CountryConnection
   }
-    type Mutation {
+
+  type Mutation {
     addCountry(country_id: ID!, name: String , addUnique_capital:ID  , addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): country!
     updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID   , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): country!
-  deleteCountry(country_id: ID!): String!
-  bulkAddCountryCsv: String! }
-
+    deleteCountry(country_id: ID!): String!
+    bulkAddCountryCsv: String!
+    }
 `;

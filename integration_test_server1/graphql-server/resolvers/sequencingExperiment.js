@@ -26,7 +26,7 @@ const associationArgsDef = {}
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 sequencingExperiment.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -39,16 +39,46 @@ sequencingExperiment.prototype.handleAssociations = async function(input, benign
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'sequencingExperiment') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'sequencingExperiment') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -117,7 +147,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'SequencingExperiment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "sequencingExperiments");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "sequencingExperiments");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sequencingExperiment.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -141,7 +174,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'SequencingExperiment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "sequencingExperimentsConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "sequencingExperimentsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sequencingExperiment.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -221,7 +257,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdSequencingExperiment = await sequencingExperiment.addOne(inputSanitized, benignErrorReporter);
-            await createdSequencingExperiment.handleAssociations(inputSanitized, context);
+            await createdSequencingExperiment.handleAssociations(inputSanitized, benignErrorReporter);
             return createdSequencingExperiment;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -283,12 +319,13 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedSequencingExperiment = await sequencingExperiment.updateOne(inputSanitized, benignErrorReporter);
-            await updatedSequencingExperiment.handleAssociations(inputSanitized, context);
+            await updatedSequencingExperiment.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedSequencingExperiment;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
+
 
     /**
      * csvTableTemplateSequencingExperiment - Returns table's template

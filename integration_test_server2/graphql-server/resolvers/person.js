@@ -126,7 +126,7 @@ person.prototype.dogsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -147,24 +147,26 @@ person.prototype.handleAssociations = async function(input, benignErrorReporter)
 }
 /**
  * add_dogs - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.add_dogs = async function(input, benignErrorReporter) {
-    // let results = [];
-    // for await (associatedRecordId of input.addDogs) {
-    //     results.push(models.dog.add_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    // }
-    // await Promise.all(results);
-    models.dog.add_person_id(input.addDogs, this.getIdValue(), benignErrorReporter);
+    let bulkAssociationInput = input.addDogs.map(associatedRecordId => {
+        return {
+            person_id: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.dog.bulkAssociateDogsWithPerson(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
  * add_unique_parrot - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.add_unique_parrot = async function(input, benignErrorReporter) {
     await models.parrot.add_person_id(input.addUnique_parrot, this.getIdValue(), benignErrorReporter);
@@ -172,23 +174,26 @@ person.prototype.add_unique_parrot = async function(input, benignErrorReporter) 
 
 /**
  * remove_dogs - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.remove_dogs = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.removeDogs) {
-        results.push(models.dog.remove_person_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.removeDogs.map(associatedRecordId => {
+        return {
+            person_id: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.dog.bulkAssociateDogsWithPerson(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
  * remove_unique_parrot - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.remove_unique_parrot = async function(input, benignErrorReporter) {
     await models.parrot.remove_person_id(input.removeUnique_parrot, this.getIdValue(), benignErrorReporter);
@@ -198,16 +203,46 @@ person.prototype.remove_unique_parrot = async function(input, benignErrorReporte
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'person') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'person') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["person_id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "person_id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -365,7 +400,7 @@ module.exports = {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
             let createdRecord = await person.addOne(inputSanitized, benignErrorReporter);
-            await createdRecord.handleAssociations(inputSanitized, context);
+            await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return createdRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -437,7 +472,7 @@ module.exports = {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedRecord = await person.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRecord.handleAssociations(inputSanitized, context);
+            await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -488,6 +523,7 @@ module.exports = {
             }
         }
     },
+
 
     /**
      * csvTableTemplatePerson - Returns table's template

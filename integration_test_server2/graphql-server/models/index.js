@@ -29,7 +29,7 @@ fs.readdirSync(__dirname + "/sql")
             model = require(`../${patches_patch}`).logic_patch(model);
         }
 
-        if(models[model.name])
+        if(model.name in models)
             throw Error(`Duplicated model name ${model.name}`);
 
         models[model.name] = model;
@@ -67,22 +67,22 @@ fs.readdirSync(__dirname + "/generic")
             model = require(`../${patches_patch}`).logic_patch(model);
         }
 
-        if(models[model.name])
+        if(model.name in models)
             throw Error(`Duplicated model name ${model.name}`);
 
         models[model.name] = model;
     });
 
 // **********************************************************************************
-// IMPORT CENZ SERVICES
+// IMPORT ZENDRO SERVICES
 
-fs.readdirSync(__dirname + "/cenz-server")
+fs.readdirSync(__dirname + "/zendro-server")
     .filter(function(file) {
         return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file.slice(-3) === '.js');
     })
     .forEach(function(file) {
         console.log("loaded model: " + file);
-        let model = require(`./${path.join("./cenz-server", file)}`);
+        let model = require(`./${path.join("./zendro-server", file)}`);
 
         let validator_patch = path.join('./validations', file);
         if(fs.existsSync(validator_patch)){
@@ -94,7 +94,7 @@ fs.readdirSync(__dirname + "/cenz-server")
             model = require(`../${patches_patch}`).logic_patch(model);
         }
 
-        if(models[model.name])
+        if(model.name in models)
             throw Error(`Duplicated model name ${model.name}`);
 
         models[model.name] = model;
@@ -116,7 +116,7 @@ fs.readdirSync(__dirname + "/distributed")
             model = require(`../${validator_patch}`).validator_patch(model);
         }
 
-        if(models[model.name])
+        if(model.name in models)
             throw Error(`Duplicated model name ${model.name}`);
 
         models[model.name] = model;

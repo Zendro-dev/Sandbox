@@ -12,9 +12,9 @@ const email = require('../../utils/email');
 const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
+const models = require(path.join(__dirname, '..', 'index.js'));
 
-
-const remoteCenzontleURL = "";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance2');
 
 // An exact copy of the the model definition that comes from the .json file
@@ -102,7 +102,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -130,7 +130,7 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -424,36 +424,63 @@ module.exports = class dog_instance2 extends Sequelize.Model {
         return `Bulk import of dog_instance2 records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
-    static async bulkAssociateDogWithPerson(bulkAssociateInput){
-        console.log("On instance 2 bulkAssociateInput: " + JSON.stringify(bulkAssociateInput))
-        let builtBulkAssociateInput = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociateInput, "dog_id", "person_id");
-        console.log("builtBulkAssociateInput: " + JSON.stringify(builtBulkAssociateInput))
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(dog);
+    }
+
+    /**
+     * bulkAssociateDogWithPerson - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateDogWithPerson(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
         var promises = [];
-        builtBulkAssociateInput.forEach(({person_id, dog_id}) => {
+        mappedForeignKeys.forEach(({
+            person_id,
+            dog_id
+        }) => {
             promises.push(super.update({
-                person_id: person_id
-                }, {
-                where: {    
+                accessionId: person_id
+            }, {
+                where: {
                     dog_id: dog_id
                 }
             }));
         })
-        await Promise.all(promises)
-        // let updated = await Measurement.update({
-        //     accessionId: accession
-        // }, {
-        //     where: {    
-        //         measurement_id: measurement_id_Array
-        //     }
-        // });
-        // return updated;
-        // return "Records successfully associated!"
+        await Promise.all(promises);
+        return "Records successfully updated!"
     }
 
-
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(dog);
+    /**
+     * bulkDisAssociateDogWithPerson - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateDogWithPerson(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            person_id,
+            dog_id
+        }) => {
+            promises.push(super.update({
+                accessionId: null
+            }, {
+                where: {
+                    dog_id: dog_id,
+                    person_id: person_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
     }
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

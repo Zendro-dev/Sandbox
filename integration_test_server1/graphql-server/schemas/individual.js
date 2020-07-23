@@ -64,18 +64,19 @@ type IndividualEdge{
     field: individualField
     order: Order
   }
+
   type Query {
     individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput ): [individual]
     readOneIndividual(id: ID!): individual
     countIndividuals(search: searchIndividualInput ): Int
     vueTableIndividual : VueTableIndividual    csvTableTemplateIndividual: [String]
-
     individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput ): IndividualConnection
   }
-    type Mutation {
+
+  type Mutation {
     addIndividual( name: String   , addTranscript_counts:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
     updateIndividual(id: ID!, name: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
-  deleteIndividual(id: ID!): String!
-  bulkAddIndividualCsv: String! }
-
+    deleteIndividual(id: ID!): String!
+    bulkAddIndividualCsv: String!
+    }
 `;

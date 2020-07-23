@@ -86,18 +86,23 @@ type AccessionEdge{
     field: AccessionField
     order: Order
   }
+
+  input bulkAssociateAccessionWithLocationInput{
+    accession_id: ID!
+    locationId: ID!
+  }
   type Query {
     accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
     readOneAccession(accession_id: ID!): Accession
     countAccessions(search: searchAccessionInput ): Int
     vueTableAccession : VueTableAccession    csvTableTemplateAccession: [String]
-
     accessionsConnection(search:searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput ): AccessionConnection
   }
-    type Mutation {
+
+  type Mutation {
     addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
     updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
-  deleteAccession(accession_id: ID!): String!
-  bulkAddAccessionCsv: String! }
-
+    deleteAccession(accession_id: ID!): String!
+    bulkAddAccessionCsv: String!
+    bulkAssociateAccessionWithLocation(bulkAssociationInput: [bulkAssociateAccessionWithLocationInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 `;

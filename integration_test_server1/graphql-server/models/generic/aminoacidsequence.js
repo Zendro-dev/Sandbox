@@ -84,7 +84,7 @@ module.exports = class aminoacidsequence {
     /**
      * countRecords - Count the number of records of model aminoacidsequence that match the filters provided
      * in the @search parameter. Returns the number of records counted.
-     * @see: Cenzontle specifications for search object.
+     * @see: Zendro specifications for search object.
      * 
      * Thrown on:
      *    * Error.
@@ -123,8 +123,8 @@ module.exports = class aminoacidsequence {
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class aminoacidsequence;
-     * @see: Cenzontle specifications for limit-offset pagination.
-     * @see: Cenzontle specifications for search and order objects.
+     * @see: Zendro specifications for limit-offset pagination.
+     * @see: Zendro specifications for search and order objects.
      * 
      * @param  {object} search     Object with search filters.
      * @param  {object} order      Object with order specifications.
@@ -160,8 +160,8 @@ module.exports = class aminoacidsequence {
      * 
      * where record is an object with all its properties set from a record fetched.
      * @see: constructor() of the class aminoacidsequence;
-     * @see: Cenzontle specificatons for cursor based pagination.
-     * @see: Cenzontle specifications for search and order objects.
+     * @see: Zendro specificatons for cursor based pagination.
+     * @see: Zendro specifications for search and order objects.
      * 
      * @param  {object} search     Object with search filters.
      * @param  {object} order      Object with order specifications.
@@ -186,7 +186,7 @@ module.exports = class aminoacidsequence {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -231,7 +231,7 @@ module.exports = class aminoacidsequence {
                 } else { //backward
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        paginationSearch = helper.parseOrderCursorGenericBefore(search, options['order'], decoded_cursor, "id", pagination.includeCursor);
+                        paginationSearch = helper.parseOrderCursorBeforeGeneric(search, options['order'], decoded_cursor, "id", pagination.includeCursor);
                     }
                 }
             }
@@ -458,6 +458,8 @@ module.exports = class aminoacidsequence {
     static async csvTableTemplate(benignErrorReporter) {
         return helper.csvTableTemplate(definition);
     }
+
+
 
 
 

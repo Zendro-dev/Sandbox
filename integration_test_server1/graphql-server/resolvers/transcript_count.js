@@ -32,7 +32,7 @@ transcript_count.prototype.individual = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.individual_id)) {
-        if (search === undefined) {
+        if (search === undefined || search === null) {
             return resolvers.readOneIndividual({
                 [models.individual.idAttribute()]: this.individual_id
             }, context)
@@ -68,7 +68,7 @@ transcript_count.prototype.aminoacidsequence = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.aminoacidsequence_id)) {
-        if (search === undefined) {
+        if (search === undefined || search === null) {
             return resolvers.readOneAminoacidsequence({
                 [models.aminoacidsequence.idAttribute()]: this.aminoacidsequence_id
             }, context)
@@ -101,7 +101,7 @@ transcript_count.prototype.aminoacidsequence = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 transcript_count.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -126,7 +126,7 @@ transcript_count.prototype.handleAssociations = async function(input, benignErro
  * add_individual - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 transcript_count.prototype.add_individual = async function(input, benignErrorReporter) {
     await transcript_count.add_individual_id(this.getIdValue(), input.addIndividual, benignErrorReporter);
@@ -137,7 +137,7 @@ transcript_count.prototype.add_individual = async function(input, benignErrorRep
  * add_aminoacidsequence - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 transcript_count.prototype.add_aminoacidsequence = async function(input, benignErrorReporter) {
     await transcript_count.add_aminoacidsequence_id(this.getIdValue(), input.addAminoacidsequence, benignErrorReporter);
@@ -148,7 +148,7 @@ transcript_count.prototype.add_aminoacidsequence = async function(input, benignE
  * remove_individual - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 transcript_count.prototype.remove_individual = async function(input, benignErrorReporter) {
     if (input.removeIndividual == this.individual_id) {
@@ -161,7 +161,7 @@ transcript_count.prototype.remove_individual = async function(input, benignError
  * remove_aminoacidsequence - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 transcript_count.prototype.remove_aminoacidsequence = async function(input, benignErrorReporter) {
     if (input.removeAminoacidsequence == this.aminoacidsequence_id) {
@@ -174,16 +174,46 @@ transcript_count.prototype.remove_aminoacidsequence = async function(input, beni
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'transcript_count') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'transcript_count') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -254,7 +284,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "transcript_counts");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "transcript_counts");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await transcript_count.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -278,7 +311,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "transcript_countsConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "transcript_countsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await transcript_count.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -358,7 +394,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdTranscript_count = await transcript_count.addOne(inputSanitized, benignErrorReporter);
-            await createdTranscript_count.handleAssociations(inputSanitized, context);
+            await createdTranscript_count.handleAssociations(inputSanitized, benignErrorReporter);
             return createdTranscript_count;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -420,11 +456,92 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedTranscript_count = await transcript_count.updateOne(inputSanitized, benignErrorReporter);
-            await updatedTranscript_count.handleAssociations(inputSanitized, context);
+            await updatedTranscript_count.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedTranscript_count;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
+    },
+
+    /**
+     * bulkAssociateTranscript_countWithIndividual - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateTranscript_countWithIndividual: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                individual_id
+            }) => individual_id)), models.individual);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), transcript_count);
+        }
+        return await transcript_count.bulkAssociateTranscript_countWithIndividual(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkAssociateTranscript_countWithAminoacidsequence - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateTranscript_countWithAminoacidsequence: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                aminoacidsequence_id
+            }) => aminoacidsequence_id)), models.aminoacidsequence);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), transcript_count);
+        }
+        return await transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateTranscript_countWithIndividual - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateTranscript_countWithIndividual: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                individual_id
+            }) => individual_id)), models.individual);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), transcript_count);
+        }
+        return await transcript_count.bulkDisAssociateTranscript_countWithIndividual(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateTranscript_countWithAminoacidsequence - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateTranscript_countWithAminoacidsequence: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                aminoacidsequence_id
+            }) => aminoacidsequence_id)), models.aminoacidsequence);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), transcript_count);
+        }
+        return await transcript_count.bulkDisAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

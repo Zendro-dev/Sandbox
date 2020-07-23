@@ -120,7 +120,7 @@ location.prototype.accessionsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 location.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -135,46 +135,82 @@ location.prototype.handleAssociations = async function(input, benignErrorReporte
 }
 /**
  * add_accessions - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 location.prototype.add_accessions = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.addAccessions) {
-        results.push(models.accession.add_locationId(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.addAccessions.map(associatedRecordId => {
+        return {
+            locationId: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.accession.bulkAssociateAccessionsWithLocation(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
  * remove_accessions - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 location.prototype.remove_accessions = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.removeAccessions) {
-        results.push(models.accession.remove_locationId(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.removeAccessions.map(associatedRecordId => {
+        return {
+            locationId: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.accession.bulkAssociateAccessionsWithLocation(bulkAssociationInput, benignErrorReporter);
 }
 
 
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'location') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'location') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["locationId", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "locationId", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -244,7 +280,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "locations");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "locations");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await location.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -268,7 +307,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Location', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "locationsConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "locationsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await location.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -348,7 +390,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdLocation = await location.addOne(inputSanitized, benignErrorReporter);
-            await createdLocation.handleAssociations(inputSanitized, context);
+            await createdLocation.handleAssociations(inputSanitized, benignErrorReporter);
             return createdLocation;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -410,12 +452,13 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedLocation = await location.updateOne(inputSanitized, benignErrorReporter);
-            await updatedLocation.handleAssociations(inputSanitized, context);
+            await updatedLocation.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedLocation;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
+
 
     /**
      * csvTableTemplateLocation - Returns table's template

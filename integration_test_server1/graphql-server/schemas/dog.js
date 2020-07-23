@@ -70,15 +70,14 @@ type Query {
   readOneDog(dog_id: ID!): dog
   countDogs(search: searchDogInput ): Int
   vueTableDog : VueTableDog  csvTableTemplateDog: [String]
-
   dogsConnection(search:searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput ): DogConnection
 }
 
   type Mutation {
-  addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
-  updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
-deleteDog(dog_id: ID!): String!
-bulkAddDogCsv: String
-bulkAssociateDogWithPerson(bulkAssociateInput: [bulkAssociateDogWithPersonInput], skipAssociationsExistenceChecks:Boolean = false): String! }
+    addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
+    updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
+    deleteDog(dog_id: ID!): String!
+    bulkAddDogCsv: String
+    bulkAssociateDogWithPerson(bulkAssociationInput: [bulkAssociateDogWithPersonInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 
 `;

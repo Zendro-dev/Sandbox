@@ -120,7 +120,7 @@ aminoacidsequence.prototype.transcript_countsConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 aminoacidsequence.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -135,46 +135,82 @@ aminoacidsequence.prototype.handleAssociations = async function(input, benignErr
 }
 /**
  * add_transcript_counts - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 aminoacidsequence.prototype.add_transcript_counts = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.addTranscript_counts) {
-        results.push(models.transcript_count.add_aminoacidsequence_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.addTranscript_counts.map(associatedRecordId => {
+        return {
+            aminoacidsequence_id: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
  * remove_transcript_counts - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 aminoacidsequence.prototype.remove_transcript_counts = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.removeTranscript_counts) {
-        results.push(models.transcript_count.remove_aminoacidsequence_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.removeTranscript_counts.map(associatedRecordId => {
+        return {
+            aminoacidsequence_id: this.getIdValue(),
+            associatedRecordId: associatedRecordId
+        }
+    });
+    await models.transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput, benignErrorReporter);
 }
 
 
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'aminoacidsequence') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'aminoacidsequence') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -244,7 +280,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'aminoacidsequence', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "aminoacidsequences");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "aminoacidsequences");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await aminoacidsequence.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -268,7 +307,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'aminoacidsequence', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "aminoacidsequencesConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "aminoacidsequencesConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await aminoacidsequence.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -348,7 +390,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let createdAminoacidsequence = await aminoacidsequence.addOne(inputSanitized, benignErrorReporter);
-            await createdAminoacidsequence.handleAssociations(inputSanitized, context);
+            await createdAminoacidsequence.handleAssociations(inputSanitized, benignErrorReporter);
             return createdAminoacidsequence;
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -410,12 +452,13 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedAminoacidsequence = await aminoacidsequence.updateOne(inputSanitized, benignErrorReporter);
-            await updatedAminoacidsequence.handleAssociations(inputSanitized, context);
+            await updatedAminoacidsequence.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedAminoacidsequence;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
+
 
     /**
      * csvTableTemplateAminoacidsequence - Returns table's template

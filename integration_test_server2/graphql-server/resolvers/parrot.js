@@ -29,7 +29,7 @@ parrot.prototype.unique_person = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.person_id)) {
-        if (search === undefined) {
+        if (search === undefined || search === null) {
             return resolvers.readOnePerson({
                 [models.person.idAttribute()]: this.person_id
             }, context)
@@ -62,7 +62,7 @@ parrot.prototype.unique_person = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 parrot.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -81,7 +81,7 @@ parrot.prototype.handleAssociations = async function(input, benignErrorReporter)
  * add_unique_person - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 parrot.prototype.add_unique_person = async function(input, benignErrorReporter) {
     await parrot.add_person_id(this.getIdValue(), input.addUnique_person, benignErrorReporter);
@@ -92,7 +92,7 @@ parrot.prototype.add_unique_person = async function(input, benignErrorReporter) 
  * remove_unique_person - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 parrot.prototype.remove_unique_person = async function(input, benignErrorReporter) {
     if (input.removeUnique_person == this.person_id) {
@@ -105,16 +105,46 @@ parrot.prototype.remove_unique_person = async function(input, benignErrorReporte
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'parrot') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'parrot') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["parrot_id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "parrot_id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -271,7 +301,7 @@ module.exports = {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
             let createdRecord = await parrot.addOne(inputSanitized, benignErrorReporter);
-            await createdRecord.handleAssociations(inputSanitized, context);
+            await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return createdRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -343,7 +373,7 @@ module.exports = {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedRecord = await parrot.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRecord.handleAssociations(inputSanitized, context);
+            await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedRecord;
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -393,6 +423,47 @@ module.exports = {
                 throw new Error('No available adapters for data model "parrot"');
             }
         }
+    },
+
+    /**
+     * bulkAssociateParrotWithPerson - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateParrotWithPerson: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                person_id
+            }) => person_id)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                parrot_id
+            }) => parrot_id)), parrot);
+        }
+        return await parrot.bulkAssociateParrotWithPerson(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateParrotWithPerson: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                person_id
+            }) => person_id)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                parrot_id
+            }) => parrot_id)), parrot);
+        }
+        return await parrot.bulkDisAssociateParrotWithPerson(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

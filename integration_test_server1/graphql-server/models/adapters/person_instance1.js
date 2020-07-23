@@ -12,9 +12,9 @@ const email = require('../../utils/email');
 const fs = require('fs');
 const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
+const models = require(path.join(__dirname, '..', 'index.js'));
 
-
-const remoteCenzontleURL = "";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance1');
 
 // An exact copy of the the model definition that comes from the .json file
@@ -105,7 +105,7 @@ module.exports = class person_instance1 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -133,7 +133,7 @@ module.exports = class person_instance1 extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -389,6 +389,23 @@ module.exports = class person_instance1 extends Sequelize.Model {
     static csvTableTemplate() {
         return helper.csvTableTemplate(person);
     }
+
+    /**
+     * bulkAssociatePersonWithParrot - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+
+    /**
+     * bulkDisAssociatePersonWithParrot - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

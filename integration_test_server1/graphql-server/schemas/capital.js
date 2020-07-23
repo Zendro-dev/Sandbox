@@ -56,18 +56,23 @@ type CapitalEdge{
     field: capitalField
     order: Order
   }
+
+  input bulkAssociateCapitalWithCountryInput{
+    capital_id: ID!
+    country_id: ID!
+  }
   type Query {
     capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput ): [capital]
     readOneCapital(capital_id: ID!): capital
     countCapitals(search: searchCapitalInput ): Int
     vueTableCapital : VueTableCapital    csvTableTemplateCapital: [String]
-
     capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput ): CapitalConnection
   }
-    type Mutation {
+
+  type Mutation {
     addCapital(capital_id: ID!, name: String , addUnique_country:ID   , skipAssociationsExistenceChecks:Boolean = false): capital!
     updateCapital(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID    , skipAssociationsExistenceChecks:Boolean = false): capital!
-  deleteCapital(capital_id: ID!): String!
-  bulkAddCapitalCsv: String! }
-
+    deleteCapital(capital_id: ID!): String!
+    bulkAddCapitalCsv: String!
+    bulkAssociateCapitalWithCountry(bulkAssociationInput: [bulkAssociateCapitalWithCountryInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 `;

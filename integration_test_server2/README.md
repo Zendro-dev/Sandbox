@@ -1,7 +1,7 @@
 # ScienceDBStarterPack
 
 This is a collection of skeleton projects and code generators used to get a new
-user started with ScienceDb. To
+user started with Zendro. To get you started 
 example sandbox data model definitions have been provided. You find them in
 `./data_model_definitions/`.
 
@@ -10,15 +10,15 @@ example sandbox data model definitions have been provided. You find them in
 You should have basic knowledge of the following technology-stack:
 * [`Node.js`](https://nodejs.dev/)
 * [`GraphQL`](https://graphql.org/)
-* [`Vue.js`](https://vuejs.org/)
+* [`REACT.js`](https://reactjs.org/)
 * [`docker`](https://www.docker.com/)
-* [`git`](https://git-scm.com/), especially "git submodules"
+* [`git`](https://git-scm.com/)
 * [`Linux Shell`](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
 
 _Note_, that this project is meant to be used on a `*nix` system, preferably
 Linux.
 
-## Install and init git submodules
+## Install and setup skeleton servers
 
 First you need to `git clone` this project into a local directory on your host
 system:
@@ -26,73 +26,25 @@ system:
 git clone https://github.com/ScienceDb/ScienceDbStarterPack.git
 ```
 
-The skeleton GraphQL server and the single page application server projects are
-managed as `git submodule`s. "Skeleton" means that these projects provide all
-the code needed to start a server, but actually have no code particular to any
-data model. This "particular" code you will generate with ScienceDb's code
+The skeleton [GraphQL server](https://github.com/ScienceDb/graphql-server) and the 
+skeleton [single page application server](https://github.com/ScienceDb/single-page-app) projects are managed as different git repositories.
+"Skeleton" means that these projects provide all the code needed
+to start a server, but actually have no code particular to any
+data model. This "particular" code you will generate with Zendro's code
 generators (see below).
 
-_Note_ that using git submodules is a good solution for this Starter-Pack
-project. Nonetheless, as git developers themselves admit "Using submodules
-isn’t without hiccups, however." See [the official git book, chapter
-submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) for more
-details on git submodules.
-
-Setup the skeleton servers:
+### Setup the skeleton servers
 ```
-git submodule init
-git submodule update --init --recursive
+./setup.sh
 ```
-
-### Update submodules to latest remote repository versions
-
-If you want to update your skeleton server projects managed as git submodules
-to the latest remote repository version, run the following command:
-```
-git submodule foreach git pull origin master
-```
-
-### Start your own branch of the servers 
-
-To correctly manage your code with git you will need to create your own
-branches of the servers. Furthermore, you might have to add your own remote
-repository to which to push your new code.
-
-To achieve this the most recommendable way is to fork the two server projects
-on github:
-* [`graphql-server`](https://github.com/ScienceDb/graphql-server)
-* [`single-page-application`](https://github.com/ScienceDb/single-page-app)
-
-Then update your submodules (the servers) to track your own forked version of
-the two repositories. To update the git URLs simply edit the file `.gitmodules`.
-For example change 
-```
-[submodule "graphql-server"]
-  path = graphql-server
-  url = https://github.com/ScienceDb/graphql-server.git
-```
-to
-```
-[submodule "graphql-server"]
-  path = graphql-server
-  url = https://github.com/MyGitHubName/graphql-server.git
-```
-
-Then run the following commands:
-```
-git submodule sync
-git submodule update --init --recursive --remote
-```
-
-#### Switch to a new feature-branch
-
-```
-git submodule foreach 'git checkout -b featureA'
-```
+Using the `setup.sh` bash skript will add the latest versions of the skeleton 
+projects, tagged as `latest-stable` to the directory. You should now have two 
+folders `graphql-server` and `single-page-app` in your StarterPack root directory.
+Running the command will also automatically add a modified version of the graphql-server `graphiql-auth` into your directory, which offers the graphiql browser interface with a login. See [here](https://github.com/ScienceDb/graphiql-auth) for more information.   
 
 ## Install the code generators within a dedicated Docker image
 
-To avoid having to install the ScienceDb code-generators on your host system we
+To avoid having to install the Zendro code-generators on your host system we
 provide a dedicated Docker image in which two code generators are installed and
 ready to be used. 
 
@@ -104,7 +56,7 @@ docker build -f Dockerfile.code-generators -t sciencedb-code-generators:latest .
 
 Within the directory `./data_model_definitions` you can place your data model
 definitions in respective `JSON` files. To learn more about how to define data
-models with ScienceDb please see our [manual and
+models with Zendro please see our [manual and
 documentation](https://sciencedb.github.io/).
 
 ### Use default user and roles
@@ -160,7 +112,7 @@ single-page-app-codegen --jsonFiles /opt/data_model_definitions -o /opt/single-p
 Be very carefull when running the code generators multiple times on the same data model definitions. Two nasty things can happen:
 
 1. You might overwrite manual changes you might have made to come of the code that was automatically generated.
-2. In the case of relational databases, ScienceDb code generators also create migrations (using Sequelize). As these are named using the current date, you might have several migrations to create the same tables. This will lead to errors. Make sure you delete the migrations folder content, if you want to run the code generators multiple times on the same model definitions: `rm ./graphql-server/migrations/*`. 
+2. In the case of relational databases, Zendro code generators also create migrations (using Sequelize). As these are named using the current date, you might have several migrations to create the same tables. This will lead to errors. Make sure you delete the migrations folder content, if you want to run the code generators multiple times on the same model definitions: `rm ./graphql-server/migrations/*`. 
 
 ## Start the servers
 
@@ -177,23 +129,24 @@ URLs to use for login and to send GraphQL queries to. This is controlled by the
 following environment variables of `sdb_science_db_app_server` in the two
 docker-compose files.
 
-* `VUE_APP_SERVER_URL=http://localhost:3000/graphql`
-* `VUE_APP_LOGIN_URL=http://localhost:3000/login`
-* `VUE_APP_MAX_UPLOAD_SIZE=500`
+* `REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql`
+* `REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login`
+* `REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500`
 
 For more details see our [manual](https://sciencedb.github.io/) and the
 [single-page-application
 `README`](https://github.com/ScienceDb/single-page-app/blob/master/README.md).
 
-If you want to access the GraphiQL interface (`http://localhost:3000/graphql`) without a login, toggle the associated environment variable:
+If you want to access the GraphiQL interface (`http://localhost:3000/graphql`) without a authorization token, toggle the associated environment variable:
 ```
 REQUIRE_SIGN_IN="false"
 ```
+in the docker-compose file.
 For more details about the graphql-server environment variables see the [graphql-server `README`](https://github.com/ScienceDb/graphql-server/blob/master/README.md)
 
 #### Access Control
 
-ScienceDb can be used checking access rights for every single GraphQL query
+Zendro can be used checking access rights for every single GraphQL query
 received by the currently logged in user identified by the respective [JSON Web
 Token](https://jwt.io/) found in the request header. The user is decoded and
 his roles are loaded to check his access rights. This step is carried out by
@@ -201,7 +154,7 @@ the [NPM acl package](https://www.npmjs.com/package/acl). Respective access
 rights can and must be declared in the file
 [`./graphql-server/acl_rules.js`](https://github.com/ScienceDb/graphql-server/blob/master/acl_rules.js).
 
-You can run ScienceDb with or without this access control check. The default is
+You can run Zendro with or without this access control check. The default is
 to run it _without_ checking access rights. 
 
 To switch access right check on, you must uncomment the command line switch
@@ -274,9 +227,9 @@ npm run build
 
 See the `environment` section of the `sdb_nginx` image in `docker-compose.yml`.
 
-* `MY_SERVER_URL` - url where your backend server will be running, default value is http://localhost:3000/graphql
-* `MY_LOGIN_URL` - url where your backend will check authentication, default value is http://localhost:3000/login.
-* `MAX_UPLOAD_SIZE` - maximum size(in MB) of a file intended to be uploaded, default value is 500, which means that user can not upload a file larger than 500MB.
+* `REACT_APP_ZENDRO_GRAPHQL_SERVER` - url where your backend server will be running, default value is http://localhost:3000/graphql
+* `REACT_APP_ZENDRO_LOGIN_URL` - url where your backend will check authentication, default value is http://localhost:3000/login.
+* `REACT_APP_ZENDRO_MAX_UPLOAD_SIZE` - maximum size(in MB) of a file intended to be uploaded, default value is 500, which means that user can not upload a file larger than 500MB.
 
 The above is taken from the [single-page-app `README`](https://github.com/ScienceDb/single-page-app/blob/master/README.md)
 

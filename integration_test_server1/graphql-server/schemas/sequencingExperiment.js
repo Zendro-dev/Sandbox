@@ -69,18 +69,19 @@ type SequencingExperimentEdge{
     field: SequencingExperimentField
     order: Order
   }
+
   type Query {
     sequencingExperiments(search: searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationInput ): [SequencingExperiment]
     readOneSequencingExperiment(id: ID!): SequencingExperiment
     countSequencingExperiments(search: searchSequencingExperimentInput ): Int
     vueTableSequencingExperiment : VueTableSequencingExperiment    csvTableTemplateSequencingExperiment: [String]
-
     sequencingExperimentsConnection(search:searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationCursorInput ): SequencingExperimentConnection
   }
-    type Mutation {
+
+  type Mutation {
     addSequencingExperiment( name: String, start_date: Date, end_date: Date, description: String    , skipAssociationsExistenceChecks:Boolean = false): SequencingExperiment!
     updateSequencingExperiment(id: ID!, name: String, start_date: Date, end_date: Date, description: String    , skipAssociationsExistenceChecks:Boolean = false): SequencingExperiment!
-  deleteSequencingExperiment(id: ID!): String!
-  bulkAddSequencingExperimentCsv: String! }
-
+    deleteSequencingExperiment(id: ID!): String!
+    bulkAddSequencingExperimentCsv: String!
+    }
 `;

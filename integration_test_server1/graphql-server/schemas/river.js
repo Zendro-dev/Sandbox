@@ -71,18 +71,19 @@ type RiverEdge{
     field: riverField
     order: Order
   }
+
   type Query {
     rivers(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput ): [river]
     readOneRiver(river_id: ID!): river
     countRivers(search: searchRiverInput ): Int
     vueTableRiver : VueTableRiver    csvTableTemplateRiver: [String]
-
     riversConnection(search:searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput ): RiverConnection
   }
-    type Mutation {
+
+  type Mutation {
     addRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): river!
     updateRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): river!
-  deleteRiver(river_id: ID!): String!
-  bulkAddRiverCsv: String! }
-
+    deleteRiver(river_id: ID!): String!
+    bulkAddRiverCsv: String!
+    }
 `;

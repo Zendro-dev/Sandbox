@@ -70,18 +70,23 @@ type MeasurementEdge{
     field: MeasurementField
     order: Order
   }
+
+  input bulkAssociateMeasurementWithAccessionInput{
+    measurement_id: ID!
+    accessionId: ID!
+  }
   type Query {
     measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput ): [Measurement]
     readOneMeasurement(measurement_id: ID!): Measurement
     countMeasurements(search: searchMeasurementInput ): Int
     vueTableMeasurement : VueTableMeasurement    csvTableTemplateMeasurement: [String]
-
     measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput ): MeasurementConnection
   }
-    type Mutation {
+
+  type Mutation {
     addMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID   , skipAssociationsExistenceChecks:Boolean = false): Measurement!
     updateMeasurement(measurement_id: ID!, name: String, method: String, reference: String , addAccession:ID, removeAccession:ID    , skipAssociationsExistenceChecks:Boolean = false): Measurement!
-  deleteMeasurement(measurement_id: ID!): String!
-  bulkAddMeasurementCsv: String! }
-
+    deleteMeasurement(measurement_id: ID!): String!
+    bulkAddMeasurementCsv: String!
+    bulkAssociateMeasurementWithAccession(bulkAssociationInput: [bulkAssociateMeasurementWithAccessionInput], skipAssociationsExistenceChecks:Boolean = false): String!}
 `;

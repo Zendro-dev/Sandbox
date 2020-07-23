@@ -8,6 +8,13 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 // Dear user, edit the schema to adjust it to your model
 module.exports.validator_patch = function(sequencingExperiment) {
 
+    sequencingExperiment.prototype.validationControl = {
+        validateForCreate: true,
+        validateForUpdate: true,
+        validateForDelete: false,
+        validateAfterRead: false
+    }
+
     sequencingExperiment.prototype.validatorSchema = {
         "$async": true,
         "properties": {
@@ -39,10 +46,7 @@ module.exports.validator_patch = function(sequencingExperiment) {
     )
 
     sequencingExperiment.prototype.validateForCreate = async function(record) {
-        let ret = await sequencingExperiment.prototype.asyncValidate(record);
-        console.log("\n\nret: " + ret + "\n\n")
-        console.log("\n\nret: " + JSON.stringify(ret) + "\n\n")
-        return ret;
+        return await sequencingExperiment.prototype.asyncValidate(record)
     }
 
     sequencingExperiment.prototype.validateForUpdate = async function(record) {
@@ -61,13 +65,7 @@ module.exports.validator_patch = function(sequencingExperiment) {
     }
 
     sequencingExperiment.prototype.validateAfterRead = async function(record) {
-
-        //TODO: on the input you have the record validated, no generic
-        // validation checks are available.
-
-        return {
-            error: null
-        }
+        return await sequencingExperiment.prototype.asyncValidate(record)
     }
 
     return sequencingExperiment
