@@ -6,30 +6,30 @@ module.exports = `
     accession_id: ID
     """
     @original-field
-
+    
     """
     collectors_name: String
 
     """
     @original-field
-
+    
     """
     collectors_initials: String
 
     """
     @original-field
-
+    
     """
     sampling_date: Date
 
     """
     @original-field
-
+    
     """
     locationId: String
 
     location(search: searchLocationInput): Location
-
+    
     """
     @search-request
     """
@@ -45,7 +45,7 @@ module.exports = `
     @count-request
     """
     countFilteredMeasurements(search: searchMeasurementInput) : Int
-
+  
     }
 type AccessionConnection{
   edges: [AccessionEdge]
@@ -97,9 +97,7 @@ type AccessionEdge{
     type Mutation {
     addAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): Accession!
     updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
-    deleteAccession(accession_id: ID!): String!
-    bulkAddAccessionCsv: String!
-    bulkAddAccessionXlsx: String!
-  }
+  deleteAccession(accession_id: ID!): String!
+  bulkAddAccessionCsv: String! }
 
 `;

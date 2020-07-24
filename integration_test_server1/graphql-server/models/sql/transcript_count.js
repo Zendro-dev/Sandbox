@@ -108,7 +108,7 @@ module.exports = class transcript_count extends Sequelize.Model {
 
     static async countRecords(search) {
         let options = {};
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -124,7 +124,7 @@ module.exports = class transcript_count extends Sequelize.Model {
 
     static readAll(search, order, pagination, benignErrorReporter) {
         let options = {};
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -180,7 +180,7 @@ module.exports = class transcript_count extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {

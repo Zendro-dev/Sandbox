@@ -186,7 +186,7 @@ module.exports = class aminoacidsequence {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -231,7 +231,7 @@ module.exports = class aminoacidsequence {
                 } else { //backward
                     if (pagination.before) {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        paginationSearch = helper.parseOrderCursorGenericBefore(search, options['order'], decoded_cursor, "id", pagination.includeCursor);
+                        paginationSearch = helper.parseOrderCursorBeforeGeneric(search, options['order'], decoded_cursor, "id", pagination.includeCursor);
                     }
                 }
             }

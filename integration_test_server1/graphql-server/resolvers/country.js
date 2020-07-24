@@ -104,16 +104,46 @@ country.prototype.remove_unique_capital = async function(input, benignErrorRepor
 
 
 /**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
+ * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
+ * set of requested records does not exceed the record limit set in globals.js.
  *
- * @param {object} search  Search argument for filtering records
+ * @param {object} {search}  Search argument for filtering records
+ * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
+ * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
+ * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
+ * to start fetching.
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @param {string} resolverName The resolver that makes this check
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, modelName = 'country') {
-    let count = (await models[modelName].countRecords(search));
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
+async function checkCountAndReduceRecordsLimit({
+    search,
+    pagination
+}, context, resolverName, modelName = 'country') {
+    //defaults
+    let inputPaginationValues = {
+        limit: undefined,
+        offset: 0,
+        search: undefined,
+        order: [
+            ["country_id", "ASC"]
+        ],
+    }
+
+    //check search
+    helper.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = helper.getGenericPaginationValues(pagination, "country_id", inputPaginationValues);
+    //get records count
+    let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    //do check and reduce of record limit.
+    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
 /**
@@ -183,7 +213,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'country', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "countries");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "countries");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await country.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -207,7 +240,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'country', 'read') === true) {
-            await checkCountAndReduceRecordsLimit(search, context, "countriesConnection");
+            await checkCountAndReduceRecordsLimit({
+                search,
+                pagination
+            }, context, "countriesConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await country.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {

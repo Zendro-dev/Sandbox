@@ -113,7 +113,7 @@ module.exports = class Accession extends Sequelize.Model {
 
     static async countRecords(search) {
         let options = {};
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -129,7 +129,7 @@ module.exports = class Accession extends Sequelize.Model {
 
     static readAll(search, order, pagination, benignErrorReporter) {
         let options = {};
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -185,7 +185,7 @@ module.exports = class Accession extends Sequelize.Model {
         /*
          * Search conditions
          */
-        if (search !== undefined) {
+        if (search !== undefined && search !== null) {
 
             //check
             if (typeof search !== 'object') {
@@ -447,62 +447,6 @@ module.exports = class Accession extends Sequelize.Model {
         return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
-    static bulkAddXlsx(context) {
-
-        let delim = context.request.body.delim;
-        let cols = context.request.body.cols;
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.xlsx');
-
-        console.log("EMAIL: ", helpersAcl.getTokenFromContext(context).email);
-
-        // context.request.files.xlsx_file.mv(tmpFile).then(() => {
-        //
-        //     fileTools.parseXlsxStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
-        //         try {
-        //             console.log(`Sending ${addedZipFilePath} to the user.`);
-        //
-        //             let attach = [];
-        //             attach.push({
-        //                 filename: path.basename("added_data.zip"),
-        //                 path: addedZipFilePath
-        //             });
-        //
-        //             email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-        //                 'ScienceDB batch add',
-        //                 'Your data has been successfully added to the database.',
-        //                 attach).then(function(info) {
-        //                 fileTools.deleteIfExists(addedZipFilePath);
-        //                 console.log(info);
-        //             }).catch(function(err) {
-        //                 fileTools.deleteIfExists(addedZipFilePath);
-        //                 console.error(err);
-        //             });
-        //
-        //         } catch (error) {
-        //             console.error(error.message);
-        //         }
-        //
-        //         fs.unlinkSync(tmpFile);
-        //     }).catch((error) => {
-        //         email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-        //             'ScienceDB batch add', `${error.message}`).then(function(info) {
-        //             console.error(info);
-        //         }).catch(function(err) {
-        //             console.error(err);
-        //         });
-        //
-        //         fs.unlinkSync(tmpFile);
-        //     });
-        //
-        //
-        //
-        // }).catch((error) => {
-        //     throw new Error(error);
-        // });
-
-        return `Bulk import of Accession records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
-    }
-
     /**
      * csvTableTemplate - Allows the user to download a template in CSV format with the
      * properties and types of this model.
@@ -519,10 +463,10 @@ module.exports = class Accession extends Sequelize.Model {
 
 
     /**
-     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_locationId - field Mutation (model-layer) for to_one associationsArguments to add 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async add_locationId(accession_id, locationId) {
         let updated = await Accession.update({
@@ -536,10 +480,10 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     /**
-     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_locationId - field Mutation (model-layer) for to_one associationsArguments to remove 
      *
      * @param {Id}   accession_id   IdAttribute of the root model to be updated
-     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   locationId Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_locationId(accession_id, locationId) {
         let updated = await Accession.update({

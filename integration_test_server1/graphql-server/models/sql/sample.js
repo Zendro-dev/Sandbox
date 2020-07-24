@@ -19,29 +19,42 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'Location',
+    model: 'sample',
     storageType: 'sql',
     attributes: {
-        locationId: 'String',
-        country: 'String',
-        state: 'String',
-        municipality: 'String',
-        locality: 'String'
+        name: 'String',
+        material: 'String',
+        life_cycle_phase: 'String',
+        description: 'String',
+        harvest_date: 'Date',
+        library: 'String',
+        barcode_number: 'Int',
+        barcode_sequence: 'String',
+        sample_id: 'Int'
     },
     associations: {
-        accessions: {
-            type: 'to_many',
-            target: 'Accession',
-            targetKey: 'locationId',
-            keyIn: 'Accession',
+        parent: {
+            type: 'to_one',
+            target: 'sample',
+            targetKey: 'sample_id',
+            keyIn: 'sample',
             targetStorageType: 'sql',
-            label: 'accession_id'
+            label: 'name',
+            sublabel: 'material'
+        },
+        samples: {
+            type: 'to_many',
+            target: 'sample',
+            targetKey: 'sample_id',
+            keyIn: 'sample',
+            targetStorageType: 'sql',
+            label: 'name',
+            sublabel: 'material'
         }
     },
-    internalId: 'locationId',
     id: {
-        name: 'locationId',
-        type: 'String'
+        name: 'id',
+        type: 'Int'
     }
 };
 
@@ -53,45 +66,60 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class Location extends Sequelize.Model {
+module.exports = class sample extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            locationId: {
-                type: Sequelize[dict['String']],
-                primaryKey: true
-            },
-            country: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            state: {
+            material: {
                 type: Sequelize[dict['String']]
             },
-            municipality: {
+            life_cycle_phase: {
                 type: Sequelize[dict['String']]
             },
-            locality: {
+            description: {
                 type: Sequelize[dict['String']]
+            },
+            harvest_date: {
+                type: Sequelize[dict['Date']]
+            },
+            library: {
+                type: Sequelize[dict['String']]
+            },
+            barcode_number: {
+                type: Sequelize[dict['Int']]
+            },
+            barcode_sequence: {
+                type: Sequelize[dict['String']]
+            },
+            sample_id: {
+                type: Sequelize[dict['Int']]
             }
 
 
         }, {
-            modelName: "location",
-            tableName: "locations",
+            modelName: "sample",
+            tableName: "samples",
             sequelize
         });
     }
 
     static associate(models) {
-        Location.hasMany(models.accession, {
-            as: 'accessions',
-            foreignKey: 'locationId'
+        sample.hasOne(models.sample, {
+            as: 'parent',
+            foreignKey: 'sample_id'
+        });
+        sample.hasMany(models.sample, {
+            as: 'samples',
+            foreignKey: 'sample_id'
         });
     }
 
     static async readById(id) {
-        let item = await Location.findByPk(id);
+        let item = await sample.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
@@ -138,7 +166,7 @@ module.exports = class Location extends Sequelize.Model {
                 });
             } else if (pagination !== undefined) {
                 options['order'] = [
-                    ["locationId", "ASC"]
+                    ["id", "ASC"]
                 ];
             }
 
@@ -151,7 +179,7 @@ module.exports = class Location extends Sequelize.Model {
             }
 
             if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total locations exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                throw new Error(`Request of total samples exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
             let records = await super.findAll(options);
             return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -204,9 +232,9 @@ module.exports = class Location extends Sequelize.Model {
             }
             if (!options['order'].map(orderItem => {
                     return orderItem[0]
-                }).includes("locationId")) {
+                }).includes("id")) {
                 options['order'] = [...options['order'], ...[
-                    ["locationId", "ASC"]
+                    ["id", "ASC"]
                 ]];
             }
 
@@ -220,7 +248,7 @@ module.exports = class Location extends Sequelize.Model {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "locationId", pagination.includeCursor)
+                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
                 } else { //backward
@@ -228,7 +256,7 @@ module.exports = class Location extends Sequelize.Model {
                         let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
                         options['where'] = {
                             ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "locationId", pagination.includeCursor)
+                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "id", pagination.includeCursor)
                         };
                     }
                 }
@@ -261,7 +289,7 @@ module.exports = class Location extends Sequelize.Model {
                 }
                 //check: limit
                 if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total locations exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                    throw new Error(`Request of total samples exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
                 }
 
                 /*
@@ -431,7 +459,7 @@ module.exports = class Location extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of Location records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of sample records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -449,7 +477,40 @@ module.exports = class Location extends Sequelize.Model {
 
 
 
+    /**
+     * add_sample_id - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   sample_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async add_sample_id(id, sample_id) {
+        let updated = await sample.update({
+            sample_id: sample_id
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
 
+    /**
+     * remove_sample_id - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   sample_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async remove_sample_id(id, sample_id) {
+        let updated = await sample.update({
+            sample_id: null
+        }, {
+            where: {
+                id: id,
+                sample_id: sample_id
+            }
+        });
+        return updated;
+    }
 
 
 
@@ -463,7 +524,7 @@ module.exports = class Location extends Sequelize.Model {
      */
 
     static idAttribute() {
-        return Location.definition.id.name;
+        return sample.definition.id.name;
     }
 
     /**
@@ -473,17 +534,17 @@ module.exports = class Location extends Sequelize.Model {
      */
 
     static idAttributeType() {
-        return Location.definition.id.type;
+        return sample.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of Location.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of sample.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[Location.idAttribute()]
+        return this[sample.idAttribute()]
     }
 
     static get definition() {
@@ -499,7 +560,8 @@ module.exports = class Location extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(Location.definition.attributes);
+        let attributes = Object.keys(sample.definition.attributes);
+        attributes.push('id');
         let data_values = _.pick(this, attributes);
         return data_values;
     }

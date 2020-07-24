@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const transcript_count = require(path.join(__dirname, '..', 'models', 'index.js')).transcript_count;
+const sample = require(path.join(__dirname, '..', 'models', 'index.js')).sample;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,75 +14,39 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addIndividual': 'individual',
-    'addAminoacidsequence': 'aminoacidsequence'
+    'addParent': 'sample',
+    'addSamples': 'sample'
 }
 
 
 
 /**
- * transcript_count.prototype.individual - Return associated record
+ * sample.prototype.parent - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-transcript_count.prototype.individual = async function({
+sample.prototype.parent = async function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.individual_id)) {
+    if (helper.isNotUndefinedAndNotNull(this.sample_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneIndividual({
-                [models.individual.idAttribute()]: this.individual_id
+            return resolvers.readOneSample({
+                [models.sample.idAttribute()]: this.sample_id
             }, context)
         } else {
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.individual.idAttribute(),
+                "field": models.sample.idAttribute(),
                 "value": {
-                    "value": this.individual_id
+                    "value": this.sample_id
                 },
                 "operator": "eq"
             });
-            let found = await resolvers.individuals({
-                search: nsearch
-            }, context);
-            if (found) {
-                return found[0]
-            }
-            return found;
-        }
-    }
-}
-/**
- * transcript_count.prototype.aminoacidsequence - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-transcript_count.prototype.aminoacidsequence = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.aminoacidsequence_id)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneAminoacidsequence({
-                [models.aminoacidsequence.idAttribute()]: this.aminoacidsequence_id
-            }, context)
-        } else {
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.aminoacidsequence.idAttribute(),
-                "value": {
-                    "value": this.aminoacidsequence_id
-                },
-                "operator": "eq"
-            });
-            let found = await resolvers.aminoacidsequences({
+            let found = await resolvers.samples({
                 search: nsearch
             }, context);
             if (found) {
@@ -93,6 +57,98 @@ transcript_count.prototype.aminoacidsequence = async function({
     }
 }
 
+/**
+ * sample.prototype.samplesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+sample.prototype.samplesFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "sample_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.samples({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * sample.prototype.countFilteredSamples - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+sample.prototype.countFilteredSamples = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "sample_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.countSamples({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * sample.prototype.samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+sample.prototype.samplesConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "sample_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.samplesConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -103,70 +159,72 @@ transcript_count.prototype.aminoacidsequence = async function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-transcript_count.prototype.handleAssociations = async function(input, benignErrorReporter) {
+sample.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-
-    if (helper.isNotUndefinedAndNotNull(input.addIndividual)) {
-        promises.push(this.add_individual(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addSamples)) {
+        promises.push(this.add_samples(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addAminoacidsequence)) {
-        promises.push(this.add_aminoacidsequence(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addParent)) {
+        promises.push(this.add_parent(input, benignErrorReporter));
     }
-
-    if (helper.isNotUndefinedAndNotNull(input.removeIndividual)) {
-        promises.push(this.remove_individual(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeSamples)) {
+        promises.push(this.remove_samples(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeAminoacidsequence)) {
-        promises.push(this.remove_aminoacidsequence(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeParent)) {
+        promises.push(this.remove_parent(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
 }
 /**
- * add_individual - field Mutation for to_one associations to add
+ * add_samples - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-transcript_count.prototype.add_individual = async function(input, benignErrorReporter) {
-    await transcript_count.add_individual_id(this.getIdValue(), input.addIndividual, benignErrorReporter);
-    this.individual_id = input.addIndividual;
-}
-
-/**
- * add_aminoacidsequence - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-transcript_count.prototype.add_aminoacidsequence = async function(input, benignErrorReporter) {
-    await transcript_count.add_aminoacidsequence_id(this.getIdValue(), input.addAminoacidsequence, benignErrorReporter);
-    this.aminoacidsequence_id = input.addAminoacidsequence;
-}
-
-/**
- * remove_individual - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-transcript_count.prototype.remove_individual = async function(input, benignErrorReporter) {
-    if (input.removeIndividual == this.individual_id) {
-        await transcript_count.remove_individual_id(this.getIdValue(), input.removeIndividual, benignErrorReporter);
-        this.individual_id = null;
+sample.prototype.add_samples = async function(input, benignErrorReporter) {
+    let results = [];
+    for await (associatedRecordId of input.addSamples) {
+        results.push(models.sample.add_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
+    await Promise.all(results);
 }
 
 /**
- * remove_aminoacidsequence - field Mutation for to_one associations to remove
+ * add_parent - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+sample.prototype.add_parent = async function(input, benignErrorReporter) {
+    await sample.add_sample_id(this.getIdValue(), input.addParent, benignErrorReporter);
+    this.sample_id = input.addParent;
+}
+
+/**
+ * remove_samples - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-transcript_count.prototype.remove_aminoacidsequence = async function(input, benignErrorReporter) {
-    if (input.removeAminoacidsequence == this.aminoacidsequence_id) {
-        await transcript_count.remove_aminoacidsequence_id(this.getIdValue(), input.removeAminoacidsequence, benignErrorReporter);
-        this.aminoacidsequence_id = null;
+sample.prototype.remove_samples = async function(input, benignErrorReporter) {
+    let results = [];
+    for await (associatedRecordId of input.removeSamples) {
+        results.push(models.sample.remove_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+    }
+    await Promise.all(results);
+}
+
+/**
+ * remove_parent - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+sample.prototype.remove_parent = async function(input, benignErrorReporter) {
+    if (input.removeParent == this.sample_id) {
+        await sample.remove_sample_id(this.getIdValue(), input.removeParent, benignErrorReporter);
+        this.sample_id = null;
     }
 }
 
@@ -189,7 +247,7 @@ transcript_count.prototype.remove_aminoacidsequence = async function(input, beni
 async function checkCountAndReduceRecordsLimit({
     search,
     pagination
-}, context, resolverName, modelName = 'transcript_count') {
+}, context, resolverName, modelName = 'sample') {
     //defaults
     let inputPaginationValues = {
         limit: undefined,
@@ -222,7 +280,7 @@ async function checkCountAndReduceRecordsLimit({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneTranscript_count")
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSample")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -233,16 +291,16 @@ function checkCountForOneAndReduceRecordsLimit(context) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let transcript_count = await resolvers.readOneTranscript_count({
+    let sample = await resolvers.readOneSample({
         id: id
     }, context);
     //check that record actually exists
-    if (transcript_count === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (sample === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(transcript_count.individual({}, context));
-    promises_to_one.push(transcript_count.aminoacidsequence({}, context));
+    promises_to_many.push(sample.countFilteredSamples({}, context));
+    promises_to_one.push(sample.parent({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -262,14 +320,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`transcript_count with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`sample with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * transcript_counts - Check user authorization and return certain number, specified in pagination argument, of records that
+     * samples - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -278,25 +336,25 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    transcript_counts: async function({
+    samples: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "transcript_counts");
+            }, context, "samples");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await transcript_count.readAll(search, order, pagination, benignErrorReporter);
+            return await sample.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * transcript_countsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -305,77 +363,77 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    transcript_countsConnection: async function({
+    samplesConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "transcript_countsConnection");
+            }, context, "samplesConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await transcript_count.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await sample.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneTranscript_count - Check user authorization and return one record with the specified id in the id argument.
+     * readOneSample - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneTranscript_count: async function({
+    readOneSample: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await transcript_count.readById(id, benignErrorReporter);
+            return await sample.readById(id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countTranscript_counts - Counts number of records that holds the conditions specified in the search argument
+     * countSamples - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countTranscript_counts: async function({
+    countSamples: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await transcript_count.countRecords(search, benignErrorReporter);
+            return await sample.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableTranscript_count - Return table of records as needed for displaying a vuejs table
+     * vueTableSample - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableTranscript_count: async function(_, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
-            return helper.vueTable(context.request, transcript_count, ["id", "gene", "variable", "tissue_or_condition"]);
+    vueTableSample: async function(_, context) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
+            return helper.vueTable(context.request, sample, ["id", "name", "material", "life_cycle_phase", "description", "library", "barcode_sequence"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addTranscript_count - Check user authorization and creates a new record with data specified in the input argument.
+     * addSample - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -383,8 +441,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addTranscript_count: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'transcript_count', 'create');
+    addSample: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'sample', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -393,43 +451,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdTranscript_count = await transcript_count.addOne(inputSanitized, benignErrorReporter);
-            await createdTranscript_count.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdTranscript_count;
+            let createdSample = await sample.addOne(inputSanitized, benignErrorReporter);
+            await createdSample.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdSample;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddTranscript_countCsv - Load csv file of records
+     * bulkAddSampleCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddTranscript_countCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'create') === true) {
+    bulkAddSampleCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'sample', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return transcript_count.bulkAddCsv(context, benignErrorReporter);
+            return sample.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteTranscript_count - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteSample - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteTranscript_count: async function({
+    deleteSample: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'delete') === true) {
+        if (await checkAuthorization(context, 'sample', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return transcript_count.deleteOne(id, benignErrorReporter);
+                return sample.deleteOne(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -437,7 +495,7 @@ module.exports = {
     },
 
     /**
-     * updateTranscript_count - Check user authorization and update the record specified in the input argument
+     * updateSample - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -445,8 +503,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateTranscript_count: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'transcript_count', 'update');
+    updateSample: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'sample', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -455,25 +513,26 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedTranscript_count = await transcript_count.updateOne(inputSanitized, benignErrorReporter);
-            await updatedTranscript_count.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedTranscript_count;
+            let updatedSample = await sample.updateOne(inputSanitized, benignErrorReporter);
+            helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},inputSanitized, input[sample.idAttribute()]);
+            await updatedSample.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedSample;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * csvTableTemplateTranscript_count - Returns table's template
+     * csvTableTemplateSample - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateTranscript_count: async function(_, context) {
-        if (await checkAuthorization(context, 'transcript_count', 'read') === true) {
+    csvTableTemplateSample: async function(_, context) {
+        if (await checkAuthorization(context, 'sample', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return transcript_count.csvTableTemplate(benignErrorReporter);
+            return sample.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
