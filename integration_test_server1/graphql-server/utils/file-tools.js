@@ -99,6 +99,12 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 };
 
 
+parseTypes = function( value, context, types){
+  console.log("TYPES", type);
+  console.log("Column name", context.column);
+  return value;
+}
+
 /**
  * Parse by streaming a csv file and create the records in the correspondant table
  * @function
@@ -130,7 +136,10 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
         csv_parse({
           delimiter: delim,
           columns: cols,
-          cast: true
+          cast:  function( value, context){
+            console.log("Column name", context.column);
+            return value;
+          }
         })
       )
     );
@@ -147,7 +156,7 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
 
       console.log(record);
       record = exports.replacePojoNullValueWithLiteralNull(record);
-      console.log(record);
+      //console.log(record);
 
 
       try {

@@ -514,7 +514,6 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedSample = await sample.updateOne(inputSanitized, benignErrorReporter);
-            helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},inputSanitized, input[sample.idAttribute()]);
             await updatedSample.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedSample;
         } else {

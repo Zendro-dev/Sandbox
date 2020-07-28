@@ -1,0 +1,16 @@
+{
+  "model" : "AllTypes",
+  "storageType" : "SQL",
+  "attributes" : {
+    "record_id": "String",
+    "record_date": "Date",
+    "record_date_time": "DateTime",
+    "record_time": "Time",
+    "record_int": "Int",
+    "record_boolean": "Boolean",
+    "record_float": "Float",
+    "record_string": "String"
+  },
+
+  "internalId" : "record_id"
+}
