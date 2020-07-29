@@ -99,9 +99,34 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 };
 
 
-parseTypes = function( value, context, types){
-  console.log("TYPES", type);
-  console.log("Column name", context.column);
+castCsv = function( value, column, attributes_type){
+
+  switch ( attributes_type[column] ) {
+    case 'String':
+      value = String(value);
+      break;
+    case 'Int':
+      value = Number(value);
+      break;
+    case 'Date':
+      value = String(value);
+      break;
+    case 'Time':
+      value = String(value);
+      break;
+    case 'Date':
+      value = String(value);
+      break;
+    case 'Boolean':
+      if(value === 'true') value = true;
+      if(value === 'false') value = false;
+      break;
+    case 'Float':
+      value = Number(value);
+      break;
+    default:
+
+  }
   return value;
 }
 
@@ -137,8 +162,7 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
           delimiter: delim,
           columns: cols,
           cast:  function( value, context){
-            console.log("Column name", context.column);
-            return value;
+            return castCsv(value, context.column, model.definition.attributes );
           }
         })
       )
