@@ -3,7 +3,7 @@
   "storageType": "sql",
   "attributes": {
     "tipo_planta_id": "String",
-    "tipo_plata": "String",
+    "tipo_planta": "String",
     "foto_produccion": "String",
     "foto_autoconsumo": "String",
     "foto_venta": "String",

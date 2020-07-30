@@ -334,11 +334,11 @@ export default function MainPanel(props) {
 
   return (
     <Fade in={true} timeout={500}>
-      <div className={classes.root}>
+      <div id='MainPanel-div-root' className={classes.root}>
         <CssBaseline />
 
         {/* Drawer menu header */}
-            <Box
+            <Box id='MainPanel-box-menuHeader'
               className={clsx(classes.zendroBox, {
                 [classes.zendroBoxShift]: openDrawer,
               })}
@@ -524,6 +524,7 @@ export default function MainPanel(props) {
               <ListItemText primary={
                   <React.Fragment>
                     <Typography
+                      id={'MainPanel-listItemText-button-typography-title-models'}
                       component="span"
                       variant='body1'
                       display='block'
@@ -534,11 +535,12 @@ export default function MainPanel(props) {
                     </Typography>
                   </React.Fragment>
                 } />
-              {openModelsList ? <ExpandLess /> : <ExpandMore />}
+              {openModelsList ? <ExpandLess id={'MainPanel-listItem-icon-models-expandLess'}/> : <ExpandMore id={'MainPanel-listItem-icon-models-expandMore'}/>}
             </ListItem>
 
-            <Collapse in={openModelsList} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
+            <Collapse id={'MainPanel-collapse-models'}
+            in={openModelsList} timeout="auto" unmountOnExit>
+              <List id={'MainPanel-collapse-list-models'} component="div" disablePadding>
                 {modelsList.current.map((model) => (
                   
                   /* acl check */
@@ -558,6 +560,7 @@ export default function MainPanel(props) {
                       <ListItemText primary={
                         <React.Fragment>
                           <Typography
+                            id={'MainPanel-listItemText-typography-'+model.name}
                             component="span"
                             variant='body2'
                             display='block'
@@ -579,7 +582,7 @@ export default function MainPanel(props) {
 
             {/* Admin */}
             {/* acl check */}
-            {(userRoles&&Array.isArray(userRoles)&&userRoles.includes('admin')) && (
+            {(userRoles&&Array.isArray(userRoles)&&userRoles.includes('administrator')) && (
               <div>
                 <ListItem button id={'MainPanel-listItem-button-admin'} 
                 onClick={handleAccountsListClick}>
@@ -587,6 +590,7 @@ export default function MainPanel(props) {
                   <ListItemText primary={
                       <React.Fragment>
                         <Typography
+                          id={'MainPanel-listItemText-button-typography-title-admin'}
                           component="span"
                           variant='body1'
                           display='block'
@@ -598,10 +602,11 @@ export default function MainPanel(props) {
                       </React.Fragment>
                     } 
                   /> 
-                  {openAdminModelsList ? <ExpandLess /> : <ExpandMore />}
+                  {openAdminModelsList ? <ExpandLess id={'MainPanel-listItem-icon-admin-expandLess'}/> : <ExpandMore id={'MainPanel-listItem-icon-admin-expandMore'}/>}
                 </ListItem>
-                <Collapse in={openAdminModelsList} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
+                <Collapse id={'MainPanel-collapse-admin'} 
+                in={openAdminModelsList} timeout="auto" unmountOnExit>
+                  <List id={'MainPanel-collapse-list-admin'} component="div" disablePadding>
                     {adminModelsList.current.map((model) => (
 
                       /* acl check */
@@ -621,6 +626,7 @@ export default function MainPanel(props) {
                           <ListItemText primary={
                             <React.Fragment>
                               <Typography
+                                id={'MainPanel-listItemText-typography-'+model.name}
                                 component="span"
                                 variant='body2'
                                 display='block'

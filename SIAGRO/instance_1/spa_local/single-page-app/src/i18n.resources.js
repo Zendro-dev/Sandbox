@@ -147,6 +147,22 @@ export default {
         gotIt: "Got it",
         dismiss: "Dismiss",
 
+        //password
+        emptyPasswordWarning: "Please enter a new password",
+        emptyPasswordWarning2: "Please re-enter the new password",
+        passwordsDoNotMatch: "Passwords do not match",
+        showPassword: "Show password",
+        changePassword: "Change password",
+        newPassword: "New password",
+        enterNewPassword: "Please enter the new password.",
+        newPasswordLabel: "New password",
+        newPasswordLabel2: "Confirm the new password",
+        changeThePassword: "Change password",
+
+        //entered & not entered
+        valueEntered: "Value entered",
+        valueNotEntered: "Value not entered",
+
         messages: {
           msg1: "The data has been sent. A report with the status of the import process will be sent to your email.",
           msg2: "Null data received: GraphQL query returns no data.",
@@ -335,6 +351,22 @@ export default {
         //notistack
         gotIt: "Ich habs",
         dismiss: "Entlassen",
+
+        //password
+        emptyPasswordWarning:"Bitte geben Sie ein neues Passwort ein",
+        emptyPasswordWarning2:"Bitte geben Sie das neue Passwort erneut ein",
+        passwordsDoNotMatch:"Passwörter stimmen nicht überein",
+        showPassword: "Passwort anzeigen",
+        changePassword: "Passwort ändern",
+        newPassword: "Neues Passwort",
+        enterNewPassword: "Bitte geben Sie das neue Passwort ein",
+        newPasswordLabel: "Neues Passwort",
+        newPasswordLabel2: "Bestätigen Sie das neue Passwort",
+        changeThePassword: "Passwort ändern",
+
+        //entered & not entered
+        valueEntered: "Wert eingegeben",
+        valueNotEntered: "Wert nicht eingegeben",
 
         messages: {
           msg1: "Die Daten wurden gesendet. Ein Bericht mit dem Status des Importvorgangs wird an Ihre E-Mail gesendet.",
@@ -526,6 +558,22 @@ export default {
         //notistack
         gotIt: "Entendido",
         dismiss: "Descartar",
+
+        //password
+        emptyPasswordWarning: "Por favor ingrese una nueva contraseña",
+        emptyPasswordWarning2: "Por favor re-ingrese la nueva contraseña",
+        passwordsDoNotMatch: "Las contraseñas no coinciden",
+        showPassword: "Mostrar contraseña",
+        changePassword: "Cambiar contraseña",
+        newPassword: "Nueva contraseña",
+        enterNewPassword: "Por favor ingrese la nueva contraseña",
+        newPasswordLabel: "Nueva contraseña",
+        newPasswordLabel2: "Confirme la nueva contraseña",
+        changeThePassword: "Cambiar la contraseña",
+
+        //entered & not entered
+        valueEntered: "Valor ingresado",
+        valueNotEntered: "Valor no ingresado",
 
         messages: {
           msg1: "Los datos se han enviado. Un informe con el estatus del proceso de importación será enviado a su correo electrónico.",
