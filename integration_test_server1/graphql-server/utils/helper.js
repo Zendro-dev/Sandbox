@@ -1591,16 +1591,30 @@ module.exports.vueTable = function(req, model, strAttributes) {
     return keyMap;
   }
   
-  /**
-   * 
-   * @param {*} idMap 
-   * @param {*} idAttribute 
-   */
-  module.exports.substituePlaceholderId = function(idMap, idAttribute) {
-    if (idMap[idAttribute] === undefined && idMap.associatedRecordId !== undefined) {
-      idMap['measurement_id'] = idMap['associatedRecordId'];
-      delete idMap['associatedRecordId'];
+  module.exports.calculateEffectiveRecordsCount = function({search, pagination}, count, idAttribute) {
+    console.log("h idAttribute: " + idAttribute)
+    let inputPaginationValues = {
+      limit: undefined,
+      offset: 0,
+      search: undefined,
+      order: [
+          [idAttribute, "ASC"]
+      ],
     }
-    return idMap
+
+    //check search
+    module.exports.checkSearchArgument(search);
+    if (search) inputPaginationValues.search = {
+        ...search
+    }; //copy
+
+    //get generic pagination values
+    let paginationValues = module.exports.getGenericPaginationValues(pagination, idAttribute, inputPaginationValues);
+    //get records count
+    //let count = (await models[modelName].countRecords(paginationValues.search));
+    //get effective records count
+    return module.exports.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
   }
+
+
 

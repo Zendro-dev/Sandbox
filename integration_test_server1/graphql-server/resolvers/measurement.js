@@ -121,30 +121,13 @@ measurement.prototype.remove_accession = async function(input, benignErrorReport
  */
 async function checkCountAndReduceRecordsLimit({
     search,
-    pagination
-}, context, resolverName, modelName = 'measurement') {
+    pagination,
+    countResult,
+    effectiveCount
+}, context, resolverName, modelName = 'measurement' ) {
     //defaults
-    let inputPaginationValues = {
-        limit: undefined,
-        offset: 0,
-        search: undefined,
-        order: [
-            ["measurement_id", "ASC"]
-        ],
-    }
-
-    //check search
-    helper.checkSearchArgument(search);
-    if (search) inputPaginationValues.search = {
-        ...search
-    }; //copy
-
-    //get generic pagination values
-    let paginationValues = helper.getGenericPaginationValues(pagination, "measurement_id", inputPaginationValues);
-    //get records count
-    let count = (await models[modelName].countRecords(paginationValues.search));
-    //get effective records count
-    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
+    // let effectiveCount = helper.calculateEffectiveRecordsCount(search, pagination, count, modelName.idAttribute());
+    console.log("checkCountAndReduceRecordsLimit Counts: " + countResult + " -- " + effectiveCount)
     //do check and reduce of record limit.
     helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
@@ -216,12 +199,14 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
+            let countResult = await measurement.countRecords(search);
+            // let effectiveRecordCount = helper.calculateEffectiveRecordsCount(search, pagination, countResult, measurement.idAttribute());
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "measurements");
+            }, countResult, context, "measurements");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await measurement.readAll(search, order, pagination, benignErrorReporter);
+            return await measurement.readAll(search, order, pagination, countResult ,benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -243,12 +228,15 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "measurementsConnection");
+            let countResult = await measurement.countRecords(search);
+            let effectiveCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
+            helper.checkCountAndReduceRecordLimitHelper(countResult, context, "measurementsConnection");
+            // await checkCountAndReduceRecordsLimit({
+            //     search,
+            //     pagination
+            // },countResult, context, "measurementsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await measurement.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await measurement.readAllCursor(search, order, pagination, countResult, effectiveCount, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

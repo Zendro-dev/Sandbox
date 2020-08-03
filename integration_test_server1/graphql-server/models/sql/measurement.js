@@ -114,7 +114,10 @@ module.exports = class Measurement extends Sequelize.Model {
         return super.count(options);
     }
 
-    static readAll(search, order, pagination, benignErrorReporter) {
+    static async readAll(search, order, pagination, countResult, benignErrorReporter) {
+        if (countResult === undefined) {
+            countResult = await this.countRecords(search);
+        }
         let options = {};
         if (search !== undefined && search !== null) {
 
@@ -131,34 +134,40 @@ module.exports = class Measurement extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-        return super.count(options).then(async items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["measurement_id", "ASC"]
-                ];
-            }
+        if (order !== undefined) {
+            options['order'] = order.map((orderItem) => {
+                return [orderItem.field, orderItem.order];
+            });
+        } else if (pagination !== undefined) {
+            options['order'] = [
+                ["measurement_id", "ASC"]
+            ];
+        }
 
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
+        if (pagination !== undefined) {
+            options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
+            options['limit'] = pagination.limit === undefined ? (countResult - options['offset']) : pagination.limit;
+        } else {
+            options['offset'] = 0;
+            options['limit'] = countResult;
+        }
 
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total measurements exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            let records = await super.findAll(options);
-            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-        });
+        if (globals.LIMIT_RECORDS < options['limit']) {
+            throw new Error(`Request of total measurements exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+        }
+        let records = await super.findAll(options);
+        return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
-    static readAllCursor(search, order, pagination, benignErrorReporter) {
+    static async readAllCursor(search, order, pagination, countResult, effectiveCount, benignErrorReporter) {
+
+        if(countResult === undefined) {
+            countResult = await this.countRecords(search)
+        }
+        if(effectiveCount === undefined){
+            effectiveCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, this.idAttribute());
+        }
+
         //check valid pagination arguments
         let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
         if (!argsValid) {
@@ -190,10 +199,11 @@ module.exports = class Measurement extends Sequelize.Model {
         /*
          * Count
          */
-        return super.count(options).then(countA => {
+            console.log("countResult: " + countResult)
+
             options['offset'] = 0;
             options['order'] = [];
-            options['limit'] = countA;
+            options['limit'] = countResult;
             /*
              * Order conditions
              */
@@ -241,7 +251,8 @@ module.exports = class Measurement extends Sequelize.Model {
             /*
              *  Count (with only where-options)
              */
-            return super.count(woptions).then(countB => {
+                console.log("effectiveCount: " + effectiveCount)
+
                 /*
                  * Limit conditions
                  */
@@ -255,7 +266,7 @@ module.exports = class Measurement extends Sequelize.Model {
                     } else { //backward
                         if (pagination.last) {
                             options['limit'] = pagination.last;
-                            options['offset'] = Math.max((countB - pagination.last), 0);
+                            options['offset'] = Math.max((effectiveCount - pagination.last), 0);
                         }
                     }
                 }
@@ -267,7 +278,7 @@ module.exports = class Measurement extends Sequelize.Model {
                 /*
                  * Get records
                  */
-                return super.findAll(options).then(async records => {
+                let records = await super.findAll(options);
                     //validate records
                     records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
 
@@ -293,16 +304,16 @@ module.exports = class Measurement extends Sequelize.Model {
                     if (isForwardPagination) {
 
                         pageInfo = {
-                            hasPreviousPage: ((countA - countB) > 0),
-                            hasNextPage: (pagination && pagination.first ? (countB > pagination.first) : false),
+                            hasPreviousPage: ((countResult - effectiveCount) > 0),
+                            hasNextPage: (pagination && pagination.first ? (effectiveCount > pagination.first) : false),
                             startCursor: (records.length > 0) ? edges[0].cursor : null,
                             endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
                         }
                     } else { //backward
 
                         pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (countB > pagination.last) : false),
-                            hasNextPage: ((countA - countB) > 0),
+                            hasPreviousPage: (pagination && pagination.last ? (effectiveCount > pagination.last) : false),
+                            hasNextPage: ((countResult - effectiveCount) > 0),
                             startCursor: (records.length > 0) ? edges[0].cursor : null,
                             endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
                         }
@@ -313,15 +324,6 @@ module.exports = class Measurement extends Sequelize.Model {
                         pageInfo
                     };
 
-                }).catch(error => {
-                    throw error;
-                });
-            }).catch(error => {
-                throw error;
-            });
-        }).catch(error => {
-            throw error;
-        });
     }
 
     static async addOne(input) {

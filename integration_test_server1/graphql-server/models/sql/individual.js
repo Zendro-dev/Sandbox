@@ -172,6 +172,7 @@ module.exports = class individual extends Sequelize.Model {
          * Count
          */
         return super.count(options).then(countA => {
+            console.log("countA: " + countA)
             options['offset'] = 0;
             options['order'] = [];
             options['limit'] = countA;
@@ -223,6 +224,8 @@ module.exports = class individual extends Sequelize.Model {
              *  Count (with only where-options)
              */
             return super.count(woptions).then(countB => {
+                console.log("countB: " + countB)
+
                 /*
                  * Limit conditions
                  */
