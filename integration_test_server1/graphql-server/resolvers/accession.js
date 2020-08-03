@@ -187,11 +187,10 @@ accession.prototype.add_measurements = async function(input, benignErrorReporter
     let bulkAssociationInput = input.addMeasurements.map(associatedRecordId => {
         return {
             accessionId: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.measurement.idAttribute()]: associatedRecordId
         }
     });
-    console.log("acc res bulkAssociationInput:" + JSON.stringify(bulkAssociationInput))
-    await models.measurement.bulkAssociateMeasurementWithAccession(bulkAssociationInput, benignErrorReporter);
+    await models.measurement.bulkAssociateMeasurementWithAccessionId(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -216,10 +215,10 @@ accession.prototype.remove_measurements = async function(input, benignErrorRepor
     let bulkAssociationInput = input.removeMeasurements.map(associatedRecordId => {
         return {
             accessionId: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.measurement.idAttribute()]: associatedRecordId
         }
     });
-    await models.measurement.bulkDisAssociateMeasurementWithAccession(bulkAssociationInput, benignErrorReporter);
+    await models.measurement.bulkDisAssociateMeasurementWithAccessionId(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -529,15 +528,15 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateAccessionWithLocation - bulkAssociaton resolver of given ids
+     * bulkAssociateAccessionWithLocationId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateAccessionWithLocation: async function(bulkAssociationInput, context) {
+    bulkAssociateAccessionWithLocationId: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 locationId
@@ -546,18 +545,18 @@ module.exports = {
                 accession_id
             }) => accession_id)), accession);
         }
-        return await accession.bulkAssociateAccessionWithLocation(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await accession.bulkAssociateAccessionWithLocationId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateAccessionWithLocation - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateAccessionWithLocationId - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateAccessionWithLocation: async function(bulkAssociationInput, context) {
+    bulkDisAssociateAccessionWithLocationId: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 locationId
@@ -566,7 +565,7 @@ module.exports = {
                 accession_id
             }) => accession_id)), accession);
         }
-        return await accession.bulkDisAssociateAccessionWithLocation(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await accession.bulkDisAssociateAccessionWithLocationId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

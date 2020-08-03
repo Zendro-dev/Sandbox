@@ -72,6 +72,8 @@ type AminoacidsequenceEdge{
     order: Order
   }
 
+
+
   type Query {
     aminoacidsequences(search: searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationInput ): [aminoacidsequence]
     readOneAminoacidsequence(id: ID!): aminoacidsequence
@@ -85,5 +87,5 @@ type AminoacidsequenceEdge{
     updateAminoacidsequence(id: ID!, accession: String, sequence: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): aminoacidsequence!
     deleteAminoacidsequence(id: ID!): String!
     bulkAddAminoacidsequenceCsv: String!
-    }
+      }
 `;

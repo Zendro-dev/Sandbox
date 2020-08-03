@@ -87,10 +87,11 @@ type AccessionEdge{
     order: Order
   }
 
-  input bulkAssociateAccessionWithLocationInput{
+  input bulkAssociationAccessionWithLocationIdInput{
     accession_id: ID!
     locationId: ID!
   }
+
   type Query {
     accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
     readOneAccession(accession_id: ID!): Accession
@@ -104,5 +105,7 @@ type AccessionEdge{
     updateAccession(accession_id: ID!, collectors_name: String, collectors_initials: String, sampling_date: Date , addLocation:ID, removeLocation:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Accession!
     deleteAccession(accession_id: ID!): String!
     bulkAddAccessionCsv: String!
-    bulkAssociateAccessionWithLocation(bulkAssociationInput: [bulkAssociateAccessionWithLocationInput], skipAssociationsExistenceChecks:Boolean = false): String!}
+    bulkAssociateAccessionWithLocationId(bulkAssociationInput: [bulkAssociationAccessionWithLocationIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateAccessionWithLocationId(bulkAssociationInput: [bulkAssociationAccessionWithLocationIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;

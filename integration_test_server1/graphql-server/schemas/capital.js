@@ -57,10 +57,11 @@ type CapitalEdge{
     order: Order
   }
 
-  input bulkAssociateCapitalWithCountryInput{
+  input bulkAssociationCapitalWithCountry_idInput{
     capital_id: ID!
     country_id: ID!
   }
+
   type Query {
     capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput ): [capital]
     readOneCapital(capital_id: ID!): capital
@@ -74,5 +75,7 @@ type CapitalEdge{
     updateCapital(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID    , skipAssociationsExistenceChecks:Boolean = false): capital!
     deleteCapital(capital_id: ID!): String!
     bulkAddCapitalCsv: String!
-    bulkAssociateCapitalWithCountry(bulkAssociationInput: [bulkAssociateCapitalWithCountryInput], skipAssociationsExistenceChecks:Boolean = false): String!}
+    bulkAssociateCapitalWithCountry_id(bulkAssociationInput: [bulkAssociationCapitalWithCountry_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput: [bulkAssociationCapitalWithCountry_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;

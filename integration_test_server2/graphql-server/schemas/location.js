@@ -86,6 +86,8 @@ type LocationEdge{
     order: Order
   }
 
+
+
   type Query {
     locations(search: searchLocationInput, order: [ orderLocationInput ], pagination: paginationInput ): [Location]
     readOneLocation(locationId: ID!): Location
@@ -99,5 +101,5 @@ type LocationEdge{
     updateLocation(locationId: ID!, country: String, state: String, municipality: String, locality: String   , addAccessions:[ID], removeAccessions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Location!
     deleteLocation(locationId: ID!): String!
     bulkAddLocationCsv: String!
-    }
+      }
 `;

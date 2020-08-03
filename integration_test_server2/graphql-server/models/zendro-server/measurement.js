@@ -530,20 +530,80 @@ module.exports = class Measurement {
 
 
     /**
-     * bulkAssociateMeasurementWithAccession - bulkAssociaton of given ids
+     * bulkAssociateMeasurementWithAccessionId - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
+    static async bulkAssociateMeasurementWithAccessionId(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkAssociateMeasurementWithAccessionId($bulkAssociationInput: [bulkAssociationMeasurementWithAccessionIdInput]){
+          bulkAssociateMeasurementWithAccessionId(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+        }`
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
+                }
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkAssociateMeasurementWithAccessionId;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
 
     /**
-     * bulkDisAssociateMeasurementWithAccession - bulkDisAssociaton of given ids
+     * bulkDisAssociateMeasurementWithAccessionId - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
+    static async bulkDisAssociateMeasurementWithAccessionId(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkDisAssociateMeasurementWithAccessionId($bulkAssociationInput: [bulkAssociationMeasurementWithAccessionIdInput]){
+          bulkDisAssociateMeasurementWithAccessionId(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+        }`
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
+                }
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkDisAssociateMeasurementWithAccessionId;
+            } else {
+                throw new Error(`Invalid response from remote cenz-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
 
 
 

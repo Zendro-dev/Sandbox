@@ -426,15 +426,15 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateParrotWithPerson - bulkAssociaton resolver of given ids
+     * bulkAssociateParrotWithPerson_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateParrotWithPerson: async function(bulkAssociationInput, context) {
+    bulkAssociateParrotWithPerson_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 person_id
@@ -443,18 +443,18 @@ module.exports = {
                 parrot_id
             }) => parrot_id)), parrot);
         }
-        return await parrot.bulkAssociateParrotWithPerson(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await parrot.bulkAssociateParrotWithPerson_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateParrotWithPerson_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateParrotWithPerson: async function(bulkAssociationInput, context) {
+    bulkDisAssociateParrotWithPerson_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 person_id
@@ -463,7 +463,7 @@ module.exports = {
                 parrot_id
             }) => parrot_id)), parrot);
         }
-        return await parrot.bulkDisAssociateParrotWithPerson(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await parrot.bulkDisAssociateParrotWithPerson_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

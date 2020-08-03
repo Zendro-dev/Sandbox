@@ -396,15 +396,15 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateMeasurementWithAccession - bulkAssociaton resolver of given ids
+     * bulkAssociateMeasurementWithAccessionId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateMeasurementWithAccession: async function(bulkAssociationInput, context) {
+    bulkAssociateMeasurementWithAccessionId: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 accessionId
@@ -413,18 +413,18 @@ module.exports = {
                 measurement_id
             }) => measurement_id)), measurement);
         }
-        return await measurement.bulkAssociateMeasurementWithAccession(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await measurement.bulkAssociateMeasurementWithAccessionId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateMeasurementWithAccession - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateMeasurementWithAccessionId - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateMeasurementWithAccession: async function(bulkAssociationInput, context) {
+    bulkDisAssociateMeasurementWithAccessionId: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 accessionId
@@ -433,7 +433,7 @@ module.exports = {
                 measurement_id
             }) => measurement_id)), measurement);
         }
-        return await measurement.bulkDisAssociateMeasurementWithAccession(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await measurement.bulkDisAssociateMeasurementWithAccessionId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

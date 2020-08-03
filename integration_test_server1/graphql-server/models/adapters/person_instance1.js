@@ -391,7 +391,7 @@ module.exports = class person_instance1 extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociatePersonWithParrot - bulkAssociaton of given ids
+     * bulkAssociatePersonWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
@@ -399,7 +399,7 @@ module.exports = class person_instance1 extends Sequelize.Model {
      */
 
     /**
-     * bulkDisAssociatePersonWithParrot - bulkDisAssociaton of given ids
+     * bulkDisAssociatePersonWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services

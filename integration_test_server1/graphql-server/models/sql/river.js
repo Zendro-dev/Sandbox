@@ -653,7 +653,7 @@ module.exports = class river extends Sequelize.Model {
      */
     static async add_country_id(record, addCountries) {
         const updated = await sequelize.transaction(async (transaction) => {
-            return await record.setCountries(addCountries, {
+            return await record.addCountries(addCountries, {
                 transaction: transaction
             });
         });

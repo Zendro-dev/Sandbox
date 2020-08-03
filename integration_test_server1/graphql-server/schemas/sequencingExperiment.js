@@ -70,6 +70,8 @@ type SequencingExperimentEdge{
     order: Order
   }
 
+
+
   type Query {
     sequencingExperiments(search: searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationInput ): [SequencingExperiment]
     readOneSequencingExperiment(id: ID!): SequencingExperiment
@@ -83,5 +85,5 @@ type SequencingExperimentEdge{
     updateSequencingExperiment(id: ID!, name: String, start_date: Date, end_date: Date, description: String    , skipAssociationsExistenceChecks:Boolean = false): SequencingExperiment!
     deleteSequencingExperiment(id: ID!): String!
     bulkAddSequencingExperimentCsv: String!
-    }
+      }
 `;

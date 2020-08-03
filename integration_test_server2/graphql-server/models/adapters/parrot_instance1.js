@@ -349,19 +349,19 @@ module.exports = class parrot_instance1 {
     }
 
     /**
-     * bulkAssociateParrotWithPerson - bulkAssociaton of given ids
+     * bulkAssociateParrotWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateParrotWithPerson(bulkAssociationInput, benignErrorReporter) {
-        let query = `mutation  bulkAssociateParrotWithPerson($bulkAssociationInput: [bulkAssociateParrotWithPersonInput]){
-          bulkAssociateParrotWithPerson(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+    static async bulkAssociateParrotWithPerson_id(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkAssociateParrotWithPerson_id($bulkAssociationInput: [bulkAssociationParrotWithPerson_idInput]){
+          bulkAssociateParrotWithPerson_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
         }`
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     bulkAssociationInput: bulkAssociationInput
@@ -369,37 +369,37 @@ module.exports = class parrot_instance1 {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
 
             if (response && response.data && response.data.data) {
-                return response.data.data.bulkAssociateParrotWithPerson;
+                return response.data.data.bulkAssociateParrotWithPerson_id;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote cenz-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
     /**
-     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton of given ids
+     * bulkDisAssociateParrotWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateParrotWithPerson(bulkAssociationInput, benignErrorReporter) {
-        let query = `mutation  bulkDisAssociateParrotWithPerson($bulkAssociationInput: [bulkAssociateParrotWithPersonInput]){
-          bulkDisAssociateParrotWithPerson(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+    static async bulkDisAssociateParrotWithPerson_id(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkDisAssociateParrotWithPerson_id($bulkAssociationInput: [bulkAssociationParrotWithPerson_idInput]){
+          bulkDisAssociateParrotWithPerson_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
         }`
         try {
             // Send an HTTP request to the remote server
-            let response = await axios.post(remoteCenzontleURL, {
+            let response = await axios.post(remoteZendroURL, {
                 query: query,
                 variables: {
                     bulkAssociationInput: bulkAssociationInput
@@ -407,20 +407,20 @@ module.exports = class parrot_instance1 {
             });
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteCenzontleURL));
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
 
             if (response && response.data && response.data.data) {
-                return response.data.data.bulkDisAssociateParrotWithPerson;
+                return response.data.data.bulkDisAssociateParrotWithPerson_id;
             } else {
-                throw new Error(`Invalid response from remote cenz-server: ${remoteCenzontleURL}`);
+                throw new Error(`Invalid response from remote cenz-server: ${remoteZendroURL}`);
             }
         } catch (error) {
             //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteCenzontleURL);
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 

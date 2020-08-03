@@ -156,10 +156,10 @@ person.prototype.add_dogs = async function(input, benignErrorReporter) {
     let bulkAssociationInput = input.addDogs.map(associatedRecordId => {
         return {
             person_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.dog.idAttribute()]: associatedRecordId
         }
     });
-    await models.dog.bulkAssociateDogWithPerson(bulkAssociationInput, benignErrorReporter);
+    await models.dog.bulkAssociateDogWithPerson_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -183,10 +183,10 @@ person.prototype.remove_dogs = async function(input, benignErrorReporter) {
     let bulkAssociationInput = input.removeDogs.map(associatedRecordId => {
         return {
             person_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.dog.idAttribute()]: associatedRecordId
         }
     });
-    await models.dog.bulkAssociateDogWithPerson(bulkAssociationInput, benignErrorReporter);
+    await models.dog.bulkDisAssociateDogWithPerson_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**

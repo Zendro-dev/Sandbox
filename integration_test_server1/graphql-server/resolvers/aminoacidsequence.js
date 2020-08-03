@@ -144,10 +144,10 @@ aminoacidsequence.prototype.add_transcript_counts = async function(input, benign
     let bulkAssociationInput = input.addTranscript_counts.map(associatedRecordId => {
         return {
             aminoacidsequence_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.transcript_count.idAttribute()]: associatedRecordId
         }
     });
-    await models.transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput, benignErrorReporter);
+    await models.transcript_count.bulkAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -161,10 +161,10 @@ aminoacidsequence.prototype.remove_transcript_counts = async function(input, ben
     let bulkAssociationInput = input.removeTranscript_counts.map(associatedRecordId => {
         return {
             aminoacidsequence_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.transcript_count.idAttribute()]: associatedRecordId
         }
     });
-    await models.transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput, benignErrorReporter);
+    await models.transcript_count.bulkDisAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput, benignErrorReporter);
 }
 
 

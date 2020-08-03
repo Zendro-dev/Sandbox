@@ -86,14 +86,14 @@ type Transcript_countEdge{
     order: Order
   }
 
-  input bulkAssociateTranscript_countWithIndividualInput{
+  input bulkAssociationTranscript_countWithIndividual_idInput{
     id: ID!
     individual_id: ID!
-  }
-  input bulkAssociateTranscript_countWithAminoacidsequenceInput{
+  }  input bulkAssociationTranscript_countWithAminoacidsequence_idInput{
     id: ID!
     aminoacidsequence_id: ID!
   }
+
   type Query {
     transcript_counts(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput ): [transcript_count]
     readOneTranscript_count(id: ID!): transcript_count
@@ -107,5 +107,9 @@ type Transcript_countEdge{
     updateTranscript_count(id: ID!, gene: String, variable: String, count: Float, tissue_or_condition: String , addIndividual:ID, removeIndividual:ID , addAminoacidsequence:ID, removeAminoacidsequence:ID    , skipAssociationsExistenceChecks:Boolean = false): transcript_count!
     deleteTranscript_count(id: ID!): String!
     bulkAddTranscript_countCsv: String!
-    bulkAssociateTranscript_countWithIndividual(bulkAssociationInput: [bulkAssociateTranscript_countWithIndividualInput], skipAssociationsExistenceChecks:Boolean = false): String!bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput: [bulkAssociateTranscript_countWithAminoacidsequenceInput], skipAssociationsExistenceChecks:Boolean = false): String!}
+    bulkAssociateTranscript_countWithIndividual_id(bulkAssociationInput: [bulkAssociationTranscript_countWithIndividual_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateTranscript_countWithIndividual_id(bulkAssociationInput: [bulkAssociationTranscript_countWithIndividual_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+bulkAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput: [bulkAssociationTranscript_countWithAminoacidsequence_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput: [bulkAssociationTranscript_countWithAminoacidsequence_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;

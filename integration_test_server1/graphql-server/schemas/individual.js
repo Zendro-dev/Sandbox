@@ -65,6 +65,8 @@ type IndividualEdge{
     order: Order
   }
 
+
+
   type Query {
     individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput ): [individual]
     readOneIndividual(id: ID!): individual
@@ -78,5 +80,5 @@ type IndividualEdge{
     updateIndividual(id: ID!, name: String   , addTranscript_counts:[ID], removeTranscript_counts:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
     deleteIndividual(id: ID!): String!
     bulkAddIndividualCsv: String!
-    }
+      }
 `;

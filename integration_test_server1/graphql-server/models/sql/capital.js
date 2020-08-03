@@ -480,13 +480,13 @@ module.exports = class capital extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateCapitalWithCountry - bulkAssociaton of given ids
+     * bulkAssociateCapitalWithCountry_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateCapitalWithCountry(bulkAssociationInput) {
+    static async bulkAssociateCapitalWithCountry_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "capital_id", "country_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -494,7 +494,7 @@ module.exports = class capital extends Sequelize.Model {
             capital_id
         }) => {
             promises.push(super.update({
-                accessionId: country_id
+                country_id: country_id
             }, {
                 where: {
                     capital_id: capital_id
@@ -506,13 +506,13 @@ module.exports = class capital extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateCapitalWithCountry - bulkDisAssociaton of given ids
+     * bulkDisAssociateCapitalWithCountry_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateCapitalWithCountry(bulkAssociationInput) {
+    static async bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "capital_id", "country_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -520,7 +520,7 @@ module.exports = class capital extends Sequelize.Model {
             capital_id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                country_id: null
             }, {
                 where: {
                     capital_id: capital_id,

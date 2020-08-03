@@ -144,10 +144,10 @@ individual.prototype.add_transcript_counts = async function(input, benignErrorRe
     let bulkAssociationInput = input.addTranscript_counts.map(associatedRecordId => {
         return {
             individual_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.transcript_count.idAttribute()]: associatedRecordId
         }
     });
-    await models.transcript_count.bulkAssociateTranscript_countWithIndividual(bulkAssociationInput, benignErrorReporter);
+    await models.transcript_count.bulkAssociateTranscript_countWithIndividual_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -161,10 +161,10 @@ individual.prototype.remove_transcript_counts = async function(input, benignErro
     let bulkAssociationInput = input.removeTranscript_counts.map(associatedRecordId => {
         return {
             individual_id: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.transcript_count.idAttribute()]: associatedRecordId
         }
     });
-    await models.transcript_count.bulkAssociateTranscript_countWithIndividual(bulkAssociationInput, benignErrorReporter);
+    await models.transcript_count.bulkDisAssociateTranscript_countWithIndividual_id(bulkAssociationInput, benignErrorReporter);
 }
 
 

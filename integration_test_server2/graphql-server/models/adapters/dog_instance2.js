@@ -429,21 +429,21 @@ module.exports = class dog_instance2 extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateDogWithPerson - bulkAssociaton of given ids
+     * bulkAssociateDogWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateDogWithPerson(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
+    static async bulkAssociateDogWithPerson_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
         var promises = [];
         mappedForeignKeys.forEach(({
             person_id,
             dog_id
         }) => {
             promises.push(super.update({
-                accessionId: person_id
+                person_id: person_id
             }, {
                 where: {
                     dog_id: dog_id
@@ -455,21 +455,21 @@ module.exports = class dog_instance2 extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateDogWithPerson - bulkDisAssociaton of given ids
+     * bulkDisAssociateDogWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateDogWithPerson(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeystoPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
+    static async bulkDisAssociateDogWithPerson_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "dog_id", "person_id");
         var promises = [];
         mappedForeignKeys.forEach(({
             person_id,
             dog_id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                person_id: null
             }, {
                 where: {
                     dog_id: dog_id,

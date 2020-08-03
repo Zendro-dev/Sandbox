@@ -72,6 +72,8 @@ type RiverEdge{
     order: Order
   }
 
+
+
   type Query {
     rivers(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput ): [river]
     readOneRiver(river_id: ID!): river
@@ -85,5 +87,5 @@ type RiverEdge{
     updateRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): river!
     deleteRiver(river_id: ID!): String!
     bulkAddRiverCsv: String!
-    }
+      }
 `;

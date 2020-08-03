@@ -464,15 +464,15 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateTranscript_countWithIndividual - bulkAssociaton resolver of given ids
+     * bulkAssociateTranscript_countWithIndividual_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateTranscript_countWithIndividual: async function(bulkAssociationInput, context) {
+    bulkAssociateTranscript_countWithIndividual_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 individual_id
@@ -481,18 +481,18 @@ module.exports = {
                 id
             }) => id)), transcript_count);
         }
-        return await transcript_count.bulkAssociateTranscript_countWithIndividual(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await transcript_count.bulkAssociateTranscript_countWithIndividual_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkAssociateTranscript_countWithAminoacidsequence - bulkAssociaton resolver of given ids
+     * bulkAssociateTranscript_countWithAminoacidsequence_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateTranscript_countWithAminoacidsequence: async function(bulkAssociationInput, context) {
+    bulkAssociateTranscript_countWithAminoacidsequence_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 aminoacidsequence_id
@@ -501,18 +501,18 @@ module.exports = {
                 id
             }) => id)), transcript_count);
         }
-        return await transcript_count.bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await transcript_count.bulkAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateTranscript_countWithIndividual - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateTranscript_countWithIndividual_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateTranscript_countWithIndividual: async function(bulkAssociationInput, context) {
+    bulkDisAssociateTranscript_countWithIndividual_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 individual_id
@@ -521,18 +521,18 @@ module.exports = {
                 id
             }) => id)), transcript_count);
         }
-        return await transcript_count.bulkDisAssociateTranscript_countWithIndividual(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await transcript_count.bulkDisAssociateTranscript_countWithIndividual_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateTranscript_countWithAminoacidsequence - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateTranscript_countWithAminoacidsequence_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateTranscript_countWithAminoacidsequence: async function(bulkAssociationInput, context) {
+    bulkDisAssociateTranscript_countWithAminoacidsequence_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 aminoacidsequence_id
@@ -541,7 +541,7 @@ module.exports = {
                 id
             }) => id)), transcript_count);
         }
-        return await transcript_count.bulkDisAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await transcript_count.bulkDisAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

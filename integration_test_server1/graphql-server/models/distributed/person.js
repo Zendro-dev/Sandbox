@@ -92,15 +92,11 @@ module.exports = class person {
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
-     * @return {object} mapped "edge" objects ({id_model1:<id1>, idmodel2:<id2>}) to the adapter responsible for the primary Key
+     * @return {object} mapped "edge" objects ({<id_model1>: id, <id_model2>:id}) to the adapter responsible for the primary Key
      */
     static mapBulkAssociationInputToAdapters(bulkAssociationInput) {
         let mappedInput = {}
         bulkAssociationInput.map((idMap) => {
-            if (idMap.person_id === undefined && idMap.associatedRecordId !== undefined) {
-                idMap['person_id'] = idMap['associatedRecordId'];
-                delete idMap['associatedRecordId'];
-            }
             let responsibleAdapter = this.adapterForIri(idMap.person_id);
             mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
         });
@@ -406,7 +402,7 @@ module.exports = class person {
 
 
     /**
-     * bulkAssociatePersonWithParrot - bulkAssociaton of given ids
+     * bulkAssociatePersonWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
@@ -414,7 +410,7 @@ module.exports = class person {
      */
 
     /**
-     * bulkDisAssociatePersonWithParrot - bulkDisAssociaton of given ids
+     * bulkDisAssociatePersonWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services

@@ -64,6 +64,7 @@ input orderPersonInput{
 }
 
 
+
 type Query {
   readOnePerson(person_id: ID!): person
   countPeople(search: searchPersonInput ): Int
@@ -71,11 +72,10 @@ type Query {
   peopleConnection(search:searchPersonInput, order: [ orderPersonInput ], pagination: paginationCursorInput ): PersonConnection
 }
 
-  type Mutation {
-    addPerson(person_id: ID!, name: String , addUnique_parrot:ID  , addDogs:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
-    updatePerson(person_id: ID!, name: String , addUnique_parrot:ID, removeUnique_parrot:ID   , addDogs:[ID], removeDogs:[ID]  , skipAssociationsExistenceChecks:Boolean = false): person!
-    deletePerson(person_id: ID!): String!
-    bulkAddPersonCsv: String
-    }
-
+type Mutation {
+  addPerson(person_id: ID!, name: String , addUnique_parrot:ID  , addDogs:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
+  updatePerson(person_id: ID!, name: String , addUnique_parrot:ID, removeUnique_parrot:ID   , addDogs:[ID], removeDogs:[ID]  , skipAssociationsExistenceChecks:Boolean = false): person!
+  deletePerson(person_id: ID!): String!
+  bulkAddPersonCsv: String
+  }
 `;

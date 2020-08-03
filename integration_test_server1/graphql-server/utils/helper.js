@@ -1567,7 +1567,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * mapForeignKeysToPrimaryKeyArray - Maps the given bulkAssociationInput foreignKeys to Arrays of primaryKeys
+   * mapForeignKeysToPrimaryKeyArray - Maps the given bulkAssociationInput foreignKeys to Arrays of primaryKeys. used for bulkAssociation
    * example: mapForeignKeystoPrimaryKeyArray([{personId: 1, dogId:2},{personId:1, dogId:3}, {personId:2, dogId:4}], 'dogId','personId')
    *          => [ { personId: 1, dogId: [ 2, 3 ] }, { personId: 2, dogId: [ 4 ] } ]
    * 
@@ -1589,5 +1589,18 @@ module.exports.vueTable = function(req, model, strAttributes) {
       keyMap.push(primaryKeytofilteredForeignKeys);
     });
     return keyMap;
+  }
+  
+  /**
+   * 
+   * @param {*} idMap 
+   * @param {*} idAttribute 
+   */
+  module.exports.substituePlaceholderId = function(idMap, idAttribute) {
+    if (idMap[idAttribute] === undefined && idMap.associatedRecordId !== undefined) {
+      idMap['measurement_id'] = idMap['associatedRecordId'];
+      delete idMap['associatedRecordId'];
+    }
+    return idMap
   }
 

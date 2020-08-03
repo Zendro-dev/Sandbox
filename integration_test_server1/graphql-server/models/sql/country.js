@@ -660,7 +660,7 @@ module.exports = class country extends Sequelize.Model {
      */
     static async add_river_id(record, addRivers) {
         const updated = await sequelize.transaction(async (transaction) => {
-            return await record.setRivers(addRivers, {
+            return await record.addRivers(addRivers, {
                 transaction: transaction
             });
         });
@@ -687,7 +687,7 @@ module.exports = class country extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateCountryWithCapital - bulkAssociaton of given ids
+     * bulkAssociateCountryWithCountry_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
@@ -695,7 +695,7 @@ module.exports = class country extends Sequelize.Model {
      */
 
     /**
-     * bulkDisAssociateCountryWithCapital - bulkDisAssociaton of given ids
+     * bulkDisAssociateCountryWithCountry_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services

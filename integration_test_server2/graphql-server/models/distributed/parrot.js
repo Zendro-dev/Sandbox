@@ -88,15 +88,11 @@ module.exports = class parrot {
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
-     * @return {object} mapped "edge" objects ({id_model1:<id1>, idmodel2:<id2>}) to the adapter responsible for the primary Key
+     * @return {object} mapped "edge" objects ({<id_model1>: id, <id_model2>:id}) to the adapter responsible for the primary Key
      */
     static mapBulkAssociationInputToAdapters(bulkAssociationInput) {
         let mappedInput = {}
         bulkAssociationInput.map((idMap) => {
-            if (idMap.parrot_id === undefined && idMap.associatedRecordId !== undefined) {
-                idMap['parrot_id'] = idMap['associatedRecordId'];
-                delete idMap['associatedRecordId'];
-            }
             let responsibleAdapter = this.adapterForIri(idMap.parrot_id);
             mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
         });
@@ -424,34 +420,34 @@ module.exports = class parrot {
 
 
     /**
-     * bulkAssociateParrotWithPerson - bulkAssociaton of given ids
+     * bulkAssociateParrotWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateParrotWithPerson(bulkAssociationInput, benignErrorReporter) {
+    static async bulkAssociateParrotWithPerson_id(bulkAssociationInput, benignErrorReporter) {
         let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
         var promises = [];
         Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
-            promises.push(adapters[responsibleAdapter].bulkAssociateParrotWithPerson(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+            promises.push(adapters[responsibleAdapter].bulkAssociateParrotWithPerson_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
         });
         await Promise.all(promises);
         return "Records successfully updated!";
     }
 
     /**
-     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton of given ids
+     * bulkDisAssociateParrotWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateParrotWithPerson(bulkAssociationInput, benignErrorReporter) {
+    static async bulkDisAssociateParrotWithPerson_id(bulkAssociationInput, benignErrorReporter) {
         let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
         var promises = [];
         Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
-            promises.push(adapters[responsibleAdapter].bulkDisAssociateParrotWithPerson(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+            promises.push(adapters[responsibleAdapter].bulkDisAssociateParrotWithPerson_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
         });
         await Promise.all(promises);
         return "Records successfully updated!";

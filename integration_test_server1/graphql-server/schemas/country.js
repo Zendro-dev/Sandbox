@@ -66,6 +66,8 @@ type CountryEdge{
     order: Order
   }
 
+
+
   type Query {
     countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput ): [country]
     readOneCountry(country_id: ID!): country
@@ -79,5 +81,5 @@ type CountryEdge{
     updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID   , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): country!
     deleteCountry(country_id: ID!): String!
     bulkAddCountryCsv: String!
-    }
+      }
 `;

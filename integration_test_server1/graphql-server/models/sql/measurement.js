@@ -489,24 +489,15 @@ module.exports = class Measurement extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateMeasurementWithAccession - bulkAssociaton of given ids
+     * bulkAssociateMeasurementWithAccessionId - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateMeasurementWithAccession(bulkAssociationInput) {
-        bulkAssociationInput.map((idMap) => {
-            if (idMap.dog_id === undefined && idMap.associatedRecordId !== undefined) {
-                idMap['measurement_id'] = idMap['associatedRecordId'];
-                delete idMap['associatedRecordId'];
-            }
-            return idMap
-        })
-        console.log("bulkAssociationInput after fK map: " + bulkAssociationInput)
+    static async bulkAssociateMeasurementWithAccessionId(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "measurement_id", "accessionId");
         var promises = [];
-        console.log("measurement model mappedForeignKeys"+ JSON.stringify(mappedForeignKeys))
         mappedForeignKeys.forEach(({
             accessionId,
             measurement_id
@@ -524,21 +515,13 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateMeasurementWithAccession - bulkDisAssociaton of given ids
+     * bulkDisAssociateMeasurementWithAccessionId - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateMeasurementWithAccession(bulkAssociationInput) {
-        bulkAssociationInput.map((idMap) => {
-            if (idMap.dog_id === undefined && idMap.associatedRecordId !== undefined) {
-                idMap['measurement_id'] = idMap['associatedRecordId'];
-                delete idMap['associatedRecordId'];
-            }
-            return idMap
-        })
-        console.log("bulkAssociationInput after fK map: " + JSON.stringify(bulkAssociationInput))
+    static async bulkDisAssociateMeasurementWithAccessionId(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "measurement_id", "accessionId");
         var promises = [];
         mappedForeignKeys.forEach(({

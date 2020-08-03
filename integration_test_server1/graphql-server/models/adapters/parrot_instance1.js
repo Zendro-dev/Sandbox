@@ -429,13 +429,13 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
     }
 
     /**
-     * bulkAssociateParrotWithPerson - bulkAssociaton of given ids
+     * bulkAssociateParrotWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateParrotWithPerson(bulkAssociationInput) {
+    static async bulkAssociateParrotWithPerson_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "parrot_id", "person_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -443,7 +443,7 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
             parrot_id
         }) => {
             promises.push(super.update({
-                accessionId: person_id
+                person_id: person_id
             }, {
                 where: {
                     parrot_id: parrot_id
@@ -455,13 +455,13 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateParrotWithPerson - bulkDisAssociaton of given ids
+     * bulkDisAssociateParrotWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateParrotWithPerson(bulkAssociationInput) {
+    static async bulkDisAssociateParrotWithPerson_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "parrot_id", "person_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -469,7 +469,7 @@ module.exports = class parrot_instance1 extends Sequelize.Model {
             parrot_id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                person_id: null
             }, {
                 where: {
                     parrot_id: parrot_id,

@@ -56,6 +56,8 @@ type Country_to_riverEdge{
     order: Order
   }
 
+
+
   type Query {
     country_to_rivers(search: searchCountry_to_riverInput, order: [ orderCountry_to_riverInput ], pagination: paginationInput ): [country_to_river]
     readOneCountry_to_river(id: ID!): country_to_river
@@ -69,5 +71,5 @@ type Country_to_riverEdge{
     updateCountry_to_river(id: ID!, country_id: String, river_id: String    , skipAssociationsExistenceChecks:Boolean = false): country_to_river!
     deleteCountry_to_river(id: ID!): String!
     bulkAddCountry_to_riverCsv: String!
-    }
+      }
 `;

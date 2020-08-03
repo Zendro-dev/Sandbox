@@ -61,7 +61,7 @@ input orderDogInput{
   order: Order
 }
 
-input bulkAssociateDogWithPersonInput{
+input bulkAssociationDogWithPerson_idInput{
   dog_id: ID!
   person_id: ID!
 }
@@ -73,11 +73,12 @@ type Query {
   dogsConnection(search:searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput ): DogConnection
 }
 
-  type Mutation {
-    addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
-    updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
-    deleteDog(dog_id: ID!): String!
-    bulkAddDogCsv: String
-    bulkAssociateDogWithPerson(bulkAssociationInput: [bulkAssociateDogWithPersonInput], skipAssociationsExistenceChecks:Boolean = false): String!}
-
+type Mutation {
+  addDog(dog_id: ID!, name: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): dog!
+  updateDog(dog_id: ID!, name: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): dog!
+  deleteDog(dog_id: ID!): String!
+  bulkAddDogCsv: String
+  bulkAssociateDogWithPerson_id(bulkAssociationInput: [bulkAssociationDogWithPerson_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  bulkDisAssociateDogWithPerson_id(bulkAssociationInput: [bulkAssociationDogWithPerson_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+}
 `;

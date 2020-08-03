@@ -396,15 +396,15 @@ module.exports = {
     },
 
     /**
-     * bulkAssociateCapitalWithCountry - bulkAssociaton resolver of given ids
+     * bulkAssociateCapitalWithCountry_id - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateCapitalWithCountry: async function(bulkAssociationInput, context) {
+    bulkAssociateCapitalWithCountry_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 country_id
@@ -413,18 +413,18 @@ module.exports = {
                 capital_id
             }) => capital_id)), capital);
         }
-        return await capital.bulkAssociateCapitalWithCountry(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await capital.bulkAssociateCapitalWithCountry_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
     /**
-     * bulkDisAssociateCapitalWithCountry - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateCapitalWithCountry_id - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateCapitalWithCountry: async function(bulkAssociationInput, context) {
+    bulkDisAssociateCapitalWithCountry_id: async function(bulkAssociationInput, context) {
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //if specified, check existence of the unique given ids
+        // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 country_id
@@ -433,7 +433,7 @@ module.exports = {
                 capital_id
             }) => capital_id)), capital);
         }
-        return await capital.bulkDisAssociateCapitalWithCountry(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+        return await capital.bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

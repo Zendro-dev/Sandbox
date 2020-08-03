@@ -255,7 +255,7 @@ module.exports = class person_instance2 {
     }
 
     /**
-     * bulkAssociatePersonWithParrot - bulkAssociaton of given ids
+     * bulkAssociatePersonWithPerson_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
@@ -263,7 +263,7 @@ module.exports = class person_instance2 {
      */
 
     /**
-     * bulkDisAssociatePersonWithParrot - bulkDisAssociaton of given ids
+     * bulkDisAssociatePersonWithPerson_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services

@@ -530,13 +530,13 @@ module.exports = class transcript_count extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateTranscript_countWithIndividual - bulkAssociaton of given ids
+     * bulkAssociateTranscript_countWithIndividual_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateTranscript_countWithIndividual(bulkAssociationInput) {
+    static async bulkAssociateTranscript_countWithIndividual_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "individual_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -544,7 +544,7 @@ module.exports = class transcript_count extends Sequelize.Model {
             id
         }) => {
             promises.push(super.update({
-                accessionId: individual_id
+                individual_id: individual_id
             }, {
                 where: {
                     id: id
@@ -555,13 +555,13 @@ module.exports = class transcript_count extends Sequelize.Model {
         return "Records successfully updated!"
     }
     /**
-     * bulkAssociateTranscript_countWithAminoacidsequence - bulkAssociaton of given ids
+     * bulkAssociateTranscript_countWithAminoacidsequence_id - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput) {
+    static async bulkAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "aminoacidsequence_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -569,7 +569,7 @@ module.exports = class transcript_count extends Sequelize.Model {
             id
         }) => {
             promises.push(super.update({
-                accessionId: aminoacidsequence_id
+                aminoacidsequence_id: aminoacidsequence_id
             }, {
                 where: {
                     id: id
@@ -581,13 +581,13 @@ module.exports = class transcript_count extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateTranscript_countWithIndividual - bulkDisAssociaton of given ids
+     * bulkDisAssociateTranscript_countWithIndividual_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateTranscript_countWithIndividual(bulkAssociationInput) {
+    static async bulkDisAssociateTranscript_countWithIndividual_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "individual_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -595,7 +595,7 @@ module.exports = class transcript_count extends Sequelize.Model {
             id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                individual_id: null
             }, {
                 where: {
                     id: id,
@@ -607,13 +607,13 @@ module.exports = class transcript_count extends Sequelize.Model {
         return "Records successfully updated!"
     }
     /**
-     * bulkDisAssociateTranscript_countWithAminoacidsequence - bulkDisAssociaton of given ids
+     * bulkDisAssociateTranscript_countWithAminoacidsequence_id - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateTranscript_countWithAminoacidsequence(bulkAssociationInput) {
+    static async bulkDisAssociateTranscript_countWithAminoacidsequence_id(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "aminoacidsequence_id");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -621,7 +621,7 @@ module.exports = class transcript_count extends Sequelize.Model {
             id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                aminoacidsequence_id: null
             }, {
                 where: {
                     id: id,

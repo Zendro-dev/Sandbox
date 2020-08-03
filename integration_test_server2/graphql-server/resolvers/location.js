@@ -144,10 +144,10 @@ location.prototype.add_accessions = async function(input, benignErrorReporter) {
     let bulkAssociationInput = input.addAccessions.map(associatedRecordId => {
         return {
             locationId: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.accession.idAttribute()]: associatedRecordId
         }
     });
-    await models.accession.bulkAssociateAccessionsWithLocation(bulkAssociationInput, benignErrorReporter);
+    await models.accession.bulkAssociateAccessionWithLocationId(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -161,10 +161,10 @@ location.prototype.remove_accessions = async function(input, benignErrorReporter
     let bulkAssociationInput = input.removeAccessions.map(associatedRecordId => {
         return {
             locationId: this.getIdValue(),
-            associatedRecordId: associatedRecordId
+            [models.accession.idAttribute()]: associatedRecordId
         }
     });
-    await models.accession.bulkAssociateAccessionsWithLocation(bulkAssociationInput, benignErrorReporter);
+    await models.accession.bulkDisAssociateAccessionWithLocationId(bulkAssociationInput, benignErrorReporter);
 }
 
 

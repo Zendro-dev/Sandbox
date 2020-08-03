@@ -502,13 +502,13 @@ module.exports = class Accession extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateAccessionWithLocation - bulkAssociaton of given ids
+     * bulkAssociateAccessionWithLocationId - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateAccessionWithLocation(bulkAssociationInput) {
+    static async bulkAssociateAccessionWithLocationId(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "accession_id", "locationId");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -516,7 +516,7 @@ module.exports = class Accession extends Sequelize.Model {
             accession_id
         }) => {
             promises.push(super.update({
-                accessionId: locationId
+                locationId: locationId
             }, {
                 where: {
                     accession_id: accession_id
@@ -528,13 +528,13 @@ module.exports = class Accession extends Sequelize.Model {
     }
 
     /**
-     * bulkDisAssociateAccessionWithLocation - bulkDisAssociaton of given ids
+     * bulkDisAssociateAccessionWithLocationId - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateAccessionWithLocation(bulkAssociationInput) {
+    static async bulkDisAssociateAccessionWithLocationId(bulkAssociationInput) {
         let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "accession_id", "locationId");
         var promises = [];
         mappedForeignKeys.forEach(({
@@ -542,7 +542,7 @@ module.exports = class Accession extends Sequelize.Model {
             accession_id
         }) => {
             promises.push(super.update({
-                accessionId: null
+                locationId: null
             }, {
                 where: {
                     accession_id: accession_id,
