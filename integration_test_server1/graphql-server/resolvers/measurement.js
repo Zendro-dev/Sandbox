@@ -200,11 +200,12 @@ module.exports = {
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
             let countResult = await measurement.countRecords(search);
-            // let effectiveRecordCount = helper.calculateEffectiveRecordsCount(search, pagination, countResult, measurement.idAttribute());
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, countResult, context, "measurements");
+            let effectiveRecordCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
+            helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, "measurementsConnection");
+            // await checkCountAndReduceRecordsLimit({
+            //     search,
+            //     pagination
+            // }, countResult, context, "measurements");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await measurement.readAll(search, order, pagination, countResult ,benignErrorReporter);
         } else {
@@ -230,7 +231,7 @@ module.exports = {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
             let countResult = await measurement.countRecords(search);
             let effectiveCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
-            helper.checkCountAndReduceRecordLimitHelper(countResult, context, "measurementsConnection");
+            helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, "measurementsConnection");
             // await checkCountAndReduceRecordsLimit({
             //     search,
             //     pagination
