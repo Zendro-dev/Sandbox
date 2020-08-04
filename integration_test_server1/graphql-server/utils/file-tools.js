@@ -100,33 +100,37 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 
 
 castCsv = function( value, column, attributes_type){
+  console.log("Value: ", value);
 
-  switch ( attributes_type[column] ) {
-    case 'String':
-      value = String(value);
-      break;
-    case 'Int':
-      value = Number(value);
-      break;
-    case 'Date':
-      value = String(value);
-      break;
-    case 'Time':
-      value = String(value);
-      break;
-    case 'Date':
-      value = String(value);
-      break;
-    case 'Boolean':
-      if(value === 'true') value = true;
-      if(value === 'false') value = false;
-      break;
-    case 'Float':
-      value = Number(value);
-      break;
-    default:
-
+  if(!(typeof value === "string" && value.match(/\s*null\s*/i) )){
+    switch ( attributes_type[column] ) {
+      case 'String':
+        value = String(value);
+        break;
+      case 'Int':
+        value = Number(value);
+        break;
+      case 'Date':
+        value = String(value);
+        break;
+      case 'Time':
+        value = String(value);
+        break;
+      case 'Date':
+        value = String(value);
+        break;
+      case 'Boolean':
+        if(value === 'true') value = true;
+        if(value === 'false') value = false;
+        break;
+      case 'Float':
+        value = Number(value);
+        break;
+      default:
+    }
   }
+
+
   return value;
 }
 
@@ -180,7 +184,7 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
 
       console.log(record);
       record = exports.replacePojoNullValueWithLiteralNull(record);
-      //console.log(record);
+      console.log(record);
 
 
       try {

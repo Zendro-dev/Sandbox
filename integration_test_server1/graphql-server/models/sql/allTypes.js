@@ -333,7 +333,6 @@ module.exports = class AllTypes extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         console.log("INPUT :", input);
-        input.record_time = "10:15:30Z";
         await validatorUtil.validateData('validateForCreate', this, input);
         try {
             console.log("INPUT MODIFIED: ", input);
