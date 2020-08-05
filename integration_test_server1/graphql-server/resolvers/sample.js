@@ -160,6 +160,9 @@ sample.prototype.samplesConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 sample.prototype.handleAssociations = async function(input, benignErrorReporter) {
+
+  helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, input[sample.idAttribute()]);
+
     let promises = [];
     if (helper.isNonEmptyArray(input.addSamples)) {
         promises.push(this.add_samples(input, benignErrorReporter));
@@ -514,7 +517,7 @@ module.exports = {
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedSample = await sample.updateOne(inputSanitized, benignErrorReporter);
-            helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},inputSanitized, input[sample.idAttribute()]);
+
             await updatedSample.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedSample;
         } else {

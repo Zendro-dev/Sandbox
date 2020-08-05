@@ -1575,8 +1575,4 @@ module.exports.vueTable = function(req, model, strAttributes) {
     if( input[ association_names.to_many ].includes(id) && input[ association_names.to_one ] !== id ){
       throw new Error("Validation error: Self association is contradictory, please check your input");
     }
-
-
-
-
   }
