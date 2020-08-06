@@ -1565,7 +1565,9 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
 
-  module.exports.checkSelfAssociations = function( association_names,input, id){
+  module.exports.checkSelfAssociations = function( association_names,input, id, benignErrorReporter){
+
+    console.log("CHECKING ASSOCIATIONS: ", association_names, input, id, benignErrorReporter);
     //if one of the association is not even mentioned in the input, no contradiction can happen
     if(input[ association_names.to_many] === undefined || input[association_names.to_one] === undefined
       || input[ association_names.to_many] === null || input[association_names.to_one] === null ){
@@ -1573,6 +1575,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     }
 
     if( input[ association_names.to_many ].includes(id) && input[ association_names.to_one ] !== id ){
-      throw new Error("Validation error: Self association is contradictory, please check your input");
+      benignErrorReporter.reportError(new Error("Validation error: Self association is contradictory, please check your input") );
+      console.log("benignErrorReporter: ", benignErrorReporter)
     }
   }

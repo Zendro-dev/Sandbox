@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const sample = require(path.join(__dirname, '..', 'models', 'index.js')).sample;
+const sample_string = require(path.join(__dirname, '..', 'models', 'index.js')).sample_string;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,39 +14,39 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addParent': 'sample',
-    'addSamples': 'sample'
+    'addParent': 'sample_string',
+    'addSamples': 'sample_string'
 }
 
 
 
 /**
- * sample.prototype.parent - Return associated record
+ * sample_string.prototype.parent - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-sample.prototype.parent = async function({
+sample_string.prototype.parent = async function({
     search
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.sample_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneSample({
-                [models.sample.idAttribute()]: this.sample_id
+            return resolvers.readOneSample_string({
+                [models.sample_string.idAttribute()]: this.sample_id
             }, context)
         } else {
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.sample.idAttribute(),
+                "field": models.sample_string.idAttribute(),
                 "value": {
                     "value": this.sample_id
                 },
                 "operator": "eq"
             });
-            let found = await resolvers.samples({
+            let found = await resolvers.sample_strings({
                 search: nsearch
             }, context);
             if (found) {
@@ -58,7 +58,7 @@ sample.prototype.parent = async function({
 }
 
 /**
- * sample.prototype.samplesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * sample_string.prototype.samplesFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -68,7 +68,7 @@ sample.prototype.parent = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-sample.prototype.samplesFilter = function({
+sample_string.prototype.samplesFilter = function({
     search,
     order,
     pagination
@@ -83,7 +83,7 @@ sample.prototype.samplesFilter = function({
         "operator": "eq"
     });
 
-    return resolvers.samples({
+    return resolvers.sample_strings({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -91,13 +91,13 @@ sample.prototype.samplesFilter = function({
 }
 
 /**
- * sample.prototype.countFilteredSamples - Count number of associated records that holds the conditions specified in the search argument
+ * sample_string.prototype.countFilteredSamples - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-sample.prototype.countFilteredSamples = function({
+sample_string.prototype.countFilteredSamples = function({
     search
 }, context) {
 
@@ -111,13 +111,13 @@ sample.prototype.countFilteredSamples = function({
         "operator": "eq"
     });
 
-    return resolvers.countSamples({
+    return resolvers.countSample_strings({
         search: nsearch
     }, context);
 }
 
 /**
- * sample.prototype.samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * sample_string.prototype.samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -127,7 +127,7 @@ sample.prototype.countFilteredSamples = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-sample.prototype.samplesConnection = function({
+sample_string.prototype.samplesConnection = function({
     search,
     order,
     pagination
@@ -143,7 +143,7 @@ sample.prototype.samplesConnection = function({
         "operator": "eq"
     });
 
-    return resolvers.samplesConnection({
+    return resolvers.sample_stringsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -159,9 +159,12 @@ sample.prototype.samplesConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sample.prototype.handleAssociations = async function(input, benignErrorReporter) {
+sample_string.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
-  helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample.idAttribute()]}`, benignErrorReporter);
+    helper.checkSelfAssociations({
+        to_one: "addParent",
+        to_many: "addSamples"
+    }, input, `${this[sample_string.idAttribute()]}`, benignErrorReporter);
 
     let promises = [];
     if (helper.isNonEmptyArray(input.addSamples)) {
@@ -176,7 +179,6 @@ sample.prototype.handleAssociations = async function(input, benignErrorReporter)
     if (helper.isNotUndefinedAndNotNull(input.removeParent)) {
         promises.push(this.remove_parent(input, benignErrorReporter));
     }
-
     await Promise.all(promises);
 }
 /**
@@ -185,10 +187,10 @@ sample.prototype.handleAssociations = async function(input, benignErrorReporter)
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sample.prototype.add_samples = async function(input, benignErrorReporter) {
+sample_string.prototype.add_samples = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.addSamples) {
-        results.push(models.sample.add_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+        results.push(models.sample_string.add_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -199,8 +201,8 @@ sample.prototype.add_samples = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sample.prototype.add_parent = async function(input, benignErrorReporter) {
-    await sample.add_sample_id(this.getIdValue(), input.addParent, benignErrorReporter);
+sample_string.prototype.add_parent = async function(input, benignErrorReporter) {
+    await sample_string.add_sample_id(this.getIdValue(), input.addParent, benignErrorReporter);
     this.sample_id = input.addParent;
 }
 
@@ -210,10 +212,10 @@ sample.prototype.add_parent = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sample.prototype.remove_samples = async function(input, benignErrorReporter) {
+sample_string.prototype.remove_samples = async function(input, benignErrorReporter) {
     let results = [];
     for await (associatedRecordId of input.removeSamples) {
-        results.push(models.sample.remove_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+        results.push(models.sample_string.remove_sample_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
@@ -224,9 +226,9 @@ sample.prototype.remove_samples = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sample.prototype.remove_parent = async function(input, benignErrorReporter) {
+sample_string.prototype.remove_parent = async function(input, benignErrorReporter) {
     if (input.removeParent == this.sample_id) {
-        await sample.remove_sample_id(this.getIdValue(), input.removeParent, benignErrorReporter);
+        await sample_string.remove_sample_id(this.getIdValue(), input.removeParent, benignErrorReporter);
         this.sample_id = null;
     }
 }
@@ -250,7 +252,7 @@ sample.prototype.remove_parent = async function(input, benignErrorReporter) {
 async function checkCountAndReduceRecordsLimit({
     search,
     pagination
-}, context, resolverName, modelName = 'sample') {
+}, context, resolverName, modelName = 'sample_string') {
     //defaults
     let inputPaginationValues = {
         limit: undefined,
@@ -283,7 +285,7 @@ async function checkCountAndReduceRecordsLimit({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSample")
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSample_string")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -294,16 +296,16 @@ function checkCountForOneAndReduceRecordsLimit(context) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let sample = await resolvers.readOneSample({
+    let sample_string = await resolvers.readOneSample_string({
         id: id
     }, context);
     //check that record actually exists
-    if (sample === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (sample_string === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(sample.countFilteredSamples({}, context));
-    promises_to_one.push(sample.parent({}, context));
+    promises_to_many.push(sample_string.countFilteredSamples({}, context));
+    promises_to_one.push(sample_string.parent({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -323,14 +325,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`sample with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`sample_string with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * samples - Check user authorization and return certain number, specified in pagination argument, of records that
+     * sample_strings - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -339,25 +341,25 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    samples: async function({
+    sample_strings: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "samples");
+            }, context, "sample_strings");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sample.readAll(search, order, pagination, benignErrorReporter);
+            return await sample_string.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * sample_stringsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -366,77 +368,77 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    samplesConnection: async function({
+    sample_stringsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "samplesConnection");
+            }, context, "sample_stringsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sample.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await sample_string.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneSample - Check user authorization and return one record with the specified id in the id argument.
+     * readOneSample_string - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOneSample: async function({
+    readOneSample_string: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sample.readById(id, benignErrorReporter);
+            return await sample_string.readById(id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countSamples - Counts number of records that holds the conditions specified in the search argument
+     * countSample_strings - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countSamples: async function({
+    countSample_strings: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sample.countRecords(search, benignErrorReporter);
+            return await sample_string.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableSample - Return table of records as needed for displaying a vuejs table
+     * vueTableSample_string - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableSample: async function(_, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
-            return helper.vueTable(context.request, sample, ["id", "name", "material", "life_cycle_phase", "description", "library", "barcode_sequence"]);
+    vueTableSample_string: async function(_, context) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
+            return helper.vueTable(context.request, sample_string, ["id", "id", "name", "material", "life_cycle_phase", "description", "library", "barcode_sequence", "sample_id"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addSample - Check user authorization and creates a new record with data specified in the input argument.
+     * addSample_string - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -444,8 +446,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addSample: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'sample', 'create');
+    addSample_string: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'sample_string', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -454,43 +456,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdSample = await sample.addOne(inputSanitized, benignErrorReporter);
-            await createdSample.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdSample;
+            let createdSample_string = await sample_string.addOne(inputSanitized, benignErrorReporter);
+            await createdSample_string.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdSample_string;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddSampleCsv - Load csv file of records
+     * bulkAddSample_stringCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddSampleCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'sample', 'create') === true) {
+    bulkAddSample_stringCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'sample_string', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return sample.bulkAddCsv(context, benignErrorReporter);
+            return sample_string.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteSample - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteSample_string - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteSample: async function({
+    deleteSample_string: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'delete') === true) {
+        if (await checkAuthorization(context, 'sample_string', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return sample.deleteOne(id, benignErrorReporter);
+                return sample_string.deleteOne(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -498,7 +500,7 @@ module.exports = {
     },
 
     /**
-     * updateSample - Check user authorization and update the record specified in the input argument
+     * updateSample_string - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -506,8 +508,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateSample: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'sample', 'update');
+    updateSample_string: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'sample_string', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -516,26 +518,25 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedSample = await sample.updateOne(inputSanitized, benignErrorReporter);
-
-            await updatedSample.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedSample;
+            let updatedSample_string = await sample_string.updateOne(inputSanitized, benignErrorReporter);
+            await updatedSample_string.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedSample_string;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * csvTableTemplateSample - Returns table's template
+     * csvTableTemplateSample_string - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateSample: async function(_, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+    csvTableTemplateSample_string: async function(_, context) {
+        if (await checkAuthorization(context, 'sample_string', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return sample.csvTableTemplate(benignErrorReporter);
+            return sample_string.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
