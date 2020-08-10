@@ -161,16 +161,18 @@ sample_string.prototype.samplesConnection = function({
  */
 sample_string.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
-    helper.checkSelfAssociations({
-        to_one: "addParent",
-        to_many: "addSamples"
-    }, input, `${this[sample_string.idAttribute()]}`, benignErrorReporter);
+    // helper.checkSelfAssociations({
+    //     to_one: "addParent",
+    //     to_many: "addSamples"
+    // }, input, `${this[sample_string.idAttribute()]}`, benignErrorReporter);
 
     let promises = [];
     if (helper.isNonEmptyArray(input.addSamples)) {
+      if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample_string.idAttribute()]}`, benignErrorReporter) )
         promises.push(this.add_samples(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.addParent)) {
+       if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample_string.idAttribute()]}`, benignErrorReporter) )
         promises.push(this.add_parent(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeSamples)) {
