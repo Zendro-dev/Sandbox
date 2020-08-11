@@ -280,6 +280,12 @@ module.exports = class Accession extends Sequelize.Model {
                 /*
                  * Get records
                  */
+                console.log("options: ", options);
+                console.log("WOPTION: " + JSON.stringify(options['where']))
+
+                //let query = this.sequelize.dialect.QueryGenerator.selectQuery('individuals', options);
+                //console.log("QUERY: ", query);
+
                 return super.findAll(options).then(async records => {
                     //validate records
                     records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);

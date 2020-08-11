@@ -5,6 +5,7 @@ const _ = require('lodash');
 const models_index = require('../models/index');
 const { Op } = require("sequelize");
 const globals = require('../config/globals')
+const searchArg = require('./search-argument');
 
   /**
    * paginate - Creates pagination argument as needed in sequelize cotaining limit and offset accordingly to the current
@@ -415,7 +416,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operator for base step.
        */
     //set operator according to order type.
-    let operator = order[last_index][1] === 'ASC' ? 'lte' : 'gte';
+    let operator = order[last_index][1] === 'ASC' ? 'gte' : 'lte';
     //set strictly '>' or '<' for idAttribute (condition (1)).
     if (!includeCursor && order[last_index][0] === idAttribute) { operator = operator.substring(0, 2); }
 
@@ -435,9 +436,9 @@ module.exports.vueTable = function(req, model, strAttributes) {
        * Set operators
        */
       //set relaxed operator '>=' or '<=' for condition (2.a or 2.b)
-      operator = order[i][1] === 'ASC' ? 'lte' : 'gte';
+      operator = order[i][1] === 'ASC' ? 'gte' : 'lte';
       //set strict operator '>' or '<' for condition (2.a).
-      let strict_operator = order[i][1] === 'ASC' ? 'lt' : 'gt';
+      let strict_operator = order[i][1] === 'ASC' ? 'gt' : 'lt';
       //set strictly '>' or '<' for idAttribute (condition (1)).
       if(!includeCursor && order[i][0] === idAttribute){ operator = operator.substring(0, 2);}
 
@@ -1616,5 +1617,172 @@ module.exports.vueTable = function(req, model, strAttributes) {
     return module.exports.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
   }
 
+  module.exports.isForwardPagination
+
+  module.exports.searchConditionsToSequelize = function(search){
+    // check search
+    // module.exports.checkSearchArgument(search);
+    let whereOptions = {};
+    if(search !== undefined && search !== null){
+      //check
+      if(typeof search !== 'object') throw new Error('Illegal "search" argument type, it must be an object.');
+      let arg = new searchArg(search);
+      whereOptions = arg.toSequelize();
+
+    }
+    return whereOptions;
+  }
+
+  module.exports.orderConditionsToSequelize = function(order, idAttribute){
+    let orderOptions = [];
+    if (order !== undefined) {
+        orderOptions = order.map((orderItem) => {
+            return [orderItem.field, orderItem.order];
+        });
+    }
+    if (!orderOptions.map(orderItem => {
+            return orderItem[0]
+        }).includes(idAttribute)) {
+        orderOptions = [...orderOptions, ...[
+            [idAttribute, "ASC"]
+        ]];
+    }
+    return orderOptions;
+  }
+
+  module.exports.orderConditionsToSequelizeBackward = function(order, idAttribute){
+    let orderOptions = [];
+    if (order !== undefined) {
+        orderOptions = order.map((orderItem) => {
+            return orderItem.order === "ASC" ? [orderItem.field, "DESC"] : [orderItem.field, "ASC"] 
+            // if (orderItem.order === "ASC"){
+
+            // }
+            // return [orderItem.field, orderItem.order];
+        });
+    }
+    if (!orderOptions.map(orderItem => {
+            return orderItem[0]
+        }).includes(idAttribute)) {
+        orderOptions = [...orderOptions, ...[
+            [idAttribute, "DESC"]
+        ]];
+    }
+    return orderOptions;
+  }
+
+  module.exports.cursorPaginationArgumentsToSequelize = function(pagination, sequelizeOptions, idAttribute) {
+    if (pagination) {
+      let isForwardPagination = module.exports.isForwardPagination(pagination);
+      //forward
+      if (isForwardPagination) {
+        if (pagination.after) {
+          // base64Decode(cursor) currently a static model function. Should be a helper
+          let decoded_cursor = JSON.parse(module.exports.base64Decode(pagination.after));
+          sequelizeOptions['where'] = {
+            ...sequelizeOptions['where'],
+            ...module.exports.parseOrderCursor(sequelizeOptions['order'], decoded_cursor, idAttribute, pagination.includeCursor)
+          };
+        }
+        // set the LIMIT to pagination first + 1 to see if hasNextPage is true
+        sequelizeOptions['limit'] = pagination.first !== undefined ? pagination.first + 1 : undefined;
+      } else { //backward
+        if (pagination.before) {
+          let decoded_cursor = JSON.parse(module.exports.base64Decode(pagination.before));
+          sequelizeOptions['where'] = {
+            ...sequelizeOptions['where'],
+            ...module.exports.parseOrderCursorBefore(sequelizeOptions['order'], decoded_cursor, idAttribute, pagination.includeCursor)
+          };
+        }
+        // set the LIMIT to pagination first + 1 to see if hasPreviousPage is true
+        sequelizeOptions['limit'] = pagination.last !== undefined ? pagination.last + 1 : undefined;
+        // Do we need offset in CBP?
+        // options['offset'] = Math.max((countB - pagination.last), 0);
+      }
+    }
+  }
+
+  module.exports.buildCursorBasedSequelizeOptions = function(search, order, pagination, idAttribute){
+    let options = {};
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    // build the sequelize options object.
+    options['where'] = module.exports.searchConditionsToSequelize(search);
+    //options['order'] = module.exports.orderConditionsToSequelize(order, idAttribute);
+    options['order'] = isForwardPagination ? module.exports.orderConditionsToSequelize(order, idAttribute) : module.exports.orderConditionsToSequelizeBackward(order, idAttribute);
+    // extend the where and limit options for the given order and cursor
+    module.exports.cursorPaginationArgumentsToSequelize(pagination, options, idAttribute);
+    return options;
+  }
+
+  module.exports.buildOppositeSearch = function(pagination, options, idAttribute){
+    // IMPORTANT: COPY pagination and options, they are still needed.
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    let oppPagination = Object.assign({}, pagination);
+    let oppOptions = Object.assign({}, options);
+    oppOptions['order'] = [];
+    if(isForwardPagination){
+      oppPagination.before = oppPagination.after
+      // 0 because limit will be + 1;
+      oppPagination.last = 0;
+      delete oppPagination.after;
+      delete oppPagination.first;
+    } else {
+      oppPagination.after = oppPagination.before
+      oppPagination.first = 0;
+      console.log("oppPagination: ", JSON.stringify(oppPagination))
+      delete oppPagination.before;
+      delete oppPagination.last;
+    }
+    
+    module.exports.cursorPaginationArgumentsToSequelize(oppPagination, oppOptions, idAttribute);
+    
+    return oppOptions;
+  }
+
+
+  module.exports.buildPageInfo = function(edges, oppRecords, pagination){
+    //default
+    let pageInfo = {
+      hasPreviousPage: false,
+      hasNextPage: false,
+      startCursor: null,
+      endCursor: null
+    }
+    
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    if (isForwardPagination) {
+      let hasNextPage = (pagination && pagination.first ? (edges.length > pagination.first)  : false);
+      // pop last edge. It is only used to determine if a next page exists.
+      if (hasNextPage){edges.pop()};
+      pageInfo = {
+        hasPreviousPage: (oppRecords.length > 0) ? true: false,
+        hasNextPage: hasNextPage,
+        startCursor: (edges.length > 0) ? edges[0].cursor : null,
+        endCursor: (edges.length > 0) ? edges[edges.length - 1].cursor : null
+      }
+    } else { //backward
+      let hasPreviousPage = (pagination && pagination.last ? (edges.length > pagination.last)  : false);
+      // I think we need to shift instead of pop if backward pagination
+      if (hasPreviousPage){edges.shift()};
+      pageInfo = {
+          hasPreviousPage: hasPreviousPage,
+          hasNextPage: (oppRecords.length > 0) ? true: false,
+          startCursor: (edges.length > 0) ? edges[0].cursor : null,
+          endCursor: (edges.length > 0) ? edges[edges.length - 1].cursor : null
+      }
+    }
+    return pageInfo;
+  }
+
+  module.exports.buildEdgeObject = function(records){
+    if (records.length > 0) {
+      return records.map(record => {
+        return {
+          node: record,
+          cursor: record.base64Enconde()
+        }
+      });
+    }
+  }
 
 

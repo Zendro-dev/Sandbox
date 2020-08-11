@@ -201,7 +201,7 @@ module.exports = {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
             let countResult = await measurement.countRecords(search);
             let effectiveRecordCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
-            helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, "measurementsConnection");
+            helper.checkCountAndReduceRecordLimitHelper(effectiveRecordCount, context, "measurementsConnection");
             // await checkCountAndReduceRecordsLimit({
             //     search,
             //     pagination
