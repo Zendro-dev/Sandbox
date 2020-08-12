@@ -161,19 +161,21 @@ sample.prototype.samplesConnection = function({
  */
 sample.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
+  let assoc_by_sample_id = helper.checkSelfAssociations({
+      to_one: "addParent",
+      to_many: "addSamples"
+  }, input, `${this[sample.idAttribute()]}`, benignErrorReporter);
 
 
     let promises = [];
-    if (helper.isNonEmptyArray(input.addSamples)) {
-      if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample.idAttribute()]}`, benignErrorReporter) )
-        promises.push(this.add_samples(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addSamples) && assoc_by_sample_id) {
+      promises.push(this.add_samples(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addParent)) {
+    if (helper.isNotUndefinedAndNotNull(input.addParent) && assoc_by_sample_id) {
         promises.push(this.add_parent(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeSamples)) {
-      if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample.idAttribute()]}`, benignErrorReporter) )
-        promises.push(this.remove_samples(input, benignErrorReporter));
+      promises.push(this.remove_samples(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeParent)) {
         promises.push(this.remove_parent(input, benignErrorReporter));

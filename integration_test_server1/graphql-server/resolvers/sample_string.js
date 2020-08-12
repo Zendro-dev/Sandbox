@@ -161,18 +161,17 @@ sample_string.prototype.samplesConnection = function({
  */
 sample_string.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
-    // helper.checkSelfAssociations({
-    //     to_one: "addParent",
-    //     to_many: "addSamples"
-    // }, input, `${this[sample_string.idAttribute()]}`, benignErrorReporter);
+    let assoc_by_sample_id = helper.checkSelfAssociations({
+        to_one: "addParent",
+        to_many: "addSamples"
+    }, input, `${this[sample_string.idAttribute()]}`, benignErrorReporter);
 
     let promises = [];
-    if (helper.isNonEmptyArray(input.addSamples)) {
-      if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample_string.idAttribute()]}`, benignErrorReporter) )
+    if (helper.isNonEmptyArray(input.addSamples) && assoc_by_sample_id) {
+        console.log("adding samples: ");
         promises.push(this.add_samples(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addParent)) {
-       if(helper.checkSelfAssociations({to_one: "addParent", to_many: "addSamples"},input, `${this[sample_string.idAttribute()]}`, benignErrorReporter) )
+    if (helper.isNotUndefinedAndNotNull(input.addParent) && assoc_by_sample_id) {
         promises.push(this.add_parent(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.removeSamples)) {
