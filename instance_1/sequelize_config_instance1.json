@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_development",
+    "host": "sdb_postgres_i3_metaquery",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_test",
+    "host": "sdb_postgres_i3_metaquery",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_production",
+    "host": "sdb_postgres_i3_metaquery",
+    "dialect": "postgres"
+  }
+}
