@@ -12,7 +12,7 @@ Use the packages `sqlite3` (driver) and `sqlite` (async API) to create databases
 
 The program flow can be summarized in the following code-block (pseudo-code):
 
-```javascript=
+```js
 
 async main () {
 
