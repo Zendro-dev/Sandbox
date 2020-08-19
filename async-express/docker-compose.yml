@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+
+  main_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.main_server
+    volumes:
+    - ./:/usr/src/app
+    ports:
+      - 3000:3000
+    networks:
+      - backend
+
+  shard_01:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3001
+      SHARD: '01'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3001:3001
+    networks:
+      - backend
+
+  shard_02:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3002
+      SHARD: '02'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3002:3002
+    networks:
+      - backend
+
+  shard_03:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3003
+      SHARD: '03'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3003:3003
+    networks:
+      - backend
+
+  shard_04:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3004
+      SHARD: '04'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3004:3004
+    networks:
+      - backend
+
+  shard_05:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3005
+      SHARD: '05'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3005:3005
+    networks:
+      - backend
+
+  shard_06:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3006
+      SHARD: '06'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3006:3006
+    networks:
+      - backend
+
+  shard_07:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3007
+      SHARD: '07'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3007:3007
+    networks:
+      - backend
+
+  shard_08:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3008
+      SHARD: '08'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3008:3008
+    networks:
+      - backend
+
+  shard_09:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3009
+      SHARD: '09'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3009:3009
+    networks:
+      - backend
+
+  shard_10:
+    build:
+      context: .
+      dockerfile: Dockerfile.shard
+    environment:
+      PORT: 3010
+      SHARD: '10'
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - 3010:3010
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
