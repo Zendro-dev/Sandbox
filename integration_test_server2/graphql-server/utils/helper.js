@@ -5,6 +5,7 @@ const _ = require('lodash');
 const models_index = require('../models/index');
 const { Op } = require("sequelize");
 const globals = require('../config/globals')
+const searchArg = require('./search-argument');
 
   /**
    * paginate - Creates pagination argument as needed in sequelize cotaining limit and offset accordingly to the current
@@ -1118,8 +1119,6 @@ module.exports.vueTable = function(req, model, strAttributes) {
         context.benignErrors = context.benignErrors.concat(resultObj.errors)
         delete resultObj['errors']
     }
-    console.log("resultObj: " + JSON.stringify(resultObj))
-    console.log("context_benignErrors: " + JSON.stringify(context.benignErrors))
     return [resultObj,context];
   }
 
@@ -1445,6 +1444,12 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * @param {object}  pagination  Cursor-based pagination object.
    */
   module.exports.checkCursorBasedPaginationArgument = function(pagination) {
+    // check for negative pagination. Since we have to increase the LIMIT in the database query by 1,
+    // theoretically the arugment "pagination:{first:-1}" would be valid.
+    if(typeof pagination === 'object' && (pagination.first < 0 || pagination.last < 0)){
+      throw new Error('LIMIT must not be negative')
+    }
+
     let argsValid = (pagination === undefined || pagination === null) 
     || (typeof pagination === 'object' && pagination.first && !pagination.before && !pagination.last) 
     || (typeof pagination === 'object' && pagination.last && !pagination.after && !pagination.first);
@@ -1461,7 +1466,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * @param {object}  pagination  Cursor-based pagination object.
    */
   module.exports.isForwardPagination = function(pagination) {
-    return (!pagination || pagination.first);
+    return (!pagination || pagination.first !== undefined);
   }
 
   /** 
@@ -1567,7 +1572,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
   }
 
   /**
-   * mapForeignKeysToPrimaryKeyArray - Maps the given bulkAssociationInput foreignKeys to Arrays of primaryKeys
+   * mapForeignKeysToPrimaryKeyArray - Maps the given bulkAssociationInput foreignKeys to Arrays of primaryKeys. used for bulkAssociation
    * example: mapForeignKeystoPrimaryKeyArray([{personId: 1, dogId:2},{personId:1, dogId:3}, {personId:2, dogId:4}], 'dogId','personId')
    *          => [ { personId: 1, dogId: [ 2, 3 ] }, { personId: 2, dogId: [ 4 ] } ]
    * 
@@ -1591,3 +1596,183 @@ module.exports.vueTable = function(req, model, strAttributes) {
     return keyMap;
   }
 
+  module.exports.searchConditionsToSequelize = function(search){
+    // check search
+    // module.exports.checkSearchArgument(search);
+    let whereOptions = {};
+    if(search !== undefined && search !== null){
+      //check
+      if(typeof search !== 'object') throw new Error('Illegal "search" argument type, it must be an object.');
+      let arg = new searchArg(search);
+      whereOptions = arg.toSequelize();
+
+    }
+    return whereOptions;
+  }
+
+  module.exports.orderConditionsToSequelize = function(order, idAttribute){
+    let orderOptions = [];
+    if (order !== undefined) {
+        orderOptions = order.map((orderItem) => {
+            return [orderItem.field, orderItem.order];
+        });
+    }
+    if (!orderOptions.map(orderItem => {
+            return orderItem[0]
+        }).includes(idAttribute)) {
+        orderOptions = [...orderOptions, ...[
+            [idAttribute, "ASC"]
+        ]];
+    }
+    return orderOptions;
+  }
+
+  // module.exports.orderConditionsLimitOffsetToSequelize = function(order, idAttribute){
+  //   let orderOptions = [];
+  //   if (order !== undefined) {
+  //     orderOptions['order'] = order.map((orderItem) => {
+  //       return [orderItem.field, orderItem.order];
+  //     });
+  //   } else if (pagination !== undefined) {
+  //     orderOptions['order'] = [
+  //       [idAttribute, "ASC"]
+  //     ];
+  //   }
+  //   return orderOptions;
+  // }
+
+  // module.exports.limitOffsetPaginationArgumentsToSequelize = function(pagination){
+  //   if (pagination !== undefined) {
+  //     offset = pagination.offset
+  //     options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
+  //     options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
+  //   } else {
+  //     options['offset'] = 0;
+  //     options['limit'] = items;
+  //   }
+  // }
+
+  module.exports.orderConditionsToSequelizeBefore = function(order, idAttribute){
+    let orderOptions = [];
+    if (order !== undefined) {
+        orderOptions = order.map((orderItem) => {
+            return orderItem.order === "ASC" ? [orderItem.field, "DESC"] : [orderItem.field, "ASC"] 
+        });
+    }
+    if (!orderOptions.map(orderItem => {
+            return orderItem[0]
+        }).includes(idAttribute)) {
+        orderOptions = [...orderOptions, ...[
+            [idAttribute, "DESC"]
+        ]];
+    }
+    return orderOptions;
+  }
+
+  module.exports.cursorPaginationArgumentsToSequelize = function(pagination, sequelizeOptions, idAttribute) {
+    if (pagination) {
+      if (pagination.after || pagination.before){
+        let cursor = pagination.after ? pagination.after : pagination.before;
+        let decoded_cursor = JSON.parse(module.exports.base64Decode(cursor));
+        sequelizeOptions['where'] = {
+          ...sequelizeOptions['where'],
+          ...module.exports.parseOrderCursor(sequelizeOptions['order'], decoded_cursor, idAttribute, pagination.includeCursor)
+        };
+      }
+      sequelizeOptions['limit'] = pagination.first !== undefined ? pagination.first + 1 : pagination.last !== undefined ? pagination.last + 1 : undefined;
+    }
+  }
+
+  module.exports.buildLimitOffsetSequelizeOptions = function(search, order, pagination, idAttribute){
+    let options =  {};
+    options['where'] = module.exports.searchConditionsToSequelize(search);
+    options['order'] = module.exports.orderConditionsToSequelize(order, idAttribute);
+    if (pagination !== undefined){
+      options['limit'] = pagination.limit !== undefined ? pagination.limit : undefined;
+      options['offset'] = pagination.offset !== undefined ? pagination.offset : undefined;
+    }
+    return options;
+  }
+
+  module.exports.buildCursorBasedSequelizeOptions = function(search, order, pagination, idAttribute){
+    let options = {};
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    // build the sequelize options object.
+    options['where'] = module.exports.searchConditionsToSequelize(search);
+    //options['order'] = module.exports.orderConditionsToSequelize(order, idAttribute);
+    options['order'] = isForwardPagination ? module.exports.orderConditionsToSequelize(order, idAttribute) : module.exports.orderConditionsToSequelizeBefore(order, idAttribute);
+    // extend the where and limit options for the given order and cursor
+
+    module.exports.cursorPaginationArgumentsToSequelize(pagination, options, idAttribute);
+    return options;
+  }
+
+  module.exports.buildOppositeSearch = function(search, order, pagination, idAttribute){
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    let oppPagination = Object.assign({},pagination)
+    if(isForwardPagination){
+      oppPagination.before = oppPagination.after
+      // 0 because limit will be + 1;
+      oppPagination.last = 0;
+      delete oppPagination.after;
+      delete oppPagination.first;
+    } else {
+      oppPagination.after = oppPagination.before
+      oppPagination.first = 0; 
+      delete oppPagination.before;
+      delete oppPagination.last;
+    }
+    let oppOptions = module.exports.buildCursorBasedSequelizeOptions(search, order, oppPagination, idAttribute);
+    
+    oppOptions['order'] = [];
+    return oppOptions;
+  }
+
+
+  module.exports.buildPageInfo = function(edges, oppRecords, pagination){
+    //default
+    let pageInfo = {
+      hasPreviousPage: false,
+      hasNextPage: false,
+      startCursor: null,
+      endCursor: null
+    }
+    
+    let isForwardPagination = module.exports.isForwardPagination(pagination);
+    if (isForwardPagination) {
+      let hasNextPage = (pagination && pagination.first ? (edges.length > pagination.first)  : false);
+      // pop last edge. It is only used to determine if a next page exists.
+      if (hasNextPage){edges.pop()};
+      pageInfo = {
+        hasPreviousPage: (oppRecords.length > 0) ? true: false,
+        hasNextPage: hasNextPage,
+        startCursor: (edges.length > 0) ? edges[0].cursor : null,
+        endCursor: (edges.length > 0) ? edges[edges.length - 1].cursor : null
+      }
+    } else { //backward
+      let hasPreviousPage = (pagination && pagination.last ? (edges.length > pagination.last)  : false);
+      if (hasPreviousPage){edges.pop()};
+      // reverse edges for correct output order
+      edges = edges.reverse();
+      pageInfo = {
+          hasPreviousPage: hasPreviousPage,
+          hasNextPage: (oppRecords.length > 0) ? true: false,
+          startCursor: (edges.length > 0) ? edges[0].cursor : null,
+          endCursor: (edges.length > 0) ? edges[edges.length - 1].cursor : null
+      }
+    }
+    return pageInfo;
+  }
+
+  module.exports.buildEdgeObject = function(records){
+    let edges = [];
+    if (records.length > 0) {
+      edges = records.map(record => {
+        return {
+          node: record,
+          cursor: record.base64Enconde()
+        }
+      });
+    }
+    return edges;
+  }

@@ -37,58 +37,6 @@ sequencingExperiment.prototype.handleAssociations = async function(input, benign
 }
 
 
-
-/**
- * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
- * set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} {search}  Search argument for filtering records
- * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
- * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
- * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
- * to start fetching.
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit({
-    search,
-    pagination
-}, context, resolverName, modelName = 'sequencingExperiment') {
-    //defaults
-    let inputPaginationValues = {
-        limit: undefined,
-        offset: 0,
-        search: undefined,
-        order: [
-            ["id", "ASC"]
-        ],
-    }
-
-    //check search
-    helper.checkSearchArgument(search);
-    if (search) inputPaginationValues.search = {
-        ...search
-    }; //copy
-
-    //get generic pagination values
-    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
-    //get records count
-    let count = (await models[modelName].countRecords(paginationValues.search));
-    //get effective records count
-    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
-    //do check and reduce of record limit.
-    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSequencingExperiment")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -147,10 +95,7 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'SequencingExperiment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "sequencingExperiments");
+            helper.checkCountAndReduceRecordLimitHelper(pagination.limit, context, "sequencingExperiments")
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sequencingExperiment.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -174,10 +119,9 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'SequencingExperiment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "sequencingExperimentsConnection");
+            helper.checkCursorBasedPaginationArgument(pagination);
+            let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+            helper.checkCountAndReduceRecordLimitHelper(limit, context, "sequencingExperimentsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sequencingExperiment.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -196,7 +140,7 @@ module.exports = {
         id
     }, context) {
         if (await checkAuthorization(context, 'SequencingExperiment', 'read') === true) {
-            checkCountForOneAndReduceRecordsLimit(context);
+            helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSequencingExperiment")
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sequencingExperiment.readById(id, benignErrorReporter);
         } else {

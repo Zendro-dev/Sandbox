@@ -14,13 +14,13 @@ module.exports = `
     """
     @search-request
     """
-    transcript_countsFilter(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput): [transcript_count]
+    transcript_countsFilter(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput!): [transcript_count]
 
 
     """
     @search-request
     """
-    transcript_countsConnection(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput): Transcript_countConnection
+    transcript_countsConnection(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput!): Transcript_countConnection
 
     """
     @count-request
@@ -68,11 +68,11 @@ type IndividualEdge{
 
 
   type Query {
-    individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput ): [individual]
+    individuals(search: searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationInput! ): [individual]
     readOneIndividual(id: ID!): individual
     countIndividuals(search: searchIndividualInput ): Int
     vueTableIndividual : VueTableIndividual    csvTableTemplateIndividual: [String]
-    individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput ): IndividualConnection
+    individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput! ): IndividualConnection
   }
 
   type Mutation {

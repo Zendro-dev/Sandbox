@@ -20,13 +20,13 @@ module.exports = `
     """
     @search-request
     """
-    transcript_countsFilter(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput): [transcript_count]
+    transcript_countsFilter(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationInput!): [transcript_count]
 
 
     """
     @search-request
     """
-    transcript_countsConnection(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput): Transcript_countConnection
+    transcript_countsConnection(search: searchTranscript_countInput, order: [ orderTranscript_countInput ], pagination: paginationCursorInput!): Transcript_countConnection
 
     """
     @count-request
@@ -75,11 +75,11 @@ type AminoacidsequenceEdge{
 
 
   type Query {
-    aminoacidsequences(search: searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationInput ): [aminoacidsequence]
+    aminoacidsequences(search: searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationInput! ): [aminoacidsequence]
     readOneAminoacidsequence(id: ID!): aminoacidsequence
     countAminoacidsequences(search: searchAminoacidsequenceInput ): Int
     vueTableAminoacidsequence : VueTableAminoacidsequence    csvTableTemplateAminoacidsequence: [String]
-    aminoacidsequencesConnection(search:searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationCursorInput ): AminoacidsequenceConnection
+    aminoacidsequencesConnection(search:searchAminoacidsequenceInput, order: [ orderAminoacidsequenceInput ], pagination: paginationCursorInput! ): AminoacidsequenceConnection
   }
 
   type Mutation {

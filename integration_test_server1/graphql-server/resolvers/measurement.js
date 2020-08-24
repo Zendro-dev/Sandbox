@@ -105,41 +105,6 @@ measurement.prototype.remove_accession = async function(input, benignErrorReport
 
 
 
-
-/**
- * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
- * set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} {search}  Search argument for filtering records
- * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
- * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
- * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
- * to start fetching.
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit({
-    search,
-    pagination,
-    countResult,
-    effectiveCount
-}, context, resolverName, modelName = 'measurement' ) {
-    //defaults
-    // let effectiveCount = helper.calculateEffectiveRecordsCount(search, pagination, count, modelName.idAttribute());
-    console.log("checkCountAndReduceRecordsLimit Counts: " + countResult + " -- " + effectiveCount)
-    //do check and reduce of record limit.
-    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneMeasurement")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -199,15 +164,9 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
-            let countResult = await measurement.countRecords(search);
-            let effectiveRecordCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
-            helper.checkCountAndReduceRecordLimitHelper(effectiveRecordCount, context, "measurementsConnection");
-            // await checkCountAndReduceRecordsLimit({
-            //     search,
-            //     pagination
-            // }, countResult, context, "measurements");
+            helper.checkCountAndReduceRecordLimitHelper(pagination.limit, context, "measurements")
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await measurement.readAll(search, order, pagination, countResult ,benignErrorReporter);
+            return await measurement.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -229,15 +188,11 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
-            let countResult = await measurement.countRecords(search);
-            let effectiveCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, measurement.idAttribute());
-            helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, "measurementsConnection");
-            // await checkCountAndReduceRecordsLimit({
-            //     search,
-            //     pagination
-            // },countResult, context, "measurementsConnection");
+            helper.checkCursorBasedPaginationArgument(pagination);
+            let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+            helper.checkCountAndReduceRecordLimitHelper(limit, context, "measurementsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await measurement.readAllCursor(search, order, pagination, countResult, effectiveCount, benignErrorReporter);
+            return await measurement.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -254,7 +209,7 @@ module.exports = {
         measurement_id
     }, context) {
         if (await checkAuthorization(context, 'Measurement', 'read') === true) {
-            checkCountForOneAndReduceRecordsLimit(context);
+            helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneMeasurement")
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await measurement.readById(measurement_id, benignErrorReporter);
         } else {

@@ -32,13 +32,13 @@ module.exports = `
     """
     @search-request
     """
-    accessionsFilter(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput): [Accession]
+    accessionsFilter(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput!): [Accession]
 
 
     """
     @search-request
     """
-    accessionsConnection(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput): AccessionConnection
+    accessionsConnection(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput!): AccessionConnection
 
     """
     @count-request
@@ -89,11 +89,11 @@ type LocationEdge{
 
 
   type Query {
-    locations(search: searchLocationInput, order: [ orderLocationInput ], pagination: paginationInput ): [Location]
+    locations(search: searchLocationInput, order: [ orderLocationInput ], pagination: paginationInput! ): [Location]
     readOneLocation(locationId: ID!): Location
     countLocations(search: searchLocationInput ): Int
     vueTableLocation : VueTableLocation    csvTableTemplateLocation: [String]
-    locationsConnection(search:searchLocationInput, order: [ orderLocationInput ], pagination: paginationCursorInput ): LocationConnection
+    locationsConnection(search:searchLocationInput, order: [ orderLocationInput ], pagination: paginationCursorInput! ): LocationConnection
   }
 
   type Mutation {

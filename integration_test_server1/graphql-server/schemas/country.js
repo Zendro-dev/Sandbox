@@ -15,13 +15,13 @@ module.exports = `
     """
     @search-request
     """
-    riversFilter(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput): [river]
+    riversFilter(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput!): [river]
 
 
     """
     @search-request
     """
-    riversConnection(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput): RiverConnection
+    riversConnection(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput!): RiverConnection
 
     """
     @count-request
@@ -69,11 +69,11 @@ type CountryEdge{
 
 
   type Query {
-    countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput ): [country]
+    countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput! ): [country]
     readOneCountry(country_id: ID!): country
     countCountries(search: searchCountryInput ): Int
     vueTableCountry : VueTableCountry    csvTableTemplateCountry: [String]
-    countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput ): CountryConnection
+    countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput! ): CountryConnection
   }
 
   type Mutation {

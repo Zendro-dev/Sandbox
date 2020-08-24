@@ -73,11 +73,11 @@ type SequencingExperimentEdge{
 
 
   type Query {
-    sequencingExperiments(search: searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationInput ): [SequencingExperiment]
+    sequencingExperiments(search: searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationInput! ): [SequencingExperiment]
     readOneSequencingExperiment(id: ID!): SequencingExperiment
     countSequencingExperiments(search: searchSequencingExperimentInput ): Int
     vueTableSequencingExperiment : VueTableSequencingExperiment    csvTableTemplateSequencingExperiment: [String]
-    sequencingExperimentsConnection(search:searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationCursorInput ): SequencingExperimentConnection
+    sequencingExperimentsConnection(search:searchSequencingExperimentInput, order: [ orderSequencingExperimentInput ], pagination: paginationCursorInput! ): SequencingExperimentConnection
   }
 
   type Mutation {

@@ -70,7 +70,7 @@ type Query {
   readOneDog(dog_id: ID!): dog
   countDogs(search: searchDogInput ): Int
   vueTableDog : VueTableDog  csvTableTemplateDog: [String]
-  dogsConnection(search:searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput ): DogConnection
+  dogsConnection(search:searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput! ): DogConnection
 }
 
 type Mutation {

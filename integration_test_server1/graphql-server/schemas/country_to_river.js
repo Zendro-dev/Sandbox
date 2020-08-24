@@ -59,11 +59,11 @@ type Country_to_riverEdge{
 
 
   type Query {
-    country_to_rivers(search: searchCountry_to_riverInput, order: [ orderCountry_to_riverInput ], pagination: paginationInput ): [country_to_river]
+    country_to_rivers(search: searchCountry_to_riverInput, order: [ orderCountry_to_riverInput ], pagination: paginationInput! ): [country_to_river]
     readOneCountry_to_river(id: ID!): country_to_river
     countCountry_to_rivers(search: searchCountry_to_riverInput ): Int
     vueTableCountry_to_river : VueTableCountry_to_river    csvTableTemplateCountry_to_river: [String]
-    country_to_riversConnection(search:searchCountry_to_riverInput, order: [ orderCountry_to_riverInput ], pagination: paginationCursorInput ): Country_to_riverConnection
+    country_to_riversConnection(search:searchCountry_to_riverInput, order: [ orderCountry_to_riverInput ], pagination: paginationCursorInput! ): Country_to_riverConnection
   }
 
   type Mutation {

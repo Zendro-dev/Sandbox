@@ -192,12 +192,6 @@ module.exports = class Accession {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
         let query = `query accessionsConnection($search: searchAccessionInput $pagination: paginationCursorInput $order: [orderAccessionInput]){
       accessionsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  accession_id  collectors_name
         collectors_initials

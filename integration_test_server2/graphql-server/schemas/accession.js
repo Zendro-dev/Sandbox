@@ -33,13 +33,13 @@ module.exports = `
     """
     @search-request
     """
-    measurementsFilter(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput): [Measurement]
+    measurementsFilter(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput!): [Measurement]
 
 
     """
     @search-request
     """
-    measurementsConnection(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput): MeasurementConnection
+    measurementsConnection(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput!): MeasurementConnection
 
     """
     @count-request
@@ -93,11 +93,11 @@ type AccessionEdge{
   }
 
   type Query {
-    accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput ): [Accession]
+    accessions(search: searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationInput! ): [Accession]
     readOneAccession(accession_id: ID!): Accession
     countAccessions(search: searchAccessionInput ): Int
     vueTableAccession : VueTableAccession    csvTableTemplateAccession: [String]
-    accessionsConnection(search:searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput ): AccessionConnection
+    accessionsConnection(search:searchAccessionInput, order: [ orderAccessionInput ], pagination: paginationCursorInput! ): AccessionConnection
   }
 
   type Mutation {

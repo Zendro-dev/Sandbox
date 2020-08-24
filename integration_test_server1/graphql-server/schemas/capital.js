@@ -63,11 +63,11 @@ type CapitalEdge{
   }
 
   type Query {
-    capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput ): [capital]
+    capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput! ): [capital]
     readOneCapital(capital_id: ID!): capital
     countCapitals(search: searchCapitalInput ): Int
     vueTableCapital : VueTableCapital    csvTableTemplateCapital: [String]
-    capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput ): CapitalConnection
+    capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput! ): CapitalConnection
   }
 
   type Mutation {

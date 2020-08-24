@@ -80,95 +80,44 @@ module.exports = class individual extends Sequelize.Model {
     }
 
     static async countRecords(search) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search);
         return super.count(options);
     }
 
-    static readAll(search, order, pagination, benignErrorReporter) {
-        let options = {};
-        //1
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-        //1
-
+    static async readAll(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-        //2
-        if (order !== undefined) {
-            options['order'] = order.map((orderItem) => {
-                return [orderItem.field, orderItem.order];
-            });
-        } else if (pagination !== undefined) {
-            options['order'] = [
-                ["id", "ASC"]
-            ];
-        }
-        //2
-        
-        //3
-        if (pagination !== undefined) {
-            options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-            options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-        } else {
-            options['offset'] = 0;
-            options['limit'] = items;
-        }
-        //3
-        
-        // if (globals.LIMIT_RECORDS < options['limit']) {
-        //     throw new Error(`Request of total individuals exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-        // }
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
+        // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        // check valid paginationArguments
-        helper.checkCursorBasedPaginationArgument(pagination);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+
         // build the sequelize options object for cursor-based pagination
         let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
-        console.log("options: ", options)
-        console.log("where Options String: ", options['where'].toString());
-        console.log("where Options String Jstr: ", JSON.stringify(options['where']));
         let records = await super.findAll(options);
+        // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-        //console.log("records: ", records);
         // get the first record (if exists) in the opposite direction to determine pageInfo.
-        // if no cursor was given there is no need for an extra query as the results will start at page "1".
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
         let oppRecords = [];
         if (pagination && (pagination.after !== undefined || pagination.before !== undefined)) {
             let oppOptions = helper.buildOppositeSearch(search, order, pagination, this.idAttribute());
-            console.log("oppOptions: ", oppOptions)
             oppRecords = await super.findAll(oppOptions);
         }
-        let edges = helper.buildEdgeObject(records)
-        console.log("edgeCount: ", edges.length)
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
-        console.log("pageInfo: ", JSON.stringify(pageInfo))
         return {
             edges,
             pageInfo
-        }
+        };
     }
 
     static async addOne(input) {
@@ -248,10 +197,10 @@ module.exports = class individual extends Sequelize.Model {
                     email.sendEmail(helpersAcl.getTokenFromContext(context).email,
                         'ScienceDB batch add',
                         'Your data has been successfully added to the database.',
-                        attach).then(function (info) {
+                        attach).then(function(info) {
                         fileTools.deleteIfExists(addedZipFilePath);
                         console.log(info);
-                    }).catch(function (err) {
+                    }).catch(function(err) {
                         fileTools.deleteIfExists(addedZipFilePath);
                         console.error(err);
                     });
@@ -263,9 +212,9 @@ module.exports = class individual extends Sequelize.Model {
                 fs.unlinkSync(tmpFile);
             }).catch((error) => {
                 email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-                    'ScienceDB batch add', `${error.message}`).then(function (info) {
+                    'ScienceDB batch add', `${error.message}`).then(function(info) {
                     console.error(info);
-                }).catch(function (err) {
+                }).catch(function(err) {
                     console.error(err);
                 });
 

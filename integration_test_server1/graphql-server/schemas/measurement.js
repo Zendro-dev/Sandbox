@@ -77,11 +77,11 @@ type MeasurementEdge{
   }
 
   type Query {
-    measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput ): [Measurement]
+    measurements(search: searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationInput! ): [Measurement]
     readOneMeasurement(measurement_id: ID!): Measurement
     countMeasurements(search: searchMeasurementInput ): Int
     vueTableMeasurement : VueTableMeasurement    csvTableTemplateMeasurement: [String]
-    measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput ): MeasurementConnection
+    measurementsConnection(search:searchMeasurementInput, order: [ orderMeasurementInput ], pagination: paginationCursorInput! ): MeasurementConnection
   }
 
   type Mutation {

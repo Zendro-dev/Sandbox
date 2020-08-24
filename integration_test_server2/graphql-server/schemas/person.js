@@ -15,7 +15,7 @@ unique_parrot(search: searchParrotInput): parrot
   """
   @search-request
   """
-  dogsConnection(search: searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput): DogConnection
+  dogsConnection(search: searchDogInput, order: [ orderDogInput ], pagination: paginationCursorInput!): DogConnection
   """
   @count-request
   """
@@ -69,7 +69,7 @@ type Query {
   readOnePerson(person_id: ID!): person
   countPeople(search: searchPersonInput ): Int
   vueTablePerson : VueTablePerson  csvTableTemplatePerson: [String]
-  peopleConnection(search:searchPersonInput, order: [ orderPersonInput ], pagination: paginationCursorInput ): PersonConnection
+  peopleConnection(search:searchPersonInput, order: [ orderPersonInput ], pagination: paginationCursorInput! ): PersonConnection
 }
 
 type Mutation {

@@ -20,13 +20,13 @@ module.exports = `
     """
     @search-request
     """
-    countriesFilter(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput): [country]
+    countriesFilter(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput!): [country]
 
 
     """
     @search-request
     """
-    countriesConnection(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput): CountryConnection
+    countriesConnection(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput!): CountryConnection
 
     """
     @count-request
@@ -75,11 +75,11 @@ type RiverEdge{
 
 
   type Query {
-    rivers(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput ): [river]
+    rivers(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput! ): [river]
     readOneRiver(river_id: ID!): river
     countRivers(search: searchRiverInput ): Int
     vueTableRiver : VueTableRiver    csvTableTemplateRiver: [String]
-    riversConnection(search:searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput ): RiverConnection
+    riversConnection(search:searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput! ): RiverConnection
   }
 
   type Mutation {

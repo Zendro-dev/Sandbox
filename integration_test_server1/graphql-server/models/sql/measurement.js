@@ -99,231 +99,44 @@ module.exports = class Measurement extends Sequelize.Model {
     }
 
     static async countRecords(search) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search);
         return super.count(options);
     }
 
-    static async readAll(search, order, pagination, countResult, benignErrorReporter) {
-        if (countResult === undefined) {
-            countResult = await this.countRecords(search);
-        }
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAll(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        if (order !== undefined) {
-            options['order'] = order.map((orderItem) => {
-                return [orderItem.field, orderItem.order];
-            });
-        } else if (pagination !== undefined) {
-            options['order'] = [
-                ["measurement_id", "ASC"]
-            ];
-        }
-
-        if (pagination !== undefined) {
-            options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-            options['limit'] = pagination.limit === undefined ? (countResult - options['offset']) : pagination.limit;
-        } else {
-            options['offset'] = 0;
-            options['limit'] = countResult;
-        }
-
-        if (globals.LIMIT_RECORDS < options['limit']) {
-            throw new Error(`Request of total measurements exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-        }
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
+        // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
-    static async readAllCursor(search, order, pagination, countResult, effectiveCount, benignErrorReporter) {
-
-        if(countResult === undefined) {
-            countResult = await this.countRecords(search)
-        }
-        if(effectiveCount === undefined){
-            effectiveCount = helper.calculateEffectiveRecordsCount({search, pagination}, countResult, this.idAttribute());
-        }
-
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let options = {};
-        options['where'] = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-        /*
-         * Count
-         */
-            console.log("countResult: " + countResult)
-
-            options['offset'] = 0;
-            options['order'] = [];
-            options['limit'] = countResult;
-            /*
-             * Order conditions
-             */
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            }
-            if (!options['order'].map(orderItem => {
-                    return orderItem[0]
-                }).includes("measurement_id")) {
-                options['order'] = [...options['order'], ...[
-                    ["measurement_id", "ASC"]
-                ]];
-            }
-
-            /*
-             * Pagination conditions
-             */
-            if (pagination) {
-                //forward
-                if (isForwardPagination) {
-                    if (pagination.after) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "measurement_id", pagination.includeCursor)
-                        };
-                    }
-                } else { //backward
-                    if (pagination.before) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "measurement_id", pagination.includeCursor)
-                        };
-                    }
-                }
-            }
-            //woptions: copy of {options} with only 'where' options
-            let woptions = {};
-            woptions['where'] = {
-                ...options['where']
-            };
-            /*
-             *  Count (with only where-options)
-             */
-                console.log("effectiveCount: " + effectiveCount)
-
-                /*
-                 * Limit conditions
-                 */
-                if (pagination) {
-                    //forward
-                    if (isForwardPagination) {
-
-                        if (pagination.first) {
-                            options['limit'] = pagination.first;
-                        }
-                    } else { //backward
-                        if (pagination.last) {
-                            options['limit'] = pagination.last;
-                            options['offset'] = Math.max((effectiveCount - pagination.last), 0);
-                        }
-                    }
-                }
-                //check: limit
-                if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total measurements exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-                }
-
-                /*
-                 * Get records
-                 */
-                let records = await super.findAll(options);
-                    //validate records
-                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-
-                    let edges = [];
-                    let pageInfo = {
-                        hasPreviousPage: false,
-                        hasNextPage: false,
-                        startCursor: null,
-                        endCursor: null
-                    };
-
-                    //edges
-                    if (records.length > 0) {
-                        edges = records.map(record => {
-                            return {
-                                node: record,
-                                cursor: record.base64Enconde()
-                            }
-                        });
-                    }
-
-                    //forward
-                    if (isForwardPagination) {
-
-                        pageInfo = {
-                            hasPreviousPage: ((countResult - effectiveCount) > 0),
-                            hasNextPage: (pagination && pagination.first ? (effectiveCount > pagination.first) : false),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    } else { //backward
-
-                        pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (effectiveCount > pagination.last) : false),
-                            hasNextPage: ((countResult - effectiveCount) > 0),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    }
-
-                    return {
-                        edges,
-                        pageInfo
-                    };
-
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let records = await super.findAll(options);
+        // validationCheck after read
+        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after !== undefined || pagination.before !== undefined)) {
+            let oppOptions = helper.buildOppositeSearch(search, order, pagination, this.idAttribute());
+            oppRecords = await super.findAll(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        return {
+            edges,
+            pageInfo
+        };
     }
 
     static async addOne(input) {

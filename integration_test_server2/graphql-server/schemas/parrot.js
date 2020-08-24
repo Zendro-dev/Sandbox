@@ -70,7 +70,7 @@ type Query {
   readOneParrot(parrot_id: ID!): parrot
   countParrots(search: searchParrotInput ): Int
   vueTableParrot : VueTableParrot  csvTableTemplateParrot: [String]
-  parrotsConnection(search:searchParrotInput, order: [ orderParrotInput ], pagination: paginationCursorInput ): ParrotConnection
+  parrotsConnection(search:searchParrotInput, order: [ orderParrotInput ], pagination: paginationCursorInput! ): ParrotConnection
 }
 
 type Mutation {
