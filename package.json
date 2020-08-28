@@ -2,6 +2,9 @@
   "private": true,
   "name": "fzj-experiments",
   "version": "0.0.1",
+  "scripts": {
+    "setup": "bash scripts/createData.sh",
+  },
   "workspaces": {
     "packages": "experiments/*"
   }

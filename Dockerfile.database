@@ -1,0 +1,7 @@
+FROM postgres:11.1-alpine
+
+COPY scripts/initDb.sh /docker-entrypoint-initdb.d/initDb.sh
+
+RUN chmod 755 /docker-entrypoint-initdb.d/initDb.sh
+
+COPY ./data /data
