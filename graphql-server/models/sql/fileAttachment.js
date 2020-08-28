@@ -84,6 +84,14 @@ module.exports = class FileAttachment extends Sequelize.Model {
         });
     }
 
+    get smallTnFullUrl() {
+        this.smallTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+    }
+
+    get mediumTnFullUrl() {
+        this.mediumTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+    }
+
     static associate(models) {}
 
     static async readById(id) {

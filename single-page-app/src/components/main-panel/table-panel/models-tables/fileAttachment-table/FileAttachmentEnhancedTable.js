@@ -1466,6 +1466,9 @@ export default function FileAttachmentEnhancedTable(props) {
                                       align='left'
                                       padding="checkbox"
                                     >
+                                      <a href={`${item.smallTnUrl ? item.fileUrl.replace(/^.*public\//, 'http://localhost:3000/') : ''}`}>
+                                        <img src={`${item.smallTnUrl ? item.smallTnUrl.replace(/^.*public\//, 'http://localhost:3000/') : ''}`}/>
+                                      </a>
                                       <Tooltip title={ 'id: ' + item.id}>
                                         <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
                                       </Tooltip>
