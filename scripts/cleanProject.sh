@@ -2,8 +2,8 @@
 
 ARGS=( "$@" )
 DATA_DIR="../data"
-DOCKER_FILES=( )
-DOCKER_FLAGS=""
+DOCKER_FILES=( docker-compose-db.yml )
+DOCKER_FLAGS=( -v )
 
 # Remove generated data table
 cleanData() {
@@ -26,7 +26,7 @@ for arg in ${ARGS[@]}; do
     # clean data
     --data)
       cleanData
-      DOCKER_FLAGS="-v --rmi all"
+      DOCKER_FLAGS+=( --rmi all )
     ;;
 
     # catch unsupported options
