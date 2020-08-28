@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "async-pg-promise",
+  "version": "0.0.1",
+  "description": "Test async pg-promise connections",
+  "author": "David Velasco",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "pg-promise": "^10.6.1"
+  }
+}

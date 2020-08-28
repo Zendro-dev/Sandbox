@@ -23,10 +23,20 @@ for arg in ${ARGS[@]}; do
 
   case $arg in
 
+    # clean all projects
+    --all)
+      DOCKER_FILES+=(  docker-compose-pgp.yml )
+    ;;
+
     # clean data
     --data)
       cleanData
       DOCKER_FLAGS+=( --rmi all )
+    ;;
+
+    # pg-promise clean
+    --pgp)
+      DOCKER_FILES=( docker-compose-pgp.yml )
     ;;
 
     # catch unsupported options
