@@ -1,0 +1,14 @@
+{
+  "model" : "FileAttachment",
+  "storageType" : "SQL",
+  "attributes" : {
+    "fileName" : "String",
+    "fileSizeKb" : "String",
+    "fileType": "String",
+    "fileUrl": "String",
+    "smallTnUrl": "String",
+    "mediumTnUrl": "String",
+    "licence": "String",
+    "description": "String"
+  }
+}
