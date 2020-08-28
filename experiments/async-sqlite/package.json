@@ -1,7 +1,7 @@
 {
   "name": "async-sqlite",
   "version": "0.0.1",
-  "description": "Async sqlite connections experiment",
+  "description": "Test async sqlite connections",
   "license": "MIT",
   "scripts": {
     "clean": "rm -f ./db/*"

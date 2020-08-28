@@ -2,8 +2,7 @@
   "private": true,
   "name": "fzj-experiments",
   "version": "0.0.1",
-  "workspaces": [
-    "async-express",
-    "async-sqlite"
-  ]
+  "workspaces": {
+    "packages": "experiments/*"
+  }
 }

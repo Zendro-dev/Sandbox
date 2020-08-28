@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "async-express",
+  "description": "Test async express connections",
+  "version": "0.0.1",
+  "author": "David Velasco",
+  "license": "MIT",
+  "scripts": {
+    "start:main": "node main.js",
+    "start:shard": "node shard.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
