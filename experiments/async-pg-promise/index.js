@@ -1,12 +1,12 @@
 const pgPromise = require('pg-promise');
+const { range } = require('../../utils/array-helpers');
 
 // Initialize pg-promise library
 const pgp = pgPromise();
 
 // Global query
 const QUERY = 'SELECT * from random'
-const PORTS = [ 5001, 5002, 5003, 5004, 5005 ]
-
+const PORTS = range(1,5).map(i => 5000 + i)
 
 /**
  * Asynchronously executes a specific query on the given connection.
