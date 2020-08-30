@@ -1,7 +1,9 @@
 FROM postgres:11.1-alpine
 
-COPY scripts/initDb.sh /docker-entrypoint-initdb.d/initDb.sh
+COPY ./data/initDbPostgres.sh   /docker-entrypoint-initdb.d/initDbPostgres.sh
+COPY ./data/header_postgres.sql /data/header.sql
+COPY ./data/table.txt           /data/table.txt
 
-RUN chmod 755 /docker-entrypoint-initdb.d/initDb.sh
-
-COPY ./data /data
+RUN chmod 755 /docker-entrypoint-initdb.d/initDbPostgres.sh && \
+    cat /data/header.sql > /data/table.sql && \
+    cat /data/table.txt >> /data/table.sql

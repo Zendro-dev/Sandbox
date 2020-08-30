@@ -6,7 +6,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 	CREATE DATABASE async_experiment OWNER admin;
 EOSQL
 
-
 # Seed database
 psql \
   --username admin --no-password \
