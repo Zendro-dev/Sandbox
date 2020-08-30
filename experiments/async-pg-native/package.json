@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "async-pg-native",
+  "version": "0.0.1",
+  "description": "Test async pg-native connections",
+  "author": "David Velasco",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "pg-native": "^3.0.0"
+  }
+}
