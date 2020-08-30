@@ -29,18 +29,13 @@ for arg in ${ARGS[@]}; do
       DOCKER_FILES+=( docker-compose-postgres.yml )
     ;;
 
-    # clean all projects
-    --all-projects)
-      DOCKER_FILES+=( docker-compose-postgres.yml )
-    ;;
-
     # clean data
     --data)
       cleanData
     ;;
 
     # pg-promise clean
-    --postgres)
+    --pg)
       DOCKER_FILES=( docker-compose-postgres.yml )
     ;;
 
