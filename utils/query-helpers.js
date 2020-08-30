@@ -40,11 +40,11 @@ module.exports.logQueryResults = (start, promises) => {
   Promise.all(promises).then(results => {
 
     console.log(
-      `\n/* PG-PROMISE RESULTS OVER ${promises.length} POSTGRES CONNECTIONS */\n`,
-      '\nTimes are measured in milliseconds'
+      `\n/* QUERY RESULTS OF ${promises.length} POSTGRES CONNECTIONS */\n`,
+      'Times are measured in milliseconds'
     );
     console.log(results);
-    console.log(`FINISHED ALL QUERIES in ${new Date() - start}ms`);
+    console.log(`FINISHED ALL QUERIES in ${new Date() - start}ms\n`);
 
   }).catch(console.err);
 }
