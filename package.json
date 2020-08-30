@@ -5,7 +5,8 @@
   "scripts": {
     "clean": "bash scripts/cleanProject.sh",
     "compose": "bash scripts/dockerCompose.sh",
-    "setup": "bash scripts/createData.sh"
+    "setup": "bash scripts/createData.sh",
+    "start:pgp": "yarn workspace async-pg-promise start"
   },
   "workspaces": {
     "packages": [
