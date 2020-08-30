@@ -96,7 +96,10 @@ module.exports.queryPgPromise = async (query, connection) => {
   const db = pgp(connection);
 
   const startQuery = new Date();
-  await db.any(query).catch(err => console.log(err));
+  await db.any(query).catch(err => {
+    console.log(err.message);
+    process.exit(err.code);
+  });
   const endQuery = new Date();
 
   return {
