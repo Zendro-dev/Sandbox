@@ -8,7 +8,9 @@ const { range } = require('./array-helpers');
 const PORTS = range(1,5);
 
 
-
+/**
+ * Get a map of valid postgres connection objects.
+ */
 module.exports.getPostgresConnections = () => {
 
   return PORTS.map(i => ({
@@ -21,6 +23,11 @@ module.exports.getPostgresConnections = () => {
 
 }
 
+/**
+ * Asynchronously execute a specific query on the given connection.
+ * @param {string} query SQL-formatted query
+ * @param {object} connection postgres connection object
+ */
 module.exports.queryPgPromise = async (query, connection) => {
 
   const db = pgp(connection);
