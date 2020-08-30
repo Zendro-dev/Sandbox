@@ -7,7 +7,6 @@ CREATE TABLE random (
 );
 
 COPY random (id, payload) FROM stdin;
-00000	random_text_00000
 00001	random_text_00001
 00002	random_text_00002
 00003	random_text_00003
