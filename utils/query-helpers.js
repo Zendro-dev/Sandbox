@@ -1,6 +1,6 @@
 /* GLOBALS */
 
-// const PgNative = require('pg-native');
+const PgNative = require('pg-native');
 
 const pgPromise = require('pg-promise');
 const pgp = pgPromise();
@@ -62,7 +62,7 @@ module.exports.queryPgNative = async(query, connection) => {
   return new Promise((resolve, reject) => {
 
     client.connect(
-      `postgresql://${user}:${password}@${host}:${port}/${database}}`,
+      `postgresql://${user}:${password}@${host}:${port}/${database}`,
       (err) => {
 
         if (err) reject(err);
@@ -72,6 +72,7 @@ module.exports.queryPgNative = async(query, connection) => {
 
           if (err) reject(err);
 
+          client.end();
           const endQuery = new Date();
 
           resolve({
