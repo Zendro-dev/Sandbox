@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "clean": "bash scripts/cleanProject.sh",
-    "setup": "bash scripts/createData.sh",
-    "start": "bash scripts/startProject.sh"
+    "compose": "bash scripts/dockerCompose.sh",
+    "setup": "bash scripts/createData.sh"
   },
   "workspaces": {
     "packages": [
