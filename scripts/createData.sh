@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MAX_ROWS=${1:-"10000"}
+MAX_ROWS=${1:-"100000"}
 DATA_DIR="../data"
 
 # Ensure we are in the "data/" working directory
