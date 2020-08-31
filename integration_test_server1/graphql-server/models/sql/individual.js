@@ -98,26 +98,21 @@ module.exports = class individual extends Sequelize.Model {
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        let options = helper.buildCursorBasedGenericOptions(search, order, pagination, this.idAttribute());
+        console.log("OPTIONS GENERIC", JSON.stringify(options));
+        let records = await individual.readAll(options['search'], order, options['pagination'], benignErrorReporter);
 
-        // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
-        let records = await super.findAll(options);
-        // validationCheck after read
-        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
         // get the first record (if exists) in the opposite direction to determine pageInfo.
         // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
         let oppRecords = [];
         if (pagination && (pagination.after !== undefined || pagination.before !== undefined)) {
-            let oppOptions = helper.buildOppositeSearch(search, order, pagination, this.idAttribute());
-            oppRecords = await super.findAll(oppOptions);
+            let oppOptions = helper.buildOppositeSearchGeneric(search, order, pagination, this.idAttribute());
+            oppRecords = await individual.readAll(oppOptions['search'],order,oppOptions['pagination'], benignErrorReporter);
         }
         // build the graphql Connection Object
         let edges = helper.buildEdgeObject(records);
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
-        return {
-            edges,
-            pageInfo
-        };
+        return {edges, pageInfo};
     }
 
     static async addOne(input) {

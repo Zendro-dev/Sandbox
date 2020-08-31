@@ -95,7 +95,7 @@ module.exports = class dog_instance2 {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        let query = `query dogsConnection($search: searchDogInput $pagination: paginationCursorInput $order: [orderDogInput]){
+        let query = `query dogsConnection($search: searchDogInput $pagination: paginationCursorInput! $order: [orderDogInput]){
       dogsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  dog_id  name
          person_id
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`

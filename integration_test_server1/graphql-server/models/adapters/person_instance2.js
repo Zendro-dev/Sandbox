@@ -94,7 +94,7 @@ module.exports = class person_instance2 {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        let query = `query peopleConnection($search: searchPersonInput $pagination: paginationCursorInput $order: [orderPersonInput]){
+        let query = `query peopleConnection($search: searchPersonInput $pagination: paginationCursorInput! $order: [orderPersonInput]){
       peopleConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  person_id  name
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
 

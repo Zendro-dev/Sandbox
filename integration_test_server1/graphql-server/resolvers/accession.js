@@ -322,7 +322,7 @@ module.exports = {
         if (await checkAuthorization(context, 'Accession', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = pagination.first !== undefined ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordLimitHelper(limit, context, "accessionsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "accessionsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await accession.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {

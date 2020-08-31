@@ -174,10 +174,10 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'individual_test', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "individual_testsConnection");
+            // await checkCountAndReduceRecordsLimit({
+            //     search,
+            //     pagination
+            // }, context, "individual_testsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await individual_test.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {

@@ -228,7 +228,7 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'individual', 'read') === true) {
-            helper.checkCountAndReduceRecordLimitHelper(pagination.limit, context, "individuals")
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "individuals")
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await individual.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -254,7 +254,7 @@ module.exports = {
         if (await checkAuthorization(context, 'individual', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = pagination.first !== undefined ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordLimitHelper(limit, context, "individualsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "individualsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await individual.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
