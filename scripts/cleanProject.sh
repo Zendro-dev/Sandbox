@@ -2,6 +2,7 @@
 
 ARGS=( "$@" )
 DATA_DIR="../data"
+PROJECT_FILES=( )
 DOCKER_FILES=( )
 DOCKER_FLAGS=( -v --rmi all )
 
@@ -36,7 +37,11 @@ for arg in ${ARGS[@]}; do
 
     # pg-promise clean
     --pg)
-      DOCKER_FILES=( docker-compose-postgres.yml )
+      DOCKER_FILES+=( docker-compose-postgres.yml )
+    ;;
+
+    --sqlite)
+      PROJECT_FILES+=( experiments/async-sqlite/database_*.db )
     ;;
 
     # catch unsupported options
@@ -49,7 +54,12 @@ for arg in ${ARGS[@]}; do
 
 done
 
-# Execute clean arguments
+# Clean docker-compose images, volumes, and containers
 for file in ${DOCKER_FILES[@]}; do
   docker-compose -f $file down ${DOCKER_FLAGS[@]}
+done
+
+# Clean project files
+for file in ${PROJECT_FILES[@]}; do
+  rm -f $file
 done

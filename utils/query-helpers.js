@@ -1,12 +1,18 @@
-/* GLOBALS */
-
-const PgNative = require('pg-native');
-
-const pgPromise = require('pg-promise');
-const pgp = pgPromise();
-
+// helpers
 const { range } = require('./array-helpers');
 
+// pg-native
+const PgNative = require('pg-native');
+
+// pg-promise
+const pgPromise = require('pg-promise');
+const pgp       = pgPromise();
+
+// sqlite
+const { Database } = require('sqlite3');
+const { open }     = require('sqlite');
+
+// globals
 const PORTS = range(1,5);
 
 
@@ -15,17 +21,30 @@ const PORTS = range(1,5);
  */
 module.exports.getConnections = () => {
 
-  const postgres = PORTS.map(i => ({
-    host: 'localhost',
-    port: 5000 + i,
-    user: 'admin',
-    password: 'admin',
-    database: 'async_experiment',
-  }));
+  return PORTS.reduce(
 
-  return {
-    postgres,
-  };
+    // reducer function to create connections
+    (acc, i) => {
+
+      acc.postgres.push({
+        host: 'localhost',
+        port: 5000 + i,
+        user: 'admin',
+        password: 'admin',
+        database: 'async_experiment',
+      });
+
+      acc.sqlite.push({
+        filename: `./database_${i.toString().padStart(2, '0')}.db`,
+        driver: Database,
+      });
+
+      return acc
+    },
+
+    // initial object
+    { postgres: [], sqlite: [] }
+  )
 
 }
 
@@ -40,7 +59,7 @@ module.exports.logQueryResults = (start, promises) => {
   Promise.all(promises).then(results => {
 
     console.log(
-      `\n/* QUERY RESULTS OF ${promises.length} POSTGRES CONNECTIONS */\n`,
+      `\n/* QUERY RESULTS OF ${promises.length} CONNECTIONS */\n`,
       'Times are measured in milliseconds'
     );
     console.log(results);
@@ -104,6 +123,23 @@ module.exports.queryPgPromise = async (query, connection) => {
 
   return {
     port: connection.port,
+    time: (endQuery - startQuery),
+  };
+
+}
+
+module.exports.querySqlite = async (query, connection) => {
+
+  const db = await open(connection);
+
+  const startQuery = new Date();
+
+  await db.all(query);
+
+  const endQuery = new Date();
+
+  return {
+    port: connection.filename,
     time: (endQuery - startQuery),
   };
 

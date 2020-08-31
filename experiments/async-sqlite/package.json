@@ -4,10 +4,9 @@
   "description": "Test async sqlite connections",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -f ./db/*"
+    "start": "node index.js"
   },
   "dependencies": {
-    "sql-template-strings": "^2.2.2",
     "sqlite": "^4.0.14",
     "sqlite3": "^5.0.0"
   }

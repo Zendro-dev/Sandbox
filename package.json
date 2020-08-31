@@ -7,8 +7,11 @@
     "compose": "bash scripts/dockerCompose.sh",
     "logdb": "bash scripts/loginDb.sh",
     "setup": "bash scripts/createData.sh",
+    "init:sql": "bash data/initDbSqlite.sh",
+    "init:pg": "bash scripts/dockerCompose.sh --pg up",
     "start:pgn": "yarn workspace async-pg-native start",
-    "start:pgp": "yarn workspace async-pg-promise start"
+    "start:pgp": "yarn workspace async-pg-promise start",
+    "start:sql": "yarn workspace async-sqlite start"
   },
   "workspaces": {
     "packages": [
