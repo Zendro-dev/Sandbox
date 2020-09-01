@@ -1,12 +1,12 @@
 <h1 align=center>Async Connections</h1>
 
-An experiment repository to test the performance and behaviour of `pg-native`, `pg-promise`, and `sqlite` packages while queries multiple databases asynchronously.
+An experimental repository to test the performance and behaviour of `pg-native`, `pg-promise`, and `sqlite` packages when querying multiple databases asynchronously.
 
 ## Usage
 
 ### Setup
 
-This repository is configured to use `yarn workspaces`. Make sure to run `yarn install` after cloning it.
+This repository is configured to used `yarn workspaces`. Make sure to run `yarn install` after cloning it.
 
 To generate the data use to populate the databases, run the following command.
 
