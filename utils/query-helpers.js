@@ -48,7 +48,6 @@ module.exports.getConnections = () => {
 
 }
 
-
 /**
  * Print query execution times to STDOUT.
  * @param {Date} start start date prior to the execution of all queries
@@ -128,6 +127,11 @@ module.exports.queryPgPromise = async (query, connection) => {
 
 }
 
+/**
+ * Asynchronously execute a specific query on the given connection.
+ * @param {string} query SQL-formatted query
+ * @param {object} connection sqlite connection object
+ */
 module.exports.querySqlite = async (query, connection) => {
 
   const db = await open(connection);
