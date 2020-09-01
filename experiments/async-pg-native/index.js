@@ -15,6 +15,7 @@ const QUERY = 'SELECT * FROM random';
 const start = new Date();
 
 const conns = getConnections().postgres;
+
 const results = conns.map( connection =>
   queryPgNative(QUERY, connection).catch(err => {
     console.log(err.message);

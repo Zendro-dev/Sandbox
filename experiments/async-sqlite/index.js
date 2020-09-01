@@ -15,6 +15,7 @@ const QUERY = 'SELECT * from random'
 const start = new Date();
 
 const { sqlite } = getConnections();
+
 const results = sqlite.map(connection => querySqlite(QUERY, connection));
 
 
