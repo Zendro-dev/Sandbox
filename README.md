@@ -6,7 +6,7 @@ An experimental repository to test the performance and behaviour of `pg-native`,
 
 ### Setup
 
-This repository is configured to used `yarn workspaces`. Make sure to run `yarn install` after cloning it.
+This repository is configured to use `yarn workspaces`. Make sure to run `yarn install` after cloning it.
 
 To generate the data use to populate the databases, run the following command.
 
@@ -80,10 +80,10 @@ yarn compose --pg up   # build postgres images (if not build) and up containers
 yarn compose --pg down # remove postgres containers and volumes (i.e. a soft cleanup)
 ```
 
-To log into a running postgres database container, run the following command.
+To log into a running postgres database, run the following command.
 
 ```bash
 yarn logdb "<DB>:<PORT>"  # e.g. yarn logdb pg:5001
 ```
 
-_Currently, only `pg` (postgres) is supported for `<DB>`. Ports can be any of the exposed values in `docker-compose-postgres.yml` (5000-5004)._
+_Currently, only `pg` (postgres) is supported for `<DB>`. Ports can be any of the exposed values in `docker-compose-postgres.yml`._
