@@ -105,9 +105,10 @@ module.exports = class individual extends Sequelize.Model {
         // get the first record (if exists) in the opposite direction to determine pageInfo.
         // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
         let oppRecords = [];
+        console.log("Search for Opp: ", JSON.stringify(search));
         if (pagination && (pagination.after !== undefined || pagination.before !== undefined)) {
             let oppOptions = helper.buildOppositeSearchGeneric(search, order, pagination, this.idAttribute());
-            oppRecords = await individual.readAll(oppOptions['search'],order,oppOptions['pagination'], benignErrorReporter);
+            oppRecords = await individual.readAll(oppOptions['search'],oppOptions['order'],oppOptions['pagination'], benignErrorReporter);
         }
         // build the graphql Connection Object
         let edges = helper.buildEdgeObject(records);

@@ -293,6 +293,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     let where_statement = {
       [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
     }
+    console.log("parseOrderCursor where_statement: ", where_statement)
 
     /*
      * Recursive steps.
@@ -338,6 +339,8 @@ module.exports.vueTable = function(req, model, strAttributes) {
         ]
       }
     }
+    console.log("parseOrderCursor where_statement2: ", where_statement)
+
     return where_statement;
   }
 
@@ -500,14 +503,13 @@ module.exports.vueTable = function(req, model, strAttributes) {
    *
    *
    *
-   * @param  {Object} search  Search object whit particular filters.
    * @param  {Array} order  Order entries. Must contains at least the entry for 'idAttribute'.
    * @param  {Object} cursor Cursor record taken as start point(exclusive) to create the where statement.
    * @param  {String} idAttribute  idAttribute of the calling model.
    * @param  {Boolean} includeCursor Boolean flag that indicates if a strict or relaxed operator must be used for produce idAttribute conditions.
    * @return {Object}        Where statement to start retrieving records after the given cursor holding the order conditions.
    */
-  module.exports.parseOrderCursorGeneric = function(search, order, cursor, idAttribute, includeCursor){
+  module.exports.parseOrderCursorGeneric = function(order, cursor, idAttribute, includeCursor){
     /**
      * Checks
      */
@@ -562,19 +564,13 @@ module.exports.vueTable = function(req, model, strAttributes) {
        *      [order[last_index][0]]: { [Op[operator]]: cursor[order[last_index][0]] }
        *    }
        */
-      let search_field = module.exports.addSearchField({
+
+      let search_field = {
         "field": order[last_index][0],
         "value": {"value": cursor[order[last_index][0]]},
         "operator": operator,
-
-        /**
-         * Add particular search argument provided as input parámeter.
-         * The filters on this serch argument will be the last to apply. 
-         * 
-         * On non-generic version, this step is done outside this function.
-         */
-        "search" : search,
-      }, 'and');
+      };
+      console.log("parseOrderCursorGeneric search_field: ", JSON.stringify(search_field,null,2))
 
     /*
      * Recursive steps.
@@ -651,6 +647,8 @@ module.exports.vueTable = function(req, model, strAttributes) {
            */
         }, 'and'
       );
+      console.log("parseOrderCursorGeneric search_field2: ", JSON.stringify(search_field,null,2));
+
     }
 
     return search_field;
@@ -1205,6 +1203,56 @@ module.exports.vueTable = function(req, model, strAttributes) {
     return nsearch;
   }
 
+  module.exports.mergeSearches = function (searchA, searchB, operator) {
+    let mergeOp = operator ? operator : 'and';
+    /**
+     * Safety checks
+     */
+    //check: no arguments
+    if(!searchA && !searchB) {
+      // throw new Error('No arguments provided to mergeSearch function.');
+      return {};
+    }
+    //check: only searchB
+    if(!searchA && searchB) {
+      return searchB;
+    }
+    //check: only searchA
+    if(searchA && !searchB) {
+      return searchA;
+    }
+    //check: types
+    if(typeof searchA !== 'object' || typeof searchB !== 'object'
+    || (searchA.excludeAdapterNames && !Array.isArray(searchA.excludeAdapterNames))
+    || (searchB.excludeAdapterNames && !Array.isArray(searchB.excludeAdapterNames))) {
+      throw new Error('Ilegal arguments provided to mergeSearch function.');
+    }
+    /**
+     * Merge "excludeAdapterNames" arrays
+     */
+    let mergedExcludeAdapterNames = [];
+    if(searchA.excludeAdapterNames) mergedExcludeAdapterNames = [...searchA.excludeAdapterNames];
+    if(searchB.excludeAdapterNames) mergedExcludeAdapterNames = [...mergedExcludeAdapterNames, ...searchB.excludeAdapterNames];
+    //copy
+    let csearchA = {...searchA}; 
+    let csearchB = {...searchB};
+    /**
+     * Strip "excludeAdapterNames" from search object
+     */
+    delete csearchA.excludeAdapterNames;
+    delete csearchB.excludeAdapterNames;
+    /**
+     * Merge search objects
+     */
+    let mergedSearch = {
+      "operator": mergeOp,
+      "search": [csearchA, csearchB],
+      "excludeAdapterNames": (mergedExcludeAdapterNames.length > 0) ? mergedExcludeAdapterNames : undefined
+    };
+    console.log("mergeSearches Function returns: ", JSON.stringify(mergedSearch));
+    return mergedSearch;
+  }
+
   /**
    * isNonEmtpyArray - Test a value for being a non-empty array
    * 
@@ -1681,20 +1729,23 @@ module.exports.vueTable = function(req, model, strAttributes) {
           ...module.exports.parseOrderCursor(sequelizeOptions['order'], decoded_cursor, idAttribute, pagination.includeCursor)
         };
       }
+      console.log("sequelizeOptions: ", sequelizeOptions['where']);
       sequelizeOptions['limit'] = pagination.first !== undefined ? pagination.first + 1 : pagination.last !== undefined ? pagination.last + 1 : undefined;
     }
   }
 
   module.exports.cursorPaginationArgumentsToGeneric = function(search, pagination, orderOptions, idAttribute) {
-    let paginationSearch = {...search};
+    let paginationSearch =  null;
     if (pagination) {
       if (pagination.after || pagination.before){
         let cursor = pagination.after ? pagination.after : pagination.before;
         let decoded_cursor = JSON.parse(module.exports.base64Decode(cursor));
-        paginationSearch = module.exports.parseOrderCursorGeneric(search, orderOptions, decoded_cursor, idAttribute, pagination.includeCursor);
+        paginationSearch = module.exports.parseOrderCursorGeneric(orderOptions, decoded_cursor, idAttribute, pagination.includeCursor);
       }
     }
-    return paginationSearch;
+    console.log("Search: ", JSON.stringify(search));
+    console.log("paginationSearch: ", JSON.stringify(paginationSearch));
+    return module.exports.mergeSearches(paginationSearch, search, 'and');
   }
 
   /**
@@ -1745,6 +1796,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     module.exports.checkSearchArgument(search);
     genericOptions['order'] = isForwardPagination ? module.exports.orderConditionsToSequelize(order, idAttribute) : module.exports.orderConditionsToSequelizeBefore(order, idAttribute);
     genericOptions['search'] = module.exports.cursorPaginationArgumentsToGeneric(search, pagination, genericOptions['order'], idAttribute);
+    console.log("merged Search: ", JSON.stringify(genericOptions['search'], null, 2));
     genericOptions['pagination'] = pagination.first !== undefined ? {limit: pagination.first + 1} : pagination.last !== undefined ? {limit: pagination.last + 1} : undefined;
     return genericOptions;
   }
@@ -1779,21 +1831,24 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * 
    * @returns {object} options object with reversed search options, LIMIT 1 and no ordering, used by sequelize to execute the database query.
    */
-  module.exports.buildOppositeSearchSequelize = function(search, pagination, idAttribute){
+  module.exports.buildOppositeSearchSequelize = function(search, order, pagination, idAttribute){
     // reverse the pagination Arguement. after -> before; set first/last to 0, so LIMIT 1 is executed in the reverse Search
     let oppPagination = module.exports.reversePaginationArgument(pagination);
     // build the sequelize options object to execute the correct query
-    let oppOptions = module.exports.buildCursorBasedSequelizeOptions(search, undefined, oppPagination, idAttribute);
+    let oppOptions = module.exports.buildCursorBasedSequelizeOptions(search, order, oppPagination, idAttribute);
     // order is not needed since we only need to know if at least 1 record exists.
     oppOptions['order'] = [];
     return oppOptions;
   }
 
-  module.exports.buildOppositeSearchGeneric = function(search, pagination, idAttribute){
+  module.exports.buildOppositeSearchGeneric = function(search, order, pagination, idAttribute){
     // reverse the pagination Arguement. after -> before; set first/last to 0, so LIMIT 1 is executed in the reverse Search
     let oppPagination = module.exports.reversePaginationArgument(pagination);
+    console.log("oppPAgination: ", JSON.stringify(oppPagination));
     // build the sequelize options object to execute the correct query
-    let oppOptions = module.exports.buildCursorBasedGenericOptions(search, undefined, oppPagination, idAttribute);
+    let oppOptions = module.exports.buildCursorBasedGenericOptions(search, order, oppPagination, idAttribute);
+    console.log("oppOPtions: ", JSON.stringify(oppOptions));
+
     // order is not needed since we only need to know if at least 1 record exists.
     oppOptions['order'] = [];
     return oppOptions;
