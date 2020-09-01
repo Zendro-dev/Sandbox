@@ -28,6 +28,7 @@ for arg in ${ARGS[@]}; do
     --all)
       cleanData
       DOCKER_FILES+=( docker-compose-postgres.yml )
+      PROJECT_FILES+=( experiments/async-sqlite/database_*.db )
     ;;
 
     # clean data
