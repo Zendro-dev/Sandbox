@@ -1,0 +1,12 @@
+{
+    "model" : "mysql_book",
+    "storageType" : "sql",
+    "database": "mysql-database",
+    "attributes" : {
+        "id": "String",
+        "title": "String",
+        "genre": "String",
+        "ISBN": "String"
+    },
+    "internalId": "id"
+  }

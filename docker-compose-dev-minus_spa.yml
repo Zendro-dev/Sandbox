@@ -1,0 +1,78 @@
+version: "3.7"
+
+services:
+
+  ################################
+  # server1 SERVICES
+  ################################
+  integration_test_server1_postgres:
+    build:
+      context: ./integration_test_server1
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - integration_test_server1_data:/var/lib/postgresql/data
+    networks:
+      - integration_test_server1
+
+  integration_test_server1_mysql:
+    image: mysql
+    environment:
+      MYSQL_USER: "zendro_mysql"
+      MYSQL_PASSWORD: "zendro_mysql"
+      MYSQL_DATABASE: "zendro_mysql"
+      MYSQL_ROOT_PASSWORD: 'zendro_mysql'
+    volumes:
+      - integration_test_server1_data_mysql:/var/lib/mysql
+    networks:
+      - integration_test_server1
+
+  integration_test_server1_mariadb:
+    image: mariadb
+    environment:
+      MYSQL_USER: "zendro_mariadb"
+      MYSQL_PASSWORD: "zendro_mariadb"
+      MYSQL_DATABASE: "zendro_mariadb"
+      MYSQL_ROOT_PASSWORD: 'zendro_mariadb'
+    volumes:
+      - integration_test_server1_data_mariadb:/var/lib/mariadb
+    networks:
+      - integration_test_server1
+
+  integration_test_server1_graphql_server:
+    container_name: server1-graphql-container
+    depends_on:
+      - integration_test_server1_postgres
+      - integration_test_server1_mysql
+      - integration_test_server1_mariadb
+    build:
+      context: ./integration_test_server1/graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - 3000:3000
+    environment:
+      - PORT=3000
+      - REQUIRE_SIGN_IN=false
+    volumes:
+      - ./integration_test_server1:/usr/ScienceDbStarterPack
+      # Use the Sequelize config adjusted for the Docker setup of ScienceDbStarterPack:
+      - ./integration_test_server1/graphql-server/config/data_models_storage_config.json:/usr/ScienceDbStarterPack/graphql-server/config/data_models_storage_config.json
+    networks:
+      - integration_test_server1
+      - integration_test_demo
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+volumes:
+  integration_test_server1_data:
+  integration_test_server1_data_mysql:
+  integration_test_server1_data_mariadb:
+
+networks:
+  integration_test_server1:
+  integration_test_demo:

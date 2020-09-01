@@ -1,0 +1,12 @@
+{
+    "model" : "mariadb_author",
+    "storageType" : "sql",
+    "database": "mariadb-database",
+    "attributes" : {
+        "id": "String",
+        "name": "String",
+        "lastname": "String",
+        "email": "String"
+    },
+    "internalId": "id"
+  }

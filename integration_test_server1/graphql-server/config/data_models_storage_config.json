@@ -1,0 +1,35 @@
+{
+  "default-sql": {
+    "storageType": "sql",
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_development",
+    "host": "integration_test_server1_postgres",
+    "dialect": "postgres"
+  },
+
+  "mysql-database": {
+    "storageType": "sql",
+    "username": "zendro_mysql",
+    "password": "zendro_mysql",
+    "database": "zendro_mysql",
+    "host": "integration_test_server1_mysql",
+    "dialect": "mysql"
+  },
+
+  "mariadb-database": {
+    "storageType": "sql",
+    "username": "zendro_mariadb",
+    "password": "zendro_mariadb",
+    "database": "zendro_mariadb",
+    "host": "integration_test_server1_mariadb",
+    "dialect": "mariadb"
+  },
+
+  "sqlite-database": {
+    "storageType": "sql",
+    "dialect": "sqlite",
+    "storage": "./data/storage.sqlite"
+  }
+
+}

@@ -1,0 +1,12 @@
+{
+    "model" : "mariadb_book",
+    "storageType" : "sql",
+    "database": "mariadb-database",
+    "attributes" : {
+        "id": "String",
+        "title": "String",
+        "genre": "String",
+        "ISBN": "String"
+    },
+    "internalId": "id"
+  }

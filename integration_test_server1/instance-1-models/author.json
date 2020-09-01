@@ -1,0 +1,12 @@
+{
+    "model" : "post_author",
+    "storageType" : "sql",
+    "database": "default-sql",
+    "attributes" : {
+        "id": "String",
+        "name": "String",
+        "lastname": "String",
+        "email": "String"
+    },
+    "internalId": "id"
+  }

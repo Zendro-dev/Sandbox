@@ -1,0 +1,12 @@
+{
+    "model" : "post_book",
+    "storageType" : "sql",
+    "database": "default-sql",
+    "attributes" : {
+        "id": "String",
+        "title": "String",
+        "genre": "String",
+        "ISBN": "String"
+    },
+    "internalId": "id"
+  }

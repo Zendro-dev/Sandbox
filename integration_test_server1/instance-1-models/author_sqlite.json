@@ -1,0 +1,12 @@
+{
+    "model" : "sq_author",
+    "storageType" : "sql",
+    "database": "sqlite-database",
+    "attributes" : {
+        "id": "String",
+        "name": "String",
+        "lastname": "String",
+        "email": "String"
+    },
+    "internalId": "id"
+  }
