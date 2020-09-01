@@ -14,7 +14,11 @@ To generate the data use to populate the databases, run the following command.
 yarn setup
 ```
 
-_This command will create a `table.txt` file within the `data` folder, consisting of two columns, `id` and `payload`, and `1M` rows._
+_This command will create a `table.txt` file within the `data` folder, consisting of two columns, `id` and `payload`, and `1M` rows. The number of rows can be modified by passing a number argument to the above command._
+
+```bash
+yarn setup 10000  # create 100k rows
+```
 
 ### Postgres
 
