@@ -19,7 +19,7 @@ _This command will create a `table.txt` file within the `data` folder, consistin
 The number of rows can be modified by passing a number argument to the above command.
 
 ```bash
-yarn setup 10000  # create 100k rows
+yarn setup 10000  # create 10k rows
 ```
 
 ### Postgres
