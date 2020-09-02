@@ -6,9 +6,9 @@ export default function getAttributes(filterName) {
         "fileName": "String",
         "fileSizeKb": "String",
         "fileType": "String",
-        "fileUrl": "String",
-        "smallTnUrl": "String",
-        "mediumTnUrl": "String",
+        "filePath": "String",
+        "smallTnPath": "String",
+        "mediumTnPath": "String",
         "licence": "String",
         "description": "String",
       };

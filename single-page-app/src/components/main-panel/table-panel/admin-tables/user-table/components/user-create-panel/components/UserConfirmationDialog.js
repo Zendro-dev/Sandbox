@@ -48,7 +48,7 @@ export default function UserConfirmationDialog(props) {
 
   return (
     <div>
-      <Dialog
+      <Dialog id='UserConfirmationDialog-create'
         open={open}
         TransitionComponent={Transition}
         keepMounted
@@ -67,6 +67,7 @@ export default function UserConfirmationDialog(props) {
           {/* Action: Accept */}
           {(acceptText !== '' && acceptText !== null && acceptText !== undefined) &&
             <Button
+              id='UserConfirmationDialog-create-button-accept'
               color="primary"
               variant='contained'
               onClick={(event) => onAccept(event, 400)} 
@@ -79,6 +80,7 @@ export default function UserConfirmationDialog(props) {
           {(rejectText !== '' && acceptText !== null && acceptText !== undefined) &&
             
             <Button
+              id='UserConfirmationDialog-create-button-reject'
               color="primary" 
               onClick={(event) => onReject(event, 400)} 
             >

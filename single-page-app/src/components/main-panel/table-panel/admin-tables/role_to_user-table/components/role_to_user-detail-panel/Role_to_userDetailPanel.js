@@ -507,12 +507,13 @@ export default function RoleToUserDetailPanel(props) {
               */}
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                (permissions&&permissions.role_to_user&&Array.isArray(permissions.role_to_user)
+                &&(permissions.role_to_user.includes('update') || permissions.role_to_user.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='RoleToUserDetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -527,12 +528,13 @@ export default function RoleToUserDetailPanel(props) {
               }
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                (permissions&&permissions.role_to_user&&Array.isArray(permissions.role_to_user)
+                &&(permissions.role_to_user.includes('delete') || permissions.role_to_user.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='RoleToUserDetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

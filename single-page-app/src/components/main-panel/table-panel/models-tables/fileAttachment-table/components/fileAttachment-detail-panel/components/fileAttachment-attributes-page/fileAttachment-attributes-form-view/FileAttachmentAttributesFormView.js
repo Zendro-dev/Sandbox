@@ -129,36 +129,36 @@ export default function FileAttachmentAttributesFormView(props) {
               />
             </CardContent>
 
-            {/* fileUrl */}
-            <CardContent key='fileUrl' className={classes.cardContent} >
+            {/* filePath */}
+            <CardContent key='filePath' className={classes.cardContent} >
               <StringField
-                itemKey='fileUrl'
-                name='fileUrl'
-                label='fileUrl'
-                text={item.fileUrl}
-                valueOk={valueOkStates.fileUrl}
+                itemKey='filePath'
+                name='filePath'
+                label='filePath'
+                text={item.filePath}
+                valueOk={valueOkStates.filePath}
               />
             </CardContent>
 
-            {/* smallTnUrl */}
-            <CardContent key='smallTnUrl' className={classes.cardContent} >
+            {/* smallTnPath */}
+            <CardContent key='smallTnPath' className={classes.cardContent} >
               <StringField
-                itemKey='smallTnUrl'
-                name='smallTnUrl'
-                label='smallTnUrl'
-                text={item.smallTnUrl}
-                valueOk={valueOkStates.smallTnUrl}
+                itemKey='smallTnPath'
+                name='smallTnPath'
+                label='smallTnPath'
+                text={item.smallTnPath}
+                valueOk={valueOkStates.smallTnPath}
               />
             </CardContent>
 
-            {/* mediumTnUrl */}
-            <CardContent key='mediumTnUrl' className={classes.cardContent} >
+            {/* mediumTnPath */}
+            <CardContent key='mediumTnPath' className={classes.cardContent} >
               <StringField
-                itemKey='mediumTnUrl'
-                name='mediumTnUrl'
-                label='mediumTnUrl'
-                text={item.mediumTnUrl}
-                valueOk={valueOkStates.mediumTnUrl}
+                itemKey='mediumTnPath'
+                name='mediumTnPath'
+                label='mediumTnPath'
+                text={item.mediumTnPath}
+                valueOk={valueOkStates.mediumTnPath}
               />
             </CardContent>
 

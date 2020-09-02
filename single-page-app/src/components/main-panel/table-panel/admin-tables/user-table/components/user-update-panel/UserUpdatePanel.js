@@ -734,7 +734,8 @@ function setAjvErrors(err) {
   };
 
   return (
-    <Dialog fullScreen open={open} TransitionComponent={Transition}
+    <Dialog id='UserUpdatePanel-dialog' 
+      fullScreen open={open} TransitionComponent={Transition}
       onClose={(event) => {
         if(!isCanceling.current){
           isCanceling.current = true;

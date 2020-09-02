@@ -533,12 +533,13 @@ export default function RoleDetailPanel(props) {
               */}
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                (permissions&&permissions.role&&Array.isArray(permissions.role)
+                &&(permissions.role.includes('update') || permissions.role.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='RoleDetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -553,12 +554,13 @@ export default function RoleDetailPanel(props) {
               }
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                (permissions&&permissions.role&&Array.isArray(permissions.role)
+                &&(permissions.role.includes('delete') || permissions.role.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='RoleDetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

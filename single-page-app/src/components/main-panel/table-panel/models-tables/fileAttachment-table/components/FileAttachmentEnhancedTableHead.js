@@ -135,55 +135,55 @@ export default function FileAttachmentEnhancedTableHead(props) {
         </TableCell>
 
         <TableCell
-          key='fileUrl'
+          key='filePath'
           align='left'
           padding="default"
-          sortDirection={orderBy === 'fileUrl' ? order : false}
+          sortDirection={orderBy === 'filePath' ? order : false}
         >
-          {/* fileUrl */}
+          {/* filePath */}
           <TableSortLabel
-              active={orderBy === 'fileUrl'}
+              active={orderBy === 'filePath'}
               direction={order}
-              onClick={(event) => {onRequestSort(event, 'fileUrl')}}
+              onClick={(event) => {onRequestSort(event, 'filePath')}}
           >
             <Typography color="inherit" variant="caption">
-              fileUrl
+              filePath
             </Typography>
           </TableSortLabel>
         </TableCell>
 
         <TableCell
-          key='smallTnUrl'
+          key='smallTnPath'
           align='left'
           padding="default"
-          sortDirection={orderBy === 'smallTnUrl' ? order : false}
+          sortDirection={orderBy === 'smallTnPath' ? order : false}
         >
-          {/* smallTnUrl */}
+          {/* smallTnPath */}
           <TableSortLabel
-              active={orderBy === 'smallTnUrl'}
+              active={orderBy === 'smallTnPath'}
               direction={order}
-              onClick={(event) => {onRequestSort(event, 'smallTnUrl')}}
+              onClick={(event) => {onRequestSort(event, 'smallTnPath')}}
           >
             <Typography color="inherit" variant="caption">
-              smallTnUrl
+              smallTnPath
             </Typography>
           </TableSortLabel>
         </TableCell>
 
         <TableCell
-          key='mediumTnUrl'
+          key='mediumTnPath'
           align='left'
           padding="default"
-          sortDirection={orderBy === 'mediumTnUrl' ? order : false}
+          sortDirection={orderBy === 'mediumTnPath' ? order : false}
         >
-          {/* mediumTnUrl */}
+          {/* mediumTnPath */}
           <TableSortLabel
-              active={orderBy === 'mediumTnUrl'}
+              active={orderBy === 'mediumTnPath'}
               direction={order}
-              onClick={(event) => {onRequestSort(event, 'mediumTnUrl')}}
+              onClick={(event) => {onRequestSort(event, 'mediumTnPath')}}
           >
             <Typography color="inherit" variant="caption">
-              mediumTnUrl
+              mediumTnPath
             </Typography>
           </TableSortLabel>
         </TableCell>

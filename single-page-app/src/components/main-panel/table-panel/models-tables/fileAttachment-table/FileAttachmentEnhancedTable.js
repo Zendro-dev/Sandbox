@@ -1501,31 +1501,31 @@ export default function FileAttachmentEnhancedTable(props) {
                                       {String((item.fileType!==null)?item.fileType:'')}
                                     </TableCell>
 
-                                    {/* fileUrl */}
+                                    {/* filePath */}
                                     <TableCell
-                                      key='fileUrl'
+                                      key='filePath'
                                       align='left'
                                       padding="default"
                                     >
-                                      {String((item.fileUrl!==null)?item.fileUrl:'')}
+                                      {String((item.filePath!==null)?item.filePath:'')}
                                     </TableCell>
 
-                                    {/* smallTnUrl */}
+                                    {/* smallTnPath */}
                                     <TableCell
-                                      key='smallTnUrl'
+                                      key='smallTnPath'
                                       align='left'
                                       padding="default"
                                     >
-                                      {String((item.smallTnUrl!==null)?item.smallTnUrl:'')}
+                                      {String((item.smallTnPath!==null)?item.smallTnPath:'')}
                                     </TableCell>
 
-                                    {/* mediumTnUrl */}
+                                    {/* mediumTnPath */}
                                     <TableCell
-                                      key='mediumTnUrl'
+                                      key='mediumTnPath'
                                       align='left'
                                       padding="default"
                                     >
-                                      {String((item.mediumTnUrl!==null)?item.mediumTnUrl:'')}
+                                      {String((item.mediumTnPath!==null)?item.mediumTnPath:'')}
                                     </TableCell>
 
                                     {/* licence */}

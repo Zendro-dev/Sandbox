@@ -1,6 +1,6 @@
 module.exports = {
   aclRules: [
-    //all models
+    //administrator
     {
       roles: 'administrator',
       allows: [{
@@ -8,39 +8,38 @@ module.exports = {
           'role',
           'role_to_user',
           'user',
-          'fileAttachment',
         ],
         permissions: '*'
       }]
     },
 
     //models
+    /**
+     * Model: fileAttachment
+     */
     {
-      /**
-       * Model: fileAttachment
-       */
-      roles: 'fileAttachment_create',
+      roles: 'editor',
       allows: [{
         resources: 'fileAttachment',
         permissions: 'create'
       }]
     },
     {
-      roles: 'fileAttachment_read',
+      roles: 'reader',
       allows: [{
         resources: 'fileAttachment',
         permissions: 'read'
       }]
     },
     {
-      roles: 'fileAttachment_update',
+      roles: 'editor',
       allows: [{
         resources: 'fileAttachment',
         permissions: 'update'
       }]
     },
     {
-      roles: 'fileAttachment_delete',
+      roles: 'editor',
       allows: [{
         resources: 'fileAttachment',
         permissions: 'delete'

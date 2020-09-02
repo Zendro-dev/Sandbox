@@ -271,6 +271,7 @@ export default function RoleToUserCreatePanel(props) {
     */
   function doSave(event) {
     errors.current = [];
+    valuesAjvRefs.current = getInitialValueAjvStates();
 
     /*
       Variables setup
@@ -554,7 +555,8 @@ export default function RoleToUserCreatePanel(props) {
 
   return (
     
-    <Dialog fullScreen open={open} TransitionComponent={Transition}
+    <Dialog id='RoleToUserCreatePanel-dialog'  
+      fullScreen open={open} TransitionComponent={Transition}
       onClose={(event) => {
         if(!isCanceling.current){
           isCanceling.current = true;

@@ -157,9 +157,9 @@ export default function FileAttachmentCreatePanel(props) {
     initialValues.fileName = null;
     initialValues.fileSizeKb = null;
     initialValues.fileType = null;
-    initialValues.fileUrl = null;
-    initialValues.smallTnUrl = null;
-    initialValues.mediumTnUrl = null;
+    initialValues.filePath = null;
+    initialValues.smallTnPath = null;
+    initialValues.mediumTnPath = null;
     initialValues.licence = null;
     initialValues.description = null;
 
@@ -179,9 +179,9 @@ export default function FileAttachmentCreatePanel(props) {
     initialValueOkStates.fileName = 0;
     initialValueOkStates.fileSizeKb = 0;
     initialValueOkStates.fileType = 0;
-    initialValueOkStates.fileUrl = 0;
-    initialValueOkStates.smallTnUrl = 0;
-    initialValueOkStates.mediumTnUrl = 0;
+    initialValueOkStates.filePath = 0;
+    initialValueOkStates.smallTnPath = 0;
+    initialValueOkStates.mediumTnPath = 0;
     initialValueOkStates.licence = 0;
     initialValueOkStates.description = 0;
 
@@ -194,9 +194,9 @@ export default function FileAttachmentCreatePanel(props) {
     _initialValueAjvStates.fileName = {errors: []};
     _initialValueAjvStates.fileSizeKb = {errors: []};
     _initialValueAjvStates.fileType = {errors: []};
-    _initialValueAjvStates.fileUrl = {errors: []};
-    _initialValueAjvStates.smallTnUrl = {errors: []};
-    _initialValueAjvStates.mediumTnUrl = {errors: []};
+    _initialValueAjvStates.filePath = {errors: []};
+    _initialValueAjvStates.smallTnPath = {errors: []};
+    _initialValueAjvStates.mediumTnPath = {errors: []};
     _initialValueAjvStates.licence = {errors: []};
     _initialValueAjvStates.description = {errors: []};
 
@@ -289,6 +289,7 @@ export default function FileAttachmentCreatePanel(props) {
     */
   function doSave(event) {
     errors.current = [];
+    valuesAjvRefs.current = getInitialValueAjvStates();
 
     /*
       Variables setup
@@ -572,7 +573,8 @@ export default function FileAttachmentCreatePanel(props) {
 
   return (
     
-    <Dialog fullScreen open={open} TransitionComponent={Transition}
+    <Dialog id='FileAttachmentCreatePanel-dialog'  
+      fullScreen open={open} TransitionComponent={Transition}
       onClose={(event) => {
         if(!isCanceling.current){
           isCanceling.current = true;

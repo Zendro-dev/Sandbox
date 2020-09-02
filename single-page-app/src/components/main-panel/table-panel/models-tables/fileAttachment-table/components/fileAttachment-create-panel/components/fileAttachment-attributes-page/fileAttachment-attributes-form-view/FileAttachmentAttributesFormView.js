@@ -113,38 +113,38 @@ export default function FileAttachmentAttributesFormView(props) {
               />
             </CardContent>
 
-            {/* fileUrl */}
-            <CardContent key='fileUrl' className={classes.cardContent} >
+            {/* filePath */}
+            <CardContent key='filePath' className={classes.cardContent} >
               <StringField
-                itemKey='fileUrl'
-                name='fileUrl'
-                label='fileUrl'
-                valueOk={valueOkStates.fileUrl}
-                valueAjv={valueAjvStates.fileUrl}
+                itemKey='filePath'
+                name='filePath'
+                label='filePath'
+                valueOk={valueOkStates.filePath}
+                valueAjv={valueAjvStates.filePath}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
 
-            {/* smallTnUrl */}
-            <CardContent key='smallTnUrl' className={classes.cardContent} >
+            {/* smallTnPath */}
+            <CardContent key='smallTnPath' className={classes.cardContent} >
               <StringField
-                itemKey='smallTnUrl'
-                name='smallTnUrl'
-                label='smallTnUrl'
-                valueOk={valueOkStates.smallTnUrl}
-                valueAjv={valueAjvStates.smallTnUrl}
+                itemKey='smallTnPath'
+                name='smallTnPath'
+                label='smallTnPath'
+                valueOk={valueOkStates.smallTnPath}
+                valueAjv={valueAjvStates.smallTnPath}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
 
-            {/* mediumTnUrl */}
-            <CardContent key='mediumTnUrl' className={classes.cardContent} >
+            {/* mediumTnPath */}
+            <CardContent key='mediumTnPath' className={classes.cardContent} >
               <StringField
-                itemKey='mediumTnUrl'
-                name='mediumTnUrl'
-                label='mediumTnUrl'
-                valueOk={valueOkStates.mediumTnUrl}
-                valueAjv={valueAjvStates.mediumTnUrl}
+                itemKey='mediumTnPath'
+                name='mediumTnPath'
+                label='mediumTnPath'
+                valueOk={valueOkStates.mediumTnPath}
+                valueAjv={valueAjvStates.mediumTnPath}
                 handleSetValue={handleSetValue}
               />
             </CardContent>

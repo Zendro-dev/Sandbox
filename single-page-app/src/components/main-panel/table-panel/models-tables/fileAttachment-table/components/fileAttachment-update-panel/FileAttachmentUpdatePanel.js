@@ -247,9 +247,9 @@ export default function FileAttachmentUpdatePanel(props) {
     initialValues.fileName = item.fileName;
     initialValues.fileSizeKb = item.fileSizeKb;
     initialValues.fileType = item.fileType;
-    initialValues.fileUrl = item.fileUrl;
-    initialValues.smallTnUrl = item.smallTnUrl;
-    initialValues.mediumTnUrl = item.mediumTnUrl;
+    initialValues.filePath = item.filePath;
+    initialValues.smallTnPath = item.smallTnPath;
+    initialValues.mediumTnPath = item.mediumTnPath;
     initialValues.licence = item.licence;
     initialValues.description = item.description;
 
@@ -271,9 +271,9 @@ export default function FileAttachmentUpdatePanel(props) {
   initialValueOkStates.fileName = (item.fileName!==null ? 1 : 0);
   initialValueOkStates.fileSizeKb = (item.fileSizeKb!==null ? 1 : 0);
   initialValueOkStates.fileType = (item.fileType!==null ? 1 : 0);
-  initialValueOkStates.fileUrl = (item.fileUrl!==null ? 1 : 0);
-  initialValueOkStates.smallTnUrl = (item.smallTnUrl!==null ? 1 : 0);
-  initialValueOkStates.mediumTnUrl = (item.mediumTnUrl!==null ? 1 : 0);
+  initialValueOkStates.filePath = (item.filePath!==null ? 1 : 0);
+  initialValueOkStates.smallTnPath = (item.smallTnPath!==null ? 1 : 0);
+  initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? 1 : 0);
   initialValueOkStates.licence = (item.licence!==null ? 1 : 0);
   initialValueOkStates.description = (item.description!==null ? 1 : 0);
 
@@ -286,9 +286,9 @@ export default function FileAttachmentUpdatePanel(props) {
     _initialValueAjvStates.fileName = {errors: []};
     _initialValueAjvStates.fileSizeKb = {errors: []};
     _initialValueAjvStates.fileType = {errors: []};
-    _initialValueAjvStates.fileUrl = {errors: []};
-    _initialValueAjvStates.smallTnUrl = {errors: []};
-    _initialValueAjvStates.mediumTnUrl = {errors: []};
+    _initialValueAjvStates.filePath = {errors: []};
+    _initialValueAjvStates.smallTnPath = {errors: []};
+    _initialValueAjvStates.mediumTnPath = {errors: []};
     _initialValueAjvStates.licence = {errors: []};
     _initialValueAjvStates.description = {errors: []};
 
@@ -319,9 +319,9 @@ export default function FileAttachmentUpdatePanel(props) {
     if(values.current.fileName !== item.fileName) { return true;}
     if(values.current.fileSizeKb !== item.fileSizeKb) { return true;}
     if(values.current.fileType !== item.fileType) { return true;}
-    if(values.current.fileUrl !== item.fileUrl) { return true;}
-    if(values.current.smallTnUrl !== item.smallTnUrl) { return true;}
-    if(values.current.mediumTnUrl !== item.mediumTnUrl) { return true;}
+    if(values.current.filePath !== item.filePath) { return true;}
+    if(values.current.smallTnPath !== item.smallTnPath) { return true;}
+    if(values.current.mediumTnPath !== item.mediumTnPath) { return true;}
     if(values.current.licence !== item.licence) { return true;}
     if(values.current.description !== item.description) { return true;}
     return false;
@@ -672,7 +672,8 @@ function setAjvErrors(err) {
   };
 
   return (
-    <Dialog fullScreen open={open} TransitionComponent={Transition}
+    <Dialog id='FileAttachmentUpdatePanel-dialog' 
+      fullScreen open={open} TransitionComponent={Transition}
       onClose={(event) => {
         if(!isCanceling.current){
           isCanceling.current = true;

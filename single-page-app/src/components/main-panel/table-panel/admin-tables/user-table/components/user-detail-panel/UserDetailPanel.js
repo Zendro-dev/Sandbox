@@ -545,6 +545,7 @@ export default function UserDetailPanel(props) {
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='UserDetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -565,6 +566,7 @@ export default function UserDetailPanel(props) {
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='UserDetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

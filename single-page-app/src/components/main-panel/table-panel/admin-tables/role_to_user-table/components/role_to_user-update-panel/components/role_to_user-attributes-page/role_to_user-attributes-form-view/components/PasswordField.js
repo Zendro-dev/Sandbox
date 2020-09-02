@@ -17,7 +17,6 @@ import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
-import CheckIcon from '@material-ui/icons/Check';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -33,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function StringField(props) {
+export default function PasswordField(props) {
   const classes = useStyles();
   const {
     itemId,
@@ -42,7 +41,6 @@ export default function StringField(props) {
     label,
     text,
     valueOk,
-    valueAjv,
     autoFocus
   } = props;
   const { t } = useTranslation();
@@ -231,10 +229,8 @@ export default function StringField(props) {
   }
 
   const onPasswordNotChanged = () => {
-    //reset
-    resetChangePasswordDialog();
-    //close
-    setChangePasswordDialogOpen(false);
+    //reset flag
+    isChangingPassword.current = false;
   }
 
   /**
@@ -249,7 +245,7 @@ export default function StringField(props) {
 
     //check: non empty: newPassword2
     if(!newPasswordText2.current) {
-      setNewPasswordHelper2( t('modelPanels.emptyPasswordWarning', 'Please re-enter the new password') );
+      setNewPasswordHelper2( t('modelPanels.emptyPasswordWarning2', 'Please re-enter the new password') );
       return false;
     }
 
@@ -288,7 +284,7 @@ export default function StringField(props) {
     */
    async function doSave() {
     errors.current = [];
-    
+
     //variables
     let variables = {...itemId};
     //password
@@ -439,18 +435,18 @@ export default function StringField(props) {
         }
       }
       //update state
-      if(valueAjv.errors.length > 0) {setNewPasswordHelper(ajvErrors.join())}
+      if(ajvErrors.length > 0) {setNewPasswordHelper(ajvErrors.join(' & '))}
       else {setNewPasswordHelper('')}
     }
   }
 
   return (
     <div>
-      <Grid container justify='flex-start' alignItems='center' spacing={2}>
+      <Grid container justify='flex-start' alignItems='center' spacing={0}>
         <Grid item xs={12}>
           <form noValidate autoComplete="off">
             <TextField
-              id={'StringField-RoleToUser-'+name}
+              id={'PasswordField-RoleToUser-'+name}
               label={label}
               value={value}
               className={classes.textField}
@@ -465,25 +461,31 @@ export default function StringField(props) {
                   <InputAdornment position="end">
                     <Tooltip title={ t('modelPanels.showPassword', 'Show password') }>
                       <IconButton
-                        id={'StringField-RoleToUser-button-showPassword'+name}
+                        id={'PasswordField-RoleToUser-button-showPassword'+name}
                         onClick={handleClickShowPassword}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </Tooltip>
-                    {(valueOk!==undefined&&valueOk===1) ? <CheckIcon color="primary" fontSize="small" /> : ''}
+                    {(valueOk!==undefined&&valueOk===1) 
+                      ? 
+                      <Tooltip title={ t('modelPanels.valueEntered', "Value entered") }>
+                        <Typography id={'PasswordField-RoleToUser-exists-'+name} variant="caption" color="primary">
+                          &#8707;
+                        </Typography>
+                      </Tooltip>
+                      : 
+                      <Tooltip title={ t('modelPanels.valueNotEntered', "Value not entered") }>
+                        <Typography id={'PasswordField-RoleToUser-notExists-'+name} variant="caption" color="textSecondary">
+                          &#8708;
+                        </Typography>
+                      </Tooltip>
+                    }
                   </InputAdornment>
               }}
             />
           </form>
         </Grid>
-        {(valueAjv !== undefined && valueAjv.errors.length > 0) && (
-          <Grid item xs={12}>
-            <Typography variant="caption" color='error'>
-              {valueAjv.errors.join()}
-            </Typography>
-          </Grid>
-        )}
 
         {/* 
           * Change password button
@@ -503,7 +505,7 @@ export default function StringField(props) {
       {/* Dialog: Change password */}
       {(changePasswordDialogOpen) && (
         <Dialog 
-          id={'StringField-RoleToUser-ChangePasswordDialog-'+name} 
+          id={'PasswordField-RoleToUser-ChangePasswordDialog-'+name} 
           open={changePasswordDialogOpen}
           disableBackdropClick
           disableEscapeKeyDown
@@ -517,7 +519,7 @@ export default function StringField(props) {
               <Grid container justify='center' alignItems='center' spacing={2}>
                 <Grid item xs={12}>
                   <TextField
-                    id={'StringField-RoleToUser-ChangePasswordDialog-textField-newPassword-'+name}
+                    id={'PasswordField-RoleToUser-ChangePasswordDialog-textField-newPassword-'+name}
                     label={ t('modelsPanels.newPasswordLabel', 'New password') }
                     error={newPasswordHelper ? true : false}
                     helperText={newPasswordHelper}
@@ -530,7 +532,7 @@ export default function StringField(props) {
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
-                    id={'StringField-RoleToUser-ChangePasswordDialog-textField-newPassword2-'+name}
+                    id={'PasswordField-RoleToUser-ChangePasswordDialog-textField-newPassword2-'+name}
                     label={ t('modelsPanels.newPasswordLabel2', 'Confirm the new password') }
                     error={newPasswordHelper2 ? true : false}
                     helperText={newPasswordHelper2}
@@ -564,12 +566,11 @@ export default function StringField(props) {
     
   );
 }
-StringField.propTypes = {
+PasswordField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,
   label: PropTypes.string.isRequired,
   text: PropTypes.string,
   valueOk: PropTypes.number.isRequired,
-  valueAjv: PropTypes.object.isRequired,
   autoFocus: PropTypes.bool,
 };

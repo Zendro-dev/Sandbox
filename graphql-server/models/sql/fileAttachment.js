@@ -84,11 +84,11 @@ module.exports = class FileAttachment extends Sequelize.Model {
     }
 
     get smallTnFullUrl() {
-      this.smallTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+      this.smallTnPath.replace(/^.*public\//, 'http://localhost:3000/')
     }
 
     get mediumTnFullUrl() {
-      this.mediumTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+      this.mediumTnPath.replace(/^.*public\//, 'http://localhost:3000/')
     }
 
 
@@ -328,40 +328,39 @@ module.exports = class FileAttachment extends Sequelize.Model {
         });
     }
 
-    static async addOne({
-      fileHandle,
-      description,
-      licence
-    }) {
-      let fileUrl = await fileTools.storeUploadedFile(fileHandle)
-      let input = {
-        fileName: fileHandle.name,
-        fileSizeKb: (fileHandle.size / 1000),
-        fileType: fileHandle.mimetype,
-        licence: licence,
-        description: description,
-        fileUrl: fileUrl
-      }
-      if (/image/i.exec(fileHandle.mimetype) !== null) {
-        let thumbnails = await fileTools.createThumbnails(fileUrl)
-        input.smallTnUrl = thumbnails.smallTnPath
-        input.mediumTnUrl = thumbnails.mediumTnPath
-      }
+  static async addOne({
+    fileHandle,
+    description,
+    licence
+  }) {
+    let filePath = await fileTools.storeUploadedFile(fileHandle)
+    let input = {
+      fileName: fileHandle.name,
+      fileSizeKb: (fileHandle.size / 1000),
+      fileType: fileHandle.mimetype,
+      licence: licence,
+      description: description,
+      filePath: filePath
+    }
+    if (/image/i.exec(fileHandle.mimetype) !== null) {
+      let thumbnails = await fileTools.createThumbnails(filePath)
+      input.smallTnPath = thumbnails.smallTnPath
+      input.mediumTnPath = thumbnails.mediumTnPath
+    }
 
-      //validate input
-      await validatorUtil.validateData('validateForCreate', this, input);
-      try {
-        const result = await sequelize.transaction(async (t) => {
-          let item = await super.create(input, {
-            transaction: t
-          });
-          return item;
+    //validate input
+    await validatorUtil.validateData('validateForCreate', this, input);
+    try {
+      const result = await sequelize.transaction(async (t) => {
+        let item = await super.create(input, {
+          transaction: t
         });
-        return result;
-      } catch (error) {
-        throw error;
-      }
-
+        return item;
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
 

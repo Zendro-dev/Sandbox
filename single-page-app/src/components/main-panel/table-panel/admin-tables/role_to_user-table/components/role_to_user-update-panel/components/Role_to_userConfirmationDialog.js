@@ -48,7 +48,7 @@ export default function RoleToUserConfirmationDialog(props) {
 
   return (
     <div>
-      <Dialog
+      <Dialog id='RoleToUserConfirmationDialog-update'
         open={open}
         TransitionComponent={Transition}
         keepMounted
@@ -67,6 +67,7 @@ export default function RoleToUserConfirmationDialog(props) {
           {/* Action: Accept */}
           {(acceptText !== '' && acceptText !== null && acceptText !== undefined) &&
             <Button
+              id='RoleToUserConfirmationDialog-update-button-accept'
               color="primary"
               variant='contained'
               onClick={(event) => onAccept(event, 400)} 
@@ -79,6 +80,7 @@ export default function RoleToUserConfirmationDialog(props) {
           {(rejectText !== '' && acceptText !== null && acceptText !== undefined) &&
             
             <Button
+              id='RoleToUserConfirmationDialog-update-button-reject'
               color="primary" 
               onClick={(event) => onReject(event, 400)} 
             >

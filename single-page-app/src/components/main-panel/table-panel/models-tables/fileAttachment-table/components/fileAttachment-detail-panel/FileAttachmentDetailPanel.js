@@ -383,9 +383,9 @@ export default function FileAttachmentDetailPanel(props) {
     initialValueOkStates.fileName = (item.fileName!==null ? 1 : 0);
     initialValueOkStates.fileSizeKb = (item.fileSizeKb!==null ? 1 : 0);
     initialValueOkStates.fileType = (item.fileType!==null ? 1 : 0);
-    initialValueOkStates.fileUrl = (item.fileUrl!==null ? 1 : 0);
-    initialValueOkStates.smallTnUrl = (item.smallTnUrl!==null ? 1 : 0);
-    initialValueOkStates.mediumTnUrl = (item.mediumTnUrl!==null ? 1 : 0);
+    initialValueOkStates.filePath = (item.filePath!==null ? 1 : 0);
+    initialValueOkStates.smallTnPath = (item.smallTnPath!==null ? 1 : 0);
+    initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? 1 : 0);
     initialValueOkStates.licence = (item.licence!==null ? 1 : 0);
     initialValueOkStates.description = (item.description!==null ? 1 : 0);
 
@@ -513,12 +513,13 @@ export default function FileAttachmentDetailPanel(props) {
               */}
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('update') || permissions.user.includes('*')))
+                (permissions&&permissions.fileAttachment&&Array.isArray(permissions.fileAttachment)
+                &&(permissions.fileAttachment.includes('update') || permissions.fileAttachment.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.edit') }>
                       <IconButton
+                        id='FileAttachmentDetailPanel-button-edit'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();
@@ -533,12 +534,13 @@ export default function FileAttachmentDetailPanel(props) {
               }
               {
                 /* acl check */
-                (permissions&&permissions.user&&Array.isArray(permissions.user)
-                &&(permissions.user.includes('delete') || permissions.user.includes('*')))
+                (permissions&&permissions.fileAttachment&&Array.isArray(permissions.fileAttachment)
+                &&(permissions.fileAttachment.includes('delete') || permissions.fileAttachment.includes('*')))
                 &&(!deleted)&&(
                   
                     <Tooltip title={ t('modelPanels.delete') }>
                       <IconButton
+                        id='FileAttachmentDetailPanel-button-delete'
                         color='inherit'
                         onClick={(event) => {
                           event.stopPropagation();

@@ -283,6 +283,7 @@ export default function UserCreatePanel(props) {
     */
   function doSave(event) {
     errors.current = [];
+    valuesAjvRefs.current = getInitialValueAjvStates();
 
     /*
       Variables setup
@@ -597,7 +598,8 @@ export default function UserCreatePanel(props) {
 
   return (
     
-    <Dialog fullScreen open={open} TransitionComponent={Transition}
+    <Dialog id='UserCreatePanel-dialog'  
+      fullScreen open={open} TransitionComponent={Transition}
       onClose={(event) => {
         if(!isCanceling.current){
           isCanceling.current = true;
