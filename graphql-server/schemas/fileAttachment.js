@@ -1,5 +1,4 @@
-module.exports =
-  `
+module.exports = `
   type FileAttachment{
     """
     @original-field
@@ -27,19 +26,19 @@ module.exports =
     @original-field
     
     """
-    fileUrl: String
+    filePath: String
 
     """
     @original-field
     
     """
-    smallTnUrl: String
+    smallTnPath: String
 
     """
     @original-field
     
     """
-    mediumTnUrl: String
+    mediumTnPath: String
 
     """
     @original-field
@@ -81,9 +80,9 @@ type FileAttachmentEdge{
     fileName
     fileSizeKb
     fileType
-    fileUrl
-    smallTnUrl
-    mediumTnUrl
+    filePath
+    smallTnPath
+    mediumTnPath
     licence
     description
   }
@@ -98,18 +97,21 @@ type FileAttachmentEdge{
     field: FileAttachmentField
     order: Order
   }
+
+
+
   type Query {
     fileAttachments(search: searchFileAttachmentInput, order: [ orderFileAttachmentInput ], pagination: paginationInput ): [FileAttachment]
     readOneFileAttachment(id: ID!): FileAttachment
     countFileAttachments(search: searchFileAttachmentInput ): Int
     vueTableFileAttachment : VueTableFileAttachment    csvTableTemplateFileAttachment: [String]
-
     fileAttachmentsConnection(search:searchFileAttachmentInput, order: [ orderFileAttachmentInput ], pagination: paginationCursorInput ): FileAttachmentConnection
   }
+
   type Mutation {
-    addFileAttachment(licence: String, description: String, skipAssociationsExistenceChecks:Boolean = false): FileAttachment!
-    updateFileAttachment(id: ID!, fileName: String, fileSizeKb: String, fileType: String, fileUrl: String, smallTnUrl: String, mediumTnUrl: String, licence: String, description: String    , skipAssociationsExistenceChecks:Boolean = false): FileAttachment!
+    addFileAttachment( fileName: String, fileSizeKb: String, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String    , skipAssociationsExistenceChecks:Boolean = false): FileAttachment!
+    updateFileAttachment(id: ID!, fileName: String, fileSizeKb: String, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String    , skipAssociationsExistenceChecks:Boolean = false): FileAttachment!
     deleteFileAttachment(id: ID!): String!
     bulkAddFileAttachmentCsv: String!
-  }
+      }
 `;

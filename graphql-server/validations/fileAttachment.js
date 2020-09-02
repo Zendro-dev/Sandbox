@@ -18,6 +18,24 @@ module.exports.validator_patch = function(fileAttachment) {
     fileAttachment.prototype.validatorSchema = {
         "$async": true,
         "properties": {
+            "fileName": {
+                "type": ["string", "null"]
+            },
+            "fileSizeKb": {
+                "type": ["string", "null"]
+            },
+            "fileType": {
+                "type": ["string", "null"]
+            },
+            "filePath": {
+                "type": ["string", "null"]
+            },
+            "smallTnPath": {
+                "type": ["string", "null"]
+            },
+            "mediumTnPath": {
+                "type": ["string", "null"]
+            },
             "licence": {
                 "type": ["string", "null"]
             },

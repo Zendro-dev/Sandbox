@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('role_to_users', {
+        return queryInterface.createTable('fileAttachments', {
 
             id: {
                 type: Sequelize[dict['Int']],
@@ -30,11 +30,29 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            userId: {
-                type: Sequelize[dict['Int']]
+            fileName: {
+                type: Sequelize[dict['String']]
             },
-            roleId: {
-                type: Sequelize[dict['Int']]
+            fileSizeKb: {
+                type: Sequelize[dict['String']]
+            },
+            fileType: {
+                type: Sequelize[dict['String']]
+            },
+            filePath: {
+                type: Sequelize[dict['String']]
+            },
+            smallTnPath: {
+                type: Sequelize[dict['String']]
+            },
+            mediumTnPath: {
+                type: Sequelize[dict['String']]
+            },
+            licence: {
+                type: Sequelize[dict['String']]
+            },
+            description: {
+                type: Sequelize[dict['String']]
             }
 
         });
@@ -48,7 +66,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('role_to_users');
+        return queryInterface.dropTable('fileAttachments');
     }
 
 };

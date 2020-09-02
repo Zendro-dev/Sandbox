@@ -237,9 +237,9 @@ module.exports.storeUploadedFile = async function(expressFileUploadHandle) {
   let destPath = path.join(destFolder, fileName)
   await expressFileUploadHandle.mv(path.resolve(destPath))
   return destPath
-}
-
-module.exports.createThumbnails = async function(path2ImageFile) {
+ }
+  
+ module.exports.createThumbnails = async function(path2ImageFile) {
   let smallTnPath = path2ImageFile.replace(/^(\S+)(\.\S+$)/, '$1_small_tn$2')
   let mediumTnPath = path2ImageFile.replace(/^(\S+)(\.\S+$)/, '$1_medium_tn$2')
   let sysCmd = `convert ${path2ImageFile} -resize 64x64\\> ${smallTnPath} && ` +
@@ -254,9 +254,9 @@ module.exports.createThumbnails = async function(path2ImageFile) {
       })
     })
   }))
-}
-
-module.exports.isFileImage = async function(path2File) {
+ }
+  
+ module.exports.isFileImage = async function(path2File) {
   return await (new Promise((resolve, reject) => {
     exec(`file ${path.resolve(path2File)}`, (error,
       stdout, stderr) => {
@@ -265,4 +265,5 @@ module.exports.isFileImage = async function(path2File) {
       resolve(/image/i.exec(stdout) !== null)
     })
   }))
-}
+ }
+ 

@@ -17,7 +17,6 @@ const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
 const moment = require('moment');
 const errorHelper = require('../../utils/errors');
-
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'FileAttachment',
@@ -26,9 +25,9 @@ const definition = {
         fileName: 'String',
         fileSizeKb: 'String',
         fileType: 'String',
-        fileUrl: 'String',
-        smallTnUrl: 'String',
-        mediumTnUrl: 'String',
+        filePath: 'String',
+        smallTnPath: 'String',
+        mediumTnPath: 'String',
         licence: 'String',
         description: 'String'
     },
@@ -60,13 +59,13 @@ module.exports = class FileAttachment extends Sequelize.Model {
             fileType: {
                 type: Sequelize[dict['String']]
             },
-            fileUrl: {
+            filePath: {
                 type: Sequelize[dict['String']]
             },
-            smallTnUrl: {
+            smallTnPath: {
                 type: Sequelize[dict['String']]
             },
-            mediumTnUrl: {
+            mediumTnPath: {
                 type: Sequelize[dict['String']]
             },
             licence: {
@@ -85,12 +84,13 @@ module.exports = class FileAttachment extends Sequelize.Model {
     }
 
     get smallTnFullUrl() {
-        this.smallTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+      this.smallTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
     }
 
     get mediumTnFullUrl() {
-        this.mediumTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
+      this.mediumTnUrl.replace(/^.*public\//, 'http://localhost:3000/')
     }
+
 
     static associate(models) {}
 
@@ -329,40 +329,41 @@ module.exports = class FileAttachment extends Sequelize.Model {
     }
 
     static async addOne({
-        fileHandle,
-        description,
-        licence
-      }) {
-        let fileUrl = await fileTools.storeUploadedFile(fileHandle)
-        let input = {
-          fileName: fileHandle.name,
-          fileSizeKb: (fileHandle.size / 1000),
-          fileType: fileHandle.mimetype,
-          licence: licence,
-          description: description,
-          fileUrl: fileUrl
-        }
-        if (/image/i.exec(fileHandle.mimetype) !== null) {
-          let thumbnails = await fileTools.createThumbnails(fileUrl)
-          input.smallTnUrl = thumbnails.smallTnPath
-          input.mediumTnUrl = thumbnails.mediumTnPath
-        }
+      fileHandle,
+      description,
+      licence
+    }) {
+      let fileUrl = await fileTools.storeUploadedFile(fileHandle)
+      let input = {
+        fileName: fileHandle.name,
+        fileSizeKb: (fileHandle.size / 1000),
+        fileType: fileHandle.mimetype,
+        licence: licence,
+        description: description,
+        fileUrl: fileUrl
+      }
+      if (/image/i.exec(fileHandle.mimetype) !== null) {
+        let thumbnails = await fileTools.createThumbnails(fileUrl)
+        input.smallTnUrl = thumbnails.smallTnPath
+        input.mediumTnUrl = thumbnails.mediumTnPath
+      }
 
-        //validate input
-        await validatorUtil.validateData('validateForCreate', this, input);
-        try {
-          const result = await sequelize.transaction(async (t) => {
-            let item = await super.create(input, {
-              transaction: t
-            });
-            return item;
+      //validate input
+      await validatorUtil.validateData('validateForCreate', this, input);
+      try {
+        const result = await sequelize.transaction(async (t) => {
+          let item = await super.create(input, {
+            transaction: t
           });
-          return result;
-        } catch (error) {
-          throw error;
-        }
+          return item;
+        });
+        return result;
+      } catch (error) {
+        throw error;
+      }
 
-    }
+  }
+
 
     static async deleteOne(id) {
         //validate id
@@ -469,6 +470,8 @@ module.exports = class FileAttachment extends Sequelize.Model {
     static async csvTableTemplate(benignErrorReporter) {
         return helper.csvTableTemplate(definition);
     }
+
+
 
 
 

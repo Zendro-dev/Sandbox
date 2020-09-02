@@ -231,7 +231,7 @@ module.exports = {
      */
     vueTableFileAttachment: async function(_, context) {
         if (await checkAuthorization(context, 'FileAttachment', 'read') === true) {
-            return helper.vueTable(context.request, fileAttachment, ["id", "fileName", "fileSizeKb", "fileType", "fileUrl", "smallTnUrl", "mediumTnUrl", "licence", "description"]);
+            return helper.vueTable(context.request, fileAttachment, ["id", "fileName", "fileSizeKb", "fileType", "filePath", "smallTnPath", "mediumTnPath", "licence", "description"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -247,29 +247,29 @@ module.exports = {
      * @return {object}         New record created
      */
     addFileAttachment: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'FileAttachment', 'create');
-        if (authorization === true) {
-            // let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            // if (!input.skipAssociationsExistenceChecks) {
-            //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-            // }
-            // let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            // let createdFileAttachment = await fileAttachment.addOne(inputSanitized, benignErrorReporter);
-            console.log(
-              `express-fileupload generated the following handles:\n${Object.keys(context.request.files)}`
-            )
-            let createdFileAttachment = await fileAttachment.addOne({
-              fileHandle: context.request.files.attachment,
-              description: input.description,
-              licence: input.licence
-            })
-            // await createdFileAttachment.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdFileAttachment;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
+      let authorization = await checkAuthorization(context, 'FileAttachment', 'create');
+      if (authorization === true) {
+          // let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+          // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+          // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+          // if (!input.skipAssociationsExistenceChecks) {
+          //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+          // }
+          // let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+          // let createdFileAttachment = await fileAttachment.addOne(inputSanitized, benignErrorReporter);
+          console.log(
+            `express-fileupload generated the following handles:\n${Object.keys(context.request.files)}`
+          )
+          let createdFileAttachment = await fileAttachment.addOne({
+            fileHandle: context.request.files.attachment,
+            description: input.description,
+            licence: input.licence
+          })
+          // await createdFileAttachment.handleAssociations(inputSanitized, benignErrorReporter);
+          return createdFileAttachment;
+      } else {
+          throw new Error("You don't have authorization to perform this action");
+      }
     },
 
     /**
@@ -333,6 +333,7 @@ module.exports = {
             throw new Error("You don't have authorization to perform this action");
         }
     },
+
 
     /**
      * csvTableTemplateFileAttachment - Returns table's template
