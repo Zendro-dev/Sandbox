@@ -17,13 +17,13 @@ const PORTS = range(1,5);
 
 
 /**
- * Get a map of valid postgres connection objects.
+ * Get a map of valid database configuration objects.
  */
 module.exports.getConfigs = () => {
 
   return PORTS.reduce(
 
-    // reducer function to create connections
+    // reducer function to create connection configurations
     (acc, i) => {
 
       acc.postgres.push({
