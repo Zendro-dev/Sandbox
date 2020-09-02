@@ -8,7 +8,7 @@ An experimental repository to test the performance and behaviour of `pg-native`,
 
 This repository is configured to use `yarn workspaces`. Make sure to run `yarn install` after cloning it.
 
-To generate the data use to populate the databases, run the following command.
+To generate the data used to populate the databases, run the following command.
 
 ```bash
 yarn setup
