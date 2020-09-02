@@ -14,8 +14,8 @@ const QUERY = 'SELECT * from random'
 
 const start = new Date();
 
-const conns = getConnections().postgres;
-const results = conns.map(connection => queryPgPromise(QUERY, connection));
+const { postgres } = getConnections();
+const results = postgres.map(connection => queryPgPromise(QUERY, connection));
 
 
 /* LOG QUERY TIMES */
