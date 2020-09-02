@@ -1,5 +1,5 @@
 const {
-  getConnections,
+  getConfigs,
   logQueryResults,
   queryPgNative,
 } = require('../../utils/query-helpers');
@@ -14,10 +14,10 @@ const QUERY = 'SELECT * FROM random';
 
 const start = new Date();
 
-const { postgres } = getConnections();
+const { postgres } = getConfigs();
 
-const results = postgres.map( connection =>
-  queryPgNative(QUERY, connection).catch(err => {
+const results = postgres.map(config => queryPgNative(QUERY, config)
+  .catch(err => {
     console.log(err.message);
     process.exit(err.code);
   })

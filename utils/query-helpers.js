@@ -19,7 +19,7 @@ const PORTS = range(1,5);
 /**
  * Get a map of valid postgres connection objects.
  */
-module.exports.getConnections = () => {
+module.exports.getConfigs = () => {
 
   return PORTS.reduce(
 

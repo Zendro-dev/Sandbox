@@ -1,5 +1,5 @@
 const {
-  getConnections,
+  getConfigs,
   logQueryResults,
   queryPgPromise,
 } = require('../../utils/query-helpers');
@@ -14,8 +14,8 @@ const QUERY = 'SELECT * from random'
 
 const start = new Date();
 
-const { postgres } = getConnections();
-const results = postgres.map(connection => queryPgPromise(QUERY, connection));
+const { postgres } = getConfigs();
+const results = postgres.map(config => queryPgPromise(QUERY, config));
 
 
 /* LOG QUERY TIMES */
