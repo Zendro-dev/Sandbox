@@ -70,12 +70,12 @@ module.exports.logQueryResults = (start, promises) => {
 /**
  * Asynchronously execute a specific query on the given connection.
  * @param {string} query SQL-formatted query
- * @param {object} connection postgres connection object
+ * @param {object} config postgres config object
  */
-module.exports.queryPgNative = async(query, connection) => {
+module.exports.queryPgNative = async(query, config) => {
 
   const client = new PgNative();
-  const { user, password, host, port, database } = connection;
+  const { user, password, host, port, database } = config;
 
   return new Promise((resolve, reject) => {
 
@@ -107,11 +107,11 @@ module.exports.queryPgNative = async(query, connection) => {
 /**
  * Asynchronously execute a specific query on the given connection.
  * @param {string} query SQL-formatted query
- * @param {object} connection postgres connection object
+ * @param {object} config postgres config object
  */
-module.exports.queryPgPromise = async (query, connection) => {
+module.exports.queryPgPromise = async (query, config) => {
 
-  const db = pgp(connection);
+  const db = pgp(config);
 
   const startQuery = new Date();
   await db.any(query).catch(err => {
@@ -121,7 +121,7 @@ module.exports.queryPgPromise = async (query, connection) => {
   const endQuery = new Date();
 
   return {
-    port: connection.port,
+    port: config.port,
     time: (endQuery - startQuery),
   };
 
@@ -130,11 +130,11 @@ module.exports.queryPgPromise = async (query, connection) => {
 /**
  * Asynchronously execute a specific query on the given connection.
  * @param {string} query SQL-formatted query
- * @param {object} connection sqlite connection object
+ * @param {object} config sqlite config object
  */
-module.exports.querySqlite = async (query, connection) => {
+module.exports.querySqlite = async (query, config) => {
 
-  const db = await open(connection);
+  const db = await open(config);
 
   const startQuery = new Date();
 
@@ -143,7 +143,7 @@ module.exports.querySqlite = async (query, connection) => {
   const endQuery = new Date();
 
   return {
-    port: connection.filename,
+    port: config.filename,
     time: (endQuery - startQuery),
   };
 
