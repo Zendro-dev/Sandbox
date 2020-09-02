@@ -60,6 +60,10 @@ module.exports = class mariadb_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
+            },
+
+            book_ids: {
+                type: Sequelize.JSON
             }
 
 
@@ -73,11 +77,19 @@ module.exports = class mariadb_author extends Sequelize.Model {
     static associate(models) {}
 
     static async readById(id) {
-        let item = await mariadb_author.findByPk(id);
-        if (item === null) {
-            throw new Error(`Record with ID = "${id}" does not exist`);
-        }
-        return validatorUtil.validateData('validateAfterRead', this, item);
+
+        let [item, metadata ] = await this.sequelize.query( `select * from mariadb_authors where id = "${id}"`);
+         console.log("ITEM ", item);
+         let item2 = await mariadb_author.findByPk(id)
+         console.log("ITEM 2", item2);
+
+        return item[0];
+        // let item = await mariadb_author.findByPk(id);
+        // if (item === null) {
+        //     throw new Error(`Record with ID = "${id}" does not exist`);
+        // }
+        //         console.log("ITEM ", item);
+        // return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {

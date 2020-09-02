@@ -37,6 +37,10 @@ module.exports = {
             },
             ISBN: {
                 type: Sequelize[dict['String']]
+            },
+
+            author_ids: {
+                type: Sequelize.JSON
             }
 
         });

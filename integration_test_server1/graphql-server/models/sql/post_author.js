@@ -60,6 +60,10 @@ module.exports = class post_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
+            },
+
+            book_ids: {
+                type: Sequelize.JSON
             }
 
 
@@ -77,6 +81,11 @@ module.exports = class post_author extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
+
+        console.log("THIS SEQUELIZE INFO: ",this.sequelize.options.dialect);
+        let [result, metadata] = await this.sequelize.query(`select id from post_authors where book_ids::jsonb @> '[ "b3" ]'`);
+        console.log("RESULT ", result);
+        console.log("METADATA", metadata, metadata.rowCount );
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 

@@ -6,23 +6,24 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     name: String
 
     """
     @original-field
-    
+
     """
     lastname: String
 
     """
     @original-field
-    
+
     """
     email: String
 
-      
+    book_ids: [ String ]
+
     }
 type Post_authorConnection{
   edges: [Post_authorEdge]
@@ -50,6 +51,7 @@ type Post_authorEdge{
     name
     lastname
     email
+    book_ids
   }
   input searchPost_authorInput {
     field: post_authorField
@@ -74,7 +76,7 @@ type Post_authorEdge{
   }
 
   type Mutation {
-    addPost_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): post_author!
+    addPost_author(id: ID!, name: String, lastname: String, email: String, book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): post_author!
     updatePost_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): post_author!
     deletePost_author(id: ID!): String!
     bulkAddPost_authorCsv: String!

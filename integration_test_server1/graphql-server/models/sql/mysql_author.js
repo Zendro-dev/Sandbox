@@ -60,6 +60,10 @@ module.exports = class mysql_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
+            },
+
+            book_ids: {
+                type: Sequelize.JSON
             }
 
 
@@ -77,6 +81,7 @@ module.exports = class mysql_author extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
+
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 

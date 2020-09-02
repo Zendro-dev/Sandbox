@@ -6,23 +6,23 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     name: String
 
     """
     @original-field
-    
+
     """
     lastname: String
 
     """
     @original-field
-    
+
     """
     email: String
 
-      
+    book_ids: [ String ]
     }
 type Sq_authorConnection{
   edges: [Sq_authorEdge]
@@ -50,6 +50,7 @@ type Sq_authorEdge{
     name
     lastname
     email
+    book_ids
   }
   input searchSq_authorInput {
     field: sq_authorField
@@ -74,7 +75,7 @@ type Sq_authorEdge{
   }
 
   type Mutation {
-    addSq_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
+    addSq_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
     updateSq_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
     deleteSq_author(id: ID!): String!
     bulkAddSq_authorCsv: String!

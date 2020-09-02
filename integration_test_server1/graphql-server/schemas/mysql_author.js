@@ -6,23 +6,23 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     name: String
 
     """
     @original-field
-    
+
     """
     lastname: String
 
     """
     @original-field
-    
+
     """
     email: String
 
-      
+    book_ids: [ String ]
     }
 type Mysql_authorConnection{
   edges: [Mysql_authorEdge]
@@ -50,6 +50,7 @@ type Mysql_authorEdge{
     name
     lastname
     email
+    book_ids
   }
   input searchMysql_authorInput {
     field: mysql_authorField
@@ -74,7 +75,7 @@ type Mysql_authorEdge{
   }
 
   type Mutation {
-    addMysql_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
+    addMysql_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
     updateMysql_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
     deleteMysql_author(id: ID!): String!
     bulkAddMysql_authorCsv: String!

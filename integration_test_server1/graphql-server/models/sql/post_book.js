@@ -60,6 +60,10 @@ module.exports = class post_book extends Sequelize.Model {
             },
             ISBN: {
                 type: Sequelize[dict['String']]
+            },
+
+            author_ids: {
+                type: Sequelize.JSON
             }
 
 

@@ -29,7 +29,7 @@
   "sqlite-database": {
     "storageType": "sql",
     "dialect": "sqlite",
-    "storage": "./data/storage.sqlite"
+    "storage": "./data/storage2.sqlite"
   }
 
 }

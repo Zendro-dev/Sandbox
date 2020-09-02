@@ -60,6 +60,10 @@ module.exports = class sq_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
+            },
+
+            book_ids: {
+                type: Sequelize.JSON
             }
 
 
