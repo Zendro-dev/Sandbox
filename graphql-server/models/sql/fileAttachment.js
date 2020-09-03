@@ -83,12 +83,19 @@ module.exports = class FileAttachment extends Sequelize.Model {
         });
     }
 
-    get smallTnFullUrl() {
-      this.smallTnPath.replace(/^.*public\//, 'http://localhost:3000/')
+    get fileUrl() {
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
+      return this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
     }
 
-    get mediumTnFullUrl() {
-      this.mediumTnPath.replace(/^.*public\//, 'http://localhost:3000/')
+    get smallTnUrl() {
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
+      return this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
+    }
+
+    get mediumTnUrl() {
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
+      return this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
     }
 
 
@@ -469,17 +476,6 @@ module.exports = class FileAttachment extends Sequelize.Model {
     static async csvTableTemplate(benignErrorReporter) {
         return helper.csvTableTemplate(definition);
     }
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

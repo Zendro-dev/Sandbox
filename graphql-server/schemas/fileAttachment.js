@@ -44,6 +44,24 @@ module.exports = `
     @original-field
     
     """
+    fileUrl: String
+
+    """
+    @original-field
+    
+    """
+    smallTnUrl: String
+
+    """
+    @original-field
+    
+    """
+    mediumTnUrl: String
+
+    """
+    @original-field
+    
+    """
     licence: String
 
     """

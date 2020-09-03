@@ -9,6 +9,7 @@ const admZip = require('adm-zip');
 const { exec } = require("child_process");
 const path = require("path");
 const uuidv4 = require('uuid').v4;
+const globals = require('../config/globals');
 
 
 /**
@@ -230,16 +231,16 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
   }
 };
 
-module.exports.storeUploadedFile = async function(expressFileUploadHandle) {
-  let destFolder = './public/fileAttachments'
+module.exports.storeUploadedFile = async function (expressFileUploadHandle) {
+  let destFolder = `./${globals.PUBLIC_FOLDER}/fileAttachments`
   let uuidFileName = uuidv4()
   let fileName = expressFileUploadHandle.name.replace(/^\S+(\.\S+)$/, `${uuidFileName}$1`)
   let destPath = path.join(destFolder, fileName)
   await expressFileUploadHandle.mv(path.resolve(destPath))
   return destPath
- }
-  
- module.exports.createThumbnails = async function(path2ImageFile) {
+}
+
+module.exports.createThumbnails = async function (path2ImageFile) {
   let smallTnPath = path2ImageFile.replace(/^(\S+)(\.\S+$)/, '$1_small_tn$2')
   let mediumTnPath = path2ImageFile.replace(/^(\S+)(\.\S+$)/, '$1_medium_tn$2')
   let sysCmd = `convert ${path2ImageFile} -resize 64x64\\> ${smallTnPath} && ` +
@@ -254,9 +255,9 @@ module.exports.storeUploadedFile = async function(expressFileUploadHandle) {
       })
     })
   }))
- }
-  
- module.exports.isFileImage = async function(path2File) {
+}
+
+module.exports.isFileImage = async function (path2File) {
   return await (new Promise((resolve, reject) => {
     exec(`file ${path.resolve(path2File)}`, (error,
       stdout, stderr) => {
@@ -265,5 +266,4 @@ module.exports.storeUploadedFile = async function(expressFileUploadHandle) {
       resolve(/image/i.exec(stdout) !== null)
     })
   }))
- }
- 
+}

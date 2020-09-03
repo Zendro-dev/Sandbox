@@ -31,9 +31,6 @@ var cors = require('cors');
 const APP_PORT = globals.PORT;
 const app = express();
 
-// Enable static pages in the folder ./public
-app.use(express.static('public'));
-
 app.use((req, res, next)=> {
 
 // Website you wish to allow to connect
@@ -56,6 +53,8 @@ if(globals.REQUIRE_SIGN_IN === "true"){
   app.use(jwt({ secret: 'something-secret'}).unless({path: ['/login']}));
 }
 
+// Enable static pages in the folder ./public
+app.use(express.static(globals.PUBLIC_FOLDER));
 
 /* Temporary solution:  acl rules set */
 if (process.argv.length > 2 && process.argv[2] == 'acl') {
