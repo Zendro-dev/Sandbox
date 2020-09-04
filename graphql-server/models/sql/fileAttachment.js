@@ -84,20 +84,19 @@ module.exports = class FileAttachment extends Sequelize.Model {
     }
 
     get fileUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
-      return this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+      return this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
     }
 
     get smallTnUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
-      return this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+      return this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
     }
 
     get mediumTnUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}\/fileAttachments\/`);
-      return this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL + '/fileAttachments/');
+      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+      return this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
     }
-
 
     static associate(models) {}
 
