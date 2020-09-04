@@ -1,5 +1,5 @@
 const {
-  getConnections,
+  getConfigs,
   logQueryResults,
   querySqlite,
 } = require('../../utils/query-helpers');
@@ -14,9 +14,9 @@ const QUERY = 'SELECT * from random'
 
 const start = new Date();
 
-const { sqlite } = getConnections();
+const { sqlite } = getConfigs();
 
-const results = sqlite.map(connection => querySqlite(QUERY, connection));
+const results = sqlite.map(config => querySqlite(QUERY, config));
 
 
 /* LOG QUERY TIMES */
