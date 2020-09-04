@@ -13,7 +13,7 @@ const { Database } = require('sqlite3');
 const { open }     = require('sqlite');
 
 // globals
-const PORTS = range(1,5);
+const PORTS = range(1, process.env.NO_DB_CONNS || 5);
 
 
 /**
