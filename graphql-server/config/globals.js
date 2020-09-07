@@ -13,11 +13,12 @@ module.exports = {
   MAIL_ACCOUNT: process.env.MAIL_ACCOUNT || "sci.db.service@gmail.com",
   MAIL_PASSWORD: process.env.MAIL_PASSWORD || "SciDbServiceQAZ",
   EXPORT_TIME_OUT: process.env.EXPORT_TIME_OUT || 3600,
-  // file attachment configs:
+  // image attachment configs:
   SMALL_THUMBNAIL_SIZE: process.env.SMALL_THUMBNAIL_SIZE || "64x64",
   MEDIUM_THUMBNAIL_SIZE: process.env.MEDIUM_THUMBNAIL_SIZE || "120x120",
   PUBLIC_FOLDER: process.env.PUBLIC_FOLDER || "public",
   IMAGE_HOST_SERVER_BASE_URL: process.env.IMAGE_HOST_SERVER_BASE_URL || "http://localhost:3000/",
   MAX_FILES_PER_ATTACHMENT_FOLDER: process.env.MAX_FILES_PER_ATTACHMENT_FOLDER || 50000,
   PUBLIC_ATTACHMENT_FOLDER_DEPTH: process.env.PUBLIC_ATTACHMENT_FOLDER_DEPTH || 2,
+  CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED: process.env.CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED || true,
 }

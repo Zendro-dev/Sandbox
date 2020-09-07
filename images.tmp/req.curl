@@ -1,1 +1,17 @@
+
+//add - with attachment
 curl -F attachment=@./images.tmp/nahil-naseer-xljtGZ2-P3Y-unsplash.jpg -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {addImageAttachment(licence: "You may not", description: "Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+//add - without attachment
+curl -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {addImageAttachment(licence: "You may not", description: "Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+
+//update - with attachment + data
+curl -F attachment=@./images.tmp/pexels-scott-webb-213727.jpg -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {updateImageAttachment(id: "3", licence: "New - You may not", description: "New - Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+
+//update - without attachment
+curl -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {updateImageAttachment(id: "3", licence: "New2 - You may not", description: "New2 - Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+
+//update - with attachment only
+curl -F attachment=@./images.tmp/pexels-scott-webb-213727.jpg -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {updateImageAttachment(id: "6"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+
+
+public/images/0/0/19940302-8d08-4323-9c79-bb85c713f161.jpg

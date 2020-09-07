@@ -12,6 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
+const fileTools = require('../utils/file-tools');
 
 const associationArgsDef = {}
 
@@ -248,7 +249,10 @@ module.exports = {
      */
     addImageAttachment: async function(input, context) {
       let authorization = await checkAuthorization(context, 'ImageAttachment', 'create');
-      if (authorization === true) {
+      if (authorization === true) {          
+          //-- @Images: add image file
+          await fileTools.addImageFile(input, context);
+          //--
           let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
           await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
           await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
@@ -256,17 +260,7 @@ module.exports = {
               await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
           }
           let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-          //let createdImageAttachment = await imageAttachment.addOne(inputSanitized, benignErrorReporter);
-          if(!context.request.files) {
-            throw new Error("No image attachment was provided with addImageAttachment mutation request");
-          }
-          console.log(`express-fileupload generated the following handles:\n${Object.keys(context.request.files)}`);
-          let createdImageAttachment = await imageAttachment.addOne({
-            fileHandle: context.request.files.attachment,
-            description: input.description,
-            licence: input.licence
-          });
-
+          let createdImageAttachment = await imageAttachment.addOne(inputSanitized, benignErrorReporter);
           await createdImageAttachment.handleAssociations(inputSanitized, benignErrorReporter);
           return createdImageAttachment;
       } else {
@@ -300,6 +294,9 @@ module.exports = {
         id
     }, context) {
         if (await checkAuthorization(context, 'ImageAttachment', 'delete') === true) {
+          //-- @Images: delete image file
+          await fileTools.deleteImageFile(await imageAttachment.readById(id));
+          //--
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
                 return imageAttachment.deleteOne(id, benignErrorReporter);
@@ -321,6 +318,9 @@ module.exports = {
     updateImageAttachment: async function(input, context) {
         let authorization = await checkAuthorization(context, 'ImageAttachment', 'update');
         if (authorization === true) {
+            //-- @Images: update image file
+            await fileTools.updateImageFile(input, context, await imageAttachment.readById(input.id));
+            //--
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);

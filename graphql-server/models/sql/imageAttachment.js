@@ -87,17 +87,17 @@ module.exports = class ImageAttachment extends Sequelize.Model {
 
     get fileUrl() {
       let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
+      return this.filePath ? this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
   
     get smallTnUrl() {
       let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
+      return this.smallTnPath ? this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
   
     get mediumTnUrl() {
       let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL);
+      return this.mediumTnPath ? this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
  
     static async readById(id) {
@@ -334,26 +334,7 @@ module.exports = class ImageAttachment extends Sequelize.Model {
         });
     }
 
-    static async addOne({
-      fileHandle,
-      description,
-      licence
-    }) {
-      let filePath = await fileTools.storeUploadedFile(fileHandle)
-      let input = {
-        fileName: fileHandle.name,
-        fileSizeKb: (fileHandle.size / 1000),
-        fileType: fileHandle.mimetype,
-        licence: licence,
-        description: description,
-        filePath: filePath
-      }
-      if (/image/i.exec(fileHandle.mimetype) !== null) {
-        let thumbnails = await fileTools.createThumbnails(filePath)
-        input.smallTnPath = thumbnails.smallTnPath
-        input.mediumTnPath = thumbnails.mediumTnPath
-      }
-    
+    static async addOne(input) {
       //validate input
       await validatorUtil.validateData('validateForCreate', this, input);
       try {
