@@ -47,14 +47,17 @@ res.setHeader('Access-Control-Allow-Origin', globals.ALLOW_ORIGIN);
   next();
 });
 
+// Note: this should be after JWT declaration.
+// Enable static pages in the folder ./public
+app.use(express.static('public'));
+
+
 // Force users to sign in to get access to anything else than '/login'
 console.log("REQUIRE: ",globals.REQUIRE_SIGN_IN);
 if(globals.REQUIRE_SIGN_IN === "true"){
   app.use(jwt({ secret: 'something-secret'}).unless({path: ['/login']}));
 }
 
-// Enable static pages in the folder ./public
-app.use(express.static(globals.PUBLIC_FOLDER));
 
 /* Temporary solution:  acl rules set */
 if (process.argv.length > 2 && process.argv[2] == 'acl') {

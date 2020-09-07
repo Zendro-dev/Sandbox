@@ -1,10 +1,10 @@
 export default function getAttributes(filterName) {
   switch(filterName) {
-    case 'fileAttachment':
+    case 'imageAttachment':
       return {
         "id": "Int",
         "fileName": "String",
-        "fileSizeKb": "String",
+        "fileSizeKb": "Float",
         "fileType": "String",
         "filePath": "String",
         "smallTnPath": "String",

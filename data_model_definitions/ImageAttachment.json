@@ -1,0 +1,14 @@
+{
+  "model" : "ImageAttachment",
+  "storageType" : "SQL",
+  "attributes" : {
+    "fileName" : "String",
+    "fileSizeKb" : "Float",
+    "fileType": "String",
+    "filePath": "String",
+    "smallTnPath": "String",
+    "mediumTnPath": "String",
+    "licence": "String",
+    "description": "String"
+  }
+}

@@ -15,33 +15,33 @@ module.exports = {
 
     //models
     /**
-     * Model: fileAttachment
+     * Model: imageAttachment
      */
     {
       roles: 'editor',
       allows: [{
-        resources: 'fileAttachment',
+        resources: 'imageAttachment',
         permissions: 'create'
       }]
     },
     {
       roles: 'reader',
       allows: [{
-        resources: 'fileAttachment',
+        resources: 'imageAttachment',
         permissions: 'read'
       }]
     },
     {
       roles: 'editor',
       allows: [{
-        resources: 'fileAttachment',
+        resources: 'imageAttachment',
         permissions: 'update'
       }]
     },
     {
       roles: 'editor',
       allows: [{
-        resources: 'fileAttachment',
+        resources: 'imageAttachment',
         permissions: 'delete'
       }]
     },

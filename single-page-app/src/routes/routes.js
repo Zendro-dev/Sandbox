@@ -3,9 +3,9 @@ export default () => ({
   models: [
     {
       id: 0,
-      name: 'fileAttachment',
-      title: 'FileAttachment',
-      url: '/main/model/fileAttachment',
+      name: 'imageAttachment',
+      title: 'ImageAttachment',
+      url: '/main/model/imageAttachment',
     },
   ],
   adminModels: [

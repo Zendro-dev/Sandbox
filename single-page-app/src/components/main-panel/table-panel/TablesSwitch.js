@@ -5,7 +5,7 @@ import {
 } from 'react-router-dom'
 import PropTypes from 'prop-types';
 
-import FileAttachmentTable from './models-tables/fileAttachment-table/FileAttachmentEnhancedTable'
+import ImageAttachmentTable from './models-tables/imageAttachment-table/ImageAttachmentEnhancedTable'
 import RoleTable from './admin-tables/role-table/RoleEnhancedTable'
 import RoleToUserTable from './admin-tables/role_to_user-table/Role_to_userEnhancedTable'
 import UserTable from './admin-tables/user-table/UserEnhancedTable'
@@ -20,12 +20,12 @@ export default function TablesSwitch(props) {
     <Switch>
 
         {/* Models */}
-        <Route exact path="/main/model/fileAttachment" 
+        <Route exact path="/main/model/imageAttachment" 
           render={
             /* acl check */
-            (permissions&&permissions.fileAttachment&&Array.isArray(permissions.fileAttachment)
-            &&(permissions.fileAttachment.includes('read') || permissions.fileAttachment.includes('*')))
-            ? ((props) => <FileAttachmentTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+            (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
+            &&(permissions.imageAttachment.includes('read') || permissions.imageAttachment.includes('*')))
+            ? ((props) => <ImageAttachmentTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 
         {/* Admin models */}
