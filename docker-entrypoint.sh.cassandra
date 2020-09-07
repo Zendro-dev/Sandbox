@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+###############################
+# This file was copied from the Cassandra container and modified according to https://stackoverflow.com/a/42698847.
+# The modification runs all '.sh' and '.cql' files in the 'docker-entrypoint-initdb.d' folder. This mimics the
+# behaviour of e.g. the default postgres container.
+###############################
+
 # first arg is `-f` or `--some-option`
 # or there are no args
 if [ "$#" -eq 0 ] || [ "${1#-}" != "$1" ]; then

@@ -1,0 +1,7 @@
+{
+  "username": "cassandra",
+  "password": "cassandra",
+  "keyspace": "sciencedb",
+  "host": "cassandra1",
+  "port": "9042"
+}

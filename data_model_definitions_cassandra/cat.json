@@ -1,0 +1,10 @@
+{
+  "model" : "cat",
+  "storageType" : "cassandra",
+  "attributes" : {
+    "name": "String",
+    "cat_id": "String",
+    "person_id": "String"
+  },
+  "internalId": "cat_id"
+}

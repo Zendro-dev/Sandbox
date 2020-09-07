@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { existsSync } = require('fs');
 const { join }       = require('path');
 const { Sequelize }  = require('sequelize');

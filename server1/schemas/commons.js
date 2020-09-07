@@ -19,6 +19,21 @@ module.exports = `
     notRegexp
   }
 
+  enum CassandraOperator{
+    eq
+    lt
+    gt
+    le
+    ge
+    ne
+    _in
+    cont   # CONTAINS
+    ctk    # CONTAINS KEY
+    tlt    # Token < Token
+    tgt    # Token > Token
+    and
+  }
+
   enum Order{
     DESC
     ASC
@@ -30,7 +45,7 @@ module.exports = `
   }
 
   input paginationInput{
-    limit: Int!
+    limit: Int
     offset: Int
   }
 
@@ -42,10 +57,20 @@ module.exports = `
     includeCursor: Boolean
   }
 
+  input paginationCursorCassandraInput{
+    limit: Int     # first = last in the Cassandra case
+    after: String
+  }
+
   type pageInfo{
     startCursor: String
     endCursor: String
     hasPreviousPage: Boolean!
+    hasNextPage: Boolean!
+  }
+
+  type pageCassandraInfo{
+    endCursor: String
     hasNextPage: Boolean!
   }
 
