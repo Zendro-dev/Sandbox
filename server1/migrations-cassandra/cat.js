@@ -1,6 +1,6 @@
 'use strict';
 const {
-    cassandraDriver
+    cassandraClient
 } = require('../connection');
 const dict = require('../utils/graphql-sequelize-types');
 
@@ -26,11 +26,12 @@ module.exports = {
         indexCreationStrings.push("person_id");
 
         createString += ");";
+        console.log("createString: ", createString)
 
-        await cassandraDriver.execute(createString);
+        await cassandraClient.execute(createString);
 
         let indexCreationPromises = indexCreationStrings.map(async i =>
-            await cassandraDriver.execute('CREATE INDEX IF NOT EXISTS ' + i + '_index ON cats (' + i + ');'));
+            await cassandraClient.execute('CREATE INDEX IF NOT EXISTS ' + i + '_index ON cats (' + i + ');'));
 
         await Promise.allSettled(indexCreationPromises);
 
@@ -44,7 +45,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: async function() {
-        await cassandraDriver.execute('DROP TABLE IF EXISTS cats');
+        await cassandraClient.execute('DROP TABLE IF EXISTS cats');
     }
 
 };

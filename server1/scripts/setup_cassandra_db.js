@@ -1,6 +1,8 @@
 const { cassandraClient } = require('../connection');
 const migrations_cassandra = require('../migrations-cassandra/index');
 
+// This only does the migration once and create the db_migrated table. migrations won't be rerun for newly added models. 
+
 async function createTableMigrated() {
     const tableQuery = "SELECT table_name FROM system_schema.tables WHERE keyspace_name='sciencedb';"
     let result = await cassandraClient.execute(tableQuery);
@@ -16,11 +18,11 @@ async function createTableMigrated() {
     if (tablePresent) {
         let queryMigration = "SELECT migrated_at FROM db_migrated;"
         result = await cassandraClient.execute(queryMigration);
-        // if (result.rowLength >= 1) {
-        //     migrateToDo = false;
-        //     console.log('Migration table filled, no more migration to do.');
-        //     return process.exit(0);
-        // }
+        if (result.rowLength >= 1) {
+            migrateToDo = false;
+            console.log('Migration table filled, no more migration to do.');
+            return process.exit(0);
+        }
     }
     if (migrateToDo) {
       await Promise.allSettled(Object.values(migrations_cassandra).map(async cassandraHandler => await cassandraHandler.up()));

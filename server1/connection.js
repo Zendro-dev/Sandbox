@@ -1,5 +1,6 @@
 const { Sequelize } = require('sequelize');
 const storageConfig = require('./config/data_models_storage_config.json');
+const cassandraConfig = require('./config/cassandra.json');
 const cassandraDriver = require('cassandra-driver');
 const globals = require('./config/globals');
 
@@ -100,10 +101,10 @@ exports.ConnectionError = class ConnectionError extends Error {
  * cassandraClient
  */
 exports.cassandraClient = new cassandraDriver.Client({
-  contactPoints: ['cassandra1'],
+  contactPoints: [cassandraConfig.host],
   localDataCenter: 'datacenter1',
-  keyspace: 'sciencedb',
+  keyspace: cassandraConfig.keyspace,
   protocolOptions: {
-      port: globals.CASSANDRA_PORT
+      port: cassandraConfig.port
   }
 });

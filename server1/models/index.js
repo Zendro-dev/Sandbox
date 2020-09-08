@@ -6,7 +6,7 @@ const { Sequelize }  = require('sequelize');
 //
 const { getConnection, ConnectionError } = require('../connection');
 const { getModulesSync } = require('../utils/module-helpers');
-
+const { cassandraClient } = require('../connection');
 
 var models = {};
 module.exports = models;
@@ -134,7 +134,7 @@ fs.readdirSync(__dirname + "/cassandra")
   })
   .forEach(function(file) {
     console.log("loaded model: " + file);
-    let model = require(`./${path.join("./cassandra", file)}`).getAndConnectDataModelClass(models.cassandraDriver);
+    let model = require(`./${path.join("./cassandra", file)}`).getAndConnectDataModelClass(cassandraClient);
 
     if(model.name in models)
         throw Error(`Duplicated model name ${model.name}`);
