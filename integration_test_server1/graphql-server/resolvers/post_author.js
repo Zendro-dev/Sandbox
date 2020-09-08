@@ -16,11 +16,47 @@ const errorHelper = require('../utils/errors');
 const associationArgsDef = {}
 
 
+post_author.prototype.booksFilter = function({
+    search,
+    order,
+    pagination
+}, context){
 
+  let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "id",
+        "value": {
+            "type": "Array",
+            "value": this.book_ids.join(',')
+        },
+        "operator": "in"
+    });
 
+  return resolvers.post_books({
+      search: nsearch,
+      order: order,
+      pagination: pagination
+  }, context)
+}
 
+post_author.prototype.add_books = async function(input, benignErrorReporter){
 
+  //add this author to each book
+  // for each book_id
+  //await models.post_book.add_authors( this.author );
 
+  await post_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
+  this.book_ids = new Set([...this.book_ids, ...input.addBooks]);
+}
+
+post_author.prototype.remove_books = async function(input, benignErrorReporter){
+
+  //remove this author from each book_ids
+  // for each book_id
+  //await models.post_book.remove_authors(this.author);
+  await post_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
+   this.book_ids = this.book_ids.filter( i => !input.removeBooks.includes(i));
+}
 
 /**
  * handleAssociations - handles the given associations in the create and update case.
@@ -31,7 +67,13 @@ const associationArgsDef = {}
 post_author.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
+    if (helper.isNonEmptyArray(input.addBooks)) {
+      promises.push(this.add_books(input, benignErrorReporter));
+    }
 
+    if (helper.isNonEmptyArray(input.removeBooks)) {
+      promises.push(this.remove_books(input, benignErrorReporter));
+    }
 
     await Promise.all(promises);
 }
@@ -129,6 +171,10 @@ async function validForDeletion(id, context) {
     }
     return true;
 }
+
+
+
+
 
 module.exports = {
     /**
@@ -312,11 +358,11 @@ module.exports = {
         let authorization = await checkAuthorization(context, 'post_author', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            if (!input.skipAssociationsExistenceChecks) {
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-            }
+            // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            // if (!input.skipAssociationsExistenceChecks) {
+            //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+            // }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedPost_author = await post_author.updateOne(inputSanitized, benignErrorReporter);
             await updatedPost_author.handleAssociations(inputSanitized, benignErrorReporter);

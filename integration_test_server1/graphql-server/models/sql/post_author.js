@@ -441,13 +441,25 @@ module.exports = class post_author extends Sequelize.Model {
 
 
 
+    static async add_book_ids( author_id, book_ids){
 
+      console.log("CONSTRUCTOR: ", this.tableName);
 
+      let query = `update ${this.tableName} set book_ids = book_ids::jsonb || '${JSON.stringify(book_ids)}'::jsonb where id = '${author_id}' `
 
+      console.log("QUERY ", query);
+      await this.sequelize.query(query);
+    }
 
-
-
-
+    static async remove_book_ids(author_id, book_ids){
+      let promises = [];
+      book_ids.forEach( id =>{
+        let query = `update ${this.tableName} set book_ids = book_ids::jsonb - '${id}' where id = '${author_id}'`;
+        console.log(query);
+        promises.push( this.sequelize.query(query) );
+      })
+      await Promise.all(promises);
+    }
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
