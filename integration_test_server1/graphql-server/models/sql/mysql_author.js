@@ -453,18 +453,22 @@ module.exports = class mysql_author extends Sequelize.Model {
 
     static async remove_book_ids(author_id, book_ids){
 
-      let promises = [];
+      // let promises = [];
+      //
+      // book_ids.forEach( id => {
+      //
+      //     let query = `update ${this.tableName} set book_ids = JSON_REMOVE(book_ids, JSON_UNQUOTE( JSON_SEARCH(book_ids, 'one', '${id}') ))   where id = '${author_id}' and JSON_SEARCH(book_ids, 'one', '${id}') is not null `;
+      //       console.log("QUERY REMOVE", query);
+      //       promises.push(this.sequelize.query(query));
+      //     //await this.sequelize.query(query);
+      // });
+      //
+      //
+      // await Promise.all(promises);
+      //
 
-      book_ids.forEach( id => {
+      super.update( {book_ids: book_ids}, {where: { id: author_id} } );
 
-          let query = `update ${this.tableName} set book_ids = JSON_REMOVE(book_ids, JSON_UNQUOTE( JSON_SEARCH(book_ids, 'one', '${id}') ))   where id = '${author_id}' and JSON_SEARCH(book_ids, 'one', '${id}') is not null `;
-            console.log("QUERY REMOVE", query);
-            promises.push(this.sequelize.query(query));
-          //await this.sequelize.query(query);
-      });
-
-
-      await Promise.all(promises);
     }
 
     /**

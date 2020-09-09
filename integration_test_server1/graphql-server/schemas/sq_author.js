@@ -23,6 +23,9 @@ module.exports = `
     email: String
 
     book_ids: [ String ]
+
+    booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput!): [sq_book]
+
     }
 type Sq_authorConnection{
   edges: [Sq_authorEdge]
@@ -76,7 +79,7 @@ type Sq_authorEdge{
 
   type Mutation {
     addSq_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
-    updateSq_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
+    updateSq_author(id: ID!, name: String, lastname: String, email: String,  addBooks: [ID], removeBooks: [ID], skipAssociationsExistenceChecks:Boolean = false): sq_author!
     deleteSq_author(id: ID!): String!
     bulkAddSq_authorCsv: String!
       }

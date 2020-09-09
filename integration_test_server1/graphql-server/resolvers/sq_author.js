@@ -15,9 +15,48 @@ const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {}
 
+sq_author.prototype.booksFilter = function({
+    search,
+    order,
+    pagination
+}, context){
+
+  let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "id",
+        "value": {
+            "type": "Array",
+            "value": this.book_ids.join(',')
+        },
+        "operator": "in"
+    });
+
+  return resolvers.sq_books({
+      search: nsearch,
+      order: order,
+      pagination: pagination
+  }, context)
+}
 
 
+sq_author.prototype.add_books = async function(input, benignErrorReporter){
 
+  //add this author to each book
+  // for each book_id
+  //await models.post_book.add_authors( this.author );
+
+  await sq_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
+  this.book_ids = new Set([...this.book_ids, ...input.addBooks]);
+}
+
+sq_author.prototype.remove_books = async function(input, benignErrorReporter){
+
+  //remove this author from each book_ids
+  // for each book_id
+  //await models.post_book.remove_authors(this.author);
+  await sq_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
+   this.book_ids = this.book_ids.filter( i => !input.removeBooks.includes(i));
+}
 
 
 
@@ -31,7 +70,13 @@ const associationArgsDef = {}
 sq_author.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
+    if (helper.isNonEmptyArray(input.addBooks)) {
+      promises.push(this.add_books(input, benignErrorReporter));
+    }
 
+    if (helper.isNonEmptyArray(input.removeBooks)) {
+      promises.push(this.remove_books(input, benignErrorReporter));
+    }
 
     await Promise.all(promises);
 }
@@ -312,11 +357,11 @@ module.exports = {
         let authorization = await checkAuthorization(context, 'sq_author', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            if (!input.skipAssociationsExistenceChecks) {
-                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-            }
+            // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            // if (!input.skipAssociationsExistenceChecks) {
+            //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+            // }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedSq_author = await sq_author.updateOne(inputSanitized, benignErrorReporter);
             await updatedSq_author.handleAssociations(inputSanitized, benignErrorReporter);

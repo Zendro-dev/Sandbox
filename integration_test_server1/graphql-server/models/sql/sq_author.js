@@ -347,19 +347,28 @@ module.exports = class sq_author extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                let updated = await super.update(input, {
-                    where: {
-                        [this.idAttribute()]: input[this.idAttribute()]
-                    },
-                    returning: true,
-                    transaction: t
-                });
-                return updated;
+              // let updated = await super.update(input, {
+              //     where: {
+              //         [this.idAttribute()]: input[this.idAttribute()]
+              //     },
+              //     returning: true,
+              //     plain: true,
+              //     transaction: t
+              // });
+
+              let to_update = await super.findByPk(input[this.idAttribute()]);
+              let updated = await to_update.update(input);
+
+              console.log("BY PK: ", to_update);
+              console.log("UPDATED",updated);
+              return updated;
             });
-            if (result[0] === 0) {
-                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            }
-            return result[1][0];
+            // console.log("RESULT MODEL: ", result)
+            // if (result[0] === 0) {
+            //     throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+            // }
+            // return result[1][0];
+            return result;
         } catch (error) {
             throw error;
         }
@@ -434,15 +443,24 @@ module.exports = class sq_author extends Sequelize.Model {
     }
 
 
+    static async add_book_ids( author_id, book_ids){
 
+      //let query = `select json_insert('[1,2,3,4]','$[#]',99) `
+      // let promises = [];
+      //
+      // book_ids.forEach( id =>{
+      //   let query = `update ${this.tableName} set book_ids = json_insert(book_ids, '$[#]', '${id}') where id = '${author_id}'`;
+      //   await this.sequelize.query(query);
+      // });
+      //
+      // Promise.all(promises);
 
+      super.update( {book_ids: book_ids}, {where: { id: author_id} } );
+    }
 
+    static async remove_book_ids(author_id, book_ids){
 
-
-
-
-
-
+    }
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
