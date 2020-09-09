@@ -23,6 +23,9 @@ module.exports = `
     email: String
 
     book_ids: [ String ]
+
+    booksFilter(search: searchMysql_bookInput, order: [ orderMysql_bookInput ], pagination: paginationInput!): [mysql_book]
+
     }
 type Mysql_authorConnection{
   edges: [Mysql_authorEdge]
@@ -76,7 +79,7 @@ type Mysql_authorEdge{
 
   type Mutation {
     addMysql_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
-    updateMysql_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
+    updateMysql_author(id: ID!, name: String, lastname: String, email: String, addBooks: [ID], removeBooks: [ID]    , skipAssociationsExistenceChecks:Boolean = false): mysql_author!
     deleteMysql_author(id: ID!): String!
     bulkAddMysql_authorCsv: String!
       }

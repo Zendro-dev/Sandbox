@@ -348,19 +348,29 @@ module.exports = class mysql_author extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                let updated = await super.update(input, {
-                    where: {
-                        [this.idAttribute()]: input[this.idAttribute()]
-                    },
-                    returning: true,
-                    transaction: t
-                });
+                // let updated = await super.update(input, {
+                //     where: {
+                //         [this.idAttribute()]: input[this.idAttribute()]
+                //     },
+                //     returning: true,
+                //     plain: true,
+                //     transaction: t
+                // });
+
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                let updated = await to_update.update(input);
+
+                console.log("BY PK: ", to_update);
+                console.log("UPDATED",updated);
                 return updated;
             });
-            if (result[0] === 0) {
-                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            }
-            return result[1][0];
+
+            // console.log("RESULT MODEL: ", result)
+            // if (result[0] === 0) {
+            //     throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+            // }
+            // return result[1][0];
+            return result;
         } catch (error) {
             throw error;
         }
@@ -434,16 +444,28 @@ module.exports = class mysql_author extends Sequelize.Model {
         return helper.csvTableTemplate(definition);
     }
 
+    static async add_book_ids( author_id, book_ids){
+
+      let query = `update ${this.tableName} set book_ids = JSON_MERGE(book_ids,'${JSON.stringify(book_ids)}' ) where id = '${author_id}' `
+      console.log("QUERY ADD:", query);
+      await this.sequelize.query(query);
+    }
+
+    static async remove_book_ids(author_id, book_ids){
+
+      let promises = [];
+
+      book_ids.forEach( id => {
+
+          let query = `update ${this.tableName} set book_ids = JSON_REMOVE(book_ids, JSON_UNQUOTE( JSON_SEARCH(book_ids, 'one', '${id}') ))   where id = '${author_id}' and JSON_SEARCH(book_ids, 'one', '${id}') is not null `;
+            console.log("QUERY REMOVE", query);
+            promises.push(this.sequelize.query(query));
+          //await this.sequelize.query(query);
+      });
 
 
-
-
-
-
-
-
-
-
+      await Promise.all(promises);
+    }
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

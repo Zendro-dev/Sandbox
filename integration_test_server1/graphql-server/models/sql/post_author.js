@@ -443,22 +443,16 @@ module.exports = class post_author extends Sequelize.Model {
 
     static async add_book_ids( author_id, book_ids){
 
-      console.log("CONSTRUCTOR: ", this.tableName);
-
       let query = `update ${this.tableName} set book_ids = book_ids::jsonb || '${JSON.stringify(book_ids)}'::jsonb where id = '${author_id}' `
-
-      console.log("QUERY ", query);
       await this.sequelize.query(query);
     }
 
     static async remove_book_ids(author_id, book_ids){
-      let promises = [];
-      book_ids.forEach( id =>{
-        let query = `update ${this.tableName} set book_ids = book_ids::jsonb - '${id}' where id = '${author_id}'`;
-        console.log(query);
-        promises.push( this.sequelize.query(query) );
-      })
-      await Promise.all(promises);
+
+        let query = `update ${this.tableName} set book_ids = book_ids::jsonb - ARRAY[${book_ids.map(x => `'${x}'`)}] where id = '${author_id}'`;
+          console.log("QUERY ", query);
+
+        await this.sequelize.query(query);
     }
 
     /**
