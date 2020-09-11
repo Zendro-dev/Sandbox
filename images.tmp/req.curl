@@ -1,6 +1,7 @@
 
 //add - with attachment
 curl -F attachment=@./images.tmp/nahil-naseer-xljtGZ2-P3Y-unsplash.jpg -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {addImageAttachment(licence: "You may not", description: "Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
+
 //add - without attachment
 curl -H "Authorization: Bearer `cat ./images.tmp/zendroImagesToken.tmp`" -F query='mutation M {addImageAttachment(licence: "You may not", description: "Cetero censeo Carthaginem delendam esse"){fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl}}' 'http://localhost:3000/graphql'
 

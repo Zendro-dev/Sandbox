@@ -251,7 +251,17 @@ module.exports.deleteFile = function (filePath) {
     console.log(e);
     throw new Error("!Error: trying to delete file.");
   }
- }
+}
+
+module.exports.fileExists = function (filePath) {
+  // check if the file exists
+  try {
+    fs.accessSync(filePath, fs.constants.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 module.exports.addImageFile = async function (input, context) {
   // case: does not have file
@@ -326,9 +336,16 @@ module.exports.updateImageFile = async function (input, context, {filePath, smal
 module.exports.storeUploadedImageFile = async function (expressFileUploadHandle) {
   try {  
     let destFolder = getImageFolder();
-    let uuidFileName = uuidv4()
-    let fileName = expressFileUploadHandle.name.replace(/^\S+(\.\S+)$/, `${uuidFileName}$1`)
-    let destPath = path.join(destFolder, fileName)
+    let uuidFileName = uuidv4();
+    let fileName = /^.+(\.\S+)$/.test(expressFileUploadHandle.name) ? expressFileUploadHandle.name.replace(/^.+(\.\S+)$/, `${uuidFileName}$1`) : `${uuidFileName}.img`;
+    let destPath = path.join(destFolder, fileName);
+    //make sure unique file name
+    while(exports.fileExists(destPath)) {
+      uuidFileName = uuidv4();
+      fileName = /^.+(\.\S+)$/.test(expressFileUploadHandle.name) ? expressFileUploadHandle.name.replace(/^.+(\.\S+)$/, `${uuidFileName}$1`) : `${uuidFileName}.img`;
+      destPath = path.join(destFolder, fileName);
+    }
+    //store file
     await expressFileUploadHandle.mv(path.resolve(destPath))
     console.log("@@ image file stored: ", destPath);
     return destPath
