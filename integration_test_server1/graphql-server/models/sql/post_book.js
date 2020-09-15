@@ -434,6 +434,17 @@ module.exports = class post_book extends Sequelize.Model {
     }
 
 
+    static async add_author_ids( book_id, author_ids){
+      let record = await super.findByPk(book_id);
+      let updated_ids = helper.unionIds(record.author_ids, author_ids);
+      await record.update( {author_ids: updated_ids} );
+    }
+
+    static async remove_author_ids(book_id, author_ids){
+      let record = await super.findByPk(book_id);
+      let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+      await record.update( {author_ids: updated_ids} );
+    }
 
 
 

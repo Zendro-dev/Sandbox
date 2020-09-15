@@ -445,12 +445,16 @@ module.exports = class sq_author extends Sequelize.Model {
 
     static async add_book_ids( author_id, book_ids){
 
-      await super.update( {book_ids: book_ids}, {where: { id: author_id} } );
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.unionIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
 
     }
 
     static async remove_book_ids(author_id, book_ids){
-      await super.update( {book_ids: updated_ids}, {where: { id: author_id} } );
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.differenceIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
     }
 
     /**

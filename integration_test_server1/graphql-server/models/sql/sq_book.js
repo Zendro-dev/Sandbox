@@ -60,8 +60,11 @@ module.exports = class sq_book extends Sequelize.Model {
             },
             ISBN: {
                 type: Sequelize[dict['String']]
-            }
+            },
 
+            author_ids: {
+                type: Sequelize.JSON
+            }
 
         }, {
             modelName: "sq_book",
@@ -426,13 +429,15 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
     static async add_author_ids( book_id, author_ids){
-
-      await super.update( {author_ids: author_ids}, {where: { id: book_id} } );
-
+      let record = await super.findByPk(book_id);
+      let updated_ids = helper.unionIds(record.author_ids, author_ids);
+      await record.update( {author_ids: updated_ids} );
     }
 
-    static async remove_book_ids(book_id, author_ids){
-      await super.update( {author_ids: author_ids}, {where: { id: book_id} } );
+    static async remove_author_ids(book_id, author_ids){
+      let record = await super.findByPk(book_id);
+      let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+      await record.update( {author_ids: updated_ids} );
     }
 
 

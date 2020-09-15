@@ -442,19 +442,17 @@ module.exports = class post_author extends Sequelize.Model {
 
 
     static async add_book_ids( author_id, book_ids){
-      //
-      // let query = `update ${this.tableName} set book_ids = book_ids::jsonb || '${JSON.stringify(book_ids)}'::jsonb where id = '${author_id}' `
-      // await this.sequelize.query(query);
-        await super.update( {book_ids: book_ids}, {where: { id: author_id} } );
+
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.unionIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
+
     }
 
     static async remove_book_ids(author_id, book_ids){
-
-        // let query = `update ${this.tableName} set book_ids = book_ids::jsonb - ARRAY[${book_ids.map(x => `'${x}'`)}] where id = '${author_id}'`;
-        //   console.log("QUERY ", query);
-        //
-        // await this.sequelize.query(query);
-        await super.update( {book_ids: updated_ids}, {where: { id: author_id} } );
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.differenceIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
     }
 
     /**

@@ -6,23 +6,24 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     title: String
 
     """
     @original-field
-    
+
     """
     genre: String
 
     """
     @original-field
-    
+
     """
     ISBN: String
 
-      
+    author_ids: [ String ]
+
     }
 type Sq_bookConnection{
   edges: [Sq_bookEdge]
@@ -75,7 +76,7 @@ type Sq_bookEdge{
 
   type Mutation {
     addSq_book(id: ID!, title: String, genre: String, ISBN: String    , skipAssociationsExistenceChecks:Boolean = false): sq_book!
-    updateSq_book(id: ID!, title: String, genre: String, ISBN: String    , skipAssociationsExistenceChecks:Boolean = false): sq_book!
+    updateSq_book(id: ID!, title: String, genre: String, ISBN: String, addAuthors: [ID], removeAuthors: [ID]    , skipAssociationsExistenceChecks:Boolean = false): sq_book!
     deleteSq_book(id: ID!): String!
     bulkAddSq_bookCsv: String!
       }

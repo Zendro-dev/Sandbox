@@ -446,30 +446,16 @@ module.exports = class mysql_author extends Sequelize.Model {
 
     static async add_book_ids( author_id, book_ids){
 
-      // let query = `update ${this.tableName} set book_ids = JSON_MERGE(book_ids,'${JSON.stringify(book_ids)}' ) where id = '${author_id}' `
-      // console.log("QUERY ADD:", query);
-      // await this.sequelize.query(query);
-      await super.update( {book_ids: book_ids}, {where: { id: author_id} } );
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.unionIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
+
     }
 
     static async remove_book_ids(author_id, book_ids){
-
-      // let promises = [];
-      //
-      // book_ids.forEach( id => {
-      //
-      //     let query = `update ${this.tableName} set book_ids = JSON_REMOVE(book_ids, JSON_UNQUOTE( JSON_SEARCH(book_ids, 'one', '${id}') ))   where id = '${author_id}' and JSON_SEARCH(book_ids, 'one', '${id}') is not null `;
-      //       console.log("QUERY REMOVE", query);
-      //       promises.push(this.sequelize.query(query));
-      //     //await this.sequelize.query(query);
-      // });
-      //
-      //
-      // await Promise.all(promises);
-      //
-
-      super.update( {book_ids: book_ids}, {where: { id: author_id} } );
-
+      let record = await super.findByPk(author_id);
+      let updated_ids = helper.differenceIds(record.book_ids, book_ids);
+      await record.update( {book_ids: updated_ids} );
     }
 
     /**

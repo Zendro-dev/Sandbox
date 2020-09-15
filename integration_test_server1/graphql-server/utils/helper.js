@@ -1601,7 +1601,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
 
   module.exports.differenceIds = function(ids, ids_to_remove){
     if( module.exports.isNonEmptyArray(ids)){
-        return ids.filter(id => !ids_to_remove.includes(i));
+        return ids.filter(id => !ids_to_remove.includes(id));
     }
     return ids;
   }
