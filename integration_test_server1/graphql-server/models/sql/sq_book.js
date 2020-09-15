@@ -343,19 +343,12 @@ module.exports = class sq_book extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                let updated = await super.update(input, {
-                    where: {
-                        [this.idAttribute()]: input[this.idAttribute()]
-                    },
-                    returning: true,
-                    transaction: t
-                });
+              let to_update = await super.findByPk(input[this.idAttribute()]);
+              let updated = await to_update.update(input);
+
                 return updated;
             });
-            if (result[0] === 0) {
-                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            }
-            return result[1][0];
+            return result;
         } catch (error) {
             throw error;
         }
@@ -432,12 +425,15 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
 
+    static async add_author_ids( book_id, author_ids){
 
+      await super.update( {author_ids: author_ids}, {where: { id: book_id} } );
 
+    }
 
-
-
-
+    static async remove_book_ids(book_id, author_ids){
+      await super.update( {author_ids: author_ids}, {where: { id: book_id} } );
+    }
 
 
     /**

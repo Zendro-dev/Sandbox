@@ -445,21 +445,12 @@ module.exports = class sq_author extends Sequelize.Model {
 
     static async add_book_ids( author_id, book_ids){
 
-      //let query = `select json_insert('[1,2,3,4]','$[#]',99) `
-      // let promises = [];
-      //
-      // book_ids.forEach( id =>{
-      //   let query = `update ${this.tableName} set book_ids = json_insert(book_ids, '$[#]', '${id}') where id = '${author_id}'`;
-      //   await this.sequelize.query(query);
-      // });
-      //
-      // Promise.all(promises);
+      await super.update( {book_ids: book_ids}, {where: { id: author_id} } );
 
-      super.update( {book_ids: book_ids}, {where: { id: author_id} } );
     }
 
     static async remove_book_ids(author_id, book_ids){
-
+      await super.update( {book_ids: updated_ids}, {where: { id: author_id} } );
     }
 
     /**

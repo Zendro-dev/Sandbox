@@ -45,8 +45,9 @@ post_author.prototype.add_books = async function(input, benignErrorReporter){
   // for each book_id
   //await models.post_book.add_authors( this.author );
 
-  await post_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
-  this.book_ids = new Set([...this.book_ids, ...input.addBooks]);
+  let updated_ids = helper.unionIds(this.book_ids, input.addBooks);
+  await sq_author.add_book_ids(this.getIdValue(), updated_ids, benignErrorReporter);
+  this.book_ids = updated_ids;
 }
 
 post_author.prototype.remove_books = async function(input, benignErrorReporter){
@@ -54,8 +55,9 @@ post_author.prototype.remove_books = async function(input, benignErrorReporter){
   //remove this author from each book_ids
   // for each book_id
   //await models.post_book.remove_authors(this.author);
-  await post_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
-   this.book_ids = this.book_ids.filter( i => !input.removeBooks.includes(i));
+  let updated_ids = helper.differenceIds(this.book_ids, input.removeBooks);
+  await sq_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
+   this.book_ids = updated_ids;
 }
 
 /**

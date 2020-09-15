@@ -446,9 +446,10 @@ module.exports = class mysql_author extends Sequelize.Model {
 
     static async add_book_ids( author_id, book_ids){
 
-      let query = `update ${this.tableName} set book_ids = JSON_MERGE(book_ids,'${JSON.stringify(book_ids)}' ) where id = '${author_id}' `
-      console.log("QUERY ADD:", query);
-      await this.sequelize.query(query);
+      // let query = `update ${this.tableName} set book_ids = JSON_MERGE(book_ids,'${JSON.stringify(book_ids)}' ) where id = '${author_id}' `
+      // console.log("QUERY ADD:", query);
+      // await this.sequelize.query(query);
+      await super.update( {book_ids: book_ids}, {where: { id: author_id} } );
     }
 
     static async remove_book_ids(author_id, book_ids){
