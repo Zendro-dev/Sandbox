@@ -60,7 +60,7 @@ type CatEdge{
     countCats(search: searchCatInput ): Int
     vueTableCat : VueTableCat    csvTableTemplateCat: [String]
 
-    catsConnection(search:searchCatInput, pagination: paginationCursorCassandraInput ): CatConnection
+    catsConnection(search:searchCatInput, pagination: paginationCursorCassandraInput! ): CatConnection
   }
     type Mutation {
     addCat(cat_id: ID!, name: String, person_id: String    , skipAssociationsExistenceChecks:Boolean = true): cat!

@@ -97,11 +97,13 @@ class cat {
             prepare: true
         });
         let firstResult = queryResult.first();
-        let item = new cat(firstResult);
-        if (item === null) {
+        // let item = new cat(firstResult);
+        console.log("Result: ", queryResult);
+        if (firstResult === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
         try {
+            let item =  new cat(firstResult);
             await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
             return item;
         } catch (err) {
@@ -318,16 +320,30 @@ class cat {
      * @throw {Error} If the record could not be deleted - this means a record with the ID is still present
      */
     static async deleteOne(id) {
-        const query = `SELECT * FROM cats WHERE cat_id = ${id}`;
-        let queryResponse = await this.storageHandler.execute(query);
-        await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, queryResponse.rows[0]);
-        const mutation = `DELETE FROM cats WHERE cat_id = ${id}`;
-        await this.storageHandler.execute(mutation);
-        queryResponse = await this.storageHandler.execute(query);
-        if (helper.isEmptyArray(queryResponse.rows)) {
+        // const query = `SELECT * FROM cats WHERE cat_id = ${id}`; // can be replaced with readById(id) ?
+        // let queryResponse = await this.storageHandler.execute(query);
+        // await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, queryResponse.rows[0]);
+        // const mutation = `DELETE FROM cats WHERE cat_id = ${id}`;
+        // await this.storageHandler.execute(mutation);
+        // queryResponse = await this.storageHandler.execute(query);
+        // if (helper.isEmptyArray(queryResponse.rows)) {
+        //     return 'Item successfully deleted';
+        // }
+        // throw new Error('Record was not deleted!');
+
+
+
+
+
+
+
+        const query =  `DELETE FROM cats WHERE cat_id = ? IF EXISTS`;
+        let queryResult = await this.storageHandler.execute(query, [id]);
+        if(queryResult){
             return 'Item successfully deleted';
+        } else {
+            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
         }
-        throw new Error('Record was not deleted!');
     }
 
     /**
@@ -361,6 +377,7 @@ class cat {
                 mutation += ` WHERE cat_id = ${idValue};`;
                 await this.storageHandler.execute(mutation);
             }
+            // this can be readById()?
             let checkQuery = (await this.storageHandler.execute(`SELECT * FROM cats WHERE cat_id = ${idValue}`)).rows[0];
             let response = new cat(checkQuery);
             return response;

@@ -123,8 +123,11 @@ module.exports = {
     }, context) {
         try {
             if (await checkAuthorization(context, 'cat', 'read') === true) {
+                helper.checkCursorBasedPaginationArgument(pagination);
+                let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+                helper.checkCountAndReduceRecordsLimit(limit, context, "dogsConnection");
                 let filtering = await checkAuthorization(context, 'cat', 'search')
-                await checkCountAndReduceRecordsLimit(search, context, "catsConnection", filtering);
+                // await checkCountAndReduceRecordsLimit(search, context, "catsConnection", filtering);
                 return cat.readAllCursor(search, pagination, filtering);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -147,7 +150,7 @@ module.exports = {
     }, context) {
         try {
             if (await checkAuthorization(context, 'cat', 'read') === true) {
-                checkCountForOneAndReduceRecordsLimit(context);
+                helper.checkCountAndReduceRecordsLimit(1, context, "readOneDog");
                 return cat.readById(cat_id);
             } else {
                 throw new Error("You don't have authorization to perform this action");

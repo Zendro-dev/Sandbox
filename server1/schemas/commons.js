@@ -58,7 +58,7 @@ module.exports = `
   }
 
   input paginationCursorCassandraInput{
-    limit: Int     # first = last in the Cassandra case
+    first: Int!     # first = last in the Cassandra case
     after: String
   }
 
