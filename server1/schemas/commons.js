@@ -23,8 +23,8 @@ module.exports = `
     eq
     lt
     gt
-    le
-    ge
+    lte
+    gte
     ne
     _in
     cont   # CONTAINS

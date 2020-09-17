@@ -100,11 +100,18 @@ exports.ConnectionError = class ConnectionError extends Error {
 /**
  * cassandraClient
  */
+
+const requestTracker = new cassandraDriver.tracker.RequestLogger({ slowThreshold: 1000, logNormalRequests:true, logErroredRequests:true });
+requestTracker.emitter.on('normal', message => console.log(message));
+requestTracker.emitter.on('slow', message => console.log(message));
+requestTracker.emitter.on('failure', message => console.log(message));
+requestTracker.emitter.on('large', message => console.log(message));
 exports.cassandraClient = new cassandraDriver.Client({
   contactPoints: [cassandraConfig.host],
   localDataCenter: 'datacenter1',
   keyspace: cassandraConfig.keyspace,
   protocolOptions: {
       port: cassandraConfig.port
-  }
+  },
+  requestTracker: requestTracker
 });

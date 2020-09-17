@@ -135,7 +135,7 @@ class cat {
             let arg = new searchArg(search);
             arg_cassandra = ' ' + arg.toCassandra('cat_id', filtering);
         }
-        const query = 'SELECT COUNT(*) AS count FROM cats' + arg_cassandra;
+        const query = 'SELECT COUNT(*) AS count FROM cats WHERE ' + arg_cassandra;
         let queryResult = await this.storageHandler.execute(query);
         let item = queryResult.first();
         result = parseInt(item['count']);
@@ -217,7 +217,7 @@ class cat {
             arg_cassandra = ' ' + searchTerms.toCassandra('cat_id', filteringAllowed) + ';';
         }
 
-        let query = 'SELECT * FROM cats' + arg_cassandra;
+        let query = 'SELECT * FROM cats WHERE ' + arg_cassandra;
 
         // === Set page size if needed ===
 
