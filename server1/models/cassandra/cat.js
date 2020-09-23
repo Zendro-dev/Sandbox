@@ -166,7 +166,7 @@ class cat {
         let offsetCursor = pagination ? pagination.after : null;
         let arg_cassandra = ';';
         let searchTerms = search;
-
+        console.log("offsetCursor: ", offsetCursor);
         // === Set pagination offset if needed ===
 
         /*
@@ -180,19 +180,28 @@ class cat {
         if (helper.isNotUndefinedAndNotNull(offsetCursor)) {
             let decoded_cursor = JSON.parse(this.base64Decode(offsetCursor));
             let cursorId = decoded_cursor['cat_id'];
-            let cursorSearchCondition = new searchArg({
+            // let cursorSearchCondition = new searchArg({
+            //     field: 'cat_id',
+            //     value: {
+            //         value: cursorId
+            //     },
+            //     operator: 'tgt',
+            //     search: undefined
+            // });
+            let cursorSearchCondition = {
                 field: 'cat_id',
                 value: {
                     value: cursorId
                 },
                 operator: 'tgt',
                 search: undefined
-            });
+            };
+            console.log("cursorSearchCondition: ", JSON.stringify(cursorSearchCondition));
             if (helper.isNotUndefinedAndNotNull(search)) {
                 // -- Use *both* the given search condition and the cursor --
                 searchTerms = new searchArg({
-                    field: null,
-                    value: null,
+                    // field: null,
+                    // value: null,
                     operator: 'and',
                     search: [search, cursorSearchCondition]
                 });
@@ -203,7 +212,7 @@ class cat {
         }
 
         // === Construct CQL statement ===
-
+        console.log("searchTerms: ", JSON.stringify(searchTerms));
         if (searchTerms !== undefined) {
 
             //check

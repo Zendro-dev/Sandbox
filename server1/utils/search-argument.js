@@ -134,7 +134,6 @@ module.exports = class search{
       }
       searchsInCassandra = this.field + this.transformCassandraOperator(this.operator) + value;
     } else if (this.operator === 'and') {
-      console.log("search", JSON.stringify(search));
       console.log("this.search", JSON.stringify(this.search));
       searchsInCassandra = this.search.map(singleSearch => new search(singleSearch).toCassandra()).join(' and ');
     } else {
