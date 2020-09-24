@@ -13,6 +13,13 @@
       "targetKey" : "person_id",
       "keyIn": "dog",
       "targetStorageType" : "sql"
+    },
+    "cats": {
+      "type": "to_many",
+      "target": "cat",
+      "targetKey": "person_id",
+      "keyIn": "cat",
+      "targetStorageType": "cassandra"
     }
   },
   "internalId": "person_id"

@@ -21,40 +21,25 @@ const Uuid = require('cassandra-driver').types.Uuid;
 
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'cat',
+    model: 'house',
     storageType: 'cassandra',
     attributes: {
-        name: 'String',
-        cat_id: 'String',
-        person_id: 'String',
+        address: 'String',
+        rooms: 'Int',
         house_id: 'String'
     },
     associations: {
-        toys: {
+        cats: {
             type: 'to_many',
-            target: 'toy',
-            targetKey: 'cat_id',
-            keyIn: 'toy',
-            targetStorageType: 'sql'
-        },
-        person: {
-            type: 'to_one',
-            target: 'person',
-            targetKey: 'person_id',
-            keyIn: 'cat',
-            targetStorageType: 'sql'
-        },
-        house: {
-            type: 'to_one',
-            target: 'house',
+            target: 'cat',
             targetKey: 'house_id',
             keyIn: 'cat',
             targetStorageType: 'cassandra'
         }
     },
-    internalId: 'cat_id',
+    internalId: 'house_id',
     id: {
-        name: 'cat_id',
+        name: 'house_id',
         type: 'String'
     }
 };
@@ -63,7 +48,7 @@ const definition = {
  * module - Creates a class to administer Cassandra model types
  */
 
-class cat {
+class house {
     constructor(input) {
         for (let key of Object.keys(input)) {
             this[key] = input[key];
@@ -72,34 +57,32 @@ class cat {
 
     get storageHandler() {
         // defined below by `Object.defineProperty`
-        return cat.storageHandler
+        return house.storageHandler
     }
 
     /*static init(sequelize, DataTypes){
       return super.init({
 
-                  cat_id : {
+                  house_id : {
             type : Sequelize[ dict['String'] ],
             primaryKey: true
           },
-                                      name: {
+                                      address: {
               type: Sequelize[ dict['String'] ]        }
-          ,                      person_id: {
-              type: Sequelize[ dict['String'] ]        }
-          ,                      house_id: {
-              type: Sequelize[ dict['String'] ]        }
+          ,                      rooms: {
+              type: Sequelize[ dict['Int'] ]        }
                 
 
-      },{       modelName: "cat",
-        tableName: "cats",
+      },{       modelName: "house",
+        tableName: "houses",
         sequelize
        } );
     }
 
     static associate(models){
-                                                                                                  cat.belongsTo(models.house                                                                        ,{as: 'house', foreignKey:'house_id' }
+                                                                                                    house.hasMany(models.cat                                                ,{as: 'cats', foreignKey:'house_id' }
               );
-                                                                                                                                                                                          }*/
+                                                                                                                    }*/
 
     /**
      * name - Getter for the name attribute
@@ -108,7 +91,7 @@ class cat {
      * @return {string} The name of the model
      */
     static get name() {
-        return "cat";
+        return "house";
     }
 
     /**
@@ -116,22 +99,21 @@ class cat {
      *
      * This method is the implementation for reading a single record for the Cassandra storage type, based on CQL.
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type cat, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type house, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        const query = `SELECT * FROM cats WHERE cat_id = ?`;
+        const query = `SELECT * FROM houses WHERE house_id = ?`;
         let queryResult = await this.storageHandler.execute(query, [id], {
             prepare: true
         });
         let firstResult = queryResult.first();
-        // let item = new cat(firstResult);
-        console.log("Result: ", queryResult);
+        // let item = new house(firstResult);
         if (firstResult === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
         try {
-            let item =  new cat(firstResult);
+            let item =  new house(firstResult);
             await validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item);
             return item;
         } catch (err) {
@@ -161,9 +143,9 @@ class cat {
             }
 
             let arg = new searchArg(search);
-            arg_cassandra = 'WHERE ' + arg.toCassandra('cat_id', filtering);
+            arg_cassandra = 'WHERE ' + arg.toCassandra('house_id', filtering);
         }
-        const query = 'SELECT COUNT(*) AS count FROM cats ' + arg_cassandra;
+        const query = 'SELECT COUNT(*) AS count FROM houses ' + arg_cassandra;
         let queryResult = await this.storageHandler.execute(query);
         let item = queryResult.first();
         result = parseInt(item['count']);
@@ -194,7 +176,7 @@ class cat {
         let offsetCursor = pagination ? pagination.after : null;
         let arg_cassandra = ';';
         let searchTerms = search;
-        console.log("offsetCursor: ", offsetCursor);
+
         // === Set pagination offset if needed ===
 
         /*
@@ -207,40 +189,31 @@ class cat {
 
         if (helper.isNotUndefinedAndNotNull(offsetCursor)) {
             let decoded_cursor = JSON.parse(this.base64Decode(offsetCursor));
-            let cursorId = decoded_cursor['cat_id'];
-            // let cursorSearchCondition = new searchArg({
-            //     field: 'cat_id',
-            //     value: {
-            //         value: cursorId
-            //     },
-            //     operator: 'tgt',
-            //     search: undefined
-            // });
+            let cursorId = decoded_cursor['house_id'];
             let cursorSearchCondition = {
-                field: 'cat_id',
+                field: 'house_id',
                 value: {
                     value: cursorId
                 },
                 operator: 'tgt',
                 search: undefined
             };
-            console.log("cursorSearchCondition: ", JSON.stringify(cursorSearchCondition));
             if (helper.isNotUndefinedAndNotNull(search)) {
                 // -- Use *both* the given search condition and the cursor --
                 searchTerms = new searchArg({
-                    // field: null,
-                    // value: null,
+                    field: null,
+                    value: null,
                     operator: 'and',
                     search: [search, cursorSearchCondition]
                 });
             } else {
                 // -- Use only the cursor --
-                searchTerms = new searchArg(cursorSearchCondition);
+                searchTerms = searchArg(cursorSearchCondition);
             }
         }
 
         // === Construct CQL statement ===
-        console.log("searchTerms: ", JSON.stringify(searchTerms));
+
         if (searchTerms !== undefined) {
 
             //check
@@ -248,14 +221,13 @@ class cat {
                 throw new Error('Illegal "search" argument type, it must be an object.');
             }
 
-            // if (searchTerms.value && searchTerms.value.value) {
-            //     searchTerms = new searchArg(searchTerms);
-            // }
-            searchTerms = new searchArg(searchTerms);
-            arg_cassandra = 'WHERE ' + searchTerms.toCassandra('cat_id', filteringAllowed) + ';';
+            if (searchTerms.value && searchTerms.value.value) {
+                searchTerms = new searchArg(searchTerms);
+            }
+            arg_cassandra = 'WHERE ' + searchTerms.toCassandra('house_id', filteringAllowed) + ';';
         }
-        console.log("arg_cassandra: ", arg_cassandra);
-        let query = 'SELECT * FROM cats ' + arg_cassandra;
+
+        let query = 'SELECT * FROM houses ' + arg_cassandra;
 
         // === Set page size if needed ===
 
@@ -272,9 +244,9 @@ class cat {
 
         const rows = result.rows.map(row => {
             let edge = {};
-            let rowAscat = new cat(row);
-            edge.node = rowAscat;
-            edge.cursor = rowAscat.base64Enconde();
+            let rowAshouse = new house(row);
+            edge.node = rowAshouse;
+            edge.cursor = rowAshouse.base64Enconde();
             return edge;
         });
         let nextCursor = null;
@@ -303,7 +275,7 @@ class cat {
     /**
      * encloseStringAttributesInApostrophes - Cassandra expects String values to be 
      * enclosed in apostrophes (see https://docs.datastax.com/en/cql-oss/3.x/cql/cql_reference/valid_literal_r.html). This method checks
-     * all string attributes of cat, and if the value does not start with an apostrophe (index 0), the value is enclosed
+     * all string attributes of house, and if the value does not start with an apostrophe (index 0), the value is enclosed
      * in apostrophes.
      * @param {Object} obj - The object to be examined
      */
@@ -322,28 +294,28 @@ class cat {
      *
      * @param {object} input_object - The input object with informations about the record to be added, destructured into
      * the attribute components, but whithout associations or other information like *skipAssociationsExistenceChecks*.
-     * @return {object} The created record as a cat object
+     * @return {object} The created record as a house object
      * @throw {Error} If the process fails, an error is thrown
      */
     static async addOne({
-        cat_id,
-        name,
-        person_id
+        house_id,
+        address,
+        rooms
     }) {
         let input = helper.copyWithoutUnsetAttributes({
-            cat_id,
-            name,
-            person_id
+            house_id,
+            address,
+            rooms
         });
         await validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input);
         try {
             this.encloseStringAttributesInApostrophes(input);
             const fields = Object.keys(input).join(', ');
             const values = Object.values(input).join(', ');
-            const query = 'INSERT INTO cats (' + fields + ') VALUES (' + values + ')';
+            const query = 'INSERT INTO houses (' + fields + ') VALUES (' + values + ')';
             await this.storageHandler.execute(query);
-            let checkQuery = (await this.storageHandler.execute(`SELECT * FROM cats WHERE cat_id = ${input[definition.internalId]}`)).rows[0];
-            let response = new cat(checkQuery);
+            let checkQuery = (await this.storageHandler.execute(`SELECT * FROM houses WHERE house_id = ${input[definition.internalId]}`)).rows[0];
+            let response = new house(checkQuery);
             return response;
         } catch (error) {
             throw error;
@@ -358,30 +330,16 @@ class cat {
      * @throw {Error} If the record could not be deleted - this means a record with the ID is still present
      */
     static async deleteOne(id) {
-        // const query = `SELECT * FROM cats WHERE cat_id = ${id}`; // can be replaced with readById(id) ?
-        // let queryResponse = await this.storageHandler.execute(query);
-        // await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, queryResponse.rows[0]);
-        // const mutation = `DELETE FROM cats WHERE cat_id = ${id}`;
-        // await this.storageHandler.execute(mutation);
-        // queryResponse = await this.storageHandler.execute(query);
-        // if (helper.isEmptyArray(queryResponse.rows)) {
-        //     return 'Item successfully deleted';
-        // }
-        // throw new Error('Record was not deleted!');
-
-
-
-
-
-
-
-        const query =  `DELETE FROM cats WHERE cat_id = ? IF EXISTS`;
-        let queryResult = await this.storageHandler.execute(query, [id]);
-        if(queryResult){
+        const query = `SELECT * FROM houses WHERE house_id = ${id}`;
+        let queryResponse = await this.storageHandler.execute(query);
+        await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, queryResponse.rows[0]);
+        const mutation = `DELETE FROM houses WHERE house_id = ${id}`;
+        await this.storageHandler.execute(mutation);
+        queryResponse = await this.storageHandler.execute(query);
+        if (helper.isEmptyArray(queryResponse.rows)) {
             return 'Item successfully deleted';
-        } else {
-            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
         }
+        throw new Error('Record was not deleted!');
     }
 
     /**
@@ -389,18 +347,18 @@ class cat {
      *
      * @param {object} input_object - The input object with informations about the record to be updated, destructured into
      * the attribute components, but whithout associations or other information like *skipAssociationsExistenceChecks*.
-     * @returns {object} A new object of the type cat, which represents the updated record
+     * @returns {object} A new object of the type house, which represents the updated record
      * @throw {Error} If this method fails, an error is thrown
      */
     static async updateOne({
-        cat_id,
-        name,
-        person_id
+        house_id,
+        address,
+        rooms
     }) {
         let input = helper.copyWithoutUnsetAttributes({
-            cat_id,
-            name,
-            person_id
+            house_id,
+            address,
+            rooms
         });
         await validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input);
         try {
@@ -410,14 +368,13 @@ class cat {
             let inputKeys = Object.keys(input);
             // An update that does not change the attributes must not execute the following CQL statement
             if (inputKeys.length > 0) {
-                let mutation = `UPDATE cats SET `;
+                let mutation = `UPDATE houses SET `;
                 mutation += inputKeys.map(key => `${key} = ${input[key]}`).join(', ');
-                mutation += ` WHERE cat_id = ${idValue};`;
+                mutation += ` WHERE house_id = ${idValue};`;
                 await this.storageHandler.execute(mutation);
             }
-            // this can be readById()?
-            let checkQuery = (await this.storageHandler.execute(`SELECT * FROM cats WHERE cat_id = ${idValue}`)).rows[0];
-            let response = new cat(checkQuery);
+            let checkQuery = (await this.storageHandler.execute(`SELECT * FROM houses WHERE house_id = ${idValue}`)).rows[0];
+            let response = new house(checkQuery);
             return response;
         } catch (error) {
             throw error;
@@ -439,11 +396,11 @@ class cat {
             // The following command will only work for up to 2 million rows. For large datasets, use https://docs.datastax.com/en/cassandra-oss/3.x/cassandra/tools/toolsBulkloader.html
 
             // The COPY statement can *only* be applied in the CQLSH, not by the driver!
-            let copyQuery = `COPY cats FROM '${tmpFile}' WITH HEADER = TRUE AND DELIMITER = '${delim}';`;
+            let copyQuery = `COPY houses FROM '${tmpFile}' WITH HEADER = TRUE AND DELIMITER = '${delim}';`;
             await this.storageHandler.execute(copyQuery);
             let idArray = await fileTools.getIdArrayFromCSV(tmpFile, this, delim, cols);
             let idString = idArray.join(', ');
-            let resultQuery = `SELECT * FROM cats WHERE ID IN (${idString});`
+            let resultQuery = `SELECT * FROM houses WHERE ID IN (${idString});`
             let insertionResult = await this.storageHandler.execute(resultQuery);
 
             let rowsJson = insertionResult.rows.map(record => JSON.stringify(record));
@@ -489,7 +446,7 @@ class cat {
                 fs.unlinkSync(tmpFile);
             }
 
-        return `Bulk import of cat records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of house records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
         */
     }
 
@@ -509,67 +466,7 @@ class cat {
 
 
 
-    /**
-     * add_person_id - field Mutation (model-layer) for to_one associationsArguments to add 
-     *
-     * @param {Id}   cat_id   IdAttribute of the root model to be updated
-     * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async add_person_id(cat_id, person_id) {
-        const mutationCql = `UPDATE cats SET person_id = ? WHERE cat_id = '${cat_id}'`;
-        await this.storageHandler.execute(mutationCql, [`${person_id}`], {
-            prepare: true
-        });
-        const checkCql = `SELECT * FROM cats WHERE cat_id = '${cat_id}'`;
-        let result = await this.storageHandler.execute(checkCql);
-        return new cat(result.first());
-    }
-    /**
-     * add_house_id - field Mutation (model-layer) for to_one associationsArguments to add 
-     *
-     * @param {Id}   cat_id   IdAttribute of the root model to be updated
-     * @param {Id}   house_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async add_house_id(cat_id, house_id) {
-        const mutationCql = `UPDATE cats SET house_id = ? WHERE cat_id = '${cat_id}'`;
-        await this.storageHandler.execute(mutationCql, [`${house_id}`], {
-            prepare: true
-        });
-        const checkCql = `SELECT * FROM cats WHERE cat_id = '${cat_id}'`;
-        let result = await this.storageHandler.execute(checkCql);
-        return new cat(result.first());
-    }
 
-    /**
-     * remove_person_id - field Mutation (model-layer) for to_one associationsArguments to remove 
-     *
-     * @param {Id}   cat_id   IdAttribute of the root model to be updated
-     * @param {Id}   person_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async remove_person_id(cat_id, person_id) {
-        const mutationCql = `UPDATE cats SET person_id = ? WHERE cat_id = '${cat_id}'`;
-        await this.storageHandler.execute(mutationCql, [null], {
-            prepare: true
-        });
-        const checkCql = `SELECT * FROM cats WHERE cat_id = '${cat_id}'`;
-        let result = await this.storageHandler.execute(checkCql);
-        return new cat(result.first());
-    }
-    /**
-     * remove_house_id - field Mutation (model-layer) for to_one associationsArguments to remove 
-     *
-     * @param {Id}   cat_id   IdAttribute of the root model to be updated
-     * @param {Id}   house_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async remove_house_id(cat_id, house_id) {
-        const mutationCql = `UPDATE cats SET house_id = ? WHERE cat_id = '${cat_id}'`;
-        await this.storageHandler.execute(mutationCql, [null], {
-            prepare: true
-        });
-        const checkCql = `SELECT * FROM cats WHERE cat_id = '${cat_id}'`;
-        let result = await this.storageHandler.execute(checkCql);
-        return new cat(result.first());
-    }
 
 
 
@@ -583,7 +480,7 @@ class cat {
      */
 
     static idAttribute() {
-        return cat.definition.id.name;
+        return house.definition.id.name;
     }
 
     /**
@@ -593,17 +490,17 @@ class cat {
      */
 
     static idAttributeType() {
-        return cat.definition.id.type;
+        return house.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of cat.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of house.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[cat.idAttribute()]
+        return this[house.idAttribute()]
     }
 
     /**
@@ -624,29 +521,29 @@ class cat {
     }
 
     /**
-     * base64Enconde - Encode a cat to a base 64 String
+     * base64Enconde - Encode a house to a base 64 String
      *
-     * @return {string} The cat object, encoded in a base 64 String
+     * @return {string} The house object, encoded in a base 64 String
      */
     base64Enconde() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString('base64');
     }
 
     /**
-     * stripAssociations - Instant method for getting all attributes of a cat.
+     * stripAssociations - Instant method for getting all attributes of a house.
      *
-     * @return {object} The attributes of a cat in object form
+     * @return {object} The attributes of a house in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(cat.definition.attributes);
+        let attributes = Object.keys(house.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of a cat that are marked as external IDs.
+     * externalIdsArray - Get all attributes of a house that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of a cat that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of a house that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -658,7 +555,7 @@ class cat {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of a cat.
+     * externalIdsObject - Get all external IDs of a house.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */
@@ -669,7 +566,7 @@ class cat {
 }
 
 module.exports.getAndConnectDataModelClass = function(cassandraDriver) {
-    return Object.defineProperty(cat, 'storageHandler', {
+    return Object.defineProperty(house, 'storageHandler', {
         value: cassandraDriver,
         writable: false, // cannot be changed in the future
         enumerable: true,

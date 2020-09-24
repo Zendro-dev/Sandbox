@@ -33,6 +33,22 @@ module.exports = `
     """
     countFilteredDogs(search: searchDogInput) : Int
   
+    """
+    @search-request
+    """
+    catsFilter(search: searchCatInput, order: [ orderCatInput ], pagination: paginationInput!): [cat]
+
+
+    """
+    @search-request
+    """
+    catsConnection(search: searchCatInput, order: [ orderCatInput ], pagination: paginationCursorInput!): CatConnection
+
+    """
+    @count-request
+    """
+    countFilteredCats(search: searchCatInput) : Int
+  
     }
 type PersonConnection{
   edges: [PersonEdge]
@@ -83,8 +99,8 @@ type PersonEdge{
   }
 
   type Mutation {
-    addPerson(person_id: ID!, name: String, age: Int   , addDogs:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
-    updatePerson(person_id: ID!, name: String, age: Int   , addDogs:[ID], removeDogs:[ID]  , skipAssociationsExistenceChecks:Boolean = false): person!
+    addPerson(person_id: ID!, name: String, age: Int   , addDogs:[ID], addCats:[ID] , skipAssociationsExistenceChecks:Boolean = false): person!
+    updatePerson(person_id: ID!, name: String, age: Int   , addDogs:[ID], removeDogs:[ID] , addCats:[ID], removeCats:[ID]  , skipAssociationsExistenceChecks:Boolean = false): person!
     deletePerson(person_id: ID!): String!
     bulkAddPersonCsv: String!
       }

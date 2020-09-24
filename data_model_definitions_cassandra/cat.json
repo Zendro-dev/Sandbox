@@ -4,7 +4,31 @@
   "attributes" : {
     "name": "String",
     "cat_id": "String",
-    "person_id": "String"
+    "person_id": "String",
+    "house_id": "String"
+  },
+  "associations": {
+    "toys": {
+      "type" : "to_many",
+      "target" : "toy",
+      "targetKey" : "cat_id",
+      "keyIn": "toy",
+      "targetStorageType" : "sql"
+    },
+    "person": {
+      "type": "to_one",
+      "target": "person",
+      "targetKey": "person_id",
+      "keyIn": "cat",
+      "targetStorageType": "sql"
+    },
+    "house": {
+      "type": "to_one",
+      "target":"house",
+      "targetKey": "house_id",
+      "keyIn": "cat",
+      "targetStorageType": "cassandra"
+    }
   },
   "internalId": "cat_id"
 }

@@ -76,6 +76,37 @@ module.exports = {
                 permissions: 'delete'
             }]
         },
+        /**
+         * Model: toy
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'toy',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'toy',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'toy',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'toy',
+                permissions: 'delete'
+            }]
+        },
 
         //adapters
     ]

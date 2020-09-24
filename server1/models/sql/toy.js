@@ -19,32 +19,25 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'person',
+    model: 'toy',
     storageType: 'sql',
     attributes: {
         name: 'String',
-        person_id: 'String',
-        age: 'Int'
+        cat_id: 'String',
+        toy_id: 'String'
     },
     associations: {
-        dogs: {
-            type: 'to_many',
-            target: 'dog',
-            targetKey: 'person_id',
-            keyIn: 'dog',
-            targetStorageType: 'sql'
-        },
-        cats: {
-            type: 'to_many',
+        cat: {
+            type: 'to_one',
             target: 'cat',
-            targetKey: 'person_id',
-            keyIn: 'cat',
+            targetKey: 'cat_id',
+            keyIn: 'toy',
             targetStorageType: 'cassandra'
         }
     },
-    internalId: 'person_id',
+    internalId: 'toy_id',
     id: {
-        name: 'person_id',
+        name: 'toy_id',
         type: 'String'
     }
 };
@@ -57,39 +50,34 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class person extends Sequelize.Model {
+module.exports = class toy extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            person_id: {
+            toy_id: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
             name: {
                 type: Sequelize[dict['String']]
             },
-            age: {
-                type: Sequelize[dict['Int']]
+            cat_id: {
+                type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "person",
-            tableName: "people",
+            modelName: "toy",
+            tableName: "toys",
             sequelize
         });
     }
 
-    static associate(models) {
-        person.hasMany(models.dog, {
-            as: 'dogs',
-            foreignKey: 'person_id'
-        });
-    }
+    static associate(models) {}
 
     static async readById(id) {
-        let item = await person.findByPk(id);
+        let item = await toy.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
@@ -244,7 +232,7 @@ module.exports = class person extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of person records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of toy records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -262,13 +250,97 @@ module.exports = class person extends Sequelize.Model {
 
 
 
+    /**
+     * add_cat_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   toy_id   IdAttribute of the root model to be updated
+     * @param {Id}   cat_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_cat_id(toy_id, cat_id) {
+        let updated = await toy.update({
+            cat_id: cat_id
+        }, {
+            where: {
+                toy_id: toy_id
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * remove_cat_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   toy_id   IdAttribute of the root model to be updated
+     * @param {Id}   cat_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_cat_id(toy_id, cat_id) {
+        let updated = await toy.update({
+            cat_id: null
+        }, {
+            where: {
+                toy_id: toy_id,
+                cat_id: cat_id
+            }
+        });
+        return updated;
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateToyWithCat_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateToyWithCat_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "toy_id", "cat_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cat_id,
+            toy_id
+        }) => {
+            promises.push(super.update({
+                cat_id: cat_id
+            }, {
+                where: {
+                    toy_id: toy_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
-
+    /**
+     * bulkDisAssociateToyWithCat_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateToyWithCat_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "toy_id", "cat_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            cat_id,
+            toy_id
+        }) => {
+            promises.push(super.update({
+                cat_id: null
+            }, {
+                where: {
+                    toy_id: toy_id,
+                    cat_id: cat_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
     /**
@@ -277,7 +349,7 @@ module.exports = class person extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return person.definition.id.name;
+        return toy.definition.id.name;
     }
 
     /**
@@ -286,16 +358,16 @@ module.exports = class person extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return person.definition.id.type;
+        return toy.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of person.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of toy.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[person.idAttribute()]
+        return this[toy.idAttribute()]
     }
 
     static get definition() {
@@ -311,7 +383,7 @@ module.exports = class person extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(person.definition.attributes);
+        let attributes = Object.keys(toy.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

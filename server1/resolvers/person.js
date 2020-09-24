@@ -14,7 +14,8 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addDogs': 'dog'
+    'addDogs': 'dog',
+    'addCats': 'cat'
 }
 
 
@@ -112,6 +113,98 @@ person.prototype.dogsConnection = function({
         pagination: pagination
     }, context);
 }
+/**
+ * person.prototype.catsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+person.prototype.catsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "person_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.cats({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * person.prototype.countFilteredCats - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+person.prototype.countFilteredCats = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "person_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.countCats({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * person.prototype.catsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+person.prototype.catsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "person_id",
+        "value": {
+            "value": this.getIdValue()
+        },
+        "operator": "eq"
+    });
+
+    return resolvers.catsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
 
 
 
@@ -127,8 +220,14 @@ person.prototype.handleAssociations = async function(input, benignErrorReporter)
     if (helper.isNonEmptyArray(input.addDogs)) {
         promises.push(this.add_dogs(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addCats)) {
+        promises.push(this.add_cats(input, benignErrorReporter));
+    }
     if (helper.isNonEmptyArray(input.removeDogs)) {
         promises.push(this.remove_dogs(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeCats)) {
+        promises.push(this.remove_cats(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
@@ -151,6 +250,23 @@ person.prototype.add_dogs = async function(input, benignErrorReporter) {
 }
 
 /**
+ * add_cats - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+person.prototype.add_cats = async function(input, benignErrorReporter) {
+    let bulkAssociationInput = input.addCats.map(associatedRecordId => {
+        return {
+            person_id: this.getIdValue(),
+            [models.cat.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cat.bulkAssociateCatWithPerson_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_dogs - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -165,6 +281,23 @@ person.prototype.remove_dogs = async function(input, benignErrorReporter) {
         }
     });
     await models.dog.bulkDisAssociateDogWithPerson_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_cats - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+person.prototype.remove_cats = async function(input, benignErrorReporter) {
+    let bulkAssociationInput = input.removeCats.map(associatedRecordId => {
+        return {
+            person_id: this.getIdValue(),
+            [models.cat.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.cat.bulkDisAssociateCatWithPerson_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -187,6 +320,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(person.countFilteredDogs({}, context));
+    promises_to_many.push(person.countFilteredCats({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

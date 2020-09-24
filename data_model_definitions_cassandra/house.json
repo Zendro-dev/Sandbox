@@ -1,0 +1,19 @@
+{
+  "model" : "house",
+  "storageType" : "cassandra",
+  "attributes" : {
+    "address": "String",
+    "rooms": "Int",
+    "house_id": "String"
+  },
+  "associations": {
+    "cats": {
+      "type": "to_many",
+      "target":"cat",
+      "targetKey": "house_id",
+      "keyIn": "cat",
+      "targetStorageType": "cassandra"
+    }
+  },
+  "internalId": "house_id"
+}

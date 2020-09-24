@@ -1,0 +1,19 @@
+{
+  "model" : "toy",
+  "storageType" : "sql",
+  "attributes" : {
+    "name": "String",
+    "cat_id": "String",
+    "toy_id": "String"
+  },
+  "associations": {
+    "cat": {
+      "type" : "to_one",
+      "target" : "cat",
+      "targetKey" : "cat_id",
+      "keyIn": "toy",
+      "targetStorageType" : "cassandra"
+    }
+  },
+  "internalId": "toy_id"
+}

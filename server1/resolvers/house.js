@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const cat = require(path.join(__dirname, '..', 'models', 'index.js')).cat;
+const house = require(path.join(__dirname, '..', 'models', 'index.js')).house;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -18,98 +18,14 @@ const errorHelper = require('../utils/errors');
 
 
 const associationArgsDef = {
-    'addPerson': 'person',
-    'addHouse': 'house',
-    'addToys': 'toy'
+    'addCats': 'cat'
 }
 
 
 
-/**
- * cat.prototype.person - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
- * @return {type}         Associated record
- */
-cat.prototype.person = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.person_id)) {
-        try {
-            if (search === undefined) {
-                return await resolvers.readOnePerson({
-                    [models.person.idAttribute()]: this.person_id
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.person.idAttribute(),
-                    "value": {
-                        "value": this.person_id
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.peopleConnection({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found.edges[0].node;
-                }
-                return found;
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
-    }
-}
-/**
- * cat.prototype.house - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
- * @return {type}         Associated record
- */
-cat.prototype.house = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.house_id)) {
-        try {
-            if (search === undefined) {
-                return await resolvers.readOneHouse({
-                    [models.house.idAttribute()]: this.house_id
-                }, context)
-            } else {
-                //build new search filter
-                let nsearch = helper.addSearchField({
-                    "search": search,
-                    "field": models.house.idAttribute(),
-                    "value": {
-                        "value": this.house_id
-                    },
-                    "operator": "eq"
-                });
-                let found = await resolvers.housesConnection({
-                    search: nsearch
-                }, context);
-                if (found) {
-                    return found.edges[0].node;
-                }
-                return found;
-            }
-        } catch (error) {
-            console.error(error);
-            handleError(error);
-        };
-    }
-}
 
 /**
- * cat.prototype.toysFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * house.prototype.catsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -119,7 +35,7 @@ cat.prototype.house = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the request query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-cat.prototype.toysFilter = function({
+house.prototype.catsFilter = function({
     search,
     order,
     pagination
@@ -128,14 +44,14 @@ cat.prototype.toysFilter = function({
         //build new search filter
         let nsearch = helper.addSearchField({
             "search": search,
-            "field": "cat_id",
+            "field": "house_id",
             "value": {
                 "value": this.getIdValue()
             },
             "operator": "eq"
         });
 
-        return resolvers.toys({
+        return resolvers.cats({
             search: nsearch,
             order: order,
             pagination: pagination
@@ -147,13 +63,13 @@ cat.prototype.toysFilter = function({
 }
 
 /**
- * cat.prototype.countFilteredToys - Count number of associated records that holds the conditions specified in the search argument
+ * house.prototype.countFilteredCats - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the request query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-cat.prototype.countFilteredToys = function({
+house.prototype.countFilteredCats = function({
     search
 }, context) {
     try {
@@ -161,14 +77,14 @@ cat.prototype.countFilteredToys = function({
         //build new search filter
         let nsearch = helper.addSearchField({
             "search": search,
-            "field": "cat_id",
+            "field": "house_id",
             "value": {
                 "value": this.getIdValue()
             },
             "operator": "eq"
         });
 
-        return resolvers.countToys({
+        return resolvers.countCats({
             search: nsearch
         }, context);
     } catch (error) {
@@ -178,7 +94,7 @@ cat.prototype.countFilteredToys = function({
 }
 
 /**
- * cat.prototype.toysConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * house.prototype.catsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -188,7 +104,7 @@ cat.prototype.countFilteredToys = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the request query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-cat.prototype.toysConnection = function({
+house.prototype.catsConnection = function({
     search,
     order,
     pagination
@@ -198,14 +114,14 @@ cat.prototype.toysConnection = function({
         //build new search filter
         let nsearch = helper.addSearchField({
             "search": search,
-            "field": "cat_id",
+            "field": "house_id",
             "value": {
                 "value": this.getIdValue()
             },
             "operator": "eq"
         });
 
-        return resolvers.toysConnection({
+        return resolvers.catsConnection({
             search: nsearch,
             order: order,
             pagination: pagination
@@ -225,104 +141,44 @@ cat.prototype.toysConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cat.prototype.handleAssociations = async function(input, benignErrorReporter) {
+house.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-    if (helper.isNonEmptyArray(input.addToys)) {
-        promises.push(this.add_toys(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addCats)) {
+        promises.push(this.add_cats(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addPerson)) {
-        promises.push(this.add_person(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addHouse)) {
-        promises.push(this.add_house(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeToys)) {
-        promises.push(this.remove_toys(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removePerson)) {
-        promises.push(this.remove_person(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeHouse)) {
-        promises.push(this.remove_house(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeCats)) {
+        promises.push(this.remove_cats(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
 }
 /**
- * add_toys - field Mutation for to_many associations to add
+ * add_cats - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cat.prototype.add_toys = async function(input, benignErrorReporter) {
+house.prototype.add_cats = async function(input, benignErrorReporter) {
     let results = [];
-    for await (associatedRecordId of input.addToys) {
-        results.push(models.toy.add_cat_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+    for await (associatedRecordId of input.addCats) {
+        results.push(models.cat.add_house_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
 }
 
-/**
- * add_person - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
- */
-cat.prototype.add_person = async function(input, benignErrorReporter) {
-    await cat.add_person_id(this.getIdValue(), input.addPerson, benignErrorReporter);
-    this.person_id = input.addPerson;
-}
 
 /**
- * add_house - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
- */
-cat.prototype.add_house = async function(input, benignErrorReporter) {
-    await cat.add_house_id(this.getIdValue(), input.addHouse, benignErrorReporter);
-    this.house_id = input.addHouse;
-}
-
-
-/**
- * remove_toys - field Mutation for to_many associations to remove
+ * remove_cats - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
-cat.prototype.remove_toys = async function(input, benignErrorReporter) {
+house.prototype.remove_cats = async function(input, benignErrorReporter) {
     let results = [];
-    for await (associatedRecordId of input.removeToys) {
-        results.push(models.toy.remove_cat_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
+    for await (associatedRecordId of input.removeCats) {
+        results.push(models.cat.remove_house_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
     }
     await Promise.all(results);
-}
-
-/**
- * remove_person - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
- */
-cat.prototype.remove_person = async function(input, benignErrorReporter) {
-    if (input.removePerson == this.person_id) {
-        await cat.remove_person_id(this.getIdValue(), input.removePerson, benignErrorReporter);
-        this.person_id = null;
-    }
-}
-
-/**
- * remove_house - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
- */
-cat.prototype.remove_house = async function(input, benignErrorReporter) {
-    if (input.removeHouse == this.house_id) {
-        await cat.remove_house_id(this.getIdValue(), input.removeHouse, benignErrorReporter);
-        this.house_id = null;
-    }
 }
 
 
@@ -337,7 +193,7 @@ cat.prototype.remove_house = async function(input, benignErrorReporter) {
  * @param {boolean} filtering Is filtering allowed (only for Cassandra)?
  * @param {string} modelName The model to do the count
  */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, filtering, modelName = 'cat') {
+async function checkCountAndReduceRecordsLimit(search, context, resolverName, filtering, modelName = 'house') {
     let count = await models[modelName].countRecords(search, filtering);
     helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
 }
@@ -348,7 +204,7 @@ async function checkCountAndReduceRecordsLimit(search, context, resolverName, fi
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneCat")
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneHouse")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -359,17 +215,15 @@ function checkCountForOneAndReduceRecordsLimit(context) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let cat = await resolvers.readOneCat({
-        cat_id: id
+    let house = await resolvers.readOneHouse({
+        house_id: id
     }, context);
     //check that record actually exists
-    if (cat === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (house === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(cat.countFilteredToys({}, context));
-    promises_to_one.push(cat.person({}, context));
-    promises_to_one.push(cat.house({}, context));
+    promises_to_many.push(house.countFilteredCats({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -389,7 +243,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`cat with cat_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`house with house_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -397,7 +251,7 @@ async function validForDeletion(id, context) {
 module.exports = {
 
     /**
-     * catsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * housesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -405,18 +259,15 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the request query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search and pagination argument
      */
-    catsConnection: async function({
+    housesConnection: async function({
         search,
         pagination
     }, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'read') === true) {
-                helper.checkCursorBasedPaginationArgument(pagination);
-                let limit = pagination.first !== undefined ? pagination.first : pagination.last;
-                helper.checkCountAndReduceRecordsLimit(limit, context, "dogsConnection");
-                let filtering = await checkAuthorization(context, 'cat', 'search')
-                // await checkCountAndReduceRecordsLimit(search, context, "catsConnection", filtering);
-                return cat.readAllCursor(search, pagination, filtering);
+            if (await checkAuthorization(context, 'house', 'read') === true) {
+                let filtering = await checkAuthorization(context, 'house', 'search')
+                //await checkCountAndReduceRecordsLimit(search, context, "housesConnection", filtering);
+                return house.readAllCursor(search, pagination, filtering);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -427,19 +278,19 @@ module.exports = {
     },
 
     /**
-     * readOneCat - Check user authorization and return one record with the specified cat_id in the cat_id argument.
+     * readOneHouse - Check user authorization and return one record with the specified house_id in the house_id argument.
      *
-     * @param  {number} {cat_id}    cat_id of the record to retrieve
+     * @param  {number} {house_id}    house_id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
-     * @return {object}         Record with cat_id requested
+     * @return {object}         Record with house_id requested
      */
-    readOneCat: async function({
-        cat_id
+    readOneHouse: async function({
+        house_id
     }, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'read') === true) {
-                helper.checkCountAndReduceRecordsLimit(1, context, "readOneDog");
-                return cat.readById(cat_id);
+            if (await checkAuthorization(context, 'house', 'read') === true) {
+                //checkCountForOneAndReduceRecordsLimit(context);
+                return house.readById(house_id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -450,19 +301,19 @@ module.exports = {
     },
 
     /**
-     * countCats - Counts number of records that holds the conditions specified in the search argument
+     * countHouses - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the request query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countCats: async function({
+    countHouses: async function({
         search
     }, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'read') === true) {
-                let filtering = await checkAuthorization(context, 'cat', 'search')
-                return await cat.countRecords(search, filtering);
+            if (await checkAuthorization(context, 'house', 'read') === true) {
+                let filtering = await checkAuthorization(context, 'house', 'search')
+                return await house.countRecords(search, filtering);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -473,16 +324,16 @@ module.exports = {
     },
 
     /**
-     * vueTableCat - Return table of records as needed for displaying a vuejs table
+     * vueTableHouse - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableCat: async function(_, context) {
+    vueTableHouse: async function(_, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'read') === true) {
-                return helper.vueTable(context.request, cat, ["id", "name", "cat_id", "person_id", "house_id"]);
+            if (await checkAuthorization(context, 'house', 'read') === true) {
+                return helper.vueTable(context.request, house, ["id", "address", "house_id"]);
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -493,7 +344,7 @@ module.exports = {
     },
 
     /**
-     * addCat - Check user authorization and creates a new record with data specified in the input argument.
+     * addHouse - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -501,9 +352,9 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      * @return {object}         New record created
      */
-    addCat: async function(input, context) {
+    addHouse: async function(input, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'create') === true) {
+            if (await checkAuthorization(context, 'house', 'create') === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
@@ -511,9 +362,9 @@ module.exports = {
                     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                let createdCat = await cat.addOne(inputSanitized);
-                await createdCat.handleAssociations(inputSanitized, benignErrorReporter);
-                return createdCat;
+                let createdHouse = await house.addOne(inputSanitized);
+                await createdHouse.handleAssociations(inputSanitized, benignErrorReporter);
+                return createdHouse;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -524,15 +375,15 @@ module.exports = {
     },
 
     /**
-     * bulkAddCatCsv - Load csv file of records
+     * bulkAddHouseCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      */
-    /* bulkAddCatCsv: async function(_, context) {
+    /* bulkAddHouseCsv: async function(_, context) {
       try {
-          if (await checkAuthorization(context, 'cat', 'create') === true) {
-            return cat.bulkAddCsv(context);
+          if (await checkAuthorization(context, 'house', 'create') === true) {
+            return house.bulkAddCsv(context);
           } else {
               throw new Error("You don't have authorization to perform this action");
           }
@@ -543,19 +394,19 @@ module.exports = {
     }, */
 
     /**
-     * deleteCat - Check user authorization and delete a record with the specified cat_id in the cat_id argument.
+     * deleteHouse - Check user authorization and delete a record with the specified house_id in the house_id argument.
      *
-     * @param  {number} {cat_id}    cat_id of the record to delete
+     * @param  {number} {house_id}    house_id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteCat: async function({
-        cat_id
+    deleteHouse: async function({
+        house_id
     }, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'delete') === true) {
-                if (await validForDeletion(cat_id, context)) {
-                    return cat.deleteOne(cat_id);
+            if (await checkAuthorization(context, 'house', 'delete') === true) {
+                if (await validForDeletion(house_id, context)) {
+                    return house.deleteOne(house_id);
                 }
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -567,7 +418,7 @@ module.exports = {
     },
 
     /**
-     * updateCat - Check user authorization and update the record specified in the input argument
+     * updateHouse - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -575,9 +426,9 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      * @return {object}         Updated record
      */
-    updateCat: async function(input, context) {
+    updateHouse: async function(input, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'update') === true) {
+            if (await checkAuthorization(context, 'house', 'update') === true) {
                 let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
                 await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
                 await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
@@ -585,9 +436,9 @@ module.exports = {
                     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
                 }
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                let updatedCat = await cat.updateOne(inputSanitized);
-                await updatedCat.handleAssociations(inputSanitized, benignErrorReporter);
-                return updatedCat;
+                let updatedHouse = await house.updateOne(inputSanitized);
+                await updatedHouse.handleAssociations(inputSanitized, benignErrorReporter);
+                return updatedHouse;
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }
@@ -598,16 +449,16 @@ module.exports = {
     },
 
     /**
-     * csvTableTemplateCat - Returns table's template
+     * csvTableTemplateHouse - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the request query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateCat: async function(_, context) {
+    csvTableTemplateHouse: async function(_, context) {
         try {
-            if (await checkAuthorization(context, 'cat', 'read') === true) {
-                return cat.csvTableTemplate();
+            if (await checkAuthorization(context, 'house', 'read') === true) {
+                return house.csvTableTemplate();
             } else {
                 throw new Error("You don't have authorization to perform this action");
             }

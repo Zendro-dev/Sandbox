@@ -16,7 +16,31 @@ module.exports = `
     """
     person_id: String
 
-      
+    """
+    @original-field
+    
+    """
+    house_id: String
+
+    person(search: searchPersonInput): person
+  house(search: searchHouseInput): house
+    
+    """
+    @search-request
+    """
+    toysFilter(search: searchToyInput, order: [ orderToyInput ], pagination: paginationInput!): [toy]
+
+
+    """
+    @search-request
+    """
+    toysConnection(search: searchToyInput, order: [ orderToyInput ], pagination: paginationCursorInput!): ToyConnection
+
+    """
+    @count-request
+    """
+    countFilteredToys(search: searchToyInput) : Int
+  
     }
 type CatConnection{
   edges: [CatEdge]
@@ -43,6 +67,7 @@ type CatEdge{
     cat_id
     name
     person_id
+    house_id
   }
   input searchCatInput {
     field: catField
@@ -63,8 +88,8 @@ type CatEdge{
     catsConnection(search:searchCatInput, pagination: paginationCursorCassandraInput! ): CatConnection
   }
     type Mutation {
-    addCat(cat_id: ID!, name: String, person_id: String    , skipAssociationsExistenceChecks:Boolean = true): cat!
-    updateCat(cat_id: ID!, name: String, person_id: String    , skipAssociationsExistenceChecks:Boolean = true): cat!
+    addCat(cat_id: ID!, name: String , addPerson:ID, addHouse:ID  , addToys:[ID] , skipAssociationsExistenceChecks:Boolean = true): cat!
+    updateCat(cat_id: ID!, name: String , addPerson:ID, removePerson:ID , addHouse:ID, removeHouse:ID   , addToys:[ID], removeToys:[ID]  , skipAssociationsExistenceChecks:Boolean = true): cat!
   deleteCat(cat_id: ID!): String!
   # bulkAddCatCsv: String!
   }
