@@ -26,6 +26,9 @@ module.exports = `
 
     booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput!): [sq_book]
 
+    booksConnection(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput!): Sq_bookConnection
+
+    countFilteredBooks(search: searchSq_bookInput): Int
     }
 type Sq_authorConnection{
   edges: [Sq_authorEdge]

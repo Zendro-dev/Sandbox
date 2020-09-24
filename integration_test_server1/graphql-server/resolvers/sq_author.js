@@ -35,7 +35,43 @@ sq_author.prototype.booksFilter = function({
       search: nsearch,
       order: order,
       pagination: pagination
-  }, context)
+  }, context);
+}
+
+
+sq_author.prototype.countFilteredBooks = function({search}, context){
+  let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "id",
+        "value": {
+            "type": "Array",
+            "value": this.book_ids.join(',')
+        },
+        "operator": "in"
+    });
+    return resolvers.countSq_books({search: nsearch}, context);
+}
+
+sq_author.prototype.booksConnection = function({
+    search,
+    order,
+    pagination
+}, context){
+  let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "id",
+        "value": {
+            "type": "Array",
+            "value": this.book_ids.join(',')
+        },
+        "operator": "in"
+    });
+
+    return resolvers.sq_booksConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 
