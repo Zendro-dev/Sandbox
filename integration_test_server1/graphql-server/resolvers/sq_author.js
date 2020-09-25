@@ -23,7 +23,7 @@ sq_author.prototype.booksFilter = function({
 
   let nsearch = helper.addSearchField({
         "search": search,
-        "field": "id",
+        "field": models.sq_book.idAttribute(),
         "value": {
             "type": "Array",
             "value": this.book_ids.join(',')
@@ -42,7 +42,7 @@ sq_author.prototype.booksFilter = function({
 sq_author.prototype.countFilteredBooks = function({search}, context){
   let nsearch = helper.addSearchField({
         "search": search,
-        "field": "id",
+        "field": models.sq_book.idAttribute(),
         "value": {
             "type": "Array",
             "value": this.book_ids.join(',')
@@ -59,7 +59,7 @@ sq_author.prototype.booksConnection = function({
 }, context){
   let nsearch = helper.addSearchField({
         "search": search,
-        "field": "id",
+        "field": models.sq_book.idAttribute(),
         "value": {
             "type": "Array",
             "value": this.book_ids.join(',')
