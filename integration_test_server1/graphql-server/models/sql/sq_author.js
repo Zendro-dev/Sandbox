@@ -63,7 +63,8 @@ module.exports = class sq_author extends Sequelize.Model {
             },
 
             book_ids: {
-                type: Sequelize.JSON
+                type: Sequelize.JSON,
+                defaultValue: []
             }
 
 
