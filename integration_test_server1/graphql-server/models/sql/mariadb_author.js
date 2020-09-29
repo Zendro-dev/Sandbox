@@ -60,10 +60,6 @@ module.exports = class mariadb_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
-            },
-
-            book_ids: {
-                type: Sequelize.JSON
             }
 
 
@@ -74,22 +70,22 @@ module.exports = class mariadb_author extends Sequelize.Model {
         });
     }
 
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
+    }
+
     static associate(models) {}
 
     static async readById(id) {
-
-        let [item, metadata ] = await this.sequelize.query( `select * from mariadb_authors where id = "${id}"`);
-         console.log("ITEM ", item);
-         let item2 = await mariadb_author.findByPk(id)
-         console.log("ITEM 2", item2);
-
-        return item[0];
-        // let item = await mariadb_author.findByPk(id);
-        // if (item === null) {
-        //     throw new Error(`Record with ID = "${id}" does not exist`);
-        // }
-        //         console.log("ITEM ", item);
-        // return validatorUtil.validateData('validateAfterRead', this, item);
+        let item = await mariadb_author.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
@@ -355,23 +351,21 @@ module.exports = class mariadb_author extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                let updated = await super.update(input, {
-                    where: {
-                        [this.idAttribute()]: input[this.idAttribute()]
-                    },
-                    returning: true,
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                }
+
+                let updated = await to_update.update(input, {
                     transaction: t
                 });
                 return updated;
             });
-            if (result[0] === 0) {
-                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            }
-            return result[1][0];
+
+            return result;
         } catch (error) {
             throw error;
         }
-
     }
 
     static bulkAddCsv(context) {

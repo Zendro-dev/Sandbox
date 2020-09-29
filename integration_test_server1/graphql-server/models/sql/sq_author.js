@@ -26,7 +26,19 @@ const definition = {
         id: 'String',
         name: 'String',
         lastname: 'String',
-        email: 'String'
+        email: 'String',
+        book_ids: '[ String ]'
+    },
+    associations: {
+        books: {
+            type: 'to_many',
+            reverseAssociationType: 'to_many',
+            target: 'sq_book',
+            targetKey: 'author_ids',
+            sourceKey: 'book_ids',
+            keyIn: 'sq_author',
+            targetStorageType: 'sql'
+        }
     },
     internalId: 'id',
     id: {
@@ -61,9 +73,8 @@ module.exports = class sq_author extends Sequelize.Model {
             email: {
                 type: Sequelize[dict['String']]
             },
-
             book_ids: {
-                type: Sequelize.JSON,
+                type: Sequelize[dict['[String]']],
                 defaultValue: []
             }
 
@@ -73,6 +84,14 @@ module.exports = class sq_author extends Sequelize.Model {
             tableName: "sq_authors",
             sequelize
         });
+    }
+
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
     }
 
     static associate(models) {}
@@ -348,32 +367,21 @@ module.exports = class sq_author extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-              // let updated = await super.update(input, {
-              //     where: {
-              //         [this.idAttribute()]: input[this.idAttribute()]
-              //     },
-              //     returning: true,
-              //     plain: true,
-              //     transaction: t
-              // });
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                }
 
-              let to_update = await super.findByPk(input[this.idAttribute()]);
-              let updated = await to_update.update(input);
-
-              console.log("BY PK: ", to_update);
-              console.log("UPDATED",updated);
-              return updated;
+                let updated = await to_update.update(input, {
+                    transaction: t
+                });
+                return updated;
             });
-            // console.log("RESULT MODEL: ", result)
-            // if (result[0] === 0) {
-            //     throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            // }
-            // return result[1][0];
+
             return result;
         } catch (error) {
             throw error;
         }
-
     }
 
     static bulkAddCsv(context) {
@@ -444,19 +452,43 @@ module.exports = class sq_author extends Sequelize.Model {
     }
 
 
-    static async add_book_ids( author_id, book_ids){
 
-      let record = await super.findByPk(author_id);
-      let updated_ids = helper.unionIds(record.book_ids, book_ids);
-      await record.update( {book_ids: updated_ids} );
+    /**
+     * add_author_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_book_ids(id, book_ids) {
 
+        let record = await super.findByPk(id);
+        let updated_ids = helper.unionIds(record.book_ids, book_ids);
+        await record.update({
+            book_ids: updated_ids
+        });
     }
 
-    static async remove_book_ids(author_id, book_ids){
-      let record = await super.findByPk(author_id);
-      let updated_ids = helper.differenceIds(record.book_ids, book_ids);
-      await record.update( {book_ids: updated_ids} );
+    /**
+     * remove_author_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_book_ids(id, book_ids) {
+
+        let record = await super.findByPk(id);
+        let updated_ids = helper.differenceIds(record.book_ids, book_ids);
+        await record.update({
+            book_ids: updated_ids
+        });
     }
+
+
+
+
+
+
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

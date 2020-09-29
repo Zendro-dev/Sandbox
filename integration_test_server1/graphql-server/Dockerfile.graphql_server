@@ -7,9 +7,10 @@ WORKDIR /usr/ScienceDbStarterPack/graphql-server
 COPY . .
 
 # Clone the skeleton project and install dependencies
-RUN apt-get update && apt-get install -y autoconf libtool make && \
+RUN apt-get update && apt-get install -y autoconf libtool make && \	
   rm -rf .git* && \
   chmod u+x ./migrateDbAndStartServer.sh && \
-  npm install
+  mv ./config/config_postgres_docker.json ./config/config.json && \
+  npm install 
 
 EXPOSE 3000

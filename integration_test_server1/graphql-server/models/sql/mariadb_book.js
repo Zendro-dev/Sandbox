@@ -60,10 +60,6 @@ module.exports = class mariadb_book extends Sequelize.Model {
             },
             ISBN: {
                 type: Sequelize[dict['String']]
-            },
-
-            author_ids: {
-                type: Sequelize.JSON
             }
 
 
@@ -72,6 +68,14 @@ module.exports = class mariadb_book extends Sequelize.Model {
             tableName: "mariadb_books",
             sequelize
         });
+    }
+
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
     }
 
     static associate(models) {}
@@ -347,23 +351,21 @@ module.exports = class mariadb_book extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                let updated = await super.update(input, {
-                    where: {
-                        [this.idAttribute()]: input[this.idAttribute()]
-                    },
-                    returning: true,
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                }
+
+                let updated = await to_update.update(input, {
                     transaction: t
                 });
                 return updated;
             });
-            if (result[0] === 0) {
-                throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            }
-            return result[1][0];
+
+            return result;
         } catch (error) {
             throw error;
         }
-
     }
 
     static bulkAddCsv(context) {

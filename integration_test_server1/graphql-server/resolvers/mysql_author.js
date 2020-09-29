@@ -17,55 +17,8 @@ const associationArgsDef = {}
 
 
 
-mysql_author.prototype.booksFilter = function({
-    search,
-    order,
-    pagination
-}, context){
-
-  let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "id",
-        "value": {
-            "type": "Array",
-            "value": this.book_ids.join(',')
-        },
-        "operator": "in"
-    });
-
-  return resolvers.mysql_books({
-      search: nsearch,
-      order: order,
-      pagination: pagination
-  }, context)
-}
 
 
-mysql_author.prototype.add_books = async function(input, benignErrorReporter){
-
-  //add this author to each book
-  let promises = [];
-  input.addBooks.forEach( id => {
-    promises.push( models.sq_book.add_author_ids( id ,[ this.getIdValue()]) );
-  });
-  await Promise.all(promises);
-
-  await sq_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
-  this.book_ids =  helper.unionIds(this.book_ids, input.addBooks);
-}
-
-mysql_author.prototype.remove_books = async function(input, benignErrorReporter){
-
-  //remove this author from each book_ids
-  let promises = [];
-  input.removeBooks.forEach( id => {
-    promises.push( models.sq_book.remove_author_ids( id ,[ this.getIdValue()]) );
-  });
-  await Promise.all(promises);
-
-  await sq_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
-  this.book_ids = helper.differenceIds(this.book_ids, input.removeBooks);
-}
 
 
 
@@ -78,14 +31,6 @@ mysql_author.prototype.remove_books = async function(input, benignErrorReporter)
 mysql_author.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
-
-    if (helper.isNonEmptyArray(input.addBooks)) {
-      promises.push(this.add_books(input, benignErrorReporter));
-    }
-
-    if (helper.isNonEmptyArray(input.removeBooks)) {
-      promises.push(this.remove_books(input, benignErrorReporter));
-    }
 
 
     await Promise.all(promises);
@@ -367,14 +312,13 @@ module.exports = {
         let authorization = await checkAuthorization(context, 'mysql_author', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            // if (!input.skipAssociationsExistenceChecks) {
-            //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-            // }
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+            }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedMysql_author = await mysql_author.updateOne(inputSanitized, benignErrorReporter);
-            console.log("RESULT: ", updatedMysql_author);
             await updatedMysql_author.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedMysql_author;
         } else {

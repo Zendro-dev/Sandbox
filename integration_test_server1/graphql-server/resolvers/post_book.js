@@ -13,11 +13,106 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
-const associationArgsDef = {}
+const associationArgsDef = {
+    'addBooks': 'post_author'
+}
 
 
 
 
+/**
+ * post_book.prototype.booksFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+post_book.prototype.booksFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.post_author.idAttribute(),
+        "value": this.author_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.post_authors({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+
+}
+
+/**
+ * post_book.prototype.countFilteredBooks - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+post_book.prototype.countFilteredBooks = function({
+    search
+}, context) {
+
+
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.post_author.idAttribute(),
+        "value": this.author_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.countPost_authors({
+        search: nsearch
+    }, context);
+
+}
+
+/**
+ * post_book.prototype.booksConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+post_book.prototype.booksConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.post_author.idAttribute(),
+        "value": this.author_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.post_authorsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+
+}
 
 
 
@@ -30,11 +125,55 @@ const associationArgsDef = {}
  */
 post_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-
-
+    if (helper.isNonEmptyArray(input.addBooks)) {
+        promises.push(this.add_books(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeBooks)) {
+        promises.push(this.remove_books(input, benignErrorReporter));
+    }
 
     await Promise.all(promises);
 }
+/**
+ * add_books - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+post_book.prototype.add_books = async function(input, benignErrorReporter) {
+
+    //handle inverse association
+    let promises = [];
+    input.addBooks.forEach(id => {
+        promises.push(models.post_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
+    });
+    await Promise.all(promises);
+
+    await post_book.add_author_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
+    this.author_ids = helper.unionIds(this.author_ids, input.addBooks);
+}
+
+/**
+ * remove_books - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+post_book.prototype.remove_books = async function(input, benignErrorReporter) {
+
+    //handle inverse association
+    let promises = [];
+    input.removeBooks.forEach(id => {
+        promises.push(models.post_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
+    });
+    await Promise.all(promises);
+
+    await post_book.remove_author_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
+    this.author_ids = helper.differenceIds(this.author_ids, input.removeBooks);
+}
+
 
 
 
@@ -106,6 +245,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_many.push(post_book.countFilteredBooks({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

@@ -29,6 +29,9 @@ module.exports.validator_patch = function(sq_author) {
             },
             "email": {
                 "type": ["string", "null"]
+            },
+            "book_ids": {
+              "type": ["array", "null"]
             }
         }
     }

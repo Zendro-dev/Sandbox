@@ -6,29 +6,45 @@ module.exports = `
     id: ID
     """
     @original-field
-
+    
     """
     name: String
 
     """
     @original-field
-
+    
     """
     lastname: String
 
     """
     @original-field
-
+    
     """
     email: String
 
-    book_ids: [ String ]
+    """
+    @original-field
+    
+    """
+    book_ids: [String]
 
-    booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput!): [sq_book]
+      
+    """
+    @search-request
+    """
+    booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput): [sq_book]
 
-    booksConnection(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput!): Sq_bookConnection
 
-    countFilteredBooks(search: searchSq_bookInput): Int
+    """
+    @search-request
+    """
+    booksConnection(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput): Sq_bookConnection
+
+    """
+    @count-request
+    """
+    countFilteredBooks(search: searchSq_bookInput) : Int
+  
     }
 type Sq_authorConnection{
   edges: [Sq_authorEdge]
@@ -60,7 +76,8 @@ type Sq_authorEdge{
   }
   input searchSq_authorInput {
     field: sq_authorField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchSq_authorInput]
   }
@@ -81,8 +98,8 @@ type Sq_authorEdge{
   }
 
   type Mutation {
-    addSq_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): sq_author!
-    updateSq_author(id: ID!, name: String, lastname: String, email: String,  addBooks: [ID], removeBooks: [ID], skipAssociationsExistenceChecks:Boolean = false): sq_author!
+    addSq_author(id: ID!, name: String, lastname: String, email: String   , addBooks:[ID] , skipAssociationsExistenceChecks:Boolean = false): sq_author!
+    updateSq_author(id: ID!, name: String, lastname: String, email: String   , addBooks:[ID], removeBooks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): sq_author!
     deleteSq_author(id: ID!): String!
     bulkAddSq_authorCsv: String!
       }

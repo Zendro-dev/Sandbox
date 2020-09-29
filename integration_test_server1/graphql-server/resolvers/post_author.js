@@ -13,57 +13,109 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
-const associationArgsDef = {}
+const associationArgsDef = {
+    'addBooks': 'post_book'
+}
 
 
+
+
+/**
+ * post_author.prototype.booksFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
 post_author.prototype.booksFilter = function({
     search,
     order,
     pagination
-}, context){
+}, context) {
 
-  let nsearch = helper.addSearchField({
+
+    let nsearch = helper.addSearchField({
         "search": search,
-        "field": "id",
-        "value": {
-            "type": "Array",
-            "value": this.book_ids.join(',')
-        },
+        "field": models.post_book.idAttribute(),
+        "value": this.book_ids.join(','),
+        "valueType": "Array",
         "operator": "in"
     });
 
-  return resolvers.post_books({
-      search: nsearch,
-      order: order,
-      pagination: pagination
-  }, context)
+    return resolvers.post_books({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+
 }
 
-post_author.prototype.add_books = async function(input, benignErrorReporter){
+/**
+ * post_author.prototype.countFilteredBooks - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+post_author.prototype.countFilteredBooks = function({
+    search
+}, context) {
 
-  //add this author to each book
-  let promises = [];
-  input.addBooks.forEach( id => {
-    promises.push( models.sq_book.add_author_ids( id ,[ this.getIdValue()]) );
-  });
-  await Promise.all(promises);
 
-  await sq_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
-  this.book_ids =  helper.unionIds(this.book_ids, input.addBooks);
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.post_book.idAttribute(),
+        "value": this.book_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.countPost_books({
+        search: nsearch
+    }, context);
+
 }
 
-post_author.prototype.remove_books = async function(input, benignErrorReporter){
+/**
+ * post_author.prototype.booksConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+post_author.prototype.booksConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
 
-  //remove this author from each book_ids
-  let promises = [];
-  input.removeBooks.forEach( id => {
-    promises.push( models.sq_book.remove_author_ids( id ,[ this.getIdValue()]) );
-  });
-  await Promise.all(promises);
 
-  await sq_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
-  this.book_ids = helper.differenceIds(this.book_ids, input.removeBooks);
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.post_book.idAttribute(),
+        "value": this.book_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+
+    return resolvers.post_booksConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+
 }
+
+
+
 
 /**
  * handleAssociations - handles the given associations in the create and update case.
@@ -73,17 +125,55 @@ post_author.prototype.remove_books = async function(input, benignErrorReporter){
  */
 post_author.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-
     if (helper.isNonEmptyArray(input.addBooks)) {
-      promises.push(this.add_books(input, benignErrorReporter));
+        promises.push(this.add_books(input, benignErrorReporter));
     }
-
     if (helper.isNonEmptyArray(input.removeBooks)) {
-      promises.push(this.remove_books(input, benignErrorReporter));
+        promises.push(this.remove_books(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
 }
+/**
+ * add_books - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+post_author.prototype.add_books = async function(input, benignErrorReporter) {
+
+    //handle inverse association
+    let promises = [];
+    input.addBooks.forEach(id => {
+        promises.push(models.post_book.add_author_ids(id, [this.getIdValue()], benignErrorReporter));
+    });
+    await Promise.all(promises);
+
+    await post_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
+    this.book_ids = helper.unionIds(this.book_ids, input.addBooks);
+}
+
+/**
+ * remove_books - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+post_author.prototype.remove_books = async function(input, benignErrorReporter) {
+
+    //handle inverse association
+    let promises = [];
+    input.removeBooks.forEach(id => {
+        promises.push(models.post_book.remove_author_ids(id, [this.getIdValue()], benignErrorReporter));
+    });
+    await Promise.all(promises);
+
+    await post_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
+    this.book_ids = helper.differenceIds(this.book_ids, input.removeBooks);
+}
+
 
 
 
@@ -155,6 +245,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_many.push(post_author.countFilteredBooks({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -178,10 +269,6 @@ async function validForDeletion(id, context) {
     }
     return true;
 }
-
-
-
-
 
 module.exports = {
     /**
@@ -365,11 +452,11 @@ module.exports = {
         let authorization = await checkAuthorization(context, 'post_author', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            // await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-            // await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-            // if (!input.skipAssociationsExistenceChecks) {
-            //     await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-            // }
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+            }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             let updatedPost_author = await post_author.updateOne(inputSanitized, benignErrorReporter);
             await updatedPost_author.handleAssociations(inputSanitized, benignErrorReporter);

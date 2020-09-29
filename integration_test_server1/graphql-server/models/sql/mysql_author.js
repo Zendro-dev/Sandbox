@@ -60,10 +60,6 @@ module.exports = class mysql_author extends Sequelize.Model {
             },
             email: {
                 type: Sequelize[dict['String']]
-            },
-
-            book_ids: {
-                type: Sequelize.JSON
             }
 
 
@@ -74,6 +70,14 @@ module.exports = class mysql_author extends Sequelize.Model {
         });
     }
 
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
+    }
+
     static associate(models) {}
 
     static async readById(id) {
@@ -81,7 +85,6 @@ module.exports = class mysql_author extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
@@ -348,33 +351,21 @@ module.exports = class mysql_author extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-                // let updated = await super.update(input, {
-                //     where: {
-                //         [this.idAttribute()]: input[this.idAttribute()]
-                //     },
-                //     returning: true,
-                //     plain: true,
-                //     transaction: t
-                // });
-
                 let to_update = await super.findByPk(input[this.idAttribute()]);
-                let updated = await to_update.update(input);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                }
 
-                console.log("BY PK: ", to_update);
-                console.log("UPDATED",updated);
+                let updated = await to_update.update(input, {
+                    transaction: t
+                });
                 return updated;
             });
 
-            // console.log("RESULT MODEL: ", result)
-            // if (result[0] === 0) {
-            //     throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
-            // }
-            // return result[1][0];
             return result;
         } catch (error) {
             throw error;
         }
-
     }
 
     static bulkAddCsv(context) {
@@ -444,19 +435,16 @@ module.exports = class mysql_author extends Sequelize.Model {
         return helper.csvTableTemplate(definition);
     }
 
-    static async add_book_ids( author_id, book_ids){
 
-      let record = await super.findByPk(author_id);
-      let updated_ids = helper.unionIds(record.book_ids, book_ids);
-      await record.update( {book_ids: updated_ids} );
 
-    }
 
-    static async remove_book_ids(author_id, book_ids){
-      let record = await super.findByPk(author_id);
-      let updated_ids = helper.differenceIds(record.book_ids, book_ids);
-      await record.update( {book_ids: updated_ids} );
-    }
+
+
+
+
+
+
+
 
     /**
      * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.

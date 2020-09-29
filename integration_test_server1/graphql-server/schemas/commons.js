@@ -1,5 +1,16 @@
 module.exports = `
 
+  enum InputType{
+    Array
+    String
+    Int
+    Float
+    Boolean
+    Date
+    Time
+    DateTime
+  }
+
   enum Operator{
     like
     notLike
@@ -22,11 +33,6 @@ module.exports = `
   enum Order{
     DESC
     ASC
-  }
-
-  input typeValue{
-    type: String
-    value: String!
   }
 
   input paginationInput{

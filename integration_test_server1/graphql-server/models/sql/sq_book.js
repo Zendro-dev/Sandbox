@@ -26,7 +26,19 @@ const definition = {
         id: 'String',
         title: 'String',
         genre: 'String',
-        ISBN: 'String'
+        ISBN: 'String',
+        author_ids: '[ String]'
+    },
+    associations: {
+        books: {
+            type: 'to_many',
+            reverseAssociationType: 'to_many',
+            target: 'sq_author',
+            targetKey: 'book_ids',
+            sourceKey: 'author_ids',
+            keyIn: 'sq_book',
+            targetStorageType: 'sql'
+        }
     },
     internalId: 'id',
     id: {
@@ -61,16 +73,25 @@ module.exports = class sq_book extends Sequelize.Model {
             ISBN: {
                 type: Sequelize[dict['String']]
             },
-
             author_ids: {
-                type: Sequelize.JSON
+                type: Sequelize[dict['[String]']],
+                defaultValue: []
             }
+
 
         }, {
             modelName: "sq_book",
             tableName: "sq_books",
             sequelize
         });
+    }
+
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
     }
 
     static associate(models) {}
@@ -346,16 +367,21 @@ module.exports = class sq_book extends Sequelize.Model {
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
             let result = await this.sequelize.transaction(async (t) => {
-              let to_update = await super.findByPk(input[this.idAttribute()]);
-              let updated = await to_update.update(input);
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+                }
 
+                let updated = await to_update.update(input, {
+                    transaction: t
+                });
                 return updated;
             });
+
             return result;
         } catch (error) {
             throw error;
         }
-
     }
 
     static bulkAddCsv(context) {
@@ -427,18 +453,41 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
 
+    /**
+     * add_book_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_author_ids(id, author_ids) {
 
-    static async add_author_ids( book_id, author_ids){
-      let record = await super.findByPk(book_id);
-      let updated_ids = helper.unionIds(record.author_ids, author_ids);
-      await record.update( {author_ids: updated_ids} );
+        let record = await super.findByPk(id);
+        let updated_ids = helper.unionIds(record.author_ids, author_ids);
+        await record.update({
+            author_ids: updated_ids
+        });
     }
 
-    static async remove_author_ids(book_id, author_ids){
-      let record = await super.findByPk(book_id);
-      let updated_ids = helper.differenceIds(record.author_ids, author_ids);
-      await record.update( {author_ids: updated_ids} );
+    /**
+     * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_author_ids(id, author_ids) {
+
+        let record = await super.findByPk(id);
+        let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+        await record.update({
+            author_ids: updated_ids
+        });
     }
+
+
+
+
+
+
 
 
     /**

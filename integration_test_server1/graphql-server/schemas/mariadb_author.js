@@ -6,23 +6,23 @@ module.exports = `
     id: ID
     """
     @original-field
-
+    
     """
     name: String
 
     """
     @original-field
-
+    
     """
     lastname: String
 
     """
     @original-field
-
+    
     """
     email: String
 
-    book_ids: [ String ]
+      
     }
 type Mariadb_authorConnection{
   edges: [Mariadb_authorEdge]
@@ -50,11 +50,11 @@ type Mariadb_authorEdge{
     name
     lastname
     email
-    book_ids
   }
   input searchMariadb_authorInput {
     field: mariadb_authorField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchMariadb_authorInput]
   }
@@ -75,7 +75,7 @@ type Mariadb_authorEdge{
   }
 
   type Mutation {
-    addMariadb_author(id: ID!, name: String, lastname: String, email: String,  book_ids: [String]  , skipAssociationsExistenceChecks:Boolean = false): mariadb_author!
+    addMariadb_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): mariadb_author!
     updateMariadb_author(id: ID!, name: String, lastname: String, email: String    , skipAssociationsExistenceChecks:Boolean = false): mariadb_author!
     deleteMariadb_author(id: ID!): String!
     bulkAddMariadb_authorCsv: String!

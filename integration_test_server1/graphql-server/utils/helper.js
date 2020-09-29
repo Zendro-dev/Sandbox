@@ -563,7 +563,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
        */
       let search_field = module.exports.addSearchField({
         "field": order[last_index][0],
-        "value": {"value": cursor[order[last_index][0]]},
+        "value": cursor[order[last_index][0]],
         "operator": operator,
 
         /**
@@ -604,7 +604,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
            *    { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } }
            */
           "field": order[i][0],
-          "value": {"value": cursor[order[i][0]]},
+          "value": cursor[order[i][0]],
           "operator": operator,
 
           //and:
@@ -620,7 +620,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
              *    { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
              */
             "field": order[i][0],
-            "value": {"value": cursor[order[i][0]]},
+            "value": cursor[order[i][0]],
             "operator": strict_operator,
 
             //or:
@@ -745,7 +745,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
        */
       let search_field = module.exports.addSearchField({
         "field": order[last_index][0],
-        "value": {"value": cursor[order[last_index][0]]},
+        "value": cursor[order[last_index][0]],
         "operator": operator,
 
         /**
@@ -786,7 +786,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
            *    { [order[i][0] ] : { [Op[operator]]: cursor[ order[i][0] ] } }
            */
           "field": order[i][0],
-          "value": {"value": cursor[order[i][0]]},
+          "value": cursor[order[i][0]],
           "operator": operator,
 
           //and:
@@ -802,7 +802,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
              *    { [order[i][0]]: { [Op[strict_operator]]: cursor[ order[i][0] ]} },
              */
             "field": order[i][0],
-            "value": {"value": cursor[order[i][0]]},
+            "value": cursor[order[i][0]],
             "operator": strict_operator,
 
             //or:
@@ -851,7 +851,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
     }
     //check existence by count
     let ids = Array.isArray(ids_to_check) ? ids_to_check : [ ids_to_check ];
-    let searchArg = {"field":model.idAttribute(),"value":{"type":"Array","value":ids.toString()},"operator":"in"};
+    let searchArg = {"field":model.idAttribute(),valueType:"Array",value:ids.toString(),"operator":"in"};
     try {
       if (module.exports.isNotUndefinedAndNotNull(model.registeredAdapters)) {
         let allResponsibleAdapters = ids.map(id => model.registeredAdapters[model.adapterForIri(id)]);
@@ -1140,7 +1140,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
    * @return {object} New search object.
    *
    */
-  module.exports.addSearchField = function ({search, field, value, operator}, recursiveOperator) {
+  module.exports.addSearchField = function ({search, field, value, valueType ,operator}, recursiveOperator) {
     let nsearch = {};
     let recursiveOp = recursiveOperator ? recursiveOperator : 'and';
 
@@ -1158,6 +1158,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
       nsearch = {
         "field": field,
         "value": value,
+        "valueType": valueType,
         "operator": operator
       };
     } else {
@@ -1178,6 +1179,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
         search = {
           "field": field,
           "value": value,
+          "valueType": valueType,
           "operator": operator,
           "excludeAdapterNames": search.excludeAdapterNames
         };
@@ -1197,6 +1199,7 @@ module.exports.vueTable = function(req, model, strAttributes) {
           "search": [{
             "field": field,
             "value": value,
+            "valueType": valueType,
             "operator": operator
           }, csearch],
           "excludeAdapterNames": excludeAdapterNames

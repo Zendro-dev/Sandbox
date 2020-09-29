@@ -12,7 +12,7 @@ const {GraphQLDateTime, GraphQLDate, GraphQLTime } = require('graphql-iso-date')
 const execute = require('./utils/custom-graphql-execute');
 const checkAuthorization = require('./utils/check-authorization');
 const helper = require('./utils/helper');
-const nodejq = require('node-jq')
+//const nodejq = require('node-jq')
 const {JSONPath} = require('jsonpath-plus');
 const errors = require('./utils/errors');
 const { printError, formatError } = require('graphql');
@@ -236,43 +236,43 @@ async function handleGraphQlQueriesForMetaQuery(queries, context) {
  return compositeResponses;
 }
 
-app.post('/meta_query', cors(), async (req, res, next) => {
- try {
- let context = {
-   request: req,
-   acl: acl,
-   benignErrors: [],
-   recordsLimit: globals.LIMIT_RECORDS
- }
- if (req != null) {
-     if (await checkAuthorization(context, 'meta_query', '') === true) {
-       let queries = req.body.queries;
-       let jq = req.body.jq;
-       let jsonPath = req.body.jsonPath;
-       eitherJqOrJsonpath(jq, jsonPath);
-
-       if (!Array.isArray(queries)) {
-         let newQueries = [queries];
-         queries = newQueries;
-       }
-
-       let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);
-       let output;
-       if (helper.isNotUndefinedAndNotNull(jq)) { // jq
-         output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});
-       } else { // JSONPath
-         output = JSONPath({path: jsonPath, json: graphQlResponses, wrap: false});
-       }
-       res.json(output);
-       next();
-     } else {
-         throw new Error("You don't have authorization to perform this action");
-     }
- }
-} catch (error) {
- res.json( { data: null, errors: [formatError(error)] });
-}
-});
+// app.post('/meta_query', cors(), async (req, res, next) => {
+//  try {
+//  let context = {
+//    request: req,
+//    acl: acl,
+//    benignErrors: [],
+//    recordsLimit: globals.LIMIT_RECORDS
+//  }
+//  if (req != null) {
+//      if (await checkAuthorization(context, 'meta_query', '') === true) {
+//        let queries = req.body.queries;
+//        let jq = req.body.jq;
+//        let jsonPath = req.body.jsonPath;
+//        eitherJqOrJsonpath(jq, jsonPath);
+//
+//        if (!Array.isArray(queries)) {
+//          let newQueries = [queries];
+//          queries = newQueries;
+//        }
+//
+//        let graphQlResponses = await handleGraphQlQueriesForMetaQuery(queries, context);
+//        let output;
+//        if (helper.isNotUndefinedAndNotNull(jq)) { // jq
+//          output = await nodejq.run(jq, graphQlResponses, { input: 'json', output: 'json'});
+//        } else { // JSONPath
+//          output = JSONPath({path: jsonPath, json: graphQlResponses, wrap: false});
+//        }
+//        res.json(output);
+//        next();
+//      } else {
+//          throw new Error("You don't have authorization to perform this action");
+//      }
+//  }
+// } catch (error) {
+//  res.json( { data: null, errors: [formatError(error)] });
+// }
+// });
 
 // Error handling
 app.use(function (err, req, res, next) {

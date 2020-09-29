@@ -6,7 +6,19 @@
         "id": "String",
         "name": "String",
         "lastname": "String",
-        "email": "String"
+        "email": "String",
+        "book_ids": "[ String ]"
+    },
+    "associations":{
+      "books":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "sq_book",
+        "targetKey": "author_ids",
+        "sourceKey": "book_ids",
+        "keyIn": "sq_author",
+        "targetStorageType": "sql"
+      }
     },
     "internalId": "id"
   }

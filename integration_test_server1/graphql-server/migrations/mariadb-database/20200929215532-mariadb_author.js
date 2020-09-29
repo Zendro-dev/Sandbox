@@ -37,10 +37,6 @@ module.exports = {
             },
             email: {
                 type: Sequelize[dict['String']]
-            },
-
-            book_ids: {
-                type: Sequelize.JSON
             }
 
         });

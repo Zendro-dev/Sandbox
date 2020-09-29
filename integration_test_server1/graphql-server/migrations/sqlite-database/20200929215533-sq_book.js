@@ -17,7 +17,7 @@ module.exports = {
         return queryInterface.createTable('sq_books', {
 
             id: {
-                type: Sequelize[dict['String']],
+                type: Sequelize.STRING,
                 primaryKey: true
             },
 
@@ -38,9 +38,8 @@ module.exports = {
             ISBN: {
                 type: Sequelize[dict['String']]
             },
-
             author_ids: {
-                type: Sequelize.JSON
+                type: Sequelize[dict['[String]']]
             }
 
         });

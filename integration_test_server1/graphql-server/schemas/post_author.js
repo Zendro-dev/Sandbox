@@ -6,26 +6,45 @@ module.exports = `
     id: ID
     """
     @original-field
-
+    
     """
     name: String
 
     """
     @original-field
-
+    
     """
     lastname: String
 
     """
     @original-field
-
+    
     """
     email: String
 
-    book_ids: [ String ]
+    """
+    @original-field
+    
+    """
+    book_ids: [String]
 
-    booksFilter(search: searchPost_bookInput, order: [ orderPost_bookInput ], pagination: paginationInput!): [post_book]
+      
+    """
+    @search-request
+    """
+    booksFilter(search: searchPost_bookInput, order: [ orderPost_bookInput ], pagination: paginationInput): [post_book]
 
+
+    """
+    @search-request
+    """
+    booksConnection(search: searchPost_bookInput, order: [ orderPost_bookInput ], pagination: paginationCursorInput): Post_bookConnection
+
+    """
+    @count-request
+    """
+    countFilteredBooks(search: searchPost_bookInput) : Int
+  
     }
 type Post_authorConnection{
   edges: [Post_authorEdge]
@@ -57,7 +76,8 @@ type Post_authorEdge{
   }
   input searchPost_authorInput {
     field: post_authorField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchPost_authorInput]
   }
@@ -78,8 +98,8 @@ type Post_authorEdge{
   }
 
   type Mutation {
-    addPost_author(id: ID!, name: String, lastname: String, email: String, book_ids: [String]    , skipAssociationsExistenceChecks:Boolean = false): post_author!
-    updatePost_author(id: ID!, name: String, lastname: String, email: String, addBooks: [ID], removeBooks: [ID]    , skipAssociationsExistenceChecks:Boolean = false): post_author!
+    addPost_author(id: ID!, name: String, lastname: String, email: String   , addBooks:[ID] , skipAssociationsExistenceChecks:Boolean = false): post_author!
+    updatePost_author(id: ID!, name: String, lastname: String, email: String   , addBooks:[ID], removeBooks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): post_author!
     deletePost_author(id: ID!): String!
     bulkAddPost_authorCsv: String!
       }

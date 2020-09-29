@@ -14,10 +14,10 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('post_books', {
+        return queryInterface.createTable('mysql_books', {
 
             id: {
-                type: Sequelize[dict['String']],
+                type: Sequelize.STRING,
                 primaryKey: true
             },
 
@@ -37,12 +37,7 @@ module.exports = {
             },
             ISBN: {
                 type: Sequelize[dict['String']]
-            },
-
-            author_ids: {
-                type: Sequelize.JSON
             }
-
 
         });
     },
@@ -55,7 +50,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('post_books');
+        return queryInterface.dropTable('mysql_books');
     }
 
 };

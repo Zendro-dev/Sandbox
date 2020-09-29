@@ -53,7 +53,8 @@ type Mariadb_bookEdge{
   }
   input searchMariadb_bookInput {
     field: mariadb_bookField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchMariadb_bookInput]
   }

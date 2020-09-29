@@ -29,6 +29,9 @@ module.exports.validator_patch = function(sq_book) {
             },
             "ISBN": {
                 "type": ["string", "null"]
+            },
+            "author_ids": {
+              "type": ["array", "null"]
             }
         }
     }

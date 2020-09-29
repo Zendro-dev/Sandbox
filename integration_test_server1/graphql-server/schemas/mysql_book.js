@@ -53,7 +53,8 @@ type Mysql_bookEdge{
   }
   input searchMysql_bookInput {
     field: mysql_bookField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchMysql_bookInput]
   }

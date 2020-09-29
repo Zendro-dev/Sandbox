@@ -17,7 +17,7 @@ module.exports = {
         return queryInterface.createTable('post_authors', {
 
             id: {
-                type: Sequelize[dict['String']],
+                type: Sequelize.STRING,
                 primaryKey: true
             },
 
@@ -38,12 +38,9 @@ module.exports = {
             email: {
                 type: Sequelize[dict['String']]
             },
-
             book_ids: {
-                type: Sequelize.JSON 
+                type: Sequelize[dict['[String]']]
             }
-
-
 
         });
     },
