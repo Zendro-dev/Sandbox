@@ -413,7 +413,7 @@ module.exports = {
             if (await checkAuthorization(context, 'cat', 'read') === true) {
                 helper.checkCursorBasedPaginationArgument(pagination);
                 let limit = pagination.first !== undefined ? pagination.first : pagination.last;
-                helper.checkCountAndReduceRecordsLimit(limit, context, "dogsConnection");
+                helper.checkCountAndReduceRecordsLimit(limit, context, "catsConnection");
                 let filtering = await checkAuthorization(context, 'cat', 'search')
                 // await checkCountAndReduceRecordsLimit(search, context, "catsConnection", filtering);
                 return cat.readAllCursor(search, pagination, filtering);
@@ -438,7 +438,7 @@ module.exports = {
     }, context) {
         try {
             if (await checkAuthorization(context, 'cat', 'read') === true) {
-                helper.checkCountAndReduceRecordsLimit(1, context, "readOneDog");
+                helper.checkCountAndReduceRecordsLimit(1, context, "readOneCat");
                 return cat.readById(cat_id);
             } else {
                 throw new Error("You don't have authorization to perform this action");
@@ -595,6 +595,34 @@ module.exports = {
             console.error(error);
             handleError(error);
         }
+    },
+
+    bulkAssociateCatWithPerson_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                person_id
+            }) => person_id)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cat_id
+            }) => cat_id)), cat);
+        }
+        return await cat.bulkAssociateCatWithPerson_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+
+    bulkDisAssociateCatWithPerson_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                person_id
+            }) => person_id)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                cat_id
+            }) => cat_id)), cat);
+        }
+        return await cat.bulkDisAssociateCatWithPerson_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**

@@ -1,0 +1,21 @@
+{
+  "model": "author",
+  "storageType": "ddm-adapter",
+  "adapterName":"author_server2",
+  "regex": "server2",
+  "url": "http://cassandra_test_box_gql_2:3030/graphql",
+  "attributes": {
+    "name": "String",
+    "author_id": "String"
+  },
+  "associations": {
+    "books": {
+      "type": "to_many",
+      "target": "book",
+      "targetKey":"author_id",
+      "keyIn": "book",
+      "targetStorageType": "distributed-data-model"
+    }
+  },
+  "internalId": "author_id"
+}

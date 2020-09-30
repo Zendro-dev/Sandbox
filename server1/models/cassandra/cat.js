@@ -562,6 +562,8 @@ class cat {
      * @param {Id}   house_id Foreign Key (stored in "Me") of the Association to be updated. 
      */
     static async remove_house_id(cat_id, house_id) {
+        // we could check if the record WHERE cat_id = 'cat_id' and house_id = 'house_id' exists with a separate SELECT statement.
+        // UPDATE statements do not allow filtering on non-primary Key columns, even when indexed and use with 'ALLOW FILTERING'
         const mutationCql = `UPDATE cats SET house_id = ? WHERE cat_id = '${cat_id}'`;
         await this.storageHandler.execute(mutationCql, [null], {
             prepare: true
@@ -571,6 +573,37 @@ class cat {
         return new cat(result.first());
     }
 
+    static async bulkAssociateCatWithPerson_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "cat_id", "person_id");
+        let promises = [];
+        let mutationCql = `UPDATE cats SET person_id = ? WHERE cat_id IN ?`
+        mappedForeignKeys.forEach(({
+            person_id,
+            cat_id
+        }) => {
+            promises.push(this.storageHandler.execute(mutationCql,[person_id, cat_id], {prepare: true}))
+        });
+
+
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    static async bulkDisAssociateCatWithPerson_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "cat_id", "person_id");
+        let promises = [];
+        let mutationCql = `UPDATE cats SET person_id = ? WHERE cat_id IN ?`
+        mappedForeignKeys.forEach(({
+            person_id,
+            cat_id
+        }) => {
+            promises.push(this.storageHandler.execute(mutationCql,[null, cat_id], {prepare: true}))
+        });
+
+
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 

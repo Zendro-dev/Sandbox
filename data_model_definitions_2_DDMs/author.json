@@ -1,0 +1,19 @@
+{
+  "model": "author",
+  "storageType": "distributed-data-model",
+  "registry": ["author_server1","author_server2"],
+  "attributes": {
+    "name": "String",
+    "author_id": "String"
+  },
+  "associations": {
+    "books": {
+      "type": "to_many",
+      "target": "book",
+      "targetKey":"author_id",
+      "keyIn": "book",
+      "targetStorageType": "distributed-data-model"
+    }
+  },
+  "internalId": "author_id"
+}

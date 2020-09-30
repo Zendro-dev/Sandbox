@@ -23,8 +23,8 @@ module.exports = `
     eq
     lt
     gt
-    lte
-    gte
+    le
+    ge
     ne
     _in
     cont   # CONTAINS
@@ -45,7 +45,7 @@ module.exports = `
   }
 
   input paginationInput{
-    limit: Int!
+    limit: Int
     offset: Int
   }
 
@@ -58,7 +58,7 @@ module.exports = `
   }
 
   input paginationCursorCassandraInput{
-    first: Int!     # first = last in the Cassandra case
+    limit: Int     # first = last in the Cassandra case
     after: String
   }
 

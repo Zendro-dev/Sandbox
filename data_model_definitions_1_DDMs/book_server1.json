@@ -1,0 +1,21 @@
+{
+  "model": "book",
+  "storageType": "cassandra-adapter",
+  "adapterName":"book_server1",
+  "regex": "server1",
+  "attributes": {
+    "title": "String",
+    "author_id": "String",
+    "book_id": "String"
+  },
+  "associations": {
+    "author": {
+      "type": "to_one",
+      "target": "author",
+      "targetKey":"author_id",
+      "keyIn": "book",
+      "targetStorageType": "distributed-data-model"
+    }
+  },
+  "internalId": "book_id"
+}

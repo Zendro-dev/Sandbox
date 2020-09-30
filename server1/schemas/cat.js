@@ -80,6 +80,12 @@ type CatEdge{
     field: catField
     order: Order
   }
+
+  input bulkAssociationCatWithPerson_idInput{
+    cat_id: ID!
+    person_id: ID!
+  }
+
   type Query {
     readOneCat(cat_id: ID!): cat
     countCats(search: searchCatInput ): Int
@@ -91,6 +97,8 @@ type CatEdge{
     addCat(cat_id: ID!, name: String , addPerson:ID, addHouse:ID  , addToys:[ID] , skipAssociationsExistenceChecks:Boolean = true): cat!
     updateCat(cat_id: ID!, name: String , addPerson:ID, removePerson:ID , addHouse:ID, removeHouse:ID   , addToys:[ID], removeToys:[ID]  , skipAssociationsExistenceChecks:Boolean = true): cat!
   deleteCat(cat_id: ID!): String!
+  bulkAssociateCatWithPerson_id(bulkAssociationInput: [bulkAssociationCatWithPerson_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  bulkDisAssociateCatWithPerson_id(bulkAssociationInput: [bulkAssociationCatWithPerson_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
   # bulkAddCatCsv: String!
   }
 
