@@ -1,0 +1,11 @@
+{
+  "default-sql": {
+    "storageType": "sql",
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_development",
+    "host": "integration_test_server2_postgres",
+    "dialect": "postgres"
+  }
+
+}
