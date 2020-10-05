@@ -252,11 +252,11 @@ module.exports = class post_author {
 
         let query = `
             mutation addPost_author(
-                  $id:ID!
+                  $id:ID!  
               $name:String
               $lastname:String
               $email:String            ){
-              addPost_author(              id:$id
+              addPost_author(              id:$id  
               name:$name
               lastname:$lastname
               email:$email){
@@ -336,20 +336,20 @@ module.exports = class post_author {
         let query = `
             mutation
               updatePost_author(
-                $id:ID!
-                $name:String
-                $lastname:String
+                $id:ID! 
+                $name:String 
+                $lastname:String 
                 $email:String               ){
                 updatePost_author(
-                  id:$id
-                  name:$name
-                  lastname:$lastname
+                  id:$id 
+                  name:$name 
+                  lastname:$lastname 
                   email:$email                 ){
-                  id
-                  name
-                  lastname
-                  email
-                  book_ids
+                  id 
+                  name 
+                  lastname 
+                  email 
+                  book_ids 
                 }
               }`
 
@@ -439,86 +439,100 @@ module.exports = class post_author {
 
 
 
-    static async add_book_ids(id, book_ids,benignErrorReporter) {
 
-      let query = `
+    /**
+     * add_book_ids - field Mutation (adapter-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}    Array of ids (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async add_book_ids(id, book_ids, benignErrorReporter) {
+        let query = `
             mutation
               updatePost_author{
                 updatePost_author(
                   id:"${id}"
                   addBooks:["${book_ids.join("\",\"")}"]
                 ){
-                  id
-                  book_ids
-                }
+                  id                  book_ids                }
               }`
 
-      console.log("QUERY: ", query );
-      //use default BenignErrorReporter if no BenignErrorReporter defined
-      benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef( benignErrorReporter );
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-      try {
-        // Send an HTTP request to the remote server
-        let response = await axios.post(remoteZendroURL, {query:query});
-        //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-        if(helper.isNonEmptyArray(response.data.errors)) {
-          benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return new post_author(response.data.data.updatePost_author);
+            } else {
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
-        // STATUS-CODE is 200
-        // NO ERROR as such has been detected by the server (Express)
-        // check if data was send
-        if(response && response.data && response.data.data) {
-          return new post_author(response.data.data.updatePost_author);
-        } else {
-          throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
-        }
-      } catch(error){
-        //handle caught errors
-        errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-      }
-
     }
 
 
 
-    static async remove_book_ids(id, book_ids,benignErrorReporter) {
-
-      let query = `
+    /**
+     * remove_book_ids - field Mutation (adapter-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}    Array of ids (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async remove_book_ids(id, book_ids, benignErrorReporter) {
+        let query = `
             mutation
               updatePost_author{
                 updatePost_author(
                   id:"${id}"
                   removeBooks:["${book_ids.join("\",\"")}"]
                 ){
-                  id
-                  book_ids
-                }
+                  id                  book_ids                }
               }`
 
-      console.log("QUERY: ", query );
-      //use default BenignErrorReporter if no BenignErrorReporter defined
-      benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef( benignErrorReporter );
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-      try {
-        // Send an HTTP request to the remote server
-        let response = await axios.post(remoteZendroURL, {query:query});
-        //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-        if(helper.isNonEmptyArray(response.data.errors)) {
-          benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return new post_author(response.data.data.updatePost_author);
+            } else {
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
-        // STATUS-CODE is 200
-        // NO ERROR as such has been detected by the server (Express)
-        // check if data was send
-        if(response && response.data && response.data.data) {
-          return new post_author(response.data.data.updatePost_author);
-        } else {
-          throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
-        }
-      } catch(error){
-        //handle caught errors
-        errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-      }
     }
+
+
+
+
 
 
 

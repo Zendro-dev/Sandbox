@@ -1,0 +1,25 @@
+{
+    "model" : "sq_book",
+    "storageType" : "distributed-data-model",
+    "attributes" : {
+        "id": "String",
+        "title": "String",
+        "genre": "String",
+        "ISBN": "String",
+        "author_ids": "[ String]"
+    },
+
+    "associations":{
+      "books":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "sq_author",
+        "targetKey": "book_ids",
+        "sourceKey": "author_ids",
+        "keyIn": "sq_book",
+        "targetStorageType": "distributed-data-model"
+      }
+    },
+
+    "internalId": "id"
+  }
