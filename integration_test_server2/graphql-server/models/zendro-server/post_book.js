@@ -440,14 +440,14 @@ module.exports = class post_book {
 
 
 
-    static async add_author_ids(id, author_ids) {
+    static async add_author_ids(id, author_ids, benignErrorReporter) {
 
       let query = `
             mutation
               updatePost_book{
                 updatePost_book(
                   id:"${id}"
-                  addAuthors:"[${author_ids.join(,)}]"
+                  addAuthors:["${author_ids.join("\",\"")}"]
                 ){
                   id
                   author_ids
@@ -469,7 +469,7 @@ module.exports = class post_book {
         // NO ERROR as such has been detected by the server (Express)
         // check if data was send
         if(response && response.data && response.data.data) {
-          return new <%- name -%>(response.data.data.update<%- nameCp -%>);
+          return new post_book(response.data.data.updatePost_book);
         } else {
           throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
         }
@@ -482,14 +482,14 @@ module.exports = class post_book {
 
 
 
-    static async remove_author_ids(id, author_ids) {
+    static async remove_author_ids(id, author_ids, benignErrorReporter) {
 
       let query = `
             mutation
               updatePost_book{
                 updatePost_book(
                   id:"${id}"
-                  removeAuthors:"[${author_ids.join(,)}]"
+                  removeAuthors:["${author_ids.join("\",\"")}"]
                 ){
                   id
                   author_ids
@@ -512,7 +512,7 @@ module.exports = class post_book {
         // NO ERROR as such has been detected by the server (Express)
         // check if data was send
         if(response && response.data && response.data.data) {
-          return new <%- name -%>(response.data.data.update<%- nameCp -%>);
+          return new post_book(response.data.data.updatePost_book);
         } else {
           throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
         }

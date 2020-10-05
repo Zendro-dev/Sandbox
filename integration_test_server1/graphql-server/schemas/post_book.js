@@ -6,29 +6,29 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     title: String
 
     """
     @original-field
-    
+
     """
     genre: String
 
     """
     @original-field
-    
+
     """
     ISBN: String
 
     """
     @original-field
-    
+
     """
     author_ids: [String]
 
-      
+
     """
     @search-request
     """
@@ -44,7 +44,7 @@ module.exports = `
     @count-request
     """
     countFilteredBooks(search: searchPost_authorInput) : Int
-  
+
     }
 type Post_bookConnection{
   edges: [Post_bookEdge]
@@ -98,8 +98,8 @@ type Post_bookEdge{
   }
 
   type Mutation {
-    addPost_book(id: ID!, title: String, genre: String, ISBN: String   , addBooks:[ID] , skipAssociationsExistenceChecks:Boolean = false): post_book!
-    updatePost_book(id: ID!, title: String, genre: String, ISBN: String   , addBooks:[ID], removeBooks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): post_book!
+    addPost_book(id: ID!, title: String, genre: String, ISBN: String   , addAuthors:[ID] , skipAssociationsExistenceChecks:Boolean = false): post_book!
+    updatePost_book(id: ID!, title: String, genre: String, ISBN: String   , addAuthors:[ID], removeAuthors:[ID]  , skipAssociationsExistenceChecks:Boolean = false): post_book!
     deletePost_book(id: ID!): String!
     bulkAddPost_bookCsv: String!
       }

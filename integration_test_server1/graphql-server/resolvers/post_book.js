@@ -141,17 +141,17 @@ post_book.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-post_book.prototype.add_books = async function(input, benignErrorReporter) {
+post_book.prototype.add_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
-    input.addBooks.forEach(id => {
+    input.addAuthors.forEach(id => {
         promises.push(models.post_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await post_book.add_author_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
-    this.author_ids = helper.unionIds(this.author_ids, input.addBooks);
+    await post_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
+    this.author_ids = helper.unionIds(this.author_ids, input.addAuthors);
 }
 
 /**
@@ -161,17 +161,17 @@ post_book.prototype.add_books = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-post_book.prototype.remove_books = async function(input, benignErrorReporter) {
+post_book.prototype.remove_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
-    input.removeBooks.forEach(id => {
+    input.removeAuthors.forEach(id => {
         promises.push(models.post_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await post_book.remove_author_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
-    this.author_ids = helper.differenceIds(this.author_ids, input.removeBooks);
+    await post_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
+    this.author_ids = helper.differenceIds(this.author_ids, input.removeAuthors);
 }
 
 
