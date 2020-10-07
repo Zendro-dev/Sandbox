@@ -30,7 +30,7 @@ const definition = {
         author_ids: '[ String]'
     },
     associations: {
-        books: {
+        authors: {
             type: 'to_many',
             reverseAssociationType: 'to_many',
             target: 'sq_author',
@@ -454,7 +454,7 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
     /**
-     * add_book_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_author_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
@@ -469,7 +469,7 @@ module.exports = class sq_book extends Sequelize.Model {
     }
 
     /**
-     * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * remove_author_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.

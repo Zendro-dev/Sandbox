@@ -11,6 +11,10 @@ const errorHelper = require('../../utils/errors');
 const definition = {
     model: 'sq_author',
     storageType: 'distributed-data-model',
+    registry: [
+        'author_remote',
+        'author_local'
+    ],
     attributes: {
         id: 'String',
         name: 'String',
@@ -36,7 +40,7 @@ const definition = {
     }
 };
 
-let registry = [];
+let registry = ["author_remote", "author_local"];
 
 module.exports = class sq_author {
 
@@ -71,7 +75,7 @@ module.exports = class sq_author {
      * @return {string}     baseUrl from request.
      */
     static get registeredAdapters() {
-        return [].reduce((a, c) => {
+        return ["author_remote", "author_local"].reduce((a, c) => {
             a[c] = adapters[c];
             return a;
         }, {});
@@ -88,7 +92,7 @@ module.exports = class sq_author {
     }
 
     /**
-     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
@@ -290,6 +294,22 @@ module.exports = class sq_author {
                 return graphQLConnection;
             });
     }
+
+
+
+    static async add_book_ids(id, book_ids, benignErrorReporter) {
+      let responsibleAdapter = this.adapterForIri(id);
+      return await adapters[responsibleAdapter].add_book_ids(id, book_ids, benignErrorReporter);
+
+    }
+
+
+    static async remove_book_ids(id, book_ids, benignErrorReporter) {
+      let responsibleAdapter = this.adapterForIri(id);
+      return await adapters[responsibleAdapter].remove_book_ids(id, book_ids, benignErrorReporter);
+    }
+
+
 
     static get definition() {
         return definition;

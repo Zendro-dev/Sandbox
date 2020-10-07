@@ -12,7 +12,7 @@
     },
 
     "associations":{
-      "books":{
+      "authors":{
         "type": "to_many",
         "reverseAssociationType": "to_many",
         "target": "sq_author",

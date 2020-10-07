@@ -1,6 +1,7 @@
 {
     "model" : "sq_book",
     "storageType" : "distributed-data-model",
+    "registry": ["book_remote","book_local"],
     "attributes" : {
         "id": "String",
         "title": "String",
@@ -10,7 +11,7 @@
     },
 
     "associations":{
-      "books":{
+      "authors":{
         "type": "to_many",
         "reverseAssociationType": "to_many",
         "target": "sq_author",

@@ -29,11 +29,11 @@ type sq_book{
   """
   @search-request
   """
-  booksConnection(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput): Sq_authorConnection
+  authorsConnection(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput): Sq_authorConnection
   """
   @count-request
   """
-  countFilteredBooks(search: searchSq_authorInput) : Int
+  countFilteredAuthors(search: searchSq_authorInput) : Int
 
 }
 
@@ -91,8 +91,8 @@ type Query {
 }
 
 type Mutation {
-  addSq_book(id: ID!, title: String, genre: String, ISBN: String   , addBooks:[ID] , skipAssociationsExistenceChecks:Boolean = false): sq_book!
-  updateSq_book(id: ID!, title: String, genre: String, ISBN: String   , addBooks:[ID], removeBooks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): sq_book!
+  addSq_book(id: ID!, title: String, genre: String, ISBN: String   , addAuthors:[ID] , skipAssociationsExistenceChecks:Boolean = false): sq_book!
+  updateSq_book(id: ID!, title: String, genre: String, ISBN: String   , addAuthors:[ID], removeAuthors:[ID]  , skipAssociationsExistenceChecks:Boolean = false): sq_book!
   deleteSq_book(id: ID!): String!
   bulkAddSq_bookCsv: String
   }

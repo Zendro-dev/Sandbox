@@ -14,19 +14,19 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addBooks': 'sq_author'
+    'addAuthors': 'sq_author'
 }
 
 
 
 /**
- * sq_book.prototype.countFilteredBooks - Count number of associated records that holds the conditions specified in the search argument
+ * sq_book.prototype.countFilteredAuthors - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-sq_book.prototype.countFilteredBooks = function({
+sq_book.prototype.countFilteredAuthors = function({
     search
 }, context) {
 
@@ -45,7 +45,7 @@ sq_book.prototype.countFilteredBooks = function({
 
 
 /**
- * sq_book.prototype.booksConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * sq_book.prototype.authorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -55,7 +55,7 @@ sq_book.prototype.countFilteredBooks = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-sq_book.prototype.booksConnection = function({
+sq_book.prototype.authorsConnection = function({
     search,
     order,
     pagination
@@ -86,53 +86,53 @@ sq_book.prototype.booksConnection = function({
  */
 sq_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-    if (helper.isNonEmptyArray(input.addBooks)) {
-        promises.push(this.add_books(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addAuthors)) {
+        promises.push(this.add_authors(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeBooks)) {
-        promises.push(this.remove_books(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeAuthors)) {
+        promises.push(this.remove_authors(input, benignErrorReporter));
     }
 
     await Promise.all(promises);
 }
 /**
- * add_books - field Mutation for to_many associations to add
+ * add_authors - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sq_book.prototype.add_books = async function(input, benignErrorReporter) {
+sq_book.prototype.add_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
-    input.addBooks.forEach(id => {
+    input.addAuthors.forEach(id => {
         promises.push(models.sq_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await sq_book.add_author_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
-    this.author_ids = helper.unionIds(this.author_ids, input.addBooks);
+    await sq_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
+    this.author_ids = helper.unionIds(this.author_ids, input.addAuthors);
 }
 
 /**
- * remove_books - field Mutation for to_many associations to remove
+ * remove_authors - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sq_book.prototype.remove_books = async function(input, benignErrorReporter) {
+sq_book.prototype.remove_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
-    input.removeBooks.forEach(id => {
+    input.removeAuthors.forEach(id => {
         promises.push(models.sq_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await sq_book.remove_author_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
-    this.author_ids = helper.differenceIds(this.author_ids, input.removeBooks);
+    await sq_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
+    this.author_ids = helper.differenceIds(this.author_ids, input.removeAuthors);
 }
 
 
@@ -206,7 +206,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(sq_book.countFilteredBooks({}, context));
+    promises_to_many.push(sq_book.countFilteredAuthors({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

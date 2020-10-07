@@ -11,6 +11,10 @@ const errorHelper = require('../../utils/errors');
 const definition = {
     model: 'sq_book',
     storageType: 'distributed-data-model',
+    registry: [
+        'book_remote',
+        'book_local'
+    ],
     attributes: {
         id: 'String',
         title: 'String',
@@ -19,7 +23,7 @@ const definition = {
         author_ids: '[ String]'
     },
     associations: {
-        books: {
+        authors: {
             type: 'to_many',
             reverseAssociationType: 'to_many',
             target: 'sq_author',
@@ -36,7 +40,7 @@ const definition = {
     }
 };
 
-let registry = [];
+let registry = ["book_remote", "book_local"];
 
 module.exports = class sq_book {
 
@@ -71,7 +75,7 @@ module.exports = class sq_book {
      * @return {string}     baseUrl from request.
      */
     static get registeredAdapters() {
-        return [].reduce((a, c) => {
+        return ["book_remote", "book_local"].reduce((a, c) => {
             a[c] = adapters[c];
             return a;
         }, {});
@@ -88,7 +92,7 @@ module.exports = class sq_book {
     }
 
     /**
-     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
@@ -289,6 +293,18 @@ module.exports = class sq_book {
                 let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
                 return graphQLConnection;
             });
+    }
+
+    static async add_author_ids(id, author_ids, benignErrorReporter) {
+      let responsibleAdapter = this.adapterForIri(id);
+      return await adapters[responsibleAdapter].add_author_ids(id, author_ids, benignErrorReporter);
+
+    }
+
+
+    static async remove_author_ids(id, author_ids, benignErrorReporter) {
+      let responsibleAdapter = this.adapterForIri(id);
+      return await adapters[responsibleAdapter].remove_author_ids(id, author_ids, benignErrorReporter);
     }
 
     static get definition() {

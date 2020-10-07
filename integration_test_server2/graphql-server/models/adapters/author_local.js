@@ -75,7 +75,8 @@ module.exports = class author_local extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             book_ids: {
-                type: Sequelize[dict['[String]']]
+                type: Sequelize[dict['[String]']],
+                defaultValue: []
             }
 
 
@@ -362,6 +363,8 @@ module.exports = class author_local extends Sequelize.Model {
 
 
 
+
+
     /**
      * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
@@ -377,6 +380,8 @@ module.exports = class author_local extends Sequelize.Model {
             book_ids: updated_ids
         });
     }
+
+
 
 
 

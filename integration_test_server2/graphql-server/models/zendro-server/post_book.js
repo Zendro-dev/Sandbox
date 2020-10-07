@@ -24,7 +24,7 @@ const definition = {
         author_ids: '[ String]'
     },
     associations: {
-        books: {
+        authors: {
             type: 'to_many',
             reverseAssociationType: 'to_many',
             target: 'post_author',
@@ -453,7 +453,7 @@ module.exports = class post_book {
               updatePost_book{
                 updatePost_book(
                   id:"${id}"
-                  addBooks:["${author_ids.join("\",\"")}"]
+                  addAuthors:["${author_ids.join("\",\"")}"]
                 ){
                   id                  author_ids                }
               }`
@@ -499,7 +499,7 @@ module.exports = class post_book {
               updatePost_book{
                 updatePost_book(
                   id:"${id}"
-                  removeBooks:["${author_ids.join("\",\"")}"]
+                  removeAuthors:["${author_ids.join("\",\"")}"]
                 ){
                   id                  author_ids                }
               }`

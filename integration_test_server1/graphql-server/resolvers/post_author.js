@@ -45,13 +45,11 @@ post_author.prototype.booksFilter = function({
         "valueType": "Array",
         "operator": "in"
     });
-
     return resolvers.post_books({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
-
 }
 
 /**
@@ -73,11 +71,9 @@ post_author.prototype.countFilteredBooks = function({
         "valueType": "Array",
         "operator": "in"
     });
-
     return resolvers.countPost_books({
         search: nsearch
     }, context);
-
 }
 
 /**
@@ -105,13 +101,11 @@ post_author.prototype.booksConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-
     return resolvers.post_booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
-
 }
 
 

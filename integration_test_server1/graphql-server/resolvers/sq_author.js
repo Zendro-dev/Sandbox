@@ -45,13 +45,11 @@ sq_author.prototype.booksFilter = function({
         "valueType": "Array",
         "operator": "in"
     });
-
     return resolvers.sq_books({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
-
 }
 
 /**
@@ -73,13 +71,9 @@ sq_author.prototype.countFilteredBooks = function({
         "valueType": "Array",
         "operator": "in"
     });
-
-    console.log("SEARCH", nsearch);
-
     return resolvers.countSq_books({
         search: nsearch
     }, context);
-
 }
 
 /**
@@ -107,13 +101,11 @@ sq_author.prototype.booksConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-
     return resolvers.sq_booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
-
 }
 
 

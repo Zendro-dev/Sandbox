@@ -257,6 +257,42 @@ module.exports = class book_remote {
      */
 
 
+    static async add_author_ids(id, author_ids, benignErrorReporter) {
+        let query = `
+                mutation
+                  updateSq_book{
+                    updateSq_book(
+                      id:"${id}"
+                      addAuthors:["${author_ids.join("\",\"")}"]
+                      skipAssociationsExistenceChecks: true
+                    ){
+                      id                      author_ids                    }
+                  }`
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.updateSq_book;
+            } else {
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
+
+
 
 
     /**
@@ -265,6 +301,42 @@ module.exports = class book_remote {
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
+
+
+    static async remove_author_ids(id, author_ids, benignErrorReporter) {
+        let query = `
+                mutation
+                  updateSq_book{
+                    updateSq_book(
+                      id:"${id}"
+                      removeAuthors:["${author_ids.join("\",\"")}"]
+                      skipAssociationsExistenceChecks: true
+                    ){
+                      id                      author_ids                    }
+                  }`
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.updateSq_book;
+            } else {
+                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
 
 
 
