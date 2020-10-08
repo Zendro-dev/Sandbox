@@ -43,7 +43,7 @@ export default function UserUploadFileDialog(props) {
   const [maxSizeError, setMaxSizeError] = useState(false);
   const file = useRef(null);
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl);
-  const appMaxUploadSize = useSelector(state => state.limits.appMaxUploadSize);
+  const maxUploadSize = useSelector(state => state.limits.maxUploadSize);
 
   //debouncing & event contention
   const isUploading = useRef(false);
@@ -55,20 +55,20 @@ export default function UserUploadFileDialog(props) {
       <Button color='inherit' variant='text' size='small' className={classes.notiErrorActionText} onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
-    </> 
+    </>
   );
 
   const handleSubmit = (event) => {
     if(file.current !== undefined && file.current !== null) {
-      
+
       let formData = new FormData();
-      let query = 'mutation{ bulkAddUserCsv{ id} }'
+      let query = 'mutation{ bulkAddUserCsv }'
       formData.append('csv_file', file.current);
       formData.append('query', query)
 
       var token = localStorage.getItem('token');
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
-      
+
       axios.post(graphqlServerUrl, formData,  {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -124,7 +124,7 @@ export default function UserUploadFileDialog(props) {
   }
 
   return (
-    <Dialog 
+    <Dialog
       open={open}
       onClose={(event) => {
         if(!isCanceling.current){
@@ -139,19 +139,19 @@ export default function UserUploadFileDialog(props) {
           <Typography variant="subtitle1" color='textSecondary' noWrap={true}>
           { t('modelPanels.uploadHelper') }
           </Typography>
-        </div>  
+        </div>
       </DialogTitle>
 
       <DialogContent dividers>
-        <Input 
-          className={classes.input} 
+        <Input
+          className={classes.input}
           type="file"
           inputProps={{
             accept: ".csv"
           }}
           onChange={(event) => {
             if(event.target.files.length > 0) {
-              if( (event.target.files[0].size / (1024*1024)) > appMaxUploadSize ) {
+              if( (event.target.files[0].size / (1024*1024)) > maxUploadSize ) {
                 setMaxSizeError(true);
                 setFileChosen(true);
                 file.current = null;
@@ -170,13 +170,13 @@ export default function UserUploadFileDialog(props) {
 
         {(maxSizeError) && (
           <Typography className={classes.text} color="secondary" variant="overline">
-              {t('modelPanels.messages.msg3') + String(appMaxUploadSize) + ' MB'}
+              {t('modelPanels.messages.msg3') + String(maxUploadSize) + ' MB'}
           </Typography>
         )}
       </DialogContent>
 
       <DialogActions>
-        <Button 
+        <Button
           className={classes.button}
           color="secondary"
           onClick={(event) => {
@@ -189,9 +189,9 @@ export default function UserUploadFileDialog(props) {
         >
           { t('modelPanels.cancel') }
         </Button>
-        <Button 
+        <Button
           className={classes.button}
-          variant="contained" 
+          variant="contained"
           color="primary"
           disabled={maxSizeError || !fileChosen}
           type="submit"

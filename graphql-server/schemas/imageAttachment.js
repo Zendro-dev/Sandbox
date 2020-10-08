@@ -42,24 +42,6 @@ module.exports = `
 
     """
     @original-field
-   
-    """
-    fileUrl: String
-  
-    """
-    @original-field
-   
-    """
-    smallTnUrl: String
-  
-    """
-    @original-field
-   
-    """
-    mediumTnUrl: String
- 
-    """
-    @original-field
     
     """
     licence: String
@@ -70,7 +52,34 @@ module.exports = `
     """
     description: String
 
-      
+    """
+    @original-field
+    
+    """
+    personId: Int
+
+  
+    """
+    @original-field
+  
+    """
+    fileUrl: String
+
+    """
+    @original-field
+  
+    """
+    smallTnUrl: String
+
+    """
+    @original-field
+  
+    """
+    mediumTnUrl: String
+
+
+  person(search: searchPersonInput): Person
+    
     }
 type ImageAttachmentConnection{
   edges: [ImageAttachmentEdge]
@@ -103,10 +112,12 @@ type ImageAttachmentEdge{
     mediumTnPath
     licence
     description
+    personId
   }
   input searchImageAttachmentInput {
     field: ImageAttachmentField
-    value: typeValue
+    value: String
+    valueType: InputType
     operator: Operator
     search: [searchImageAttachmentInput]
   }
@@ -116,20 +127,25 @@ type ImageAttachmentEdge{
     order: Order
   }
 
-
+  input bulkAssociationImageAttachmentWithPersonIdInput{
+    id: ID!
+    personId: ID!
+  }
 
   type Query {
-    imageAttachments(search: searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationInput ): [ImageAttachment]
+    imageAttachments(search: searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationInput! ): [ImageAttachment]
     readOneImageAttachment(id: ID!): ImageAttachment
     countImageAttachments(search: searchImageAttachmentInput ): Int
     vueTableImageAttachment : VueTableImageAttachment    csvTableTemplateImageAttachment: [String]
-    imageAttachmentsConnection(search:searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationCursorInput ): ImageAttachmentConnection
+    imageAttachmentsConnection(search:searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationCursorInput! ): ImageAttachmentConnection
   }
 
   type Mutation {
-    addImageAttachment( fileName: String, fileSizeKb: Float, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String    , skipAssociationsExistenceChecks:Boolean = false): ImageAttachment!
-    updateImageAttachment(id: ID!, fileName: String, fileSizeKb: Float, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String    , skipAssociationsExistenceChecks:Boolean = false): ImageAttachment!
+    addImageAttachment( fileName: String, fileSizeKb: Float, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String , addPerson:ID   , skipAssociationsExistenceChecks:Boolean = false): ImageAttachment!
+    updateImageAttachment(id: ID!, fileName: String, fileSizeKb: Float, fileType: String, filePath: String, smallTnPath: String, mediumTnPath: String, licence: String, description: String , addPerson:ID, removePerson:ID    , skipAssociationsExistenceChecks:Boolean = false): ImageAttachment!
     deleteImageAttachment(id: ID!): String!
     bulkAddImageAttachmentCsv: String!
-      }
+    bulkAssociateImageAttachmentWithPersonId(bulkAssociationInput: [bulkAssociationImageAttachmentWithPersonIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateImageAttachmentWithPersonId(bulkAssociationInput: [bulkAssociationImageAttachmentWithPersonIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;

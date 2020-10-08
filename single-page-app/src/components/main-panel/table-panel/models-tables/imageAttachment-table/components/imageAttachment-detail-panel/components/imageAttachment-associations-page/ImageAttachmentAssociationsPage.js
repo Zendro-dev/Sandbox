@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import PersonCompactView from './person-compact-view/PersonCompactView'
 import ImageAttachmentAssociationsMenuTabs from './ImageAttachmentAssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -17,9 +19,11 @@ const useStyles = makeStyles(theme => ({
 export default function ImageAttachmentAssociationsPage(props) {
   const classes = useStyles();
   const {
+    item,
     deleted,
+    handleClickOnPersonRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('no-associations');
+  const [associationSelected, setAssociationSelected] = React.useState('person');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -44,8 +48,22 @@ export default function ImageAttachmentAssociationsPage(props) {
           />
         </Grid>
 
+        {/* Person Compact View */}
+        {(associationSelected === 'person') && (
+          <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
+            <PersonCompactView
+              item={item}
+              handleClickOnPersonRow={handleClickOnPersonRow}
+            />
+          </Grid>
+        )}
 
       </Grid>
     </Fade>
   );
 }
+ImageAttachmentAssociationsPage.propTypes = {
+  item: PropTypes.object.isRequired,
+  deleted: PropTypes.bool,
+  handleClickOnPersonRow: PropTypes.func.isRequired, 
+};

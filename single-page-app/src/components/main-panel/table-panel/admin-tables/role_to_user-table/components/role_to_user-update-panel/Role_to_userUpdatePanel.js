@@ -78,7 +78,7 @@ export default function RoleToUserUpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-  
+
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
@@ -304,6 +304,7 @@ export default function RoleToUserUpdatePanel(props) {
   }
 
 
+
 function setAjvErrors(err) {
     //check
     if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
@@ -357,7 +358,7 @@ function setAjvErrors(err) {
     * Updates state to inform new @item updated.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -387,84 +388,49 @@ function setAjvErrors(err) {
     //add & remove: to_many's
 
     /*
-      API Request: updateRole_to_user
+      API Request: api.role_to_user.updateItem
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.updateItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+            newError.path=['Role_to_users', `id:${item.id}`, 'update'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
           newError.path=['Role_to_users', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
-          return;
-        }
-
-        //check: updateRole_to_user
-        let updateRole_to_user = response.data.data.updateRole_to_user;
-        if(updateRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'updateRole_to_user ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: updateRole_to_user type
-        if(typeof updateRole_to_user !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'role_to_user ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'updateRole_to_user ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', `id:${item.id}`, 'update'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+          return false;
+        } 
 
         //ok
         enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
@@ -476,7 +442,7 @@ function setAjvErrors(err) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, updateRole_to_user);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -486,7 +452,7 @@ function setAjvErrors(err) {
       //error
       .catch((err) => { //error: on api.role_to_user.updateItem
         if(err.isCanceled) {
-          return
+          return;
         } else {
           //set ajv errors
           setAjvErrors(err);
@@ -496,7 +462,7 @@ function setAjvErrors(err) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
           newError.path=['Role_to_users', `id:${item.id}`, 'update'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -637,6 +603,16 @@ function setAjvErrors(err) {
   const handleUntransferFromAdd =(associationKey, itemId) => {
   }
 
+  const handleTransferToRemove = (associationKey, itemId) => {
+    switch(associationKey) {
+
+      default:
+        break;
+    }
+  }
+
+  const handleUntransferFromRemove =(associationKey, itemId) => {
+  }
 
 
   const startTimerToDebounceTabsChange = () => {
@@ -789,6 +765,8 @@ function setAjvErrors(err) {
                 item={item}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToRemove={handleTransferToRemove}
+                handleUntransferFromRemove={handleUntransferFromRemove}
               />
             </Grid>
           )}

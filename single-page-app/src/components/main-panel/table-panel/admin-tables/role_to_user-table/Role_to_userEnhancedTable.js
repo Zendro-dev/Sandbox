@@ -90,7 +90,7 @@ export default function RoleToUserEnhancedTable(props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [items, setItems] = useState([]);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(-1);
   const [search, setSearch] = useState('');
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('id');
@@ -103,6 +103,7 @@ export default function RoleToUserEnhancedTable(props) {
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
   const rowsPerPageRef = useRef(25);
+  const isCountingRef = useRef(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
@@ -120,9 +121,11 @@ export default function RoleToUserEnhancedTable(props) {
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
 
   const cancelablePromises = useRef([]);
+  const cancelableCountingPromises = useRef([]);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const changes = useSelector(state => state.changes);
+  const lastFetchTime = useRef(Date.now());
   const dispatch = useDispatch();
 
   //snackbar
@@ -142,6 +145,23 @@ export default function RoleToUserEnhancedTable(props) {
     </> 
   ));
 
+  //snackbar (for: getCount)
+  const variantB = useRef('info');
+  const errorsB = useRef([]);
+  const contentB = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsB.current}
+    variant={variantB.current} />
+  ));
+  const actionTextB = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionB = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextB.current}
+      </Button>
+    </> 
+  ));
+
   //toggle buttons
   const [toggleButtonValue, setToggleButtonValue] = useState('table');
 
@@ -157,8 +177,11 @@ export default function RoleToUserEnhancedTable(props) {
   /**
    * Callbacks:
    *  showMessage
+   *  showMessageB
    *  configurePagination
+   *  onEmptyPage
    *  clearRequestGetData
+   *  getCount
    *  getData
    */
 
@@ -175,6 +198,22 @@ export default function RoleToUserEnhancedTable(props) {
       persist: true,
       action: !withDetail ? action.current : undefined,
       content: withDetail ? content.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * showMessageB
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageB = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantB.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionB.current : undefined,
+      content: withDetail ? contentB.current : undefined,
     });
   },[enqueueSnackbar]);
 
@@ -283,6 +322,53 @@ export default function RoleToUserEnhancedTable(props) {
     }
   }, []);
 
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+    
+  }, [configurePagination]);
+
   /**
    * clearRequestGetData
    * 
@@ -293,278 +379,82 @@ export default function RoleToUserEnhancedTable(props) {
     //configure pagination
     configurePagination('reset');
 
-    setCount(0);
     setItems([]);
     isOnApiRequestRef.current = false;
     isCursorPaginating.current = false;
     setIsOnApiRequest(false);
-  },[configurePagination])
+  },[configurePagination]);
 
   /**
-    * getData
+    * getCount
     * 
-    * Get @items and @count from GrahpQL Server.
+    * Get @count from GrahpQL Server (async).
     * Uses current state properties to fill query request.
-    * Updates state to inform new @items and @count retreived.
+    * Updates state to inform new @count retreived.
     * 
     */
-  const getData = useCallback(() => {
-    updateSizes();
-    isOnApiRequestRef.current = true;
-    setIsOnApiRequest(true);
-    Boolean(dataTrigger); //avoid warning
-    errors.current = [];
-
+  const getCount = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRef.current) return;
+    
+    cancelCountingPromises();
+    isCountingRef.current = true;
+    errorsB.current = [];
+    
     /*
-      API Request: countRole_to_users
+      API Request: api.role_to_user.getCountItems
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.getCountItems(graphqlServerUrl, search));
-    cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    cancelableCountingPromises.current.push(cancelableApiReq);
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
-        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantB.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'getCount()', request: 'api.role_to_user.getCountItems'}];
+            newError.path=['Role_to_users'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsB.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageB(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
-          variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'countRole_to_users', method: 'getData()', request: 'api.role_to_user.getCountItems'}];
+          variantB.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'getCount()', request: 'api.role_to_user.getCountItems'}];
           newError.path=['Role_to_users'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsB.current.push(newError);
           console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
+ 
+          showMessageB(newError.message, withDetails);
           return;
-        }
-        
-        //check: countRole_to_users
-        let countRole_to_users = response.data.data.countRole_to_users;
-        if(countRole_to_users === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'countRole_to_users ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'role_to_user', query: 'countRole_to_users', method: 'getData()', request: 'api.role_to_user.getCountItems'}];
-          newError.path=['Role_to_users'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-
-        //check: countRole_to_users type
-        if(!Number.isInteger(countRole_to_users)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'countRole_to_users ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role_to_user', query: 'countRole_to_users', method: 'getData()', request: 'api.role_to_user.getCountItems'}];
-          newError.path=['Role_to_users'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = 'countRole_to_users ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'countRole_to_users', method: 'getData()', request: 'api.role_to_user.getCountItems'}];
-          newError.path=['Role_to_users'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
         }
 
         //ok
-        setCount(countRole_to_users);
+        setCount(response.value);
+        isCountingRef.current = false;
 
-
-          /*
-            API Request: role_to_usersConnection
-          */
-          let variables = {
-            pagination: {...paginationRef.current}
-          };
-          let cancelableApiReqB = makeCancelable(api.role_to_user.getItemsConnection(
-            graphqlServerUrl,
-            search,
-            orderBy,
-            order,
-            variables
-          ));
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            //resolved
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: 'role_to_user', query: 'role_to_usersConnection', method: 'getData()', request: 'api.role_to_user.getItemsConnection'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-
-              //check: role_to_usersConnection
-              let role_to_usersConnection = response.data.data.role_to_usersConnection;
-              if(role_to_usersConnection === null) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = 'role_to_usersConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: 'role_to_user', query: 'role_to_usersConnection', method: 'getData()', request: 'api.role_to_user.getItemsConnection'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-
-              //check: role_to_usersConnection type
-              if(typeof role_to_usersConnection !== 'object'
-              || !Array.isArray(role_to_usersConnection.edges)
-              || typeof role_to_usersConnection.pageInfo !== 'object' 
-              || role_to_usersConnection.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = 'role_to_usersConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: 'role_to_user', query: 'role_to_usersConnection', method: 'getData()', request: 'api.role_to_user.getItemsConnection'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-              //get items
-              let its = role_to_usersConnection.edges.map(o => o.node);
-              let pi = role_to_usersConnection.pageInfo;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = 'role_to_usersConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: 'role_to_user', query: 'role_to_usersConnection', method: 'getData()', request: 'api.role_to_user.getItemsConnection'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-              }
-                
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRef.current = false;
-                isCursorPaginating.current = false;
-                isForwardPagination.current = false;
-                setIsOnApiRequest(false);
-                
-                //reload
-                setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfo.current = pi;
-              setHasPreviousPage(pageInfo.current.hasPreviousPage);
-              setHasNextPage(pageInfo.current.hasNextPage);
-
-              //configure pagination (default)
-              configurePagination('reload');
-              
-              //ok
-              setItems([...its]);
-
-              //ends request
-              isOnApiRequestRef.current = false;
-              isCursorPaginating.current = false;
-              setIsOnApiRequest(false);
-
-              /**
-               * Display graphql errors
-               */
-              if(errors.current.length > 0) {
-                let newError = {};
-                let withDetails=true;
-                variant.current='info';
-                newError.message = 'getData() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
-                newError.locations=[{model: 'role_to_user', method: 'getData()'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-              }
-
-              return;
-            },
-            //rejected
-            (err) => {
-              throw err;
-            })
-            //error
-            .catch((err) => { //error: on api.role_to_user.getItemsConnection
-              if(err.isCanceled) {
-                return;
-              } else {
-                let newError = {};
-                let withDetails=true;
-                variant.current='error';
-                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                newError.locations=[{model: 'role_to_user', query: 'role_to_usersConnection', method: 'getData()', request: 'api.role_to_user.getItemsConnection'}];
-                newError.path=['Role_to_users'];
-                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                errors.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessage(newError.message, withDetails);
-                clearRequestGetData();
-                return;
-              }
-            });
+        return;
       },
       //rejected
       (err) => {
-        throw err;
+        if(err.isCanceled) return;
+        else throw err;
       })
       //error
       .catch((err) => { //error: on api.role_to_user.getCountItems
@@ -573,9 +463,136 @@ export default function RoleToUserEnhancedTable(props) {
         } else {
           let newError = {};
           let withDetails=true;
+          variantB.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'role_to_user', method: 'getCount()', request: 'api.role_to_user.getCountItems'}];
+          newError.path=['Role_to_users'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageB(newError.message, withDetails);
+          return;
+        }
+      });
+  }, [graphqlServerUrl, t, search, showMessageB]);
+
+  /**
+    * getData
+    * 
+    * Get @items from GrahpQL Server.
+    * Uses current state properties to fill query request.
+    * Updates state to inform new @items retreived.
+    * 
+    */
+  const getData = useCallback(async () => {
+    updateSizes();
+    isOnApiRequestRef.current = true;
+    setIsOnApiRequest(true);
+    Boolean(dataTrigger); //avoid warning
+    errors.current = [];
+
+    //count (async)
+    getCount();
+
+    let variables = {
+      pagination: {...paginationRef.current}
+    };
+    /*
+      API Request: api.role_to_user.getItems
+    */
+    let cancelableApiReq = makeCancelable(api.role_to_user.getItems(
+      graphqlServerUrl,
+      search,
+      orderBy,
+      order,
+      variables
+    ));
+    cancelablePromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'getData()', request: 'api.role_to_user.getItems'}];
+            newError.path=['Role_to_users'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'getData()', request: 'api.role_to_user.getItems'}];
+          newError.path=['Role_to_users'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+ 
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+
+        //get items
+        let its = response.value.edges.map(o => o.node);
+        let pi =  response.value.pageInfo;
+          
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 ) 
+        {
+          onEmptyPage(pi);
+          return;
+        }
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
+      
+        //ok
+        setItems([...its]);
+
+        //ends request
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        return;
+      },
+      //rejected
+      (err) => {
+        throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.role_to_user.getItems
+        if(err.isCanceled) {
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'countRole_to_users', method: 'getData()', request: 'api.role_to_user.getCountItems'}];
+          newError.locations=[{model: 'role_to_user', method: 'getData()', request: 'api.role_to_user.getItems'}];
           newError.path=['Role_to_users'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -586,7 +603,7 @@ export default function RoleToUserEnhancedTable(props) {
           return;
         }
       });
-  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, showMessage, clearRequestGetData, configurePagination]);
+  }, [graphqlServerUrl, t, dataTrigger, search, orderBy, order, getCount, showMessage, clearRequestGetData, configurePagination, onEmptyPage]);
 
   /**
    * Effects
@@ -597,6 +614,8 @@ export default function RoleToUserEnhancedTable(props) {
     return function cleanup() {
       cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
+      cancelableCountingPromises.current.forEach(p => p.cancel());
+      cancelableCountingPromises.current = [];
     };
   }, []);
 
@@ -610,7 +629,41 @@ export default function RoleToUserEnhancedTable(props) {
   }, [getData]);
 
   useEffect(() => {
-    if(changes&&changes.changesCompleted) {
+    /**
+     * Checks
+     */
+    if(!changes) {
+      return;
+    }
+    if(!changes.lastChangeTimestamp || !lastFetchTime.current) {
+      return;
+    }
+    let isNewChange = (lastFetchTime.current<changes.lastChangeTimestamp);
+
+    /*
+     * Update timestamps
+     */
+    lastFetchTime.current = Date.now();
+
+    /**
+     * on: individual delete
+     */
+    if(isNewChange&&!changes.changesCompleted&&changes.lastModelChanged&&changes.lastModelChanged['role_to_user']
+    &&(Object.keys(changes.lastModelChanged['role_to_user']).length===1)
+    &&(changes.lastModelChanged['role_to_user'][Object.keys(changes.lastModelChanged['role_to_user'])[0]].op === "delete")
+    ) {
+      //decrement count
+      setCount(count-1);
+      //count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+      getCount();
+    }
+
+    /**
+     * on: changes completed
+     */
+    if(changes.changesCompleted) {
       //if there were changes
       if(changes.models&&
           (Object.keys(changes.models).length>0)) {
@@ -625,7 +678,7 @@ export default function RoleToUserEnhancedTable(props) {
       //clear changes state
       dispatch(clearChanges());
     }
-  }, [changes, dispatch, configurePagination]);
+  }, [changes, count, getCount, dispatch, configurePagination]);
 
   useEffect(() => {
     //return if this flag is set
@@ -698,7 +751,7 @@ export default function RoleToUserEnhancedTable(props) {
     * Updates state to inform new @item deleted.
     * 
     */
-  function doDelete(event, item) {
+  async function doDelete(event, item) {
     errors.current = [];
 
     let variables = {};
@@ -706,11 +759,11 @@ export default function RoleToUserEnhancedTable(props) {
     variables.id = item.id;
 
     /*
-      API Request: deleteRole_to_user
+      API Request: api.role_to_user.deleteItem
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
@@ -718,60 +771,36 @@ export default function RoleToUserEnhancedTable(props) {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         //check response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+            newError.path=['Role_to_users', `id:${item.id}`, 'delete'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
 
-        //check: response data
-        if(!response.data ||!response.data.data) {
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
           newError.path=['Role_to_users', `id:${item.id}`, 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+  
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
-        }
-
-        //check: deleteRole_to_user
-        let deleteRole_to_user = response.data.data.deleteRole_to_user;
-        if(deleteRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'deleteRole_to_user ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
-          newError.path=['Role_to_users', `id:${item.id}` ,'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoDelete();
-          return;
-        }
-
-        /**
-         * Type of deleteRole_to_user is not validated. Only not null is
-         * checked above to confirm successfull operation.
-         */
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'deleteRole_to_user ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
-          newError.path=['Role_to_users', `id:${item.id}` ,'delete'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -784,6 +813,12 @@ export default function RoleToUserEnhancedTable(props) {
             horizontal: 'left',
           },
         });
+        //decrement count
+        setCount(count-1);
+        //will count
+        cancelCountingPromises();
+        isCountingRef.current = false;
+        
         reloadData();
         return;
       },
@@ -800,7 +835,7 @@ export default function RoleToUserEnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+          newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
           newError.path=['Role_to_users', `id:${item.id}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -821,87 +856,52 @@ export default function RoleToUserEnhancedTable(props) {
     * Updates state to inform new @item received.
     * 
     */
-  function getCsvTemplate() {
+  async function getCsvTemplate() {
     errors.current = [];
 
     /*
-      API Request: csvTableTemplateRole_to_user
+      API Request: api.role_to_user.tableTemplate
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.tableTemplate(graphqlServerUrl));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
+            newError.path=['Role_to_users', 'csvTemplate'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'csvTableTemplateRole_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
           newError.path=['Role_to_users', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
-          clearRequestGetCsvTemplate();
-          showMessage(newError.message, withDetails);
-          return;
-        }
-
-        //check: csvTableTemplateRole_to_user
-        let csvTableTemplateRole_to_user = response.data.data.csvTableTemplateRole_to_user;
-        if(csvTableTemplateRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'csvTableTemplateRole_to_user ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'role_to_user', query: 'csvTableTemplateRole_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
-          newError.path=['Role_to_users', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
+  
           showMessage(newError.message, withDetails);
           clearRequestGetCsvTemplate();
           return;
-        }
-
-        //check: csvTableTemplateRole_to_user type
-        if(!Array.isArray(csvTableTemplateRole_to_user)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'csvTableTemplateRole_to_user ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role_to_user', query: 'csvTableTemplateRole_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
-          newError.path=['Role_to_users', 'csvTemplate'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetCsvTemplate();
-          return;
-        }
-        
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'csvTableTemplateRole_to_user ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'csvTableTemplateRole_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
-          newError.path=['Role_to_users', 'csvTemplate'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -923,7 +923,6 @@ export default function RoleToUserEnhancedTable(props) {
         document.body.appendChild(link);
         link.click();
         return;
-
       },
       //rejected
       (err) => {
@@ -938,7 +937,7 @@ export default function RoleToUserEnhancedTable(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'csvTableTemplateRole_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
+          newError.locations=[{model: 'role_to_user', method: 'getCsvTemplate()', request: 'api.role_to_user.tableTemplate'}];
           newError.path=['Role_to_users', 'csvTemplate'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -954,6 +953,10 @@ export default function RoleToUserEnhancedTable(props) {
   /**
     * Utils
     */
+  function cancelCountingPromises() {
+    cancelableCountingPromises.current.forEach(p => p.cancel());
+    cancelableCountingPromises.current = [];    
+  }
 
   function clearRequestDoDelete() {
     //nothing to do.
@@ -1023,6 +1026,12 @@ export default function RoleToUserEnhancedTable(props) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+      setCount(-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+
+      //search
       setSearch(text);
     }
   };
@@ -1156,6 +1165,7 @@ export default function RoleToUserEnhancedTable(props) {
     dispatch(changesCompleted());
     delayedCloseCreatePanel(event, 500);
     if(status) {
+      setCount(count+1);
       reloadData();
     }
   }
@@ -1340,14 +1350,14 @@ export default function RoleToUserEnhancedTable(props) {
 
                       {/* No-data message */}
                       <Fade
-                        in={(!isOnApiRequest && count === 0)}
+                        in={(!isOnApiRequest && items.length === 0)}
                       >
                         <Box
                           id='RoleToUserEnhancedTable-box-noData'
                           className={classes.tableBackdrop}
                           bgcolor='rgba(255, 255, 255, 0.0)'
-                          width={(!isOnApiRequest && count === 0)?'100%':0}
-                          height={(!isOnApiRequest && count === 0)?'100%':0}
+                          width={(!isOnApiRequest && items.length === 0)?'100%':0}
+                          height={(!isOnApiRequest && items.length === 0)?'100%':0}
                           p={0}
                           position="absolute"
                           top={0}
@@ -1370,13 +1380,13 @@ export default function RoleToUserEnhancedTable(props) {
                           permissions={permissions}
                           order={order}
                           orderBy={orderBy}
-                          rowCount={count}
+                          rowCount={items.length}
                           onRequestSort={handleRequestSort}
                         />
 
                         {/* Table Body */}
                         <Fade
-                          in={(!isOnApiRequest && count > 0)}
+                          in={(!isOnApiRequest && items.length > 0)}
                         >
                           <TableBody id='RoleToUserEnhancedTable-tableBody'>
                             {
@@ -1471,6 +1481,7 @@ export default function RoleToUserEnhancedTable(props) {
                                       </Tooltip>
                                     </TableCell>
 
+
                                     {/* userId */}
                                     <TableCell
                                       key='userId'
@@ -1505,7 +1516,7 @@ export default function RoleToUserEnhancedTable(props) {
                       count={count}
                       rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                       rowsPerPage={(count <=10) ? '' : rowsPerPage}
-                      labelRowsPerPage = { t('modelPanels.rows') }
+                      labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
                       hasNextPage={hasNextPage}
                       hasPreviousPage={hasPreviousPage}
                       handleFirstPageButtonClick={handleFirstPageButtonClick}

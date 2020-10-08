@@ -12,12 +12,54 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
+//#imgs
 const fileTools = require('../utils/file-tools');
-
-const associationArgsDef = {}
-
+//imgs#
 
 
+const associationArgsDef = {
+    'addPerson': 'person'
+}
+
+
+
+/**
+ * imageAttachment.prototype.person - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+imageAttachment.prototype.person = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.personId)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOnePerson({
+                [models.person.idAttribute()]: this.personId
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.person.idAttribute(),
+                "value": this.personId,
+                "operator": "eq"
+            });
+            let found = await resolvers.people({
+                search: nsearch,
+                pagination: {
+                    limit: 1
+                }
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -32,64 +74,42 @@ const associationArgsDef = {}
 imageAttachment.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
 
+    if (helper.isNotUndefinedAndNotNull(input.addPerson)) {
+        promises.push(this.add_person(input, benignErrorReporter));
+    }
 
+    if (helper.isNotUndefinedAndNotNull(input.removePerson)) {
+        promises.push(this.remove_person(input, benignErrorReporter));
+    }
 
     await Promise.all(promises);
 }
-
-
+/**
+ * add_person - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+imageAttachment.prototype.add_person = async function(input, benignErrorReporter) {
+    await imageAttachment.add_personId(this.getIdValue(), input.addPerson, benignErrorReporter);
+    this.personId = input.addPerson;
+}
 
 /**
- * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
- * set of requested records does not exceed the record limit set in globals.js.
+ * remove_person - field Mutation for to_one associations to remove
  *
- * @param {object} {search}  Search argument for filtering records
- * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
- * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
- * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
- * to start fetching.
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {string} modelName The model to do the count
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-async function checkCountAndReduceRecordsLimit({
-    search,
-    pagination
-}, context, resolverName, modelName = 'imageAttachment') {
-    //defaults
-    let inputPaginationValues = {
-        limit: undefined,
-        offset: 0,
-        search: undefined,
-        order: [
-            ["id", "ASC"]
-        ],
+imageAttachment.prototype.remove_person = async function(input, benignErrorReporter) {
+    if (input.removePerson == this.personId) {
+        await imageAttachment.remove_personId(this.getIdValue(), input.removePerson, benignErrorReporter);
+        this.personId = null;
     }
-
-    //check search
-    helper.checkSearchArgument(search);
-    if (search) inputPaginationValues.search = {
-        ...search
-    }; //copy
-
-    //get generic pagination values
-    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
-    //get records count
-    let count = (await models[modelName].countRecords(paginationValues.search));
-    //get effective records count
-    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
-    //do check and reduce of record limit.
-    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
 }
 
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneImageAttachment")
-}
+
+
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -107,6 +127,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_one.push(imageAttachment.person({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -148,10 +169,7 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'ImageAttachment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "imageAttachments");
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "imageAttachments");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await imageAttachment.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -175,10 +193,9 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'ImageAttachment', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "imageAttachmentsConnection");
+            helper.checkCursorBasedPaginationArgument(pagination);
+            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+            helper.checkCountAndReduceRecordsLimit(limit, context, "imageAttachmentsConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await imageAttachment.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -197,7 +214,7 @@ module.exports = {
         id
     }, context) {
         if (await checkAuthorization(context, 'ImageAttachment', 'read') === true) {
-            checkCountForOneAndReduceRecordsLimit(context);
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneImageAttachment");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await imageAttachment.readById(id, benignErrorReporter);
         } else {
@@ -248,25 +265,26 @@ module.exports = {
      * @return {object}         New record created
      */
     addImageAttachment: async function(input, context) {
-      let authorization = await checkAuthorization(context, 'ImageAttachment', 'create');
-      if (authorization === true) {          
-          //-- @Images: add image file
-          await fileTools.addImageFile(input, context);
-          //--
-          let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-          await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
-          await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
-          if (!input.skipAssociationsExistenceChecks) {
-              await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
-          }
-          let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-          let createdImageAttachment = await imageAttachment.addOne(inputSanitized, benignErrorReporter);
-          await createdImageAttachment.handleAssociations(inputSanitized, benignErrorReporter);
-          return createdImageAttachment;
-      } else {
-          throw new Error("You don't have authorization to perform this action");
-      }
-  },
+        let authorization = await checkAuthorization(context, 'ImageAttachment', 'create');
+        if (authorization === true) {
+            //#imgs
+            await fileTools.addImageFile(input, context, globals.CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED);
+            //imgs#
+
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
+            if (!input.skipAssociationsExistenceChecks) {
+                await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
+            }
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            let createdImageAttachment = await imageAttachment.addOne(inputSanitized, benignErrorReporter);
+            await createdImageAttachment.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdImageAttachment;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
     /**
      * bulkAddImageAttachmentCsv - Load csv file of records
@@ -294,9 +312,10 @@ module.exports = {
         id
     }, context) {
         if (await checkAuthorization(context, 'ImageAttachment', 'delete') === true) {
-          //-- @Images: delete image file
-          await fileTools.deleteImageFile(await imageAttachment.readById(id));
-          //--
+            //#imgs
+            await fileTools.deleteImageFile(await imageAttachment.readById(id));
+            //imgs#
+
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
                 return imageAttachment.deleteOne(id, benignErrorReporter);
@@ -318,9 +337,10 @@ module.exports = {
     updateImageAttachment: async function(input, context) {
         let authorization = await checkAuthorization(context, 'ImageAttachment', 'update');
         if (authorization === true) {
-            //-- @Images: update image file
+            //#imgs
             await fileTools.updateImageFile(input, context, await imageAttachment.readById(input.id));
-            //--
+            //imgs#
+
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
@@ -336,6 +356,46 @@ module.exports = {
         }
     },
 
+    /**
+     * bulkAssociateImageAttachmentWithPersonId - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateImageAttachmentWithPersonId: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                personId
+            }) => personId)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), imageAttachment);
+        }
+        return await imageAttachment.bulkAssociateImageAttachmentWithPersonId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateImageAttachmentWithPersonId - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateImageAttachmentWithPersonId: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                personId
+            }) => personId)), models.person);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                id
+            }) => id)), imageAttachment);
+        }
+        return await imageAttachment.bulkDisAssociateImageAttachmentWithPersonId(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
      * csvTableTemplateImageAttachment - Returns table's template

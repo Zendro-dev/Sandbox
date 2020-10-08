@@ -11,8 +11,15 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 
-import StringField from './components/StringField'
+//#imgs
+import { useState } from 'react';
+import CardMedia from '@material-ui/core/CardMedia';
+import Link from '@material-ui/core/Link';
+import Fade from '@material-ui/core/Fade';
+import BrokenImage from '@material-ui/icons/BrokenImage';
+//imgs#
 
+import StringField from './components/StringField'
 import FloatField from './components/FloatField'
 
 const useStyles = makeStyles(theme => ({
@@ -39,12 +46,25 @@ const useStyles = makeStyles(theme => ({
   ibox: {
     padding: theme.spacing(2),
   },
+
+//#imgs
+  cardMedia: {
+    height: 140,
+  },
+//imgs#
+
 }));
 
 export default function ImageAttachmentAttributesFormView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { item, valueOkStates } = props;
+
+//#imgs
+  const [imageAvailable, setImageAvailable] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
+//imgs#
+
 
   function getItemsOk() {
     let countOk=0;
@@ -79,6 +99,44 @@ export default function ImageAttachmentAttributesFormView(props) {
           </Card>
 
           <Card className={classes.card}>
+
+
+{/* #imgs */}
+            {/* 
+              Image 
+            */}
+            {imageAvailable && (
+              <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation()}}>
+                <Fade in={(imageLoaded)}>
+                  <CardMedia
+                    component="img"
+                    alt=""
+                    height="350"
+                    image={item.fileUrl}
+                    title={item.fileName ? item.fileName : ""}
+                    onLoad={() => {setImageLoaded(true)}}
+                    onError={() => {setImageAvailable(false)}}
+                  />
+                </Fade>
+              </Link>
+            )}
+            {!imageAvailable && (
+              <CardContent key='broken-image' className={classes.cardContent}>
+                <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                  {/*Broken image icon*/}
+                  <Grid item>
+                    <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation()}}>
+                      <BrokenImage color="disabled" />
+                    </Link>
+                  </Grid>
+                  <Grid item>
+                    <Typography variant="h6" display="inline" color="textSecondary">{t('modelPanels.imageNotAvailable', 'Image not available')}</Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            )}
+{/* imgs# */}
+
             {/* 
               Fields 
             */}

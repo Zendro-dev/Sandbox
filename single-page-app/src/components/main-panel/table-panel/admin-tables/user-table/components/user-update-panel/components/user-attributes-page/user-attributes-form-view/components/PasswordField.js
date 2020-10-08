@@ -291,74 +291,42 @@ export default function PasswordField(props) {
     variables.password = newPasswordText.current;
 
     /*
-      API Request: updateUser
+      API Request: api.user.updateItem
     */
     return await api.user.updateItem(graphqlServerUrl, variables)
       .then(
       //resolved
       (response) => {
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'user', method: 'doSave()', request: 'api.user.updateItem'}];
+            newError.path=['Users', itemId, 'update', 'change password'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'user', query: 'updateUser', method: 'doSave()', request: 'api.user.updateItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'user', method: 'doSave()', request: 'api.user.updateItem'}];
           newError.path=['Users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
           return false;
-        }
-
-        //check: updateUser
-        let updateUser = response.data.data.updateUser;
-        if(updateUser === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'updateUser ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'user', query: 'updateUser', method: 'doSave()', request: 'api.user.updateItem'}];
-          newError.path=['Users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          return false;
-        }
-
-        //check: updateUser type
-        if(typeof updateUser !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'user ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'user', query: 'updateUser', method: 'doSave()', request: 'api.user.updateItem'}];
-          newError.path=['Users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          return false;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'updateUser ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'user', query: 'updateUser', method: 'doSave()', request: 'api.user.updateItem'}];
-          newError.path=['Users', itemId, 'update', 'change password'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -371,7 +339,7 @@ export default function PasswordField(props) {
             horizontal: 'left',
           },
         });
-        return updateUser;
+        return response.value;
       },
       //rejected
       (err) => {
@@ -390,7 +358,7 @@ export default function PasswordField(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'user', query: 'updateUser', method: 'doSave()', request: 'api.user.updateItem'}];
+          newError.locations=[{model: 'user', method: 'doSave()', request: 'api.user.updateItem'}];
           newError.path=['Users', itemId, 'update', 'change password'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);

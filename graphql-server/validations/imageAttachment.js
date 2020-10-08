@@ -41,6 +41,9 @@ module.exports.validator_patch = function(imageAttachment) {
             },
             "description": {
                 "type": ["string", "null"]
+            },
+            "personId": {
+                "type": ["integer", "null"]
             }
         }
     }

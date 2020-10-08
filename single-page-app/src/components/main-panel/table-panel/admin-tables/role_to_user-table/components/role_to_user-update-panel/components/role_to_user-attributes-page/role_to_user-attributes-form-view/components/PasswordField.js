@@ -291,74 +291,42 @@ export default function PasswordField(props) {
     variables.password = newPasswordText.current;
 
     /*
-      API Request: updateRole_to_user
+      API Request: api.role_to_user.updateItem
     */
     return await api.role_to_user.updateItem(graphqlServerUrl, variables)
       .then(
       //resolved
       (response) => {
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+            newError.path=['Role_to_users', itemId, 'update', 'change password'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
           newError.path=['Role_to_users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
           return false;
-        }
-
-        //check: updateRole_to_user
-        let updateRole_to_user = response.data.data.updateRole_to_user;
-        if(updateRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'updateRole_to_user ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          return false;
-        }
-
-        //check: updateRole_to_user type
-        if(typeof updateRole_to_user !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'user ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', itemId, 'update', 'change password'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          return false;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'updateRole_to_user ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
-          newError.path=['Role_to_users', itemId, 'update', 'change password'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -371,7 +339,7 @@ export default function PasswordField(props) {
             horizontal: 'left',
           },
         });
-        return updateRole_to_user;
+        return response.value;
       },
       //rejected
       (err) => {
@@ -390,7 +358,7 @@ export default function PasswordField(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'updateRole_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.updateItem'}];
           newError.path=['Role_to_users', itemId, 'update', 'change password'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);

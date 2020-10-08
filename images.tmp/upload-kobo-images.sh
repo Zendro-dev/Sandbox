@@ -5,6 +5,8 @@
 #
 # Uploads images from a KoBo-generated multimedia export directory.
 #
+# Usage: ./upload-kobo-images.sh dir|zip
+#
 
 NUM_ARGS=$#
 TOTAL_FILES_PROCESSED=0

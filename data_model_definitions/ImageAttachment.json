@@ -9,6 +9,16 @@
     "smallTnPath": "String",
     "mediumTnPath": "String",
     "licence": "String",
-    "description": "String"
+    "description": "String",
+    "personId": "Int"
+  },
+  "associations": {
+    "person": {
+      "type": "to_one",
+      "target": "Person",
+      "targetKey": "personId",
+      "keyIn" : "ImageAttachment",
+      "targetStorageType": "sql"
+    }
   }
 }

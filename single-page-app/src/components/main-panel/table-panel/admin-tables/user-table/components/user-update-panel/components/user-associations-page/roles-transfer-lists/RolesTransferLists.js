@@ -92,9 +92,11 @@ export default function RolesTransferLists(props) {
               <Typography variant="body2" display='inline'>
                 { t('modelPanels.toRemoveHelperA', "Please select ") }
               </Typography>
+
               <Typography variant="body2" display='inline'>
                 {  t('modelPanels.theRecords', "the records ") }
               </Typography>
+
               <Typography variant="body2" display='inline'>
                 { t('modelPanels.toRemoveHelperB', " that you no longer want to be associated with this ") }
               </Typography>

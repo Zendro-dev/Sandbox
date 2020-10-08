@@ -29,7 +29,17 @@ const definition = {
         smallTnPath: 'String',
         mediumTnPath: 'String',
         licence: 'String',
-        description: 'String'
+        description: 'String',
+        personId: 'Int'
+    },
+    associations: {
+        person: {
+            type: 'to_one',
+            target: 'Person',
+            targetKey: 'personId',
+            keyIn: 'ImageAttachment',
+            targetStorageType: 'sql'
+        }
     },
     id: {
         name: 'id',
@@ -73,6 +83,9 @@ module.exports = class ImageAttachment extends Sequelize.Model {
             },
             description: {
                 type: Sequelize[dict['String']]
+            },
+            personId: {
+                type: Sequelize[dict['Int']]
             }
 
 
@@ -83,23 +96,37 @@ module.exports = class ImageAttachment extends Sequelize.Model {
         });
     }
 
-    static associate(models) {}
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
+    }
+
+    static associate(models) {
+        ImageAttachment.belongsTo(models.person, {
+            as: 'person',
+            foreignKey: 'personId'
+        });
+    }
 
     get fileUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.filePath ? this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
+        let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+        return this.filePath ? this.filePath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
-  
+
     get smallTnUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.smallTnPath ? this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
+        let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+        return this.smallTnPath ? this.smallTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
-  
+
     get mediumTnUrl() {
-      let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
-      return this.mediumTnPath ? this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
+        let re = new RegExp(`^.*${globals.PUBLIC_FOLDER}`);
+        return this.mediumTnPath ? this.mediumTnPath.replace(re, globals.IMAGE_HOST_SERVER_BASE_URL) : null;
     }
- 
+
+
     static async readById(id) {
         let item = await ImageAttachment.findByPk(id);
         if (item === null) {
@@ -109,246 +136,65 @@ module.exports = class ImageAttachment extends Sequelize.Model {
     }
 
     static async countRecords(search) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search);
         return super.count(options);
     }
 
-    static readAll(search, order, pagination, benignErrorReporter) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAll(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        return super.count(options).then(async items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["id", "ASC"]
-                ];
-            }
-
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total imageAttachments exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            let records = await super.findAll(options);
-            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-        });
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
+        let records = await super.findAll(options);
+        // validationCheck after read
+        return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
-    static readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let options = {};
-        options['where'] = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-        /*
-         * Count
-         */
-        return super.count(options).then(countA => {
-            options['offset'] = 0;
-            options['order'] = [];
-            options['limit'] = countA;
-            /*
-             * Order conditions
-             */
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            }
-            if (!options['order'].map(orderItem => {
-                    return orderItem[0]
-                }).includes("id")) {
-                options['order'] = [...options['order'], ...[
-                    ["id", "ASC"]
-                ]];
-            }
-
-            /*
-             * Pagination conditions
-             */
-            if (pagination) {
-                //forward
-                if (isForwardPagination) {
-                    if (pagination.after) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                } else { //backward
-                    if (pagination.before) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                }
-            }
-            //woptions: copy of {options} with only 'where' options
-            let woptions = {};
-            woptions['where'] = {
-                ...options['where']
-            };
-            /*
-             *  Count (with only where-options)
-             */
-            return super.count(woptions).then(countB => {
-                /*
-                 * Limit conditions
-                 */
-                if (pagination) {
-                    //forward
-                    if (isForwardPagination) {
-
-                        if (pagination.first) {
-                            options['limit'] = pagination.first;
-                        }
-                    } else { //backward
-                        if (pagination.last) {
-                            options['limit'] = pagination.last;
-                            options['offset'] = Math.max((countB - pagination.last), 0);
-                        }
-                    }
-                }
-                //check: limit
-                if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total imageAttachments exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-                }
-
-                /*
-                 * Get records
-                 */
-                return super.findAll(options).then(async records => {
-                    //validate records
-                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-
-                    let edges = [];
-                    let pageInfo = {
-                        hasPreviousPage: false,
-                        hasNextPage: false,
-                        startCursor: null,
-                        endCursor: null
-                    };
-
-                    //edges
-                    if (records.length > 0) {
-                        edges = records.map(record => {
-                            return {
-                                node: record,
-                                cursor: record.base64Enconde()
-                            }
-                        });
-                    }
-
-                    //forward
-                    if (isForwardPagination) {
-
-                        pageInfo = {
-                            hasPreviousPage: ((countA - countB) > 0),
-                            hasNextPage: (pagination && pagination.first ? (countB > pagination.first) : false),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    } else { //backward
-
-                        pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (countB > pagination.last) : false),
-                            hasNextPage: ((countA - countB) > 0),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    }
-
-                    return {
-                        edges,
-                        pageInfo
-                    };
-
-                }).catch(error => {
-                    throw error;
-                });
-            }).catch(error => {
-                throw error;
-            });
-        }).catch(error => {
-            throw error;
-        });
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let records = await super.findAll(options);
+        // validationCheck after read
+        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after || pagination.before)) {
+            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
+                ...pagination,
+                includeCursor: false
+            }, this.idAttribute());
+            oppRecords = await super.findAll(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        return {
+            edges,
+            pageInfo
+        };
     }
 
     static async addOne(input) {
-      //validate input
-      await validatorUtil.validateData('validateForCreate', this, input);
-      try {
-        const result = await sequelize.transaction(async (t) => {
-          let item = await super.create(input, {
-            transaction: t
-          });
-          return item;
-        });
-        return result;
-      } catch (error) {
-        throw error;
-      }
-    }   
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        try {
+            const result = await this.sequelize.transaction(async (t) => {
+                let item = await super.create(input, {
+                    transaction: t
+                });
+                return item;
+            });
+            return result;
+        } catch (error) {
+            throw error;
+        }
+
+    }
 
     static async deleteOne(id) {
         //validate id
@@ -369,7 +215,7 @@ module.exports = class ImageAttachment extends Sequelize.Model {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
         try {
-            let result = await sequelize.transaction(async (t) => {
+            let result = await this.sequelize.transaction(async (t) => {
                 let updated = await super.update(input, {
                     where: {
                         [this.idAttribute()]: input[this.idAttribute()]
@@ -458,13 +304,97 @@ module.exports = class ImageAttachment extends Sequelize.Model {
 
 
 
+    /**
+     * add_personId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   personId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_personId(id, personId) {
+        let updated = await ImageAttachment.update({
+            personId: personId
+        }, {
+            where: {
+                id: id
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * remove_personId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   personId Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_personId(id, personId) {
+        let updated = await ImageAttachment.update({
+            personId: null
+        }, {
+            where: {
+                id: id,
+                personId: personId
+            }
+        });
+        return updated;
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateImageAttachmentWithPersonId - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateImageAttachmentWithPersonId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "personId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            personId,
+            id
+        }) => {
+            promises.push(super.update({
+                personId: personId
+            }, {
+                where: {
+                    id: id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
-
+    /**
+     * bulkDisAssociateImageAttachmentWithPersonId - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateImageAttachmentWithPersonId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "personId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            personId,
+            id
+        }) => {
+            promises.push(super.update({
+                personId: null
+            }, {
+                where: {
+                    id: id,
+                    personId: personId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
     /**
@@ -472,7 +402,6 @@ module.exports = class ImageAttachment extends Sequelize.Model {
      *
      * @return {type} Name of the attribute that functions as an internalId
      */
-
     static idAttribute() {
         return ImageAttachment.definition.id.name;
     }
@@ -482,7 +411,6 @@ module.exports = class ImageAttachment extends Sequelize.Model {
      *
      * @return {type} Type given in the JSON model
      */
-
     static idAttributeType() {
         return ImageAttachment.definition.id.type;
     }
@@ -492,7 +420,6 @@ module.exports = class ImageAttachment extends Sequelize.Model {
      *
      * @return {type} id value
      */
-
     getIdValue() {
         return this[ImageAttachment.idAttribute()]
     }

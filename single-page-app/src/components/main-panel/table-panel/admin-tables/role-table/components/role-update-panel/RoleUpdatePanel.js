@@ -80,7 +80,7 @@ export default function RoleUpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-  
+
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
@@ -317,6 +317,42 @@ export default function RoleUpdatePanel(props) {
   }
 
 
+  function setAddRemoveManyUsers(variables) {
+    //data to notify changes
+    if(!changedAssociations.current.role_to_user) changedAssociations.current.role_to_user = {};
+
+    /**
+     * Case: The toAdd list isn't empty.
+     */
+    if(usersIdsToAdd.current.length>0) {
+      //set ids to add
+      variables.addUsers = [ ...usersIdsToAdd.current];
+      //changes to nofity
+      changedAssociations.current.role_to_user.added = true;
+      if(changedAssociations.current.role_to_user.idsAdded){
+        usersIdsToAdd.current.forEach((it) => {if(!changedAssociations.current.role_to_user.idsAdded.includes(it)) changedAssociations.current.role_to_user.idsAdded.push(it);});
+      } else {
+        changedAssociations.current.role_to_user.idsAdded = [...usersIdsToAdd.current];
+      }
+    }
+    /**
+     * Case: The toRemove list isn't empty.
+     */
+    if(usersIdsToRemove.current.length>0) {
+      //set ids to remove
+      variables.removeUsers = [ ...usersIdsToRemove.current];
+      //changes to nofity
+      changedAssociations.current.role_to_user.removed = true;
+      if(changedAssociations.current.role_to_user.idsRemoved){
+        usersIdsToRemove.current.forEach((it) => {if(!changedAssociations.current.role_to_user.idsRemoved.includes(it)) changedAssociations.current.role_to_user.idsRemoved.push(it);});
+      } else {
+        changedAssociations.current.role_to_user.idsRemoved = [...usersIdsToRemove.current];
+      }
+    }
+    
+    return;
+  }
+
 function setAjvErrors(err) {
     //check
     if(err&&err.response&&err.response.data&&Array.isArray(err.response.data.errors)) {
@@ -370,7 +406,7 @@ function setAjvErrors(err) {
     * Updates state to inform new @item updated.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -398,101 +434,52 @@ function setAjvErrors(err) {
     //add & remove: to_one's
 
     //add & remove: to_many's
-    //data to notify changes
-    changedAssociations.current.role_to_user = {added: false, removed: false};
-    
-    if(usersIdsToAdd.current.length>0) {
-      variables.addUsers = usersIdsToAdd.current;
-      
-      changedAssociations.current.role_to_user.added = true;
-      changedAssociations.current.role_to_user.idsAdded = usersIdsToAdd.current;
-    }
-    if(usersIdsToRemove.current.length>0) {
-      variables.removeUsers = usersIdsToRemove.current;
-      
-      changedAssociations.current.role_to_user.removed = true;
-      changedAssociations.current.role_to_user.idsRemoved = usersIdsToRemove.current;
-    }
+    setAddRemoveManyUsers(variables);
 
     /*
-      API Request: updateRole
+      API Request: api.role.updateItem
     */
     let cancelableApiReq = makeCancelable(api.role.updateItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role', method: 'doSave()', request: 'api.role.updateItem'}];
+            newError.path=['Roles', `id:${item.id}`, 'update'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role', query: 'updateRole', method: 'doSave()', request: 'api.role.updateItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role', method: 'doSave()', request: 'api.role.updateItem'}];
           newError.path=['Roles', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
-          return;
-        }
-
-        //check: updateRole
-        let updateRole = response.data.data.updateRole;
-        if(updateRole === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'updateRole ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role', query: 'updateRole', method: 'doSave()', request: 'api.role.updateItem'}];
-          newError.path=['Roles', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: updateRole type
-        if(typeof updateRole !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'role ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role', query: 'updateRole', method: 'doSave()', request: 'api.role.updateItem'}];
-          newError.path=['Roles', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'updateRole ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role', query: 'updateRole', method: 'doSave()', request: 'api.role.updateItem'}];
-          newError.path=['Roles', `id:${item.id}`, 'update'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+          return false;
+        } 
 
         //ok
         enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
@@ -504,7 +491,7 @@ function setAjvErrors(err) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, updateRole);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -514,7 +501,7 @@ function setAjvErrors(err) {
       //error
       .catch((err) => { //error: on api.role.updateItem
         if(err.isCanceled) {
-          return
+          return;
         } else {
           //set ajv errors
           setAjvErrors(err);
@@ -524,7 +511,7 @@ function setAjvErrors(err) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role', query: 'updateRole', method: 'doSave()', request: 'api.role.updateItem'}];
+          newError.locations=[{model: 'role', method: 'doSave()', request: 'api.role.updateItem'}];
           newError.path=['Roles', `id:${item.id}`, 'update'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -658,7 +645,7 @@ function setAjvErrors(err) {
     switch(associationKey) {
       case 'users':
         usersIdsToAdd.current.push(itemId);
-        setUsersIdsToAddState(usersIdsToAdd.current);
+        setUsersIdsToAddState([...usersIdsToAdd.current]);
         break;
 
       default:
@@ -672,7 +659,7 @@ function setAjvErrors(err) {
       {
         if(usersIdsToAdd.current[i] === itemId) {
           usersIdsToAdd.current.splice(i, 1);
-          setUsersIdsToAddState(usersIdsToAdd.current);
+          setUsersIdsToAddState([...usersIdsToAdd.current]);
           return;
         }
       }
@@ -682,9 +669,10 @@ function setAjvErrors(err) {
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'users':
+        case 'users':
+  
         usersIdsToRemove.current.push(itemId);
-        setUsersIdsToRemoveState(usersIdsToRemove.current);
+        setUsersIdsToRemoveState([...usersIdsToRemove.current]);
         break;
 
       default:
@@ -698,7 +686,7 @@ function setAjvErrors(err) {
       {
         if(usersIdsToRemove.current[i] === itemId) {
           usersIdsToRemove.current.splice(i, 1);
-          setUsersIdsToRemoveState(usersIdsToRemove.current);
+          setUsersIdsToRemoveState([...usersIdsToRemove.current]);
           return;
         }
       }

@@ -269,7 +269,7 @@ export default function RoleToUserCreatePanel(props) {
     * Updates state to inform new @item added.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -294,83 +294,48 @@ export default function RoleToUserCreatePanel(props) {
     //add: to_many's
 
     /*
-      API Request: addRole_to_user
+      API Request: api.role_to_user.createItem
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.createItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
+            newError.path=['Role_to_users', 'add'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'addRole_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
           newError.path=['Role_to_users', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
           return;
-        }
-
-        //check: addRole_to_user
-        let addRole_to_user = response.data.data.addRole_to_user;
-        if(addRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'addRole_to_user ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role_to_user', query: 'addRole_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
-          newError.path=['Role_to_users', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: addRole_to_user type
-        if(typeof addRole_to_user !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'role_to_user ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'role_to_user', query: 'addRole_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
-          newError.path=['Role_to_users', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'addRole_to_user ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'addRole_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
-          newError.path=['Role_to_users', 'add'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -383,7 +348,7 @@ export default function RoleToUserCreatePanel(props) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, addRole_to_user);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -403,7 +368,7 @@ export default function RoleToUserCreatePanel(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'addRole_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
+          newError.locations=[{model: 'role_to_user', method: 'doSave()', request: 'api.role_to_user.createItem'}];
           newError.path=['Role_to_users', 'add'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);

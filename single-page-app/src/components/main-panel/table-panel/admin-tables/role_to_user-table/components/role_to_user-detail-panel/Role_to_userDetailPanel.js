@@ -254,7 +254,7 @@ export default function RoleToUserDetailPanel(props) {
     * Updates state to inform new @item deleted.
     * 
     */
-  function doDelete(event, item) {
+  async function doDelete(event, item) {
     errors.current = [];
     
     //variables
@@ -263,71 +263,48 @@ export default function RoleToUserDetailPanel(props) {
     variables.id = item.id;
 
     /*
-      API Request: deleteRole_to_user
+      API Request: api.role_to_user.deleteItem
     */
     let cancelableApiReq = makeCancelable(api.role_to_user.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+            newError.path=['Role_to_users', `id:${item.id}`, 'delete'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
           newError.path=['Role_to_users', `id:${item.id}`, 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
-        }
-
-        //check: deleteRole_to_user
-        let deleteRole_to_user = response.data.data.deleteRole_to_user;
-        if(deleteRole_to_user === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'deleteRole_to_user ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
-          newError.path=['Role_to_users', `id:${item.id}` , 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoDelete();
-          return;
-        }
-
-        /**
-         * Type of deleteRole_to_user is not validated. Only not null is
-         * checked above to confirm successfull operation.
-         */
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'deleteRole_to_user ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
-          newError.path=['Role_to_users', `id:${item.id}` ,'delete'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -348,7 +325,7 @@ export default function RoleToUserDetailPanel(props) {
         throw err;
       })
       //error
-      .catch((err) => { //error: on deleteRole_to_user
+      .catch((err) => { //error: on api.role_to_user.deleteItem
         if(err.isCanceled) {
           return
         } else {
@@ -356,7 +333,7 @@ export default function RoleToUserDetailPanel(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'role_to_user', query: 'deleteRole_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
+          newError.locations=[{model: 'role_to_user', method: 'doDelete()', request: 'api.role_to_user.deleteItem'}];
           newError.path=['Role_to_users', `id:${item.id}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);

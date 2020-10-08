@@ -2,10 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { useTranslation } from 'react-i18next';
 
 export default function ImageAttachmentAssociationsMenuTabs(props) {
-  const { t } = useTranslation();
   const {
     associationSelected,
     handleClick,
@@ -21,7 +19,7 @@ export default function ImageAttachmentAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
+        <Tab key='person' label='Person' value='person' />
       </Tabs>
     </div>
   );

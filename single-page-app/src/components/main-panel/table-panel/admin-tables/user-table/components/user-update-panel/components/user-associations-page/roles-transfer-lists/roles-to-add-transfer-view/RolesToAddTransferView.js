@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
@@ -102,62 +103,63 @@ export default function RolesToAddTransferView(props) {
     State Table A (available)
   */
   const [items, setItems] = useState([]);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(-1);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
-  const [isCountReady, setIsCountReady] = useState(false);
   const [areItemsReady, setAreItemsReady] = useState(false);
   const [dataTrigger, setDataTrigger] = useState(false);
   const isPendingApiRequestRef = useRef(false);
   const isOnApiRequestRef = useRef(false);
   const isGettingFirstDataRef = useRef(true);
   const pageRef = useRef(0);
+  const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
+  const isCountingRef = useRef(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
   const isForwardPagination = useRef(true);
   const isCursorPaginating = useRef(false);
-  const includeCursor = useRef(false);
+  const cancelableCountingPromises = useRef([]);
 
   /*
-    State Table B (to add)
+    State B (to add list)
   */
   const [itemsB, setItemsB] = useState([]);
-  const [countB, setCountB] = useState(0);
+  const [countB, setCountB] = useState(-1);
   const [searchB, setSearchB] = useState('');
   const [pageB, setPageB] = useState(0);
   const [rowsPerPageB, setRowsPerPageB] = useState(10);
   const [isOnApiRequestB, setIsOnApiRequestB] = useState(false);
-  const [isCountReadyB, setIsCountReadyB] = useState(false);
   const [areItemsReadyB, setAreItemsReadyB] = useState(false);
   const [dataTriggerB, setDataTriggerB] = useState(false);
   const isPendingApiRequestRefB = useRef(false);
   const isOnApiRequestRefB = useRef(false);
   const isGettingFirstDataRefB = useRef(true);
   const pageRefB = useRef(0);
+  const rowsPerPageRefB = useRef(10);
   const lastFetchTimeB = useRef(null);
+  const isCountingRefB = useRef(false);
   const [hasPreviousPageB, setHasPreviousPageB] = useState(false);
   const [hasNextPageB, setHasNextPageB] = useState(false);
   const pageInfoB = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRefB = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
   const isForwardPaginationB = useRef(true);
   const isCursorPaginatingB = useRef(false);
-  const includeCursorB = useRef(false);
+  const cancelableCountingPromisesB = useRef([]);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToAdd && Array.isArray(idsToAdd) && idsToAdd.length > 0));
   const lidsToAdd = useRef((idsToAdd && Array.isArray(idsToAdd)) ? Array.from(idsToAdd) : []);
-  
-  //associated ids
-  const lidsAssociated = useRef(undefined);
-
 
   const cancelablePromises = useRef([]);
 
   const graphqlServerUrl = useSelector(state => state.urls.graphqlServerUrl)
   const lastModelChanged = useSelector(state => state.changes.lastModelChanged);
   const lastChangeTimestamp = useSelector(state => state.changes.lastChangeTimestamp);
+  const maxRecordLimit = useSelector(state => state.limits.maxRecordLimit);
 
   const lref = useRef(null);
   const lrefB = useRef(null);
@@ -198,10 +200,55 @@ export default function RolesToAddTransferView(props) {
     </> 
   ));
 
+  //snackbar (for: getCount)
+  const variantC = useRef('info');
+  const errorsC = useRef([]);
+  const contentC = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsC.current}
+    variant={variantC.current} />
+  ));
+  const actionTextC = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionC = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextC.current}
+      </Button>
+    </> 
+  ));
+
+  //snackbar (for: getCountB)
+  const variantD = useRef('info');
+  const errorsD = useRef([]);
+  const contentD = useRef((key, message) => (
+    <Snackbar id={key} message={message} errors={errorsD.current}
+    variant={variantD.current} />
+  ));
+  const actionTextD = useRef(t('modelPanels.gotIt', "Got it"));
+  const actionD = useRef((key) => (
+    <>
+      <Button color='inherit' variant='text' size='small' 
+      onClick={() => { closeSnackbar(key) }}>
+        {actionTextD.current}
+      </Button>
+    </> 
+  ));
+
+
   /**
     * Callbacks:
     *  showMessage
     *  showMessageB
+    *  showMessageC
+    *  showMessageD
+    *  configurePagination
+    *  configurePaginationB
+    *  onEmptyPage
+    *  onEmptyPageB
+    *  clearRequestGetData
+    *  clearRequestGetDataB
+    *  getCount
+    *  getCountB
     *  getData
     *  getDataB
     */
@@ -239,457 +286,509 @@ export default function RolesToAddTransferView(props) {
   },[enqueueSnackbar]);
 
   /**
-   * getData
+   * showMessageC
    * 
-   * Get @items and @count from GrahpQL Server.
-   * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retrieved.
+   * Show the given message in a notistack snackbar.
    * 
    */
-  const getData = useCallback(() => {
+  const showMessageC = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantC.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionC.current : undefined,
+      content: withDetail ? contentC.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+  /**
+   * showMessageD
+   * 
+   * Show the given message in a notistack snackbar.
+   * 
+   */
+  const showMessageD = useCallback((message, withDetail) => {
+    enqueueSnackbar( message, {
+      variant: variantD.current,
+      preventDuplicate: false,
+      persist: true,
+      action: !withDetail ? actionD.current : undefined,
+      content: withDetail ? contentD.current : undefined,
+    });
+  },[enqueueSnackbar]);
+
+
+  /**
+   * configurePagination
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePagination = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: pageInfo.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+
+  /**
+   * configurePaginationB
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePaginationB = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: pageInfoB.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+
+  }, [configurePagination]);
+
+  const onEmptyPageB = useCallback((pi) => {
+    //case: forward
+    if(isForwardPaginationB.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('previousPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      } 
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('nextPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfoB.current = pi;
+    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+    setHasNextPageB(pageInfoB.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePaginationB('reload');
+
+    //ok
+    setItemsB([]);
+
+    //ends request
+    isOnApiRequestRefB.current = false;
+    isCursorPaginatingB.current = false;
+    setIsOnApiRequestB(false);
+    return;
+
+  }, [configurePaginationB]);
+
+  const clearRequestGetData = useCallback(() => {
+    //configure pagination
+    configurePagination('reset');
+          
+    setItems([]);
+    isOnApiRequestRef.current = false;
+    setIsOnApiRequest(false);
+  },[configurePagination]);
+
+  const clearRequestGetDataB = useCallback(() => {
+    //configure pagination
+    configurePaginationB('reset');
+  
+    setItemsB([]);
+    isOnApiRequestRefB.current = false;
+    setIsOnApiRequestB(false);
+  },[configurePaginationB]);
+
+
+  /**
+   * getCount
+   * 
+   * Get @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @count retreived.
+   * 
+   */
+  const getCount = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRef.current) return;
+
+    cancelCountingPromises();
+    isCountingRef.current = true;
+    errorsC.current = [];
+
+    let ops = null;
+    if(lidsToAdd.current && lidsToAdd.current.length > 0) {
+      ops = {
+        exclude: [{
+          type: 'Int',
+          values: {"id": lidsToAdd.current}
+        }]
+      };
+    }    
+
+    /*
+      API Request: api.user.getNotAssociatedRolesCount
+    */
+    let cancelableApiReq = makeCancelable(api.user.getNotAssociatedRolesCount(graphqlServerUrl, item.id, search, ops));
+    cancelableCountingPromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromises.current.splice(cancelableCountingPromises.current.indexOf(cancelableApiReq), 1);
+        
+        //check: response data
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantC.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getCount()', request: 'api.user.getNotAssociatedRolesCount'}];
+            newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsC.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageC(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantC.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getCount()', request: 'api.user.getNotAssociatedRolesCount'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsC.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageC(newError.message, withDetails);
+          return;
+        }
+
+          //ok
+          setCount(response.value);
+          isCountingRef.current = false;
+
+          return;
+      },
+      //rejected
+      (err) => {
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.user.getNotAssociatedRolesCount
+        if(err.isCanceled) {
+          return;
+        } else {
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantC.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getCount()', request: 'api.user.getNotAssociatedRolesCount'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errorsC.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessageC(newError.message, withDetails);
+          return;
+        }
+      });
+  }, [graphqlServerUrl, showMessageC, t, item.id, search]);
+
+  /**
+   * getData
+   * 
+   * Get @items from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items retreived.
+   * 
+   */
+  const getData = useCallback(async () => {
+    updateHeights();
     isOnApiRequestRef.current = true;
     setIsOnApiRequest(true);
     Boolean(dataTrigger); //avoid warning
     errors.current = [];
 
-    /*
-      API Request: readOneUser
-    */
-    let cancelableApiReq = makeCancelable(api.user.getAssociatedRolesConnection(graphqlServerUrl, item.id));  
-    cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
-      .promise
-      .then(
-      (response) => {
-        //delete from cancelables
-        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'readOneUser', method: 'getData()', request: 'api.user.getAssociatedRolesConnection'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
+    //count (async)
+    getCount();
 
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-
-        //check: readOneUser
-        let readOneUser = response.data.data.readOneUser;
-        if(readOneUser === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'readOneUser', method: 'getData()', request: 'api.user.getAssociatedRolesConnection'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-        //check: readOneUser type
-        if(typeof readOneUser !== 'object'
-        || typeof readOneUser.rolesConnection !== 'object'
-        || readOneUser.rolesConnection === null
-        || !Array.isArray(readOneUser.rolesConnection.edges)) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'readOneUser', method: 'getData()', request: 'api.user.getAssociatedRolesConnection'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-        //get items
-        let idso = readOneUser.rolesConnection.edges.map(o => o.node);
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = 'readOneUser ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'readOneUser', method: 'getData()', request: 'api.user.getAssociatedRolesConnection'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-        }
-
-        //set associated ids
-        lidsAssociated.current = idso.map(function(item){ return item.id});
-
-        //set ops: excluded ids: toAddIds + associatedIds
-        let ops = null;
-        let exIds = [];
-        if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
-          exIds = lidsToAdd.current;
-        }
-        if(lidsAssociated.current !== undefined && lidsAssociated.current.length > 0) {
-          exIds = exIds.concat(lidsAssociated.current);
-        }
-        if(exIds.length > 0) {
-          ops = {
-            exclude: [{
-              type: 'Int',
-              values: {id: exIds}
-            }]
-          };
-        }
-
-        /*
-          API Request: countRoles
-        */
-        let cancelableApiReqB = makeCancelable(api.role.getCountItems(graphqlServerUrl, search, ops));
-        cancelablePromises.current.push(cancelableApiReqB);
-        cancelableApiReqB
-          .promise
-          .then(
-          //resolved
-          (response)=> {
-            //delete from cancelables
-            cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-            
-            //check: response data
-            if(!response.data ||!response.data.data) {
-              let newError = {};
-              let withDetails=true;
-              variant.current='error';
-              newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-              newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'countRoles', method: 'getData()', request: 'api.role.getCountItems'}];
-              newError.path=['add', 'roles'];
-              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-              errors.current.push(newError);
-              console.log("Error: ", newError);
-
-              showMessage(newError.message, withDetails);
-              clearRequestGetData();
-              return;
-            }
-
-            //check: countRoles
-            let countRoles = response.data.data.countRoles;
-            if(countRoles === null) {
-              let newError = {};
-              let withDetails=true;
-              variant.current='error';
-              newError.message = 'countRoles ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-              newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'countRoles', method: 'getData()', request: 'api.role.getCountItems'}];
-              newError.path=['add', 'roles'];
-              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-              errors.current.push(newError);
-              console.log("Error: ", newError);
-
-              showMessage(newError.message, withDetails);
-              clearRequestGetData();
-              return;
-            }
-            
-            //check: countRoles type
-            if(!Number.isInteger(countRoles)) {
-              let newError = {};
-              let withDetails=true;
-              variant.current='error';
-              newError.message = 'countRoles ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-              newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'countRoles', method: 'getData()', request: 'api.role.getCountItems'}];
-              newError.path=['add', 'roles'];
-              newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-              errors.current.push(newError);
-              console.log("Error: ", newError);
-
-              showMessage(newError.message, withDetails);
-              clearRequestGetData();
-              return;
-            }
-
-            //check: graphql errors
-            if(response.data.errors) {
-              let newError = {};
-              newError.message = 'countRoles ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-              newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'countRoles', method: 'getData()', request: 'api.role.getCountItems'}];
-              newError.path=['add', 'roles'];
-              newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-              errors.current.push(newError);
-              console.log("Error: ", newError);
-            }
-
-            //ok
-            setCount(countRoles);
-
-
-            /*
-              API Request: rolesConnection
-            */
-            let variables = {
-              pagination: {
-                after: isForwardPagination.current ? pageInfo.current.endCursor : null,
-                before: !isForwardPagination.current ? pageInfo.current.startCursor : null,
-                first: isForwardPagination.current ? rowsPerPage : null,
-                last: !isForwardPagination.current ? rowsPerPage : null,
-                includeCursor: includeCursor.current,
-              }
-            };
-            let cancelableApiReqC = makeCancelable(api.role.getItemsConnection(
-              graphqlServerUrl,
-              search,
-              null, //orderBy
-              null, //orderDirection
-              variables,
-              ops
-            ));
-            cancelablePromises.current.push(cancelableApiReqC);
-            cancelableApiReqC
-              .promise
-              .then(
-              //resolved
-              (response) => {
-                //delete from cancelables
-                cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqC), 1);
-                
-                //check: response data
-                if(!response.data ||!response.data.data) {
-                  let newError = {};
-                  let withDetails=true;
-                  variant.current='error';
-                  newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                  newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'rolesConnection', method: 'getData()', request: 'api.role.getItemsConnection'}];
-                  newError.path=['add', 'roles'];
-                  newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                  errors.current.push(newError);
-                  console.log("Error: ", newError);
-
-                  showMessage(newError.message, withDetails);
-                  clearRequestGetData();
-                  return;
-                }
-
-                //check: rolesConnection
-                let rolesConnection = response.data.data.rolesConnection;
-                if(rolesConnection === null) {
-                  let newError = {};
-                  let withDetails=true;
-                  variant.current='error';
-                  newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                  newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'rolesConnection', method: 'getData()', request: 'api.role.getItemsConnection'}];
-                  newError.path=['add', 'roles'];
-                  newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                  errors.current.push(newError);
-                  console.log("Error: ", newError);
-
-                  showMessage(newError.message, withDetails);
-                  clearRequestGetData();
-                  return;
-                }
-
-                  //check: rolesConnection type
-                  if(typeof rolesConnection !== 'object'
-                  || !Array.isArray(rolesConnection.edges)
-                  || typeof rolesConnection.pageInfo !== 'object' 
-                  || rolesConnection.pageInfo === null) {
-                    let newError = {};
-                    let withDetails=true;
-                    variant.current='error';
-                    newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                    newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'rolesConnection', method: 'getData()', request: 'api.role.getItemsConnection'}];
-                    newError.path=['add', 'roles'];
-                    newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                    errors.current.push(newError);
-                    console.log("Error: ", newError);
-
-                    showMessage(newError.message, withDetails);
-                    clearRequestGetData();
-                    return;
-                  }
-                  //get items
-                  let its = rolesConnection.edges.map(o => o.node);
-                  let pi = rolesConnection.pageInfo;                      
-
-                  //check: graphql errors
-                  if(response.data.errors) {
-                    let newError = {};
-                    newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                    newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'rolesConnection', method: 'getData()', request: 'api.role.getItemsConnection'}];
-                    newError.path=['add', 'roles'];
-                    newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                    errors.current.push(newError);
-                    console.log("Error: ", newError);
-                  }
-
-                  /*
-                    Check: empty page
-                  */
-                  if( its.length === 0 && pi.hasPreviousPage ) 
-                  {
-                    //configure
-                    isOnApiRequestRef.current = false;
-                    isCursorPaginating.current = false;
-                    isForwardPagination.current = false;
-                    setIsOnApiRequest(false);
-                    
-                    //reload
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                    return;
-                  }//else
-
-                  //update pageInfo
-                  pageInfo.current = pi;
-                  setHasPreviousPage(pageInfo.current.hasPreviousPage);
-                  setHasNextPage(pageInfo.current.hasNextPage);
-
-                  //ok
-                  setItems([...its]);
-
-                  //ends request
-                  isOnApiRequestRef.current = false;
-                  isCursorPaginating.current = false;
-                  includeCursor.current = false;
-                  setIsOnApiRequest(false);
-
-                  /**
-                   * Display graphql errors
-                   */
-                  if(errors.current.length > 0) {
-                    let newError = {};
-                    let withDetails=true;
-                    variant.current='info';
-                    newError.message = 'getData() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errors.current.length+')';
-                    newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getData()'}];
-                    newError.path=['add', 'roles'];
-                    newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                    errors.current.push(newError);
-                    console.log("Error: ", newError);
-
-                    showMessage(newError.message, withDetails);
-                  }
-
-                  return;
-                },
-                //rejected
-                (err) => {
-                  throw err;
-                })
-                //error
-                .catch((err) => { //error: on api.role.getItemsConnection
-                  if(err.isCanceled) {
-                    return;
-                  } else {
-                    let newError = {};
-                    let withDetails=true;
-                    variant.current='error';
-                    newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                    newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'rolesConnection', method: 'getData()', request: 'api.role.getItemsConnection'}];
-                    newError.path=['add', 'roles'];
-                    newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                    errors.current.push(newError);
-                    console.log("Error: ", newError);
-    
-                    showMessage(newError.message, withDetails);
-                    clearRequestGetData();
-                    return;
-                  }
-                });
-          },
-          //rejected
-          (err) => {
-            throw err;
-          })
-          //error
-          .catch((err) => { //error: on api.role.getCountItems
-            if(err.isCanceled) {
-              return
-            } else {
-              let newError = {};
-              let withDetails=true;
-              variant.current='error';
-              newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-              newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'countRoles', method: 'getData()', request: 'api.role.getCountItems'}];
-              newError.path=['add', 'roles'];
-              newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-              errors.current.push(newError);
-              console.log("Error: ", newError);
-
-              showMessage(newError.message, withDetails);
-              clearRequestGetData();
-              return;
-            }
-          });
-      },
-      //rejected
-      (err) => {
-        throw err;
-      })
-      //error
-      .catch((err) => { //error: on api.user.getAssociatedRolesConnection
-        if(err.isCanceled) {
-          return
-        } else {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'user', association: 'roles', table:'A', query: 'readOneUser', method: 'getData()', request: 'api.user.getAssociatedRolesConnection'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestGetData();
-          return;
-        }
-      });
-  }, [graphqlServerUrl, showMessage, t, dataTrigger, item.id, search, rowsPerPage]);
-
-  /**
-   * getDataB
-   * 
-   * Get @items and @count from GrahpQL Server.
-   * Uses current state properties to fill query request.
-   * Updates state to inform new @items and @count retreived.
-   * 
-   */
-  const getDataB = useCallback(() => {
-    isOnApiRequestRefB.current = true;
-    setIsOnApiRequestB(true);
-    Boolean(dataTriggerB); //avoid warning
-    errorsB.current = [];
-
-    //set ops: only ids
     let ops = null;
-    if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
+    if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
-        only: [{
+        exclude: [{
           type: 'Int',
-          values: {id: lidsToAdd.current}
+          values: {"id": lidsToAdd.current}
         }]
       };
-    } else {
-      clearRequestGetDataB();
-      setThereAreItemsToAdd(false);
-      return;
-    }
+    }    
 
+    let variables = {
+      pagination: {...paginationRef.current}
+    };
     /*
-      API Request: countItems
+      API Request: api.user.getNotAssociatedRoles
     */
-    let cancelableApiReq = makeCancelable(api.role.getCountItems(graphqlServerUrl, searchB, ops));
+    let cancelableApiReq = makeCancelable(api.user.getNotAssociatedRoles(
+      graphqlServerUrl,
+      item.id,
+      search,
+      variables,
+      ops,
+      maxRecordLimit ? Math.floor(maxRecordLimit/2) : 5, //batch size
+    ));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
@@ -698,260 +797,333 @@ export default function RolesToAddTransferView(props) {
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
         
         //check: response data
-        if(!response.data ||!response.data.data) {
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getData()', request: 'api.user.getNotAssociatedRoles'}];
+            newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else {
+          //show error
           let newError = {};
           let withDetails=true;
-          variantB.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'countRoles', method: 'getDataB()', request: 'api.role.getCountItems'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
+          variant.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getData()', request: 'api.user.getNotAssociatedRoles'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errors.current.push(newError);
           console.log("Error: ", newError);
 
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
           return;
         }
 
-        //check: countRoles
-        let countRoles = response.data.data.countRoles;
-        if(countRoles === null) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = 'countRoles ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-          newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'countRoles', method: 'getDataB()', request: 'api.role.getCountItems'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
-          return;
-        }
-        
-        //check: countRoles type
-        if(!Number.isInteger(countRoles)) {
-          let newError = {};
-          let withDetails=true;
-          variantB.current='error';
-          newError.message = 'countRoles ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'countRoles', method: 'getDataB()', request: 'api.role.getCountItems'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessageB(newError.message, withDetails);
-          clearRequestGetDataB();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          newError.message = 'countRoles ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-          newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'countRoles', method: 'getDataB()', request: 'api.role.getCountItems'}];
-          newError.path=['add', 'roles'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errorsB.current.push(newError);
-          console.log("Error: ", newError);
-        }
-        
-        //ok
-        setCountB(countRoles);
-
-
+          //get items
+          let its = response.value.edges.map(o => o.node);
+          let pi = response.value.pageInfo;
+          
           /*
-            API Request: items
+            Check: empty page
           */
-          /*
-            API Request: rolesConnection
-          */
-          let variables = {
-            pagination: {
-              after: isForwardPaginationB.current ? pageInfoB.current.endCursor : null,
-              before: !isForwardPaginationB.current ? pageInfoB.current.startCursor : null,
-              first: isForwardPaginationB.current ? rowsPerPageB : null,
-              last: !isForwardPaginationB.current ? rowsPerPageB : null,
-              includeCursor: includeCursorB.current,
-            }
-          };
-          let cancelableApiReqB = makeCancelable(api.role.getItemsConnection(
-            graphqlServerUrl,
-            searchB,
-            null, //orderBy
-            null, //orderDirection
-            variables,
-            ops
-          ));
-          cancelablePromises.current.push(cancelableApiReqB);
-          cancelableApiReqB
-            .promise
-            .then(
-            (response) => {
-              //delete from cancelables
-              cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReqB), 1);
-              
-              //check: response data
-              if(!response.data ||!response.data.data) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-                newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'rolesConnection', method: 'getDataB()', request: 'api.role.getItemsConnection'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+          if( its.length === 0 ) 
+          {
+            onEmptyPage(pi);
+            return;
+          }
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
+          //update pageInfo
+          pageInfo.current = pi;
+          setHasPreviousPage(pageInfo.current.hasPreviousPage);
+          setHasNextPage(pageInfo.current.hasNextPage);
 
-              //check: rolesConnection
-              let rolesConnection = response.data.data.rolesConnection;
-              if(rolesConnection === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e2', 'could not be fetched.');
-                newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'rolesConnection', method: 'getDataB()', request: 'api.role.getItemsConnection'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
+          //configure pagination (default)
+          configurePagination('reload');
 
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
+          //ok
+          setItems([...its]);
 
-              //check: rolesConnection type
-              if(typeof rolesConnection !== 'object'
-              || !Array.isArray(rolesConnection.edges)
-              || typeof rolesConnection.pageInfo !== 'object' 
-              || rolesConnection.pageInfo === null) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-                newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'rolesConnection', method: 'getDataB()', request: 'api.role.getItemsConnection'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-              //get items
-              let its = rolesConnection.edges.map(o => o.node);
-              let pi = rolesConnection.pageInfo;
-
-              //check: graphql errors
-              if(response.data.errors) {
-                let newError = {};
-                newError.message = 'rolesConnection ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
-                newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'rolesConnection', method: 'getDataB()', request: 'api.role.getItemsConnection'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-              }
-
-              /*
-                Check: empty page
-              */
-              if( its.length === 0 && pi.hasPreviousPage ) 
-              {
-                //configure
-                isOnApiRequestRefB.current = false;
-                isCursorPaginatingB.current = false;
-                isForwardPaginationB.current = false;
-                setIsOnApiRequestB(false);
-                
-                //reload
-                setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                return;
-              }//else
-
-              //update pageInfo
-              pageInfoB.current = pi;
-              setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-              setHasNextPageB(pageInfoB.current.hasNextPage);
-              //ok
-              setItemsB([...its]);
-
-              //ends request
-              isOnApiRequestRefB.current = false;
-              isCursorPaginatingB.current = false;
-              isForwardPaginationB.current = false;
-              setIsOnApiRequestB(false);
-
-              /**
-               * Display graphql errors
-               */
-              if(errorsB.current.length > 0) {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='info';
-                newError.message = 'getDataB() ' + t('modelPanels.errors.data.e3', 'fetched with errors.') + ' ('+errorsB.current.length+')';
-                newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getDataB()'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-              }
-              return;
-            
-            },
-            //rejected
-            (err) => {
-              throw err;
-            })
-            //error
-            .catch((err) => { //error: on api.role.getItemsConnection
-              if(err.isCanceled) {
-                return;
-              } else {
-                let newError = {};
-                let withDetails=true;
-                variantB.current='error';
-                newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-                newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'rolesConnection', method: 'getDataB()', request: 'api.role.getItemsConnection'}];
-                newError.path=['add', 'roles'];
-                newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
-                errorsB.current.push(newError);
-                console.log("Error: ", newError);
-
-                showMessageB(newError.message, withDetails);
-                clearRequestGetDataB();
-                return;
-              }
-            });
+          //ends request
+          isOnApiRequestRef.current = false;
+          isCursorPaginating.current = false;
+          setIsOnApiRequest(false);
+          return;
       },
       //rejected
       (err) => {
-        throw err;
+        if(err.isCanceled) return;
+        else throw err;
       })
       //error
-      .catch((err) => { //error: on api.role.getCountItems
+      .catch((err) => { //error: on api.user.getNotAssociatedRoles
         if(err.isCanceled) {
-          return
+          return;
+        } else {
+          let newError = {};
+          let withDetails=true;
+          variant.current='error';
+          newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+          newError.locations=[{model: 'user', association: 'roles', table:'A', method: 'getData()', request: 'api.user.getNotAssociatedRoles'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+          newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+          clearRequestGetData();
+          return;
+        }
+      });
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.id, dataTrigger, search, configurePagination, onEmptyPage, maxRecordLimit]);
+
+  /**
+   * getCountB
+   * 
+   * Get @count from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @count retreived.
+   * 
+   */
+  const getCountB = useCallback(async () => {
+    //return if there is an active count operation
+    if(isCountingRefB.current) return;
+
+    cancelCountingPromisesB();
+    isCountingRefB.current = true;
+    errorsD.current = [];
+
+    //set ops: only ids
+    let ops = null;
+    if(lidsToAdd.current && lidsToAdd.current.length > 0) {
+      ops = {
+        only: [{
+          type: 'Int',
+          values: {"id": lidsToAdd.current}
+        }]
+      };
+    } else {
+      isCountingRefB.current = false;
+      return;
+    }
+
+    /*
+      API Request: api.role.getCountItems
+    */
+    let cancelableApiReq = makeCancelable(api.role.getCountItems(graphqlServerUrl, searchB, ops));
+    cancelableCountingPromisesB.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelableCountingPromisesB.current.splice(cancelableCountingPromisesB.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantD.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getCountB()', request: 'api.role.getCountItems'}];
+            newError.path=['update', `id:${item.id}`, 'add', 'roles'];          
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsD.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageD(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantD.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getCountB()', request: 'api.role.getCountItems'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];          
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsD.current.push(newError);
+          console.log("Error: ", newError);
+ 
+          showMessageD(newError.message, withDetails);
+          return;
+        }
+
+        //ok
+        setCountB(response.value);
+        isCountingRefB.current = false;
+      return;
+    },
+    //rejected
+    (err) => {
+      if(err.isCanceled) return;
+      else throw err;
+    })
+    //error
+    .catch((err) => { //error: on api.role.getCountItems
+      if(err.isCanceled) {
+        return;
+      } else {
+        let newError = {};
+        let withDetails=true;
+        variantD.current='error';
+        newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
+        newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getCountB()', request: 'api.role.getCountItems'}];
+        newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+        newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
+        errorsD.current.push(newError);
+        console.log("Error: ", newError);
+
+        showMessageD(newError.message, withDetails);
+        return;
+      }
+    });
+  }, [graphqlServerUrl, showMessageD, t, item.id, searchB]);
+
+  /**
+   * getDataB
+   * 
+   * Get @items from GrahpQL Server.
+   * Uses current state properties to fill query request.
+   * Updates state to inform new @items retreived.
+   * 
+   */
+  const getDataB = useCallback(async () => {
+    updateHeights();
+    isOnApiRequestRefB.current = true;
+    setIsOnApiRequestB(true);
+    Boolean(dataTriggerB); //avoid warning
+    errorsB.current = [];
+
+    //count (async)
+    getCountB();
+
+    //set ops: only ids
+    let ops = null;
+    if(lidsToAdd.current && lidsToAdd.current.length > 0) {
+      ops = {
+        only: [{
+          type: 'Int',
+          values: {"id": lidsToAdd.current}
+        }]
+      };
+    } else {
+      clearRequestGetDataB();
+      setThereAreItemsToAdd(false);
+      return;
+    }
+
+    let variables = {
+      pagination: {...paginationRefB.current}
+    };
+    /*
+      API Request: api.role.getItems
+    */
+    let cancelableApiReq = makeCancelable(api.role.getItems(
+      graphqlServerUrl,
+      searchB,
+      null, //orderBy
+      null, //orderDirection
+      variables,
+      ops
+    ));
+    cancelablePromises.current.push(cancelableApiReq);
+    await cancelableApiReq
+      .promise
+      .then(
+      //resolved
+      (response) => {
+        //delete from cancelables
+        cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variantB.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getDataB()', request: 'api.role.getItems'}];
+            newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errorsB.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessageB(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
+          let newError = {};
+          let withDetails=true;
+          variantB.current='error';
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getDataB()', request: 'api.role.getItems'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
+          errorsB.current.push(newError);
+          console.log("Error: ", newError);
+ 
+          showMessageB(newError.message, withDetails);
+          clearRequestGetDataB();
+          return;
+        }
+        
+        //get items
+        let its = response.value.edges.map(o => o.node);
+        let pi = response.value.pageInfo;
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 ) 
+        {
+          onEmptyPageB(pi);
+          return;
+        }
+
+        //update pageInfo
+        pageInfoB.current = pi;
+        setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+        setHasNextPageB(pageInfoB.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePaginationB('reload');
+          
+        //ok
+        setItemsB([...its]);
+
+        //ends request
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        return;
+      },
+      //rejected
+      (err) => {
+        if(err.isCanceled) return;
+        else throw err;
+      })
+      //error
+      .catch((err) => { //error: on api.role.getItems
+        if(err.isCanceled) {
+          return;
         } else {
           let newError = {};
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'user', association: 'roles', table:'B', query: 'countRoles', method: 'getDataB()', request: 'api.role.getCountItems'}];
-          newError.path=['add', 'roles'];
+          newError.locations=[{model: 'user', association: 'roles', table:'B', method: 'getDataB()', request: 'api.role.getItems'}];
+          newError.path=['update', `id:${item.id}`, 'add', 'roles'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -961,18 +1133,21 @@ export default function RolesToAddTransferView(props) {
           return;
         }
       });
-  }, [graphqlServerUrl, showMessageB, t, dataTriggerB, searchB, rowsPerPageB]);
+  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.id, dataTriggerB, searchB, getCountB, configurePaginationB, onEmptyPageB]);
 
   /**
    * Effects
    */
-
   useEffect(() => {
 
     //cleanup on unmounted.
     return function cleanup() {
       cancelablePromises.current.forEach(p => p.cancel());
       cancelablePromises.current = [];
+      cancelableCountingPromises.current.forEach(p => p.cancel());
+      cancelableCountingPromises.current = [];
+      cancelableCountingPromisesB.current.forEach(p => p.cancel());
+      cancelableCountingPromisesB.current = [];
     };
   }, []);
   
@@ -1005,7 +1180,7 @@ export default function RolesToAddTransferView(props) {
     if(!lastModelChanged) {
       return;
     }
-    if(!lastChangeTimestamp || !lastFetchTime.current) {
+    if(!lastChangeTimestamp || !lastFetchTime.current || !lastFetchTimeB.current) {
       return;
     }
     let isNewChangeOnA = (lastFetchTime.current<lastChangeTimestamp);
@@ -1027,7 +1202,7 @@ export default function RolesToAddTransferView(props) {
      * from this relation (in another place).
      * 
      * Actions:
-     * - remove any dis-associated internalId from idsToAdd[]
+     * - remove any associated internalId from idsToAdd[]
      * - update associatedIds[].
      * - reload both transfer tables.
      * - return
@@ -1039,44 +1214,58 @@ export default function RolesToAddTransferView(props) {
         (lastModelChanged.user[String(item.id)].changedAssociations.role_to_user.added ||
          lastModelChanged.user[String(item.id)].changedAssociations.role_to_user.removed)) {
           
-          //remove any dis-associated internalId from idsToAdd[]
-          let idsRemoved = lastModelChanged.user[String(item.id)].changedAssociations.role_to_user.idsRemoved;
-          if(idsRemoved) {
-            idsRemoved.forEach( (idRemoved) => {
+          //remove any associated internalId from idsToAdd[] & update counts
+          let idsAdded = lastModelChanged.user[String(item.id)].changedAssociations.role_to_user.idsAdded;
+          if(idsAdded) {
+            idsAdded.forEach( (idAdded) => {
               //remove from lidsToAdd
-              let iof = lidsToAdd.current.indexOf(idRemoved);
+              let iof = lidsToAdd.current.indexOf(idAdded);
               if(iof !== -1) { 
                 lidsToAdd.current.splice(iof, 1);
                 if(lidsToAdd.current.length === 0) {
                   setThereAreItemsToAdd(false);
                 }
+                handleUntransfer('roles', idAdded);
+                //decrement B
+                setCountB(countB-1);
               }
-              handleUntransfer('roles', idRemoved);
+              //decrement A
+              setCount(count-1);
             });
           }
 
-          //clear associatedIds[] (they will be re-fetch on next getData()).
-          lidsAssociated.current = undefined;
+          //update count for each dis-associated internalId from idsToAdd[]
+          let idsRemoved = lastModelChanged.user[String(item.id)].changedAssociations.role_to_user.idsRemoved;
+          if(idsRemoved) {
+            //increment A
+            setCount(count+idsRemoved.length);
 
-          //reload
-          updateHeights();
+          }
+
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
+
           //strict contention
           if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
             //configure A
-            isForwardPagination.current = true;
-            pageInfo.current.endCursor = pageInfo.current.startCursor;
-            includeCursor.current = true;
+            configurePagination('reload');
             //reload A
             setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
           }
           //strict contention
           if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
             //configure B
-            isForwardPaginationB.current = true;
-            pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-            includeCursorB.current = true;
+            configurePaginationB('reload');
             //reload B
             setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
           }
           return;
     }//end: Case 1
@@ -1115,28 +1304,34 @@ export default function RolesToAddTransferView(props) {
               if(idsRemoved) {
                 let iof = idsRemoved.indexOf(item.id);
                 if(iof !== -1) {
-                  //clear associatedIds[] (they will be re-fetched on next getData()).
-                  lidsAssociated.current = undefined;
 
-                  //reload
-                  updateHeights();
-                  //strict contention
+                  //increment A
+                  setCount(count+1);
+
+                  //will count A
+                  cancelCountingPromises();
+                  isCountingRef.current = false;
+                  //will count B
+                  cancelCountingPromisesB();
+                  isCountingRefB.current = false;
+
+                  //strict contention reload
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
-                    isForwardPagination.current = true;
-                    pageInfo.current.endCursor = pageInfo.current.startCursor;
-                    includeCursor.current = true;
+                    configurePagination('reload');
                     //reload A
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
                   }
-                  //strict contention
+                  //strict contention reload
                   if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
                     //configure B
-                    isForwardPaginationB.current = true;
-                    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-                    includeCursorB.current = true;
+                    configurePaginationB('reload');
                     //reload B
                     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
                   }
                   return;
                 }
@@ -1157,31 +1352,37 @@ export default function RolesToAddTransferView(props) {
                     if(lidsToAdd.current.length === 0) {
                       setThereAreItemsToAdd(false);
                     }
+                    //decrement B
+                    setCountB(countB-1);
                   }
                   handleUntransfer('roles', idAdded);
+                  //decrement A
+                  setCount(count-1);
 
-                  //clear associatedIds[] (they will be re-fetch on next getData()).
-                  lidsAssociated.current = undefined;
+                  //will count A
+                  cancelCountingPromises();
+                  isCountingRef.current = false;
+                  //will count B
+                  cancelCountingPromisesB();
+                  isCountingRefB.current = false;
 
-                  //reload
-                  updateHeights();
                   //strict contention
                   if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
                     //configure A
-                    isForwardPagination.current = true;
-                    pageInfo.current.endCursor = pageInfo.current.startCursor;
-                    includeCursor.current = true;
+                    configurePagination('reload');
                     //reload A
                     setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
                   }
                   //strict contention
                   if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
                     //configure B
-                    isForwardPaginationB.current = true;
-                    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-                    includeCursorB.current = true;
+                    configurePaginationB('reload');
                     //reload B
                     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
                   }
                   return;
                 }
@@ -1235,57 +1436,74 @@ export default function RolesToAddTransferView(props) {
             nitemsB[iofB] = entry[1].newItem;
             setItemsB(nitemsB);
           }
+
+          return;
         }
 
         //case B: deleted
         if(entry[1].op === "delete") {
           let idRemoved = entry[1].item.id;
 
-          //lookup item on any tables or associated ids
+          //lookup item on table A
           let iofA = items.findIndex((item) => item.id===idRemoved);
-          let iofB = itemsB.findIndex((item) => item.id===idRemoved);
-          let iofC = lidsAssociated.current.indexOf(idRemoved);
-          if(iofA !== -1 || iofB !== -1 || iofC !== -1) {
-            
-            //remove deleted item from lidsToAdd
-            let iofD = lidsToAdd.current.indexOf(idRemoved);
-            if(iofD !== -1) {
-              lidsToAdd.current.splice(iofD, 1);
-              if(lidsToAdd.current.length === 0) {
-                setThereAreItemsToAdd(false);
-              }
-            }
-            handleUntransfer('roles', idRemoved);
-
-            //clear associatedIds[] (they will be re-fetch on next getData()).
-            lidsAssociated.current = undefined;
-
-            //reload
-            updateHeights();
-            //strict contention
-            if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-              //configure A
-              isForwardPagination.current = true;
-              pageInfo.current.endCursor = pageInfo.current.startCursor;
-              includeCursor.current = true;
-              //reload A
-              setDataTrigger(prevDataTrigger => !prevDataTrigger);
-            }
-            //strict contention
-            if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
-              //configure B
-              isForwardPaginationB.current = true;
-              pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-              includeCursorB.current = true;
-              //reload B
-              setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-            }
-            return;
+          if(iofA !== -1) {
+            //decrement A
+            setCount(count-1);
           }
+
+          //lookup item on table B
+          let iofB = itemsB.findIndex((item) => item.id===idRemoved);
+          if(iofB !== -1) {
+            //decrement B
+            setCountB(countB-1);
+          }
+
+          //lookup item on ids to add
+          let iofD = lidsToAdd.current.indexOf(idRemoved);
+          //remove deleted item from lidsToAdd
+          if(iofD !== -1) {
+            lidsToAdd.current.splice(iofD, 1);
+            if(lidsToAdd.current.length === 0) {
+              setThereAreItemsToAdd(false);
+            }
+            if(iofB === -1) {
+              //decrement B
+              setCountB(countB-1);
+            }
+          }
+          handleUntransfer('roles', idRemoved);
+
+
+          //will count A
+          cancelCountingPromises();
+          isCountingRef.current = false;
+          //will count B
+          cancelCountingPromisesB();
+          isCountingRefB.current = false;
+
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
+          }
+          //strict contention
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
+          return;
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.id, handleUntransfer]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.id, handleUntransfer, getCount, count, getCountB, countB, configurePagination, configurePaginationB]);
 
   useEffect(() => {
     //return if this flag is set
@@ -1324,33 +1542,59 @@ export default function RolesToAddTransferView(props) {
   }, [pageB]);
 
   useEffect(() => {
+    //update ref
+    rowsPerPageRef.current = rowsPerPage;
+
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    
+    //configure pagination
+    configurePagination('reset');
+    //reload    
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }, [rowsPerPage, configurePagination]);
+
+  useEffect(() => {
+    //update ref
+    rowsPerPageRefB.current = rowsPerPageB;
+
+    //check strict contention
+    if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    
+    //configure pagination
+    configurePaginationB('reset');
+    //reload    
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  }, [rowsPerPageB, configurePaginationB]);
+
+  useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
       //configure
-      isForwardPagination.current = true;
-      pageInfo.current.endCursor = pageInfo.current.startCursor;
-      includeCursor.current = true;
+      configurePagination('reload');
       //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
-  }, [isOnApiRequest]);
+  }, [isOnApiRequest, configurePagination]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
       //configure
-      isForwardPaginationB.current = true;
-      pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-      includeCursorB.current = true;
+      configurePaginationB('reload');
       //reload
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     }
     updateHeights();
-  }, [isOnApiRequestB]);
+  }, [isOnApiRequestB, configurePaginationB]);
 
   useEffect(() => {
-    if(items.length > 0) { 
+    if(Array.isArray(items) && items.length > 0) { 
       setAreItemsReady(true); 
     } else { 
       setAreItemsReady(false); 
@@ -1359,7 +1603,7 @@ export default function RolesToAddTransferView(props) {
   }, [items]);
 
   useEffect(() => {
-    if(itemsB.length > 0) { 
+    if(Array.isArray(itemsB) && itemsB.length > 0) { 
       setAreItemsReadyB(true); 
     } else { 
       setAreItemsReadyB(false); 
@@ -1367,131 +1611,43 @@ export default function RolesToAddTransferView(props) {
     lastFetchTimeB.current = Date.now();
   }, [itemsB]);
 
-  useEffect(() => {
-    if(count === 0) {
-      setIsCountReady(false);
-    } else {
-      setIsCountReady(true);
-    }
-  }, [count]);
-
-  useEffect(() => {
-    if(countB === 0) {
-      setIsCountReadyB(false);
-    } else {
-      setIsCountReadyB(true);
-    }
-  }, [countB]);
-
   /**
    * Utils
    */
-
-  function clearRequestGetData() {
-    //update pageInfo
-    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-          
-    setCount(0);
-    setItems([]);
-    isOnApiRequestRef.current = false;
-    isCursorPaginating.current = false;
-    includeCursor.current = false;
-    setIsOnApiRequest(false);
+  function cancelCountingPromises() {
+    cancelableCountingPromises.current.forEach(p => p.cancel());
+    cancelableCountingPromises.current = [];    
   }
 
-  function clearRequestGetDataB() {
-    //update pageInfo
-    pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-    setHasNextPageB(pageInfoB.current.hasNextPage);
-  
-    setCountB(0);
-    setItemsB([]);
-    isOnApiRequestRefB.current = false;
-    isCursorPaginatingB.current = false;
-    includeCursorB.current = false;
-    setIsOnApiRequestB(false);
+  function cancelCountingPromisesB() {
+    cancelableCountingPromisesB.current.forEach(p => p.cancel());
+    cancelableCountingPromisesB.current = [];    
   }
 
-  function updateHeights() {
-    if(lref.current) {
-      let h =lref.current.clientHeight;
-      setLh(h);
-    }
-    if(lrefB.current) {
-      let hb =lrefB.current.clientHeight;
-      setLhB(hb);
-    }
+function updateHeights() {
+  if(lref.current) {
+    let h =lref.current.clientHeight;
+    setLh(h);
   }
-
-  function resetPageRefs() {
-    isForwardPagination.current = true;
-    pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-    includeCursor.current = false;
-    pageRef.current = 0;
+  if(lrefB.current) {
+    let hb =lrefB.current.clientHeight;
+    setLhB(hb);
   }
+}
 
-  function resetPageRefsB() {
-    isForwardPaginationB.current = true;
-    pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
-    setHasNextPageB(pageInfoB.current.hasNextPage);
-    includeCursorB.current = false;
-    pageRefB.current = 0;
-  }
-
-  function resetReloadDataA() {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure A
-    resetPageRefs();
-    isCursorPaginating.current = true;
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    updateHeights();
-  }
-
-  function resetReloadDataB() {
-    //strict contention
-    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure B
-    resetPageRefsB();
-    isCursorPaginatingB.current = true;
-    //reload B
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    updateHeights();
-  }
 
   function reloadDataA() {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
     //configure A
-    isForwardPagination.current = true;
-    pageInfo.current.endCursor = pageInfo.current.startCursor;
-    includeCursor.current = true;
+    configurePagination('reload');
     //reload A
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
-    updateHeights();
   }
 
   function reloadDataB() {
-    //strict contention
-    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-    
     //configure B
-    isForwardPaginationB.current = true;
-    pageInfoB.current.endCursor = pageInfoB.current.startCursor;
-    includeCursorB.current = true;
+    configurePaginationB('reload');    
     //reload B
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-    updateHeights();
   }
 
   /**
@@ -1502,29 +1658,34 @@ export default function RolesToAddTransferView(props) {
    * Search handlers
    */
   const handleSearchEnter = text => {
-    updateHeights();
-
     if(text !== search)
     {
-      resetPageRefs();
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
       }
+
+      setCount(-1);
+      //will count
+      cancelCountingPromises();
+      isCountingRef.current = false;
+
       setSearch(text);
     }
   };
 
   const handleSearchEnterB = text => {
-    updateHeights();
-
     if(text !== searchB)
     {
-      resetPageRefsB();
       if(pageB !== 0) {
         isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
         setPageB(0);
       }
+      setCountB(-1);
+      //will count
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
+
       setSearchB(text);
     }
   };
@@ -1536,147 +1697,136 @@ export default function RolesToAddTransferView(props) {
   const handleFirstPageButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginating.current = true;
-    includeCursor.current = false;
-    isForwardPagination.current = true;
-    pageInfo.current.endCursor = null;
-
+    //configure A
+    configurePagination('firstPage');
     //reload A
-    updateHeights();
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   };
+
   const handleFirstPageButtonClickB = (event) => {
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginatingB.current = true;
-    includeCursorB.current = false;
-    isForwardPaginationB.current = true;
-    pageInfoB.current.endCursor = null;
-
+    //configure B
+    configurePaginationB('firstPage');
     //reload B
-    updateHeights();
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   };
 
   const handleLastPageButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginating.current = true;
-    includeCursor.current = false;
-    isForwardPagination.current = false;
-    pageInfo.current.startCursor = null;
-
+    //configure A
+    configurePagination('lastPage');
     //reload A
-    updateHeights();
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   };
+
   const handleLastPageButtonClickB = (event) => {
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginatingB.current = true;
-    includeCursorB.current = false;
-    isForwardPaginationB.current = false;
-    pageInfoB.current.startCursor = null;
-
+    //configure B
+    configurePaginationB('lastPage');
     //reload B
-    updateHeights();
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   };
 
   const handleNextButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginating.current = true;
-    includeCursor.current = false;
-    isForwardPagination.current = true;
-
+    //configure A
+    configurePagination('nextPage');
     //reload A
-    updateHeights();
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   };
+
   const handleNextButtonClickB = (event) => {
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginatingB.current = true;
-    includeCursorB.current = false;
-    isForwardPaginationB.current = true;
-
+    //configure B
+    configurePaginationB('nextPage');
     //reload B
-    updateHeights();
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   };
 
   const handleBackButtonClick = (event) => {
     //strict contention
     if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginating.current = true;
-    includeCursor.current = false;
-    isForwardPagination.current = false;
-
+    //configure A
+    configurePagination('previousPage');
     //reload A
-    updateHeights();
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   };
+
   const handleBackButtonClickB = (event) => {
     //strict contention
     if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
-
-    //configure
+    //set strict contention
     isCursorPaginatingB.current = true;
-    includeCursorB.current = false;
-    isForwardPaginationB.current = false;
+    //configure B
+    configurePaginationB('previousPage');
 
     //reload B
-    updateHeights();
     setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   };
 
-  const handleChangeRowsPerPage = event => {
-    if(event.target.value !== rowsPerPage)
-    {
-      resetPageRefs();
-      if(page !== 0) {
-        isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
-        setPage(0);
-      }
 
-      updateHeights();
-      setRowsPerPage(parseInt(event.target.value, 10));
+const handleChangeRowsPerPage = event => {
+  if(event.target.value !== rowsPerPage)
+  {
+    if(page !== 0) {
+      isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
+      setPage(0);
     }
-  };
 
-  const handleChangeRowsPerPageB = event => {
-    if(event.target.value !== rowsPerPageB)
-    {
-      resetPageRefsB();
-      if(pageB !== 0) {
-        isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
-        setPageB(0);
-      }
-      setRowsPerPageB(parseInt(event.target.value, 10));
+    setRowsPerPage(parseInt(event.target.value, 10));
+  }
+};
+
+const handleChangeRowsPerPageB = event => {
+  if(event.target.value !== rowsPerPageB)
+  {
+    if(pageB !== 0) {
+      isGettingFirstDataRefB.current = true; //avoids to get data on [pageB] effect
+      setPageB(0);
     }
-  };
+    setRowsPerPageB(parseInt(event.target.value, 10));
+  }
+};
 
-  const handleReloadClick = (event) => {
-    resetReloadDataA();
-  };
-  const handleReloadClickB = (event) => {
-    resetReloadDataB();
-  };
+const handleReloadClick = (event) => {
+  //check strict contention
+  if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+  //set strict contention
+  isCursorPaginating.current = true;
+  //configure pagination
+  configurePagination('reset');
+  //reload
+  setDataTrigger(prevDataTrigger => !prevDataTrigger);
+};
+const handleReloadClickB = (event) => {
+  //check strict contention
+  if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+  //set strict contention
+  isCursorPaginatingB.current = true;
+  //configure pagination
+  configurePaginationB('reset');
+  //reload
+  setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+};
 
   /*
    * Items handlers
@@ -1689,11 +1839,24 @@ export default function RolesToAddTransferView(props) {
     if(lidsToAdd.current.indexOf(item.id) === -1) {
       lidsToAdd.current.push(item.id);
       setThereAreItemsToAdd(true);
-      updateHeights();
+      
+      //decrement count A
+      setCount(count-1);
+      //will count A
+      cancelCountingPromises();
+      isCountingRef.current = false;
       //reload A
       reloadDataA();
-      //reload B (full)
-      resetReloadDataB();
+
+      //increment count B
+      if(countB > 0) setCountB(countB+1);
+      //will count B
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
+      //configure B
+      configurePaginationB('reset');
+      //reload B
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
       handleTransfer('roles', item.id);
     }
   };
@@ -1706,9 +1869,22 @@ export default function RolesToAddTransferView(props) {
       if(lidsToAdd.current.length === 0) {
         setThereAreItemsToAdd(false);
       }
-      updateHeights();
-      //reload A (full)
-      resetReloadDataA();
+
+      //increment count A
+      setCount(count+1);
+      //will count A
+      cancelCountingPromises();
+      isCountingRef.current = false;
+      //configure A
+      configurePaginationB('reset');
+      //reload A
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
+
+      //decrement count B
+      if(countB > 0) setCountB(countB-1);
+      //will count B
+      cancelCountingPromisesB();
+      isCountingRefB.current = false;
       //reload B
       reloadDataB();
       handleUntransfer('roles', item.id);
@@ -1735,7 +1911,7 @@ export default function RolesToAddTransferView(props) {
               />
 
               {/* Case: no data */}
-              {(!isOnApiRequest && (!areItemsReady || !isCountReady)) && (
+              {(!isOnApiRequest && (!areItemsReady)) && (
                 /* Label */
                 <Fade
                   in={true}
@@ -1756,7 +1932,7 @@ export default function RolesToAddTransferView(props) {
               )}
 
               {/* Case: data ready */}
-              {(!isOnApiRequest && areItemsReady && isCountReady) && (
+              {(!isOnApiRequest && areItemsReady) && (
               
                 /* List */
                 <Fade
@@ -1878,7 +2054,7 @@ export default function RolesToAddTransferView(props) {
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 rowsPerPage={(count <=10) ? '' : rowsPerPage}
-                labelRowsPerPage = { t('modelPanels.rows') }
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
                 hasNextPage={hasNextPage}
                 hasPreviousPage={hasPreviousPage}
                 handleFirstPageButtonClick={handleFirstPageButtonClick}
@@ -1886,7 +2062,7 @@ export default function RolesToAddTransferView(props) {
                 handleNextButtonClick={handleNextButtonClick}
                 handleBackButtonClick={handleBackButtonClick}
                 handleChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+            />
             </Card>
           )}
         </Grid>
@@ -1905,8 +2081,8 @@ export default function RolesToAddTransferView(props) {
                     <svg {...svgProps}>
                       <defs>
                         <linearGradient id="gradient1">
-                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
-                          <stop offset="70%" stopColor={(count&&count>0) ? "#4CAF50" : blueGrey[200]} />
+                          <stop offset="30%" stopColor={(itemsB&&itemsB.length>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(items&&items.length>0) ? "#4CAF50" : blueGrey[200]} />
                         </linearGradient>
                       </defs>
                       {React.cloneElement(svgProps.children[0], {
@@ -1931,8 +2107,8 @@ export default function RolesToAddTransferView(props) {
                     <svg {...svgProps}>
                       <defs>
                         <linearGradient id="gradient1b">
-                          <stop offset="30%" stopColor={(countB&&countB>0) ? "#3F51B5" : blueGrey[200]} />
-                          <stop offset="70%" stopColor={(count&&count>0) ? "#4CAF50" : blueGrey[200]} />
+                          <stop offset="30%" stopColor={(itemsB&&itemsB.length>0) ? "#3F51B5" : blueGrey[200]} />
+                          <stop offset="70%" stopColor={(items&&items.length>0) ? "#4CAF50" : blueGrey[200]} />
                         </linearGradient>
                       </defs>
                       {React.cloneElement(svgProps.children[0], {
@@ -1951,6 +2127,7 @@ export default function RolesToAddTransferView(props) {
           */}
         <Grid item xs={12} sm={5} >
           {(item!==undefined) && (
+            <div>
             <Card className={classes.card}>
 
               {/* Toolbar */}
@@ -1984,7 +2161,7 @@ export default function RolesToAddTransferView(props) {
               )}
 
               {/* Case: no data from search */}
-              {(thereAreItemsToAdd && !isOnApiRequestB && (!areItemsReadyB || !isCountReadyB)) && (
+              {(thereAreItemsToAdd && !isOnApiRequestB && (!areItemsReadyB)) && (
                 /* Label */
                 <Fade
                   in={true}
@@ -2005,7 +2182,7 @@ export default function RolesToAddTransferView(props) {
               )}
 
               {/* Case: data ready */}
-              {(thereAreItemsToAdd && !isOnApiRequestB && areItemsReadyB && isCountReadyB) && (
+              {(thereAreItemsToAdd && !isOnApiRequestB && areItemsReadyB) && (
               
                 /* List */
                 <Fade
@@ -2123,23 +2300,22 @@ export default function RolesToAddTransferView(props) {
               )}
 
               {/* Pagination */}
-              {(true) && (
                 
-                <RolesToAddTransferViewCursorPagination
-                  count={countB}
-                  rowsPerPageOptions={(countB <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                  rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
-                  labelRowsPerPage = { t('modelPanels.rows') }
-                  hasNextPage={hasNextPageB}
-                  hasPreviousPage={hasPreviousPageB}
-                  handleFirstPageButtonClick={handleFirstPageButtonClickB}
-                  handleLastPageButtonClick={handleLastPageButtonClickB}
-                  handleNextButtonClick={handleNextButtonClickB}
-                  handleBackButtonClick={handleBackButtonClickB}
-                  handleChangeRowsPerPage={handleChangeRowsPerPageB}
-                />
-              )}
+              <RolesToAddTransferViewCursorPagination
+                count={countB}
+                rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                hasNextPage={hasNextPageB}
+                hasPreviousPage={hasPreviousPageB}
+                handleFirstPageButtonClick={handleFirstPageButtonClickB}
+                handleLastPageButtonClick={handleLastPageButtonClickB}
+                handleNextButtonClick={handleNextButtonClickB}
+                handleBackButtonClick={handleBackButtonClickB}
+                handleChangeRowsPerPage={handleChangeRowsPerPageB}
+              />
             </Card>
+            </div>
           )}
         </Grid>
       </Grid>

@@ -14,9 +14,8 @@ const checkAuthorization = require('./utils/check-authorization');
 const helper = require('./utils/helper');
 const nodejq = require('node-jq')
 const {JSONPath} = require('jsonpath-plus');
-const graphqlFormatError = require('./node_modules/graphql/error/formatError');
 const errors = require('./utils/errors');
-const { printError } = require('graphql');
+const { printError, formatError } = require('graphql');
 
 var {
   graphql, buildSchema
@@ -47,17 +46,15 @@ res.setHeader('Access-Control-Allow-Origin', globals.ALLOW_ORIGIN);
   next();
 });
 
-// Note: this should be after JWT declaration.
-// Enable static pages in the folder ./public
-app.use(express.static('public'));
-
-
 // Force users to sign in to get access to anything else than '/login'
 console.log("REQUIRE: ",globals.REQUIRE_SIGN_IN);
 if(globals.REQUIRE_SIGN_IN === "true"){
   app.use(jwt({ secret: 'something-secret'}).unless({path: ['/login']}));
 }
 
+// Note: this should be after JWT declaration.
+// Enable static pages in the folder ./public
+app.use(express.static('public'));
 
 /* Temporary solution:  acl rules set */
 if (process.argv.length > 2 && process.argv[2] == 'acl') {
@@ -276,7 +273,7 @@ app.post('/meta_query', cors(), async (req, res, next) => {
      }
  }
 } catch (error) {
- res.json( { data: null, errors: [graphqlFormatError.formatError(error)] });
+ res.json( { data: null, errors: [formatError(error)] });
 }
 });
 

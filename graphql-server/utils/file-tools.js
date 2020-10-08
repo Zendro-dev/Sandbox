@@ -104,6 +104,49 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
 
 
 /**
+ * castCsv - Cast values from csv file when converting to object.
+ *            Method used in the cast opition for csv-pars, more info: https://csv.js.org/parse/options/cast/
+ *
+ * @param  {String} value           The raw value from the csv file
+ * @param  {String} column          The name of the column to which the value belongs
+ * @param  {Object} attributes_type Key is the name of the attribute/column as given in the json file of the model, value is the type of the attribute.
+ * @return {any}                 The value casted according to the attribute type given in attributes_type.
+ */
+castCsv = function( value, column, attributes_type){
+  if(!(typeof value === "string" && value.match(/\s*null\s*/i) )){
+    switch ( attributes_type[column] ) {
+      case 'String':
+        value = String(value);
+        break;
+      case 'Int':
+        value = Number(value);
+        break;
+      case 'Date':
+        value = String(value);
+        break;
+      case 'Time':
+        value = String(value);
+        break;
+      case 'Date':
+        value = String(value);
+        break;
+      case 'Boolean':
+        if(value === 'true') value = true;
+        if(value === 'false') value = false;
+        break;
+      case 'Float':
+        value = Number(value);
+        break;
+      default:
+        value = String(value);
+        break;
+    }
+  }
+  return value;
+}
+
+
+/**
  * Parse by streaming a csv file and create the records in the correspondant table
  * @function
  * @param {string} csvFilePath - The path where the csv file is stored.
@@ -134,7 +177,9 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
         csv_parse({
           delimiter: delim,
           columns: cols,
-          cast: true
+          cast: function( value, context){
+            return castCsv(value, context.column, model.definition.attributes );
+          }
         })
       )
     );
@@ -233,6 +278,7 @@ exports.parseCsvStream = async function(csvFilePath, model, delim, cols) {
 
 /**
  * @start ImageAttachment handlers
+ * ///////////////////////////////
  */
 module.exports.deleteFile = function (filePath) {
   // check if the file exists
@@ -263,10 +309,11 @@ module.exports.fileExists = function (filePath) {
   }
 }
 
-module.exports.addImageFile = async function (input, context) {
+module.exports.addImageFile = async function (input, context, _CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED) {
+  
   // case: does not have file
   if(!context.request.files || Object.keys(context.request.files).length === 0) {
-    if(globals.CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED) {
+    if(_CREATE_IMAGE_ATTACHMENT_FILE_REQUIRED) {
       throw new Error("No image attachment was provided with addImageAttachment mutation request");
     } else {
       /**
@@ -322,7 +369,7 @@ module.exports.updateImageFile = async function (input, context, {filePath, smal
    * Add new image file
    *   - addImageFile will check if attachment was provided.
    */
-  await exports.addImageFile(input, context);
+  await exports.addImageFile(input, context, false);
   /**
    * Remove previous image file
    *   - if 'filePath' attribute exists, means that new image

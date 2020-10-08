@@ -80,6 +80,8 @@ export default function ImageAttachmentEnhancedTableHead(props) {
           </TableSortLabel>
         </TableCell>
 
+
+{/* #imgs */}
         {/* thumbnail */}
         <TableCell
           key='thumbnail'
@@ -90,6 +92,9 @@ export default function ImageAttachmentEnhancedTableHead(props) {
             { t('modelPanels.image', 'image') }
           </Typography>
         </TableCell>
+{/* imgs# */}
+
+
 
         <TableCell
           key='fileName'
@@ -231,6 +236,24 @@ export default function ImageAttachmentEnhancedTableHead(props) {
           >
             <Typography color="inherit" variant="caption">
               description
+            </Typography>
+          </TableSortLabel>
+        </TableCell>
+
+        <TableCell
+          key='personId'
+          align='right'
+          padding="default"
+          sortDirection={orderBy === 'personId' ? order : false}
+        >
+          {/* personId */}
+          <TableSortLabel
+              active={orderBy === 'personId'}
+              direction={order}
+              onClick={(event) => {onRequestSort(event, 'personId')}}
+          >
+            <Typography color="inherit" variant="caption">
+              personId
             </Typography>
           </TableSortLabel>
         </TableCell>

@@ -1,0 +1,16 @@
+{
+  "model" : "Person",
+  "storageType" : "SQL",
+  "attributes" : {
+    "name" : "String"
+  },
+  "associations": {
+    "images": {
+      "type": "to_many",
+      "target": "ImageAttachment",
+      "targetKey": "personId",
+      "keyIn" : "ImageAttachment",
+      "targetStorageType": "sql"
+    }
+  }
+}

@@ -8,6 +8,7 @@ import ImageAttachmentAttributesPage from './components/imageAttachment-attribut
 import ImageAttachmentAssociationsPage from './components/imageAttachment-associations-page/ImageAttachmentAssociationsPage'
 import ImageAttachmentTabsA from './components/ImageAttachmentTabsA'
 import ImageAttachmentConfirmationDialog from './components/ImageAttachmentConfirmationDialog'
+import PersonDetailPanel from '../../../person-table/components/person-detail-panel/PersonDetailPanel'
 import api from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
@@ -56,6 +57,7 @@ export default function ImageAttachmentCreatePanel(props) {
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
+    permissions,
     handleClose,
   } = props;
 
@@ -63,6 +65,7 @@ export default function ImageAttachmentCreatePanel(props) {
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
+  const [foreignKeys, setForeignKeys] = useState({});
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmationTitle, setConfirmationTitle] = useState('');
@@ -77,7 +80,11 @@ export default function ImageAttachmentCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
+  const [personIdsToAddState, setPersonIdsToAddState] = useState([]);
+  const personIdsToAdd = useRef([]);
 
+  const [personDetailDialogOpen, setPersonDetailDialogOpen] = useState(false);
+  const [personDetailItem, setPersonDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -141,6 +148,12 @@ export default function ImageAttachmentCreatePanel(props) {
     };
   }, []);
   
+  useEffect(() => {
+    if (personDetailItem !== undefined) {
+      setPersonDetailDialogOpen(true);
+    }
+  }, [personDetailItem]);
+
 
   /**
    * Utils
@@ -162,6 +175,7 @@ export default function ImageAttachmentCreatePanel(props) {
     initialValues.mediumTnPath = null;
     initialValues.licence = null;
     initialValues.description = null;
+    initialValues.personId = null;
 
     return initialValues;
   }
@@ -184,6 +198,7 @@ export default function ImageAttachmentCreatePanel(props) {
     initialValueOkStates.mediumTnPath = 0;
     initialValueOkStates.licence = 0;
     initialValueOkStates.description = 0;
+    initialValueOkStates.personId = -2; //FK
 
     return initialValueOkStates;
   }
@@ -199,6 +214,7 @@ export default function ImageAttachmentCreatePanel(props) {
     _initialValueAjvStates.mediumTnPath = {errors: []};
     _initialValueAjvStates.licence = {errors: []};
     _initialValueAjvStates.description = {errors: []};
+    _initialValueAjvStates.personId = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -233,6 +249,14 @@ export default function ImageAttachmentCreatePanel(props) {
     return false;
   }
 
+  function setAddPerson(variables) {
+    if(personIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addPerson = personIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
 
   function setAjvErrors(err) {
     //check
@@ -287,7 +311,7 @@ export default function ImageAttachmentCreatePanel(props) {
     * Updates state to inform new @item added.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -306,89 +330,56 @@ export default function ImageAttachmentCreatePanel(props) {
     }
 
     //delete: fk's
+    delete variables.personId;
 
     //add: to_one's
+    setAddPerson(variables);
     
     //add: to_many's
 
     /*
-      API Request: addImageAttachment
+      API Request: api.imageAttachment.createItem
     */
     let cancelableApiReq = makeCancelable(api.imageAttachment.createItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
+            newError.path=['ImageAttachments', 'add'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'addImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
           newError.path=['ImageAttachments', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
           return;
-        }
-
-        //check: addImageAttachment
-        let addImageAttachment = response.data.data.addImageAttachment;
-        if(addImageAttachment === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'addImageAttachment ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'ImageAttachment', query: 'addImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
-          newError.path=['ImageAttachments', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: addImageAttachment type
-        if(typeof addImageAttachment !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'ImageAttachment ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'ImageAttachment', query: 'addImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
-          newError.path=['ImageAttachments', 'add'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'addImageAttachment ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'ImageAttachment', query: 'addImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
-          newError.path=['ImageAttachments', 'add'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -401,7 +392,7 @@ export default function ImageAttachmentCreatePanel(props) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, addImageAttachment);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -421,7 +412,7 @@ export default function ImageAttachmentCreatePanel(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'addImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
+          newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.createItem'}];
           newError.path=['ImageAttachments', 'add'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -553,6 +544,15 @@ export default function ImageAttachmentCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
+      case 'person':
+        if(personIdsToAdd.current.indexOf(itemId) === -1) {
+          personIdsToAdd.current = [];
+          personIdsToAdd.current.push(itemId);
+          setPersonIdsToAddState(personIdsToAdd.current);
+          handleSetValue(itemId, -2, 'personId');
+          setForeignKeys({...foreignKeys, personId: itemId});
+        }
+        break;
 
       default:
         break;
@@ -560,8 +560,34 @@ export default function ImageAttachmentCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
+    if(associationKey === 'person') {
+      if(personIdsToAdd.current.length > 0) {
+        personIdsToAdd.current = [];
+        setPersonIdsToAddState([]);
+        handleSetValue(null, -2, 'personId');
+        setForeignKeys({...foreignKeys, personId: null});
+      }
+      return;
+    }//end: case 'person'
   }
 
+  const handleClickOnPersonRow = (event, item) => {
+    setPersonDetailItem(item);
+  };
+
+  const handlePersonDetailDialogClose = (event) => {
+    delayedClosePersonDetailPanel(event, 500);
+  }
+
+  const delayedClosePersonDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setPersonDetailDialogOpen(false);
+        setPersonDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
 
   const startTimerToDebounceTabsChange = () => {
     return makeCancelable( new Promise(resolve => {
@@ -640,6 +666,7 @@ export default function ImageAttachmentCreatePanel(props) {
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -653,8 +680,10 @@ export default function ImageAttachmentCreatePanel(props) {
               {/* Associations Page [1] */}
               <ImageAttachmentAssociationsPage
                 hidden={tabsValue !== 1}
+                personIdsToAdd={personIdsToAddState}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
+                handleClickOnPersonRow={handleClickOnPersonRow}
               />
             </Grid>
           )}
@@ -671,6 +700,15 @@ export default function ImageAttachmentCreatePanel(props) {
           handleReject={handleConfirmationReject}
         />
 
+        {/* Dialog: Person Detail Panel */}
+        {(personDetailDialogOpen) && (
+          <PersonDetailPanel
+            permissions={permissions}
+            item={personDetailItem}
+            dialog={true}
+            handleClose={handlePersonDetailDialogClose}
+          />
+        )}
       </div>
 
     </Dialog>

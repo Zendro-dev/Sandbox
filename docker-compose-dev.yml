@@ -23,7 +23,7 @@ services:
       - 3000:3000
     environment:
       PORT: "3000"
-      REQUIRE_SIGN_IN: "true"
+      REQUIRE_SIGN_IN: "false"
       ## modifiable environment variables. Uncomment and set or export the needed environment settings.
       # LIMIT_RECORDS : ${LIMIT_RECORDS:-10000}
       # REQUIRE_SIGN_IN: ${REQUIRE_SIGN_IN:-"true"}  

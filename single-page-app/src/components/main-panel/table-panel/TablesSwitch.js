@@ -1,24 +1,24 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { 
   Switch,
   Route
 } from 'react-router-dom'
 import PropTypes from 'prop-types';
-
-import ImageAttachmentTable from './models-tables/imageAttachment-table/ImageAttachmentEnhancedTable'
-import RoleTable from './admin-tables/role-table/RoleEnhancedTable'
-import RoleToUserTable from './admin-tables/role_to_user-table/Role_to_userEnhancedTable'
-import UserTable from './admin-tables/user-table/UserEnhancedTable'
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
+const ImageAttachmentTable = lazy(() => import('./models-tables/imageAttachment-table/ImageAttachmentEnhancedTable'));
+const PersonTable = lazy(() => import('./models-tables/person-table/PersonEnhancedTable'));
+const RoleTable = lazy(() => import('./admin-tables/role-table/RoleEnhancedTable'));
+const RoleToUserTable = lazy(() => import('./admin-tables/role_to_user-table/Role_to_userEnhancedTable'));
+const UserTable = lazy(() => import('./admin-tables/user-table/UserEnhancedTable'));
 
 export default function TablesSwitch(props) {
   const { permissions } = props;
 
   return (
     
-    <Switch>
-
+    <Suspense fallback={<div>Loading...</div>}>
+      <Switch>
         {/* Models */}
         <Route exact path="/main/model/imageAttachment" 
           render={
@@ -26,6 +26,13 @@ export default function TablesSwitch(props) {
             (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
             &&(permissions.imageAttachment.includes('read') || permissions.imageAttachment.includes('*')))
             ? ((props) => <ImageAttachmentTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/person" 
+          render={
+            /* acl check */
+            (permissions&&permissions.person&&Array.isArray(permissions.person)
+            &&(permissions.person.includes('read') || permissions.person.includes('*')))
+            ? ((props) => <PersonTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 
         {/* Admin models */}
@@ -53,8 +60,8 @@ export default function TablesSwitch(props) {
 
         {/* Default */}
         <Route path="/main/" component={NotFoundSection} />
-
-    </Switch>
+      </Switch>
+    </Suspense>
   );
 }
 

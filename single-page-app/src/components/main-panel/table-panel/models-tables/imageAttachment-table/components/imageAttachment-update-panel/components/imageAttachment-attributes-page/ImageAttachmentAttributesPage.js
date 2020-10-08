@@ -17,6 +17,7 @@ export default function ImageAttachmentAttributesPage(props) {
     item,
     valueOkStates,
     valueAjvStates,
+    foreignKeys,
     hidden,
     handleSetValue,
   } = props;
@@ -36,6 +37,7 @@ export default function ImageAttachmentAttributesPage(props) {
               item={item}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys={foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -48,6 +50,7 @@ ImageAttachmentAttributesPage.propTypes = {
   item: PropTypes.object.isRequired,
   valueOkStates: PropTypes.object.isRequired,
   valueAjvStates: PropTypes.object.isRequired,
+  foreignKeys: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

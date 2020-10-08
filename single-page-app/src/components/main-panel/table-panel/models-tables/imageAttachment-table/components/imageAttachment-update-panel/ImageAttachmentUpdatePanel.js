@@ -8,6 +8,7 @@ import ImageAttachmentAttributesPage from './components/imageAttachment-attribut
 import ImageAttachmentAssociationsPage from './components/imageAttachment-associations-page/ImageAttachmentAssociationsPage'
 import ImageAttachmentTabsA from './components/ImageAttachmentTabsA'
 import ImageAttachmentConfirmationDialog from './components/ImageAttachmentConfirmationDialog'
+import PersonDetailPanel from '../../../person-table/components/person-detail-panel/PersonDetailPanel'
 import api from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
@@ -68,6 +69,7 @@ export default function ImageAttachmentUpdatePanel(props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const {
+    permissions,
  
     item,
     handleClose,
@@ -78,7 +80,8 @@ export default function ImageAttachmentUpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
-  
+  const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
+
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
@@ -96,7 +99,13 @@ export default function ImageAttachmentUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
+  const [personIdsToAddState, setPersonIdsToAddState] = useState([]);
+  const personIdsToAdd = useRef([]);
+  const [personIdsToRemoveState, setPersonIdsToRemoveState] = useState([]);
+  const personIdsToRemove = useRef([]);
 
+  const [personDetailDialogOpen, setPersonDetailDialogOpen] = useState(false);
+  const [personDetailItem, setPersonDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -230,6 +239,11 @@ export default function ImageAttachmentUpdatePanel(props) {
     }
   }, [deleted, updated]);
 
+  useEffect(() => {
+    if (personDetailItem !== undefined) {
+      setPersonDetailDialogOpen(true);
+    }
+  }, [personDetailItem]);
 
   /**
    * Utils
@@ -252,10 +266,18 @@ export default function ImageAttachmentUpdatePanel(props) {
     initialValues.mediumTnPath = item.mediumTnPath;
     initialValues.licence = item.licence;
     initialValues.description = item.description;
+    initialValues.personId = item.personId;
 
     return initialValues;
   }
 
+  function getInitialForeignKeys() {
+    let initialForeignKeys = {};
+    
+    initialForeignKeys.personId = item.personId;
+
+    return initialForeignKeys;
+  }
 
   function getInitialValueOkStates() {
     /*
@@ -276,6 +298,7 @@ export default function ImageAttachmentUpdatePanel(props) {
   initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? 1 : 0);
   initialValueOkStates.licence = (item.licence!==null ? 1 : 0);
   initialValueOkStates.description = (item.description!==null ? 1 : 0);
+    initialValueOkStates.personId = -2; //FK
 
     return initialValueOkStates;
   }
@@ -291,6 +314,7 @@ export default function ImageAttachmentUpdatePanel(props) {
     _initialValueAjvStates.mediumTnPath = {errors: []};
     _initialValueAjvStates.licence = {errors: []};
     _initialValueAjvStates.description = {errors: []};
+    _initialValueAjvStates.personId = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -324,7 +348,36 @@ export default function ImageAttachmentUpdatePanel(props) {
     if(values.current.mediumTnPath !== item.mediumTnPath) { return true;}
     if(values.current.licence !== item.licence) { return true;}
     if(values.current.description !== item.description) { return true;}
+    if(Number(values.current.personId) !== Number(item.personId)) { return true;}
     return false;
+  }
+
+  function setAddRemoveOnePerson(variables) {
+    //data to notify changes
+    if(!changedAssociations.current.ImageAttachment_personId) changedAssociations.current.ImageAttachment_personId = {};
+    
+    /**
+     * Case: The toAdd list isn't empty.
+     */
+    if(personIdsToAdd.current.length>0) {
+      //set id to add
+      variables.addPerson = personIdsToAdd.current[0];      
+      //changes to nofity
+      changedAssociations.current.ImageAttachment_personId.added = true;
+      changedAssociations.current.ImageAttachment_personId.idsAdded = [personIdsToAdd.current[0]];
+    }
+    /**
+     * Case: The toRemove list isn't empty.
+     */
+    if(personIdsToRemove.current.length>0) {
+      //set id to remove
+      variables.removePerson = personIdsToRemove.current[0];
+      //changes to nofity
+      changedAssociations.current.ImageAttachment_personId.removed = true;
+      changedAssociations.current.ImageAttachment_personId.idsRemoved = [personIdsToRemove.current[0]];
+    }
+
+    return;
   }
 
 
@@ -381,7 +434,7 @@ function setAjvErrors(err) {
     * Updates state to inform new @item updated.
     * 
     */
-  function doSave(event) {
+  async function doSave(event) {
     errors.current = [];
     valuesAjvRefs.current = getInitialValueAjvStates();
 
@@ -405,90 +458,57 @@ function setAjvErrors(err) {
       }
     }
     
+    delete variables.personId; //FK
 
     //add & remove: to_one's
+    setAddRemoveOnePerson(variables);
 
     //add & remove: to_many's
 
     /*
-      API Request: updateImageAttachment
+      API Request: api.imageAttachment.updateItem
     */
     let cancelableApiReq = makeCancelable(api.imageAttachment.updateItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
+            newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'updateImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
           newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
 
           showMessage(newError.message, withDetails);
           clearRequestDoSave();
-          return;
-        }
-
-        //check: updateImageAttachment
-        let updateImageAttachment = response.data.data.updateImageAttachment;
-        if(updateImageAttachment === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'updateImageAttachment ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'ImageAttachment', query: 'updateImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
-          newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: updateImageAttachment type
-        if(typeof updateImageAttachment !== 'object') {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'ImageAttachment ' + t('modelPanels.errors.data.e4', ' received, does not have the expected format.');
-          newError.locations=[{model: 'ImageAttachment', query: 'updateImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
-          newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoSave();
-          return;
-        }
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'updateImageAttachment ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'ImageAttachment', query: 'updateImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
-          newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-        }
+          return false;
+        } 
 
         //ok
         enqueueSnackbar( t('modelPanels.messages.msg5', "Record updated successfully."), {
@@ -500,7 +520,7 @@ function setAjvErrors(err) {
             horizontal: 'left',
           },
         });
-        onClose(event, true, updateImageAttachment);
+        onClose(event, true, response.value);
         return;
       },
       //rejected
@@ -510,7 +530,7 @@ function setAjvErrors(err) {
       //error
       .catch((err) => { //error: on api.imageAttachment.updateItem
         if(err.isCanceled) {
-          return
+          return;
         } else {
           //set ajv errors
           setAjvErrors(err);
@@ -520,7 +540,7 @@ function setAjvErrors(err) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'updateImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
+          newError.locations=[{model: 'ImageAttachment', method: 'doSave()', request: 'api.imageAttachment.updateItem'}];
           newError.path=['ImageAttachments', `id:${item.id}`, 'update'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -652,6 +672,13 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
+      case 'person':
+        personIdsToAdd.current = [];
+        personIdsToAdd.current.push(itemId);
+        setPersonIdsToAddState([itemId]);
+        handleSetValue(itemId, -2, 'personId');
+        setForeignKeys({...foreignKeys, personId: itemId});
+        break;
 
       default:
         break;
@@ -659,8 +686,63 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
+    if(associationKey === 'person') {
+      if(personIdsToAdd.current.length > 0
+      && personIdsToAdd.current[0] === itemId) {
+        personIdsToAdd.current = [];
+        setPersonIdsToAddState([]);
+        handleSetValue(null, -2, 'personId');
+        setForeignKeys({...foreignKeys, personId: null});
+      }
+      return;
+    }//end: case 'person'
   }
 
+  const handleTransferToRemove = (associationKey, itemId) => {
+    switch(associationKey) {
+        case 'person':
+          personIdsToRemove.current = [];
+          personIdsToRemove.current.push(itemId);
+          setPersonIdsToRemoveState([itemId]);
+          handleSetValue(null, -2, 'personId');
+          setForeignKeys({...foreignKeys, personId: null});
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  const handleUntransferFromRemove =(associationKey, itemId) => {
+    if(associationKey === 'person') {
+      if(personIdsToRemove.current.length > 0
+      && personIdsToRemove.current[0] === itemId) {
+        personIdsToRemove.current = [];
+        setPersonIdsToRemoveState([]);
+        handleSetValue(itemId, -2, 'personId');
+        setForeignKeys({...foreignKeys, personId: itemId});
+      }
+      return;
+    }//end: case 'person'
+  }
+
+  const handleClickOnPersonRow = (event, item) => {
+    setPersonDetailItem(item);
+  };
+
+  const handlePersonDetailDialogClose = (event) => {
+    delayedClosePersonDetailPanel(event, 500);
+  }
+
+  const delayedClosePersonDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setPersonDetailDialogOpen(false);
+        setPersonDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
 
 
   const startTimerToDebounceTabsChange = () => {
@@ -797,6 +879,7 @@ function setAjvErrors(err) {
               item={item}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -811,8 +894,13 @@ function setAjvErrors(err) {
               <ImageAttachmentAssociationsPage
                 hidden={tabsValue !== 1 || deleted}
                 item={item}
+                personIdsToAdd={personIdsToAddState}
+                personIdsToRemove={personIdsToRemoveState}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToRemove={handleTransferToRemove}
+                handleUntransferFromRemove={handleUntransferFromRemove}
+                handleClickOnPersonRow={handleClickOnPersonRow}
               />
             </Grid>
           )}
@@ -829,6 +917,15 @@ function setAjvErrors(err) {
           handleReject={handleConfirmationReject}
         />
 
+        {/* Dialog: Person Detail Panel */}
+        {(personDetailDialogOpen) && (
+          <PersonDetailPanel
+            permissions={permissions}
+            item={personDetailItem}
+            dialog={true}
+            handleClose={handlePersonDetailDialogClose}
+          />
+        )}
       </div>
 
     </Dialog>

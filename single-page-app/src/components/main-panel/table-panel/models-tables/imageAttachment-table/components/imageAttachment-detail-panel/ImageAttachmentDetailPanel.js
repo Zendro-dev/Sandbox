@@ -12,6 +12,7 @@ import ImageAttachmentAttributesPage from './components/imageAttachment-attribut
 import ImageAttachmentAssociationsPage from './components/imageAttachment-associations-page/ImageAttachmentAssociationsPage'
 import ImageAttachmentUpdatePanel from '../imageAttachment-update-panel/ImageAttachmentUpdatePanel'
 import ImageAttachmentDeleteConfirmationDialog from '../ImageAttachmentDeleteConfirmationDialog'
+import PersonDetailPanel from '../../../person-table/components/person-detail-panel/PersonDetailPanel'
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -86,6 +87,8 @@ export default function ImageAttachmentDetailPanel(props) {
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
+  const [personDetailDialogOpen, setPersonDetailDialogOpen] = useState(false);
+  const [personDetailItem, setPersonDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -218,6 +221,12 @@ export default function ImageAttachmentDetailPanel(props) {
     }
   }, [deleted, updated]);
   
+  useEffect(() => {
+    if(personDetailItem !== undefined) {
+      setPersonDetailDialogOpen(true);
+    }
+  }, [personDetailItem]);
+
 
   useEffect(() => {
     if(updateItem !== undefined) {
@@ -254,7 +263,7 @@ export default function ImageAttachmentDetailPanel(props) {
     * Updates state to inform new @item deleted.
     * 
     */
-  function doDelete(event, item) {
+  async function doDelete(event, item) {
     errors.current = [];
     
     //variables
@@ -263,71 +272,48 @@ export default function ImageAttachmentDetailPanel(props) {
     variables.id = item.id;
 
     /*
-      API Request: deleteImageAttachment
+      API Request: api.imageAttachment.deleteItem
     */
     let cancelableApiReq = makeCancelable(api.imageAttachment.deleteItem(graphqlServerUrl, variables));
     cancelablePromises.current.push(cancelableApiReq);
-    cancelableApiReq
+    await cancelableApiReq
       .promise
       .then(
       //resolved
       (response) => {
         //delete from cancelables
         cancelablePromises.current.splice(cancelablePromises.current.indexOf(cancelableApiReq), 1);
-        
-        //check: response data
-        if(!response.data ||!response.data.data) {
+        //check: response
+        if(response.message === 'ok') {
+          //check: graphql errors
+          if(response.graphqlErrors) {
+            let newError = {};
+            let withDetails=true;
+            variant.current='info';
+            newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
+            newError.locations=[{model: 'ImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
+            newError.path=['ImageAttachments', `id:${item.id}`, 'delete'];
+            newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
+            errors.current.push(newError);
+            console.log("Error: ", newError);
+
+            showMessage(newError.message, withDetails);
+          }
+        } else { //not ok
+          //show error
           let newError = {};
           let withDetails=true;
           variant.current='error';
-          newError.message = t('modelPanels.errors.data.e1', 'No data was received from the server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'deleteImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
+          newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
+          newError.locations=[{model: 'ImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
           newError.path=['ImageAttachments', `id:${item.id}`, 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
+          newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-
+ 
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
-        }
-
-        //check: deleteImageAttachment
-        let deleteImageAttachment = response.data.data.deleteImageAttachment;
-        if(deleteImageAttachment === null) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='error';
-          newError.message = 'deleteImageAttachment ' + t('modelPanels.errors.data.e5', 'could not be completed.');
-          newError.locations=[{model: 'ImageAttachment', query: 'deleteImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
-          newError.path=['ImageAttachments', `id:${item.id}` , 'delete'];
-          newError.extensions = {graphqlResponse:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
-          clearRequestDoDelete();
-          return;
-        }
-
-        /**
-         * Type of deleteImageAttachment is not validated. Only not null is
-         * checked above to confirm successfull operation.
-         */
-
-        //check: graphql errors
-        if(response.data.errors) {
-          let newError = {};
-          let withDetails=true;
-          variant.current='info';
-          newError.message = 'deleteImageAttachment ' + t('modelPanels.errors.data.e6', 'completed with errors.');
-          newError.locations=[{model: 'ImageAttachment', query: 'deleteImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
-          newError.path=['ImageAttachments', `id:${item.id}` ,'delete'];
-          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
-          errors.current.push(newError);
-          console.log("Error: ", newError);
-
-          showMessage(newError.message, withDetails);
         }
 
         //ok
@@ -348,7 +334,7 @@ export default function ImageAttachmentDetailPanel(props) {
         throw err;
       })
       //error
-      .catch((err) => { //error: on deleteImageAttachment
+      .catch((err) => { //error: on api.imageAttachment.deleteItem
         if(err.isCanceled) {
           return
         } else {
@@ -356,7 +342,7 @@ export default function ImageAttachmentDetailPanel(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'ImageAttachment', query: 'deleteImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
+          newError.locations=[{model: 'ImageAttachment', method: 'doDelete()', request: 'api.imageAttachment.deleteItem'}];
           newError.path=['ImageAttachments', `id:${item.id}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -388,6 +374,7 @@ export default function ImageAttachmentDetailPanel(props) {
     initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? 1 : 0);
     initialValueOkStates.licence = (item.licence!==null ? 1 : 0);
     initialValueOkStates.description = (item.description!==null ? 1 : 0);
+    initialValueOkStates.personId = -2; //FK
 
     return initialValueOkStates;
   }
@@ -472,6 +459,23 @@ export default function ImageAttachmentDetailPanel(props) {
     });
   };
 
+  const handleClickOnPersonRow = (event, item) => {
+    setPersonDetailItem(item);
+  };
+
+  const handlePersonDetailDialogClose = (event) => {
+    delayedClosePersonDetailPanel(event, 500);
+  }
+
+  const delayedClosePersonDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setPersonDetailDialogOpen(false);
+        setPersonDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
 
   return (
     <div>
@@ -656,6 +660,7 @@ export default function ImageAttachmentDetailPanel(props) {
                 <ImageAttachmentAssociationsPage
                   item={itemState}
                   deleted={deleted}
+                  handleClickOnPersonRow={handleClickOnPersonRow}
                 />
               </Grid>
             </Grid>
@@ -682,6 +687,7 @@ export default function ImageAttachmentDetailPanel(props) {
               <ImageAttachmentAssociationsPage
                 item={itemState}
                 deleted={deleted}
+                handleClickOnPersonRow={handleClickOnPersonRow}
               />
             </Grid>
 
@@ -708,6 +714,15 @@ export default function ImageAttachmentDetailPanel(props) {
         />
       )}
 
+      {/* Dialog: Person Detail Panel */}
+      {(personDetailDialogOpen) && (
+        <PersonDetailPanel
+          permissions={permissions}
+          item={personDetailItem}
+          dialog={true}
+          handleClose={handlePersonDetailDialogClose}
+        />
+      )}
     </div>
   );
 }

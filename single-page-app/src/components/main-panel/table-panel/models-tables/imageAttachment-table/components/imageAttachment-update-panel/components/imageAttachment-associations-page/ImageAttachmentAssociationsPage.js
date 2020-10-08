@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { makeCancelable } from '../../../../../../../../../utils'
 import PropTypes from 'prop-types';
+import PersonTransferLists from './person-transfer-lists/PersonTransferLists'
 import ImageAttachmentAssociationsMenuTabs from './ImageAttachmentAssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -22,8 +23,16 @@ export default function ImageAttachmentAssociationsPage(props) {
   const classes = useStyles();
   const {
     hidden,
+    item,
+    personIdsToAdd,
+    personIdsToRemove,
+    handleTransferToAdd,
+    handleUntransferFromAdd,
+    handleTransferToRemove,
+    handleUntransferFromRemove,
+    handleClickOnPersonRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('no-associations');
+  const [associationSelected, setAssociationSelected] = React.useState('person');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -100,6 +109,21 @@ export default function ImageAttachmentAssociationsPage(props) {
             />
           </Grid>
 
+          {/* Person Transfer Lists */}
+          {(associationSelected === 'person') && (
+            <Grid item xs={12} sm={11}>
+              <PersonTransferLists
+                item={item}
+                idsToAdd={personIdsToAdd}
+                idsToRemove={personIdsToRemove}
+                handleTransferToAdd={handleTransferToAdd}
+                handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToRemove={handleTransferToRemove}
+                handleUntransferFromRemove={handleUntransferFromRemove}
+                handleClickOnPersonRow={handleClickOnPersonRow}
+              />
+            </Grid>
+          )}
 
         </Grid>
       </Fade>
@@ -108,4 +132,12 @@ export default function ImageAttachmentAssociationsPage(props) {
 }
 ImageAttachmentAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
+  item: PropTypes.object.isRequired,
+  personIdsToAdd: PropTypes.array.isRequired,
+  personIdsToRemove: PropTypes.array.isRequired,
+  handleTransferToAdd: PropTypes.func.isRequired,
+  handleUntransferFromAdd: PropTypes.func.isRequired,
+  handleTransferToRemove: PropTypes.func.isRequired,
+  handleUntransferFromRemove: PropTypes.func.isRequired,
+  handleClickOnPersonRow: PropTypes.func.isRequired,
 };
