@@ -40,6 +40,7 @@ import ImageAttachmentPlotly from '../../../../plots/ImageAttachmentPlotly';
 //#imgs
 import Link from '@material-ui/core/Link';
 import Avatar from '@material-ui/core/Avatar';
+import ImageAttachmentImagesGridView from './components/ImageAttachmentImagesGridView'
 //imgs#
 
 
@@ -127,6 +128,7 @@ export default function ImageAttachmentEnhancedTable(props) {
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
   const [uploadImageDialogOpen, setUploadImageDialogOpen] = useState(false);
+  const [viewTypeValue, setViewTypeValue] = useState('table');
 
   const cancelablePromises = useRef([]);
   const cancelableCountingPromises = useRef([]);
@@ -1311,6 +1313,14 @@ export default function ImageAttachmentEnhancedTable(props) {
     }
   }
 
+  /*
+   * View type (table or grid) switch handler
+   */
+  const handleViewTypeClicked = (value) => {
+    console.log("@@ value: ", value);
+    setViewTypeValue(value);
+  }
+
   return (
     <div className={classes.root}>
       {
@@ -1328,12 +1338,14 @@ export default function ImageAttachmentEnhancedTable(props) {
                   search={search}
                   showToggleButtons={Boolean(ImageAttachmentPlotly)}
                   toggleButtonValue={toggleButtonValue}
+                  viewTypeValue={viewTypeValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
                   handleAddClicked={handleImageUploadClicked}
                   handleBulkImportClicked={handleBulkImportClicked}
                   handleCsvTemplateClicked={handleCsvTemplateClicked}
                   handleToggleButtonValueChange={handleToggleButtonValueChange}
+                  handleViewTypeClicked={handleViewTypeClicked}
                 />
 
                 <SwipeableViews index={getSwipeIndex()} disabled={true}>
@@ -1341,6 +1353,7 @@ export default function ImageAttachmentEnhancedTable(props) {
                     Swipe page 1: Table
                   */}
                   <div>
+
                     {/* Table components*/}
                     <div className={classes.tableWrapper} ref={twref}>
 
@@ -1406,219 +1419,230 @@ export default function ImageAttachmentEnhancedTable(props) {
                         </Box>
                       </Fade>
 
-                      {/* Table */}
-                      <Table id='ImageAttachmentEnhancedTable-table' stickyHeader size='small' ref={tref}>
+                      {/*
+                        Table view 
+                      */}
+                      {(viewTypeValue==='table') && (
+                        <Table id='ImageAttachmentEnhancedTable-table' stickyHeader size='small' ref={tref}>
 
-                        {/* Table Head */}
-                        <ImageAttachmentEnhancedTableHead
-                          permissions={permissions}
-                          order={order}
-                          orderBy={orderBy}
-                          rowCount={items.length}
-                          onRequestSort={handleRequestSort}
-                        />
+                          {/* Table Head */}
+                          <ImageAttachmentEnhancedTableHead
+                            permissions={permissions}
+                            order={order}
+                            orderBy={orderBy}
+                            rowCount={items.length}
+                            onRequestSort={handleRequestSort}
+                          />
 
-                        {/* Table Body */}
-                        <Fade
-                          in={(!isOnApiRequest && items.length > 0)}
-                        >
-                          <TableBody id='ImageAttachmentEnhancedTable-tableBody'>
-                            {
-                              items.map((item, index) => {
-                                return ([
-                                  /*
-                                    Table Row
-                                  */
-                                  <TableRow
-                                    id={'ImageAttachmentEnhancedTable-row-'+item.id}
-                                    hover
-                                    onClick={event => handleClickOnRow(event, item)}
-                                    role="checkbox"
-                                    tabIndex={-1}
-                                    key={item.id}
-                                  >
-
-                                    {/* SeeInfo icon */}
-                                    <TableCell padding="checkbox">
-                                      <Tooltip title={ t('modelPanels.viewDetails') }>
-                                        <IconButton
-                                          id={'ImageAttachmentEnhancedTable-row-iconButton-detail-'+item.id}
-                                          color="default"
-                                          onClick={event => {
-                                            event.stopPropagation();
-                                            handleClickOnRow(event, item);
-                                          }}
-                                        >
-                                          <SeeInfo fontSize="small" className={classes.iconSee}/>
-                                        </IconButton>
-                                      </Tooltip>
-                                    </TableCell>
-
-                                    {/*
-                                      Actions:
-                                      - Edit
-                                      - Delete
-                                    */}
-                                    {
-                                      /* acl check */
-                                      (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
-                                      &&(permissions.imageAttachment.includes('update') || permissions.imageAttachment.includes('*')))
-                                      &&(
-                                        <TableCell padding='checkbox' align='center'>
-                                          <Tooltip title={ t('modelPanels.edit') }>
-                                            <IconButton
-                                              id={'ImageAttachmentEnhancedTable-row-iconButton-edit-'+item.id}
-                                              color="default"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleUpdateClicked(event, item);
-                                              }}
-                                            >
-                                              <Edit fontSize="small" className={classes.iconEdit} />
-                                            </IconButton>
-                                          </Tooltip>
-                                        </TableCell>
-                                      )
-                                    }
-
-                                    {
-                                      /* acl check */
-                                      (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
-                                      &&(permissions.imageAttachment.includes('delete') || permissions.imageAttachment.includes('*')))
-                                      &&(
-                                        <TableCell padding='checkbox' align='center'>
-                                          <Tooltip title={ t('modelPanels.delete') }>
-                                            <IconButton
-                                              id={'ImageAttachmentEnhancedTable-row-iconButton-delete-'+item.id}
-                                              color="default"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleDeleteClicked(event, item);
-                                              }}
-                                            >
-                                              <Delete fontSize="small" className={classes.iconDelete} />
-                                            </IconButton>
-                                          </Tooltip>
-                                        </TableCell>
-                                      )
-                                    }
-
-                                    {/* Item fields */}
-                                    {/* id*/}
-                                    <TableCell
-                                      key='id'
-                                      align='left'
-                                      padding="checkbox"
+                          
+                          {/* Table Body */}
+                          <Fade in={(!isOnApiRequest && items.length > 0)}>
+                            <TableBody id='ImageAttachmentEnhancedTable-tableBody'>
+                              {
+                                items.map((item, index) => {
+                                  return ([
+                                    /*
+                                      Table Row
+                                    */
+                                    <TableRow
+                                      id={'ImageAttachmentEnhancedTable-row-'+item.id}
+                                      hover
+                                      onClick={event => handleClickOnRow(event, item)}
+                                      role="checkbox"
+                                      tabIndex={-1}
+                                      key={item.id}
                                     >
-                                      <Tooltip title={ 'id: ' + item.id}>
-                                        <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
-                                      </Tooltip>
-                                    </TableCell>
+
+                                      {/* SeeInfo icon */}
+                                      <TableCell padding="checkbox">
+                                        <Tooltip title={ t('modelPanels.viewDetails') }>
+                                          <IconButton
+                                            id={'ImageAttachmentEnhancedTable-row-iconButton-detail-'+item.id}
+                                            color="default"
+                                            onClick={event => {
+                                              event.stopPropagation();
+                                              handleClickOnRow(event, item);
+                                            }}
+                                          >
+                                            <SeeInfo fontSize="small" className={classes.iconSee}/>
+                                          </IconButton>
+                                        </Tooltip>
+                                      </TableCell>
+
+                                      {/*
+                                        Actions:
+                                        - Edit
+                                        - Delete
+                                      */}
+                                      {
+                                        /* acl check */
+                                        (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
+                                        &&(permissions.imageAttachment.includes('update') || permissions.imageAttachment.includes('*')))
+                                        &&(
+                                          <TableCell padding='checkbox' align='center'>
+                                            <Tooltip title={ t('modelPanels.edit') }>
+                                              <IconButton
+                                                id={'ImageAttachmentEnhancedTable-row-iconButton-edit-'+item.id}
+                                                color="default"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  handleUpdateClicked(event, item);
+                                                }}
+                                              >
+                                                <Edit fontSize="small" className={classes.iconEdit} />
+                                              </IconButton>
+                                            </Tooltip>
+                                          </TableCell>
+                                        )
+                                      }
+
+                                      {
+                                        /* acl check */
+                                        (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
+                                        &&(permissions.imageAttachment.includes('delete') || permissions.imageAttachment.includes('*')))
+                                        &&(
+                                          <TableCell padding='checkbox' align='center'>
+                                            <Tooltip title={ t('modelPanels.delete') }>
+                                              <IconButton
+                                                id={'ImageAttachmentEnhancedTable-row-iconButton-delete-'+item.id}
+                                                color="default"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  handleDeleteClicked(event, item);
+                                                }}
+                                              >
+                                                <Delete fontSize="small" className={classes.iconDelete} />
+                                              </IconButton>
+                                            </Tooltip>
+                                          </TableCell>
+                                        )
+                                      }
+
+                                      {/* Item fields */}
+                                      {/* id*/}
+                                      <TableCell
+                                        key='id'
+                                        align='left'
+                                        padding="checkbox"
+                                      >
+                                        <Tooltip title={ 'id: ' + item.id}>
+                                          <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.id}</Typography>
+                                        </Tooltip>
+                                      </TableCell>
 
 
 {/* #imgs */}
-                                    {/* thumbnail */}
-                                    <TableCell 
-                                      key='thumbnail'
-                                      padding='checkbox' 
-                                      align='center'>
-                                        <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
-                                          <Avatar alt="Image" src={item.smallTnUrl} />
-                                        </Link>
-                                    </TableCell>
+                                      {/* thumbnail */}
+                                      <TableCell 
+                                        key='thumbnail'
+                                        padding='checkbox' 
+                                        align='center'>
+                                          <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
+                                            <Avatar alt="Image" src={item.smallTnUrl} />
+                                          </Link>
+                                      </TableCell>
 {/* #imgs */}
 
 
-                                    {/* fileName */}
-                                    <TableCell
-                                      key='fileName'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.fileName!==null)?item.fileName:'')}
-                                    </TableCell>
+                                      {/* fileName */}
+                                      <TableCell
+                                        key='fileName'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.fileName!==null)?item.fileName:'')}
+                                      </TableCell>
 
-                                    {/* fileSizeKb */}
-                                    <TableCell
-                                      key='fileSizeKb'
-                                      align='right'
-                                      padding="default"
-                                    >
-                                      {String((item.fileSizeKb!==null)?item.fileSizeKb:'')}
-                                    </TableCell>
+                                      {/* fileSizeKb */}
+                                      <TableCell
+                                        key='fileSizeKb'
+                                        align='right'
+                                        padding="default"
+                                      >
+                                        {String((item.fileSizeKb!==null)?item.fileSizeKb:'')}
+                                      </TableCell>
 
-                                    {/* fileType */}
-                                    <TableCell
-                                      key='fileType'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.fileType!==null)?item.fileType:'')}
-                                    </TableCell>
+                                      {/* fileType */}
+                                      <TableCell
+                                        key='fileType'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.fileType!==null)?item.fileType:'')}
+                                      </TableCell>
 
-                                    {/* filePath */}
-                                    <TableCell
-                                      key='filePath'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.filePath!==null)?item.filePath:'')}
-                                    </TableCell>
+                                      {/* filePath */}
+                                      <TableCell
+                                        key='filePath'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.filePath!==null)?item.filePath:'')}
+                                      </TableCell>
 
-                                    {/* smallTnPath */}
-                                    <TableCell
-                                      key='smallTnPath'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.smallTnPath!==null)?item.smallTnPath:'')}
-                                    </TableCell>
+                                      {/* smallTnPath */}
+                                      <TableCell
+                                        key='smallTnPath'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.smallTnPath!==null)?item.smallTnPath:'')}
+                                      </TableCell>
 
-                                    {/* mediumTnPath */}
-                                    <TableCell
-                                      key='mediumTnPath'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.mediumTnPath!==null)?item.mediumTnPath:'')}
-                                    </TableCell>
+                                      {/* mediumTnPath */}
+                                      <TableCell
+                                        key='mediumTnPath'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.mediumTnPath!==null)?item.mediumTnPath:'')}
+                                      </TableCell>
 
-                                    {/* licence */}
-                                    <TableCell
-                                      key='licence'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.licence!==null)?item.licence:'')}
-                                    </TableCell>
+                                      {/* licence */}
+                                      <TableCell
+                                        key='licence'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.licence!==null)?item.licence:'')}
+                                      </TableCell>
 
-                                    {/* description */}
-                                    <TableCell
-                                      key='description'
-                                      align='left'
-                                      padding="default"
-                                    >
-                                      {String((item.description!==null)?item.description:'')}
-                                    </TableCell>
+                                      {/* description */}
+                                      <TableCell
+                                        key='description'
+                                        align='left'
+                                        padding="default"
+                                      >
+                                        {String((item.description!==null)?item.description:'')}
+                                      </TableCell>
 
-                                    {/* personId */}
-                                    <TableCell
-                                      key='personId'
-                                      align='right'
-                                      padding="default"
-                                    >
-                                      {String((item.personId!==null)?item.personId:'')}
-                                    </TableCell>
+                                      {/* personId */}
+                                      <TableCell
+                                        key='personId'
+                                        align='right'
+                                        padding="default"
+                                      >
+                                        {String((item.personId!==null)?item.personId:'')}
+                                      </TableCell>
 
-                                  </TableRow>,
-                                ]);
-                              })
-                            }
-                          </TableBody>
-                        </Fade>
-                      </Table>
+                                    </TableRow>,
+                                  ]);
+                                })
+                              }
+                            </TableBody>
+                          </Fade>
+                        </Table>
+                      )}
+                      {/*
+                        Grid view 
+                      */}
+                      {(viewTypeValue==='grid') && (
+                          <Fade in={(!isOnApiRequest && items.length > 0)}>
+                            <ImageAttachmentImagesGridView items={items}/>
+                          </Fade>
+                      )}
+
                     </div>
-
                     {/*
                       Pagination
                     */}

@@ -25,6 +25,9 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
 import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
+import GridViewIcon from '@material-ui/icons/Apps';
+import ListViewIcon from '@material-ui/icons/FormatListBulleted';
+import Zoom from '@material-ui/core/Zoom';
 import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -65,12 +68,14 @@ export default function ImageAttachmentEnhancedTableToolbar(props) {
     search,
     showToggleButtons,
     toggleButtonValue,
+    viewTypeValue,
     onSearchEnter,
     onReloadClick,
     handleAddClicked,
     handleBulkImportClicked,
     handleCsvTemplateClicked,
     handleToggleButtonValueChange,
+    handleViewTypeClicked,
   } = props;
 
   const [displayedSearch, setDisplayedSearch] = useState('');
@@ -141,6 +146,44 @@ export default function ImageAttachmentEnhancedTableToolbar(props) {
                 <Grid container>
                   <Grid item xs={12}>
                     <Grid container justify="flex-end" alignItems='center' wrap='wrap'>
+
+                      {/* Grid Icon */}
+                      {(viewTypeValue==='table') && (
+                        <Zoom in={(viewTypeValue==='table')}>
+                          <Grid item>
+                            <Tooltip title={ t('modelPanels.gridView', "Grid view") }>
+                              <IconButton
+                                id='ImageAttachmentEnhancedTableToolbar-iconButton-reloadTable'
+                                color='inherit'
+                                onClick={(event) => {
+                                  handleViewTypeClicked('grid');
+                                }}
+                              >
+                                <GridViewIcon color="inherit" fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Grid>
+                        </Zoom>
+                      )}
+
+                      {/* Table Icon */}
+                      {(viewTypeValue==='grid') && (
+                        <Zoom in={(viewTypeValue==='grid')}>
+                          <Grid item>
+                            <Tooltip title={ t('modelPanels.tableView', "Table view") }>
+                              <IconButton
+                                id='ImageAttachmentEnhancedTableToolbar-iconButton-reloadTable'
+                                color='inherit'
+                                onClick={(event) => {
+                                  handleViewTypeClicked('table');
+                                }}
+                              >
+                                <ListViewIcon color="inherit" fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Grid>
+                        </Zoom>
+                      )}
 
                       {/* Reload Icon */}
                       <Grid item>
@@ -378,10 +421,12 @@ ImageAttachmentEnhancedTableToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   showToggleButtons: PropTypes.bool.isRequired,
   toggleButtonValue: PropTypes.string.isRequired,
+  viewTypeValue: PropTypes.string.isRequired,
   onSearchEnter: PropTypes.func.isRequired,
   onReloadClick: PropTypes.func.isRequired,
   handleAddClicked: PropTypes.func.isRequired,
   handleBulkImportClicked: PropTypes.func.isRequired,
   handleCsvTemplateClicked: PropTypes.func.isRequired,
   handleToggleButtonValueChange: PropTypes.func.isRequired,
+  handleViewTypeClicked: PropTypes.func.isRequired,
 };
