@@ -122,7 +122,7 @@ export default function ImageAttachmentAttributesFormView(props) {
             )}
             {!imageAvailable && (
               <CardContent key='broken-image' className={classes.cardContent}>
-                <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
+                <Grid container className={classes.media} justify='center' alignItems='center' spacing={1}>
                   {/*Broken image icon*/}
                   <Grid item>
                     <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation()}}>
@@ -130,7 +130,7 @@ export default function ImageAttachmentAttributesFormView(props) {
                     </Link>
                   </Grid>
                   <Grid item>
-                    <Typography variant="h6" display="inline" color="textSecondary">{t('modelPanels.imageNotAvailable', 'Image not available')}</Typography>
+                    <Typography variant="body1" display="inline" color="textSecondary">{t('modelPanels.imageNotAvailable', 'Image not available')}</Typography>
                   </Grid>
                 </Grid>
               </CardContent>

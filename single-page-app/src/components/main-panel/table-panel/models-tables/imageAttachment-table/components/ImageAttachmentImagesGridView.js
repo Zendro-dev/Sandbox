@@ -68,6 +68,10 @@ export default function ImageAttachmentImagesGridView(props) {
 
   const {
     items,
+    permissions,
+    handleClickOnRow,
+    handleUpdateClicked,
+    handleDeleteClicked,
   } = props;
 
   /**
@@ -80,16 +84,22 @@ export default function ImageAttachmentImagesGridView(props) {
 
   return (
     <div className={classes.root}>
-      <Grid className={classes.container} container justify='center' alignItems='center' spacing={0}>
+      <Grid className={classes.container} container alignItems='center' spacing={0}>
         {items.map((item, index) => {
           return (
-            <Grid key={item.id} item sm={12} md={4} lg={3}>
+            <Grid key={item.id} item sm={12} md={6} lg={3}>
               <div className={classes.gridViewItem}>
-                <ImageAttachmentImagesGridViewItem item={item} />
+                <ImageAttachmentImagesGridViewItem 
+                  item={item}
+                  permissions={permissions}
+                  handleClickOnRow={handleClickOnRow}
+                  handleUpdateClicked={handleUpdateClicked}
+                  handleDeleteClicked={handleDeleteClicked} 
+                />
               </div>
             </Grid>
           );
-        })};
+        })}
       </Grid>
     </div>
   );

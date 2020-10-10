@@ -73,6 +73,7 @@ export default function ImageAttachmentUpdatePanel(props) {
  
     item,
     handleClose,
+    handleImageUpdateClicked,
   } = props;
   
   const [open, setOpen] = useState(true);
@@ -290,12 +291,12 @@ export default function ImageAttachmentUpdatePanel(props) {
     */
     let initialValueOkStates = {};
 
-  initialValueOkStates.fileName = (item.fileName!==null ? 1 : 0);
-  initialValueOkStates.fileSizeKb = (item.fileSizeKb!==null ? 1 : 0);
-  initialValueOkStates.fileType = (item.fileType!==null ? 1 : 0);
-  initialValueOkStates.filePath = (item.filePath!==null ? 1 : 0);
-  initialValueOkStates.smallTnPath = (item.smallTnPath!==null ? 1 : 0);
-  initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? 1 : 0);
+  initialValueOkStates.fileName = (item.fileName!==null ? -3 : 0);
+  initialValueOkStates.fileSizeKb = (item.fileSizeKb!==null ? -3 : 0);
+  initialValueOkStates.fileType = (item.fileType!==null ? -3 : 0);
+  initialValueOkStates.filePath = (item.filePath!==null ? -3 : 0);
+  initialValueOkStates.smallTnPath = (item.smallTnPath!==null ? -3 : 0);
+  initialValueOkStates.mediumTnPath = (item.mediumTnPath!==null ? -3 : 0);
   initialValueOkStates.licence = (item.licence!==null ? 1 : 0);
   initialValueOkStates.description = (item.description!==null ? 1 : 0);
     initialValueOkStates.personId = -2; //FK
@@ -340,12 +341,6 @@ export default function ImageAttachmentUpdatePanel(props) {
   }
 
   function areThereChangedFields() {
-    if(values.current.fileName !== item.fileName) { return true;}
-    if(values.current.fileSizeKb !== item.fileSizeKb) { return true;}
-    if(values.current.fileType !== item.fileType) { return true;}
-    if(values.current.filePath !== item.filePath) { return true;}
-    if(values.current.smallTnPath !== item.smallTnPath) { return true;}
-    if(values.current.mediumTnPath !== item.mediumTnPath) { return true;}
     if(values.current.licence !== item.licence) { return true;}
     if(values.current.description !== item.description) { return true;}
     if(Number(values.current.personId) !== Number(item.personId)) { return true;}
@@ -744,7 +739,6 @@ function setAjvErrors(err) {
     });
   };
 
-
   const startTimerToDebounceTabsChange = () => {
     return makeCancelable( new Promise(resolve => {
       window.setTimeout(function() { 
@@ -881,6 +875,7 @@ function setAjvErrors(err) {
               valueAjvStates={valueAjvStates}
               foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
+              handleImageUpdateClicked={handleImageUpdateClicked}
             />
           </Grid>
 
@@ -926,6 +921,7 @@ function setAjvErrors(err) {
             handleClose={handlePersonDetailDialogClose}
           />
         )}
+
       </div>
 
     </Dialog>

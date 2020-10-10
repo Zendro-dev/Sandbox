@@ -20,6 +20,7 @@ export default function ImageAttachmentAttributesPage(props) {
     foreignKeys,
     hidden,
     handleSetValue,
+    handleImageUpdateClicked={handleImageUpdateClicked}
   } = props;
 
   return (
@@ -39,6 +40,7 @@ export default function ImageAttachmentAttributesPage(props) {
               valueAjvStates={valueAjvStates}
               foreignKeys={foreignKeys}
               handleSetValue={handleSetValue}
+              handleImageUpdateClicked={handleImageUpdateClicked}
             />
           </Grid>
         </Grid>

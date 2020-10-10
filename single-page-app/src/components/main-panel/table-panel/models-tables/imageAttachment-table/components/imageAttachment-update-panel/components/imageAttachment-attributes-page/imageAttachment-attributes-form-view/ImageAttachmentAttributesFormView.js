@@ -11,6 +11,18 @@ import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 
+//#imgs
+import { useState } from 'react';
+import CardMedia from '@material-ui/core/CardMedia';
+import Link from '@material-ui/core/Link';
+import Fade from '@material-ui/core/Fade';
+import BrokenImage from '@material-ui/icons/BrokenImage';
+import Edit from '@material-ui/icons/Edit';
+import IconButton from '@material-ui/core/IconButton';
+import Box from '@material-ui/core/Box';
+import Slide from '@material-ui/core/Slide';
+//imgs#
+
 import StringField from './components/StringField'
 
 import FloatField from './components/FloatField'
@@ -33,6 +45,30 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(5),
     minWidth: 200,
   },
+//#imgs
+  cardMedia: {
+    height: 140,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  editImageIconButton: {
+    position: 'absolute',
+    top: theme.spacing(1),
+    right: theme.spacing(1),
+    background: 'rgba(0, 0, 0, 0.2)',
+    '&:hover': {
+      background: 'rgba(0, 0, 0, 0.5)',
+    }
+  },
+  cardMedia: {
+    display: 'block',
+  },
+  iconEdit: {
+    color: '#fff',
+    bgcolor: '#000'
+  },
+//imgs#
 }));
 
 export default function ImageAttachmentAttributesFormView(props) {
@@ -42,7 +78,14 @@ export default function ImageAttachmentAttributesFormView(props) {
           valueOkStates,
           valueAjvStates,
           handleSetValue,
+          handleImageUpdateClicked,
         } = props;
+
+//#imgs
+const [imageAvailable, setImageAvailable] = useState(true);
+const [imageLoaded, setImageLoaded] = useState(false);
+const [isInImage, setIsInImage] = useState(false);
+//imgs#
 
   function getItemsOk() {
     let countOk=0;
@@ -54,6 +97,18 @@ export default function ImageAttachmentAttributesFormView(props) {
     }
     return countOk;
   }
+
+  const handleOnMouseEnterImage = async () => {
+    setIsInImage(true);
+  };
+
+  const handleOnMouseLeaveImage = async () => {
+    setIsInImage(false);
+  };
+
+  const handleOnMouseOverImage = async () => {
+    if(!isInImage) setIsInImage(true);
+  };
 
   return (
     <div id='ImageAttachmentAttributesFormView-div-root' className={classes.root}>
@@ -71,12 +126,80 @@ export default function ImageAttachmentAttributesFormView(props) {
                     { t('modelPanels.model') + ': ImageAttachment' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 8 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 2 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
 
           <Card className={classes.card}>
+
+{/* #imgs */}
+            {/* 
+              Image 
+            */}
+            {imageAvailable && (
+              <div className={classes.imageContainer}
+                onMouseEnter={handleOnMouseEnterImage}
+                onMouseLeave={handleOnMouseLeaveImage}
+                onMouseOver={handleOnMouseOverImage}
+              >
+                <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation()}}>
+                  <Fade in={(imageLoaded)}>
+                      <CardMedia
+                        className={classes.cardMedia}
+                        component="img"
+                        alt=""
+                        height="350"
+                        image={item.fileUrl}
+                        title={item.fileName ? item.fileName : ""}
+                        onLoad={() => {setImageLoaded(true)}}
+                        onError={() => {setImageAvailable(false)}}
+                      />
+                  </Fade>
+                </Link>
+
+                <Slide in={(isInImage)} direction={'top'}>
+                  <Box
+                    bgcolor='rgba(255, 255, 255, 0.0)'
+                    p={0}
+                    position="absolute"
+                    top={8}
+                    right={8}
+                    zIndex='modal'
+                  >
+                    <Tooltip title={ t('modelPanels.updateImage', 'Update image') }>
+                      <IconButton
+                        id={'ImageAttachmentAttributesFormView-iconButton-updateImage-'+item.id}
+                        className={classes.editImageIconButton}
+                        color="default"
+                        onClick={event => {
+                          event.stopPropagation();
+                          handleImageUpdateClicked(event, item);
+                        }}
+                      >
+                        <Edit className={classes.iconEdit} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Slide>
+              </div>
+            )}
+            {!imageAvailable && (
+              <CardContent key='broken-image' className={classes.cardContent}>
+                <Grid container className={classes.media} justify='center' alignItems='center' spacing={1}>
+                  {/*Broken image icon*/}
+                  <Grid item>
+                    <Link href={item.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation()}}>
+                      <BrokenImage color="disabled" />
+                    </Link>
+                  </Grid>
+                  <Grid item>
+                    <Typography variant="body1" display="inline" color="textSecondary">{t('modelPanels.imageNotAvailable', 'Image not available')}</Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            )}
+{/* imgs# */}
             {/* 
               Fields 
             */}
@@ -98,7 +221,7 @@ export default function ImageAttachmentAttributesFormView(props) {
 
 
             {/* fileName */}
-            <CardContent key='fileName' className={classes.cardContent} >
+            {/* <CardContent key='fileName' className={classes.cardContent} >
               <StringField
                 itemKey='fileName'
                 name='fileName'
@@ -108,10 +231,10 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.fileName}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* fileSizeKb */}
-            <CardContent key='fileSizeKb' className={classes.cardContent} >
+            {/* <CardContent key='fileSizeKb' className={classes.cardContent} >
               <FloatField
                 itemKey='fileSizeKb'
                 name='fileSizeKb'
@@ -121,10 +244,10 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.fileSizeKb}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* fileType */}
-            <CardContent key='fileType' className={classes.cardContent} >
+            {/* <CardContent key='fileType' className={classes.cardContent} >
               <StringField
                 itemKey='fileType'
                 name='fileType'
@@ -134,10 +257,10 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.fileType}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* filePath */}
-            <CardContent key='filePath' className={classes.cardContent} >
+            {/* <CardContent key='filePath' className={classes.cardContent} >
               <StringField
                 itemKey='filePath'
                 name='filePath'
@@ -147,10 +270,10 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.filePath}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* smallTnPath */}
-            <CardContent key='smallTnPath' className={classes.cardContent} >
+            {/* <CardContent key='smallTnPath' className={classes.cardContent} >
               <StringField
                 itemKey='smallTnPath'
                 name='smallTnPath'
@@ -160,10 +283,10 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.smallTnPath}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* mediumTnPath */}
-            <CardContent key='mediumTnPath' className={classes.cardContent} >
+            {/* <CardContent key='mediumTnPath' className={classes.cardContent} >
               <StringField
                 itemKey='mediumTnPath'
                 name='mediumTnPath'
@@ -173,7 +296,7 @@ export default function ImageAttachmentAttributesFormView(props) {
                 valueAjv={valueAjvStates.mediumTnPath}
                 handleSetValue={handleSetValue}
               />
-            </CardContent>
+            </CardContent> */}
 
             {/* licence */}
             <CardContent key='licence' className={classes.cardContent} >

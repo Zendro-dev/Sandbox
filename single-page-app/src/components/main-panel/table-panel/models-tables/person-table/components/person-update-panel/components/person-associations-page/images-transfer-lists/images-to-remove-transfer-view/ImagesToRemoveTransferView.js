@@ -29,6 +29,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Remove from '@material-ui/icons/RemoveCircle';
 import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
 import Key from '@material-ui/icons/VpnKey';
+import Link from '@material-ui/core/Link';
+
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -1933,7 +1935,9 @@ const showMessageB = useCallback((message, withDetail) => {
                           >
                             <ListItemAvatar>
                               <Tooltip title={ 'ImageAttachment' }>
-                                <Avatar>{"imageAttachment".slice(0,1)}</Avatar>
+                                <Link href={it.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
+                                  <Avatar alt="Image" src={it.smallTnUrl} />
+                                </Link>
                               </Tooltip>
                             </ListItemAvatar>
 
@@ -2183,7 +2187,9 @@ const showMessageB = useCallback((message, withDetail) => {
                           >
                             <ListItemAvatar>
                               <Tooltip title={ 'ImageAttachment' }>
-                                <Avatar>{"imageAttachment".slice(0,1)}</Avatar>
+                                <Link href={it.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
+                                  <Avatar alt="Image" src={it.smallTnUrl} />
+                                </Link>
                               </Tooltip>
                             </ListItemAvatar>
 

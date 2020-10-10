@@ -24,6 +24,7 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Avatar from '@material-ui/core/Avatar';
 import Fade from '@material-ui/core/Fade';
 import Key from '@material-ui/icons/VpnKey';
+import Link from '@material-ui/core/Link';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -992,7 +993,9 @@ export default function ImagesCompactView(props) {
                           >
                             <ListItemAvatar>
                               <Tooltip title={ 'ImageAttachment' }>
-                                <Avatar>{"imageAttachment".slice(0,1)}</Avatar>
+                                <Link href={it.fileUrl} rel="noopener noreferrer" target="_blank" onClick={(event) => {event.stopPropagation();}}>
+                                  <Avatar alt="Image" src={it.smallTnUrl} />
+                                </Link>
                               </Tooltip>
                             </ListItemAvatar>
 

@@ -27,6 +27,12 @@ import Fade from '@material-ui/core/Fade';
 import BrokenImage from '@material-ui/icons/BrokenImage';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Delete from '@material-ui/icons/DeleteOutline';
+import Edit from '@material-ui/icons/Edit';
+import SeeInfo from '@material-ui/icons/VisibilityTwoTone';
+import Zoom from '@material-ui/core/Zoom';
+import Collapse from '@material-ui/core/Collapse';
+import Slide from '@material-ui/core/Slide';
 
 
 const useStyles = makeStyles(theme => ({
@@ -75,16 +81,32 @@ const useStyles = makeStyles(theme => ({
     width: theme.spacing(3),
     height: theme.spacing(3),
   },
+  iconSee: {
+    color: '#3f51b5',
+  },
+  iconEdit: {
+    color: '#3f51b5'
+  },
+  iconDelete: {
+    color: '#f50057'
+  },
 }));
 
 export default function ImageAttachmentImagesGridViewItem(props) {
   const classes = useStyles();
   const { t } = useTranslation();
-  const { item } = props;
+  const { 
+    item,
+    permissions,
+    handleClickOnRow,
+    handleUpdateClicked,
+    handleDeleteClicked,
+  } = props;
 
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isInCard, setIsInCard] = useState(false);
 
   /**
    * Effects
@@ -104,15 +126,35 @@ export default function ImageAttachmentImagesGridViewItem(props) {
   };
 
   const handleOnError = async () => {
-    console.log("onError");
     setImageError(true); 
     setImageLoading(false);
     return;
   };
 
+  const handleOnMouseEnterCard = async () => {
+    setIsInCard(true);
+  };
+
+  const handleOnMouseLeaveCard = async () => {
+    setIsInCard(false);
+  };
+
+  const handleOnMouseOverCard = async () => {
+    if(!isInCard) setIsInCard(true);
+  };
+
   return (
     <div>
-        <Card className={classes.card}>
+        <Card className={classes.card} 
+        raised={false}
+        onMouseEnter={handleOnMouseEnterCard}
+        onMouseLeave={handleOnMouseLeaveCard}
+        onMouseOver={handleOnMouseOverCard}
+        onClick={event => {
+          event.stopPropagation();
+          handleClickOnRow(event, item);
+        }}
+        >
           {/* 
             Header 
           */}
@@ -125,9 +167,86 @@ export default function ImageAttachmentImagesGridViewItem(props) {
               </Tooltip>
             }
             action={
-              <IconButton aria-label="settings">
-                <MoreVertIcon />
-              </IconButton>
+              <div>
+                {(isInCard) && (
+                  <Slide in={(isInCard)} direction={'left'}>
+                    <Grid container>
+                      <Grid item>
+                        {/* SeeInfo icon */}
+                        <Tooltip title={ t('modelPanels.viewDetails') }>
+                          <IconButton
+                            id={'ImageAttachmentEnhancedTable-gridItem-iconButton-detail-'+item.id}
+                            color="default"
+                            onClick={event => {
+                              event.stopPropagation();
+                              handleClickOnRow(event, item);
+                            }}
+                          >
+                            <SeeInfo fontSize="small" className={classes.iconSee}/>
+                          </IconButton>
+                        </Tooltip>
+                      </Grid>
+
+                      {/*
+                        Actions:
+                        - Edit
+                        - Delete
+                      */}
+                      {
+                        /* acl check */
+                        (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
+                        &&(permissions.imageAttachment.includes('update') || permissions.imageAttachment.includes('*')))
+                        &&(
+                          <Grid item>
+                            <Tooltip title={ t('modelPanels.edit') }>
+                              <IconButton
+                                id={'ImageAttachmentEnhancedTable-row-iconButton-edit-'+item.id}
+                                color="default"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleUpdateClicked(event, item);
+                                }}
+                              >
+                                <Edit fontSize="small" className={classes.iconEdit} />
+                              </IconButton>
+                            </Tooltip>
+                          </Grid>
+                        )
+                      }
+
+                      {
+                        /* acl check */
+                        (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
+                        &&(permissions.imageAttachment.includes('delete') || permissions.imageAttachment.includes('*')))
+                        &&(
+                          <Grid item>
+                            <Tooltip title={ t('modelPanels.delete') }>
+                              <IconButton
+                                id={'ImageAttachmentEnhancedTable-row-iconButton-delete-'+item.id}
+                                color="default"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeleteClicked(event, item);
+                                }}
+                              >
+                                <Delete fontSize="small" className={classes.iconDelete} />
+                              </IconButton>
+                            </Tooltip>
+                          </Grid>
+                        )
+                      }
+                    </Grid>
+                  </Slide>
+                )}
+
+                {(!isInCard) && (
+                  <Zoom in={!isInCard}>
+                    <IconButton aria-label="settings">
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Zoom>
+                )}
+              </div>
             }
             title={
               <Grid container alignItems='center' alignContent='center' spacing={1}>
@@ -143,6 +262,7 @@ export default function ImageAttachmentImagesGridViewItem(props) {
                 </Grid>
               </Grid>
             }
+            onClick={() => {console.log("click")}}
           />
           {/* 
             Media 

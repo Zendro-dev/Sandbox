@@ -35,6 +35,7 @@ export default function ImageAttachmentUploadFileDialog(props) {
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
+    item,
     handleCancel,
     handleDone,
   } = props;
@@ -61,14 +62,11 @@ export default function ImageAttachmentUploadFileDialog(props) {
   const handleSubmit = (event) => {
     if(file.current !== undefined && file.current !== null) {
 
-      console.log("@----- file: ", file.current);
-      console.log("@----- file keys: ", file.current.name);
-
       let formData = new FormData();
       let query =
-      ` mutation addImageAttachment {
-          addImageAttachment( licence: "--", description: "${file.current.name}") {
-            fileName fileSizeKb fileType fileUrl licence description smallTnUrl mediumTnUrl
+      ` mutation updateImageAttachment {
+          updateImageAttachment( id: "${item.id}") {
+            fileName fileSizeKb fileType fileUrl smallTnUrl mediumTnUrl
           }}`
 
       formData.append('attachment', file.current);
@@ -88,9 +86,9 @@ export default function ImageAttachmentUploadFileDialog(props) {
           response.data.data
       ) {
           setOpen(false);
-          handleDone(event);
+          handleDone(event, response.data.data.updateImageAttachment);
 
-          enqueueSnackbar( t('modelPanels.messages.imageUploaded', "Image uploaded."), {
+          enqueueSnackbar( t('modelPanels.messages.imageUploaded', "New image uploaded."), {
             variant: 'success',
             preventDuplicate: false,
             persist: false,

@@ -16,6 +16,7 @@ import ImageAttachmentDetailPanel from './components/imageAttachment-detail-pane
 import ImageAttachmentDeleteConfirmationDialog from './components/ImageAttachmentDeleteConfirmationDialog'
 import ImageAttachmentUploadFileDialog from './components/ImageAttachmentUploadFileDialog'
 import ImageAttachmentUploadImageDialog from './components/ImageAttachmentUploadImageDialog'
+import ImageAttachmentUpdateImageDialog from './components/ImageAttachmentUpdateImageDialog'
 import ImageAttachmentCursorPagination from './components/ImageAttachmentCursorPagination'
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -43,27 +44,37 @@ import Avatar from '@material-ui/core/Avatar';
 import ImageAttachmentImagesGridView from './components/ImageAttachmentImagesGridView'
 //imgs#
 
+// const drawerWidth = 280;
+// const appBarHeight = 72;
+// const mainMargin = 48;
+// const tableFooter = 80;
+// const tableToolbar = 128;
 
 const useStyles = makeStyles(theme => ({
     root: {
-        marginTop: theme.spacing(7),
+        marginTop: 72,
+        height: `calc(100vh - 72px - 48px)`,
     },
     paper: {
-        overflowX: 'auto',
+        overflow: 'auto',
+        height: `calc(100vh - 72px  - 48px)`,
+        minWidth: 570,
     },
     tableWrapper: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
+      minWidth: 570,
       overflow: 'auto',
       position: 'relative',
     },
+    swipe: {
+      overflow: 'hidden',
+      height: `calc(100vh - 72px - 48px)`,
+    },
     loading: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
     },
     noData: {
-      height: '64vh',
-      maxHeight: '64vh',
+      height: `calc(100vh - 72px - 48px - 128px - 80px)`,
     },
     iconSee: {
       '&:hover': {
@@ -128,6 +139,7 @@ export default function ImageAttachmentEnhancedTable(props) {
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
   const [uploadFileDialogOpen, setUploadFileDialogOpen] = useState(false);
   const [uploadImageDialogOpen, setUploadImageDialogOpen] = useState(false);
+  const [updateImageDialogOpen, setUpdateImageDialogOpen] = useState(false);
   const [viewTypeValue, setViewTypeValue] = useState('table');
 
   const cancelablePromises = useRef([]);
@@ -1176,8 +1188,8 @@ export default function ImageAttachmentEnhancedTable(props) {
     delayedCloseCreatePanel(event, 500);
     if(status) {
       setCount(count+1);
-      reloadData();
     }
+    reloadData();
   }
 
   const delayedCloseCreatePanel = async (event, ms) => {
@@ -1200,9 +1212,7 @@ export default function ImageAttachmentEnhancedTable(props) {
   const handleUpdateDialogClose = (event, status, oldItem, newItem) => {
     dispatch(changesCompleted());
     delayedCloseUpdatePanel(event, 500);
-    if(status) {
-      reloadData();
-    }
+    reloadData();
   }
 
   const delayedCloseUpdatePanel = async (event, ms) => {
@@ -1297,6 +1307,34 @@ export default function ImageAttachmentEnhancedTable(props) {
     });
   };
 
+  /**
+   * Image Update-Dialog handlers
+   */
+  const handleImageUpdateClicked = (event) => {
+    setUpdateImageDialogOpen(true);
+  }
+
+  const handleImageUpdateCancel = (event) => {
+    delayedCloseImageUpdateDialog(event, 500);
+  }
+
+  const handleImageUpdateDone = (event, newItem) => {
+    delayedCloseImageUpdateDialog(event, 500);
+    if(newItem && typeof newItem === 'object') {
+      setUpdateItem({...updateItem, ...newItem});
+    }
+  }
+
+  const delayedCloseImageUpdateDialog = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUpdateImageDialogOpen(false);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
   /*
    * Download CSV Template handlers
    */
@@ -1322,7 +1360,7 @@ export default function ImageAttachmentEnhancedTable(props) {
   }
 
   return (
-    <div className={classes.root}>
+    <div id='imageAttachmentEnhancedTable-div-root' className={classes.root}>
       {
         /* acl check */
         (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
@@ -1330,10 +1368,12 @@ export default function ImageAttachmentEnhancedTable(props) {
         &&(
           <Grid container justify='center'>
             <Grid item xs={12}>
-              <Paper className={classes.paper}>
+              <Paper id='imageAttachmentEnhancedTable-paper-root' className={classes.paper}>
 
                 {/* Toolbar */}
                 <ImageAttachmentEnhancedTableToolbar
+                  id='imageAttachmentEnhancedTable-tableToolbar'
+                  className={classes.tableToolbar}
                   permissions={permissions}
                   search={search}
                   showToggleButtons={Boolean(ImageAttachmentPlotly)}
@@ -1348,14 +1388,14 @@ export default function ImageAttachmentEnhancedTable(props) {
                   handleViewTypeClicked={handleViewTypeClicked}
                 />
 
-                <SwipeableViews index={getSwipeIndex()} disabled={true}>
+                <SwipeableViews style={{maxHeight: `calc(100vh - (72px + 48px + 128px))`}} id='imageAttachmentEnhancedTable-swipeableViews' className={classes.swipe} index={getSwipeIndex()} disabled={true}>
                   {/*
                     Swipe page 1: Table
                   */}
                   <div>
 
                     {/* Table components*/}
-                    <div className={classes.tableWrapper} ref={twref}>
+                    <div id='imageAttachmentEnhancedTable-div-tableWrapper' className={classes.tableWrapper} ref={twref}>
 
                       {/* Table backdrop */}
                       <Fade in={(isOnApiRequest)}>
@@ -1638,7 +1678,13 @@ export default function ImageAttachmentEnhancedTable(props) {
                       */}
                       {(viewTypeValue==='grid') && (
                           <Fade in={(!isOnApiRequest && items.length > 0)}>
-                            <ImageAttachmentImagesGridView items={items}/>
+                            <ImageAttachmentImagesGridView 
+                              items={items}
+                              permissions={permissions}
+                              handleClickOnRow={handleClickOnRow}
+                              handleUpdateClicked={handleUpdateClicked}
+                              handleDeleteClicked={handleDeleteClicked}
+                            />
                           </Fade>
                       )}
 
@@ -1691,6 +1737,7 @@ export default function ImageAttachmentEnhancedTable(props) {
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
+          handleImageUpdateClicked={handleImageUpdateClicked}
         />
       )}
 
@@ -1722,11 +1769,20 @@ export default function ImageAttachmentEnhancedTable(props) {
         />
       )}
 
-      {/* Dialog: Upload File */}
+      {/* Dialog: Upload Image */}
       {(uploadImageDialogOpen) && (
         <ImageAttachmentUploadImageDialog
           handleCancel={handleImageUploadCancel}
           handleDone={handleImageUploadDone}
+        />
+      )}
+
+      {/* Dialog: Update Image */}
+      {(updateImageDialogOpen) && (
+        <ImageAttachmentUpdateImageDialog
+          item={updateItem}
+          handleCancel={handleImageUpdateCancel}
+          handleDone={handleImageUpdateDone}
         />
       )}
     </div>
