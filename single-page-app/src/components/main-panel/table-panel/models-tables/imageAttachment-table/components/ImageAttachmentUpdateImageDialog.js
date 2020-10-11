@@ -66,7 +66,7 @@ export default function ImageAttachmentUploadFileDialog(props) {
       let query =
       ` mutation updateImageAttachment {
           updateImageAttachment( id: "${item.id}") {
-            fileName fileSizeKb fileType fileUrl smallTnUrl mediumTnUrl
+            id fileName fileSizeKb fileType fileUrl smallTnUrl mediumTnUrl
           }}`
 
       formData.append('attachment', file.current);

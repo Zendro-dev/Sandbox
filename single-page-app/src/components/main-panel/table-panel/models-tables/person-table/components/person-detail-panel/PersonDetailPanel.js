@@ -715,6 +715,7 @@ export default function PersonDetailPanel(props) {
           handleClose={handleImageAttachmentDetailDialogClose}
         />
       )}
+
     </div>
   );
 }

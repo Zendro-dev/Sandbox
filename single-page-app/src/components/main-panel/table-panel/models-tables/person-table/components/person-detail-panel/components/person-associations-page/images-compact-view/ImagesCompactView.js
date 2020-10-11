@@ -713,7 +713,7 @@ export default function ImagesCompactView(props) {
       let oens = Object.entries(lastModelChanged.ImageAttachment);
       oens.forEach( (entry) => {
         //case A: updated
-        if(entry[1].op === "update"&&entry[1].newItem) {
+        if((entry[1].op === "update" || entry[1].op === "update-image")&&entry[1].newItem) {
           let idUpdated = entry[1].item.id;
           
           //lookup item on table

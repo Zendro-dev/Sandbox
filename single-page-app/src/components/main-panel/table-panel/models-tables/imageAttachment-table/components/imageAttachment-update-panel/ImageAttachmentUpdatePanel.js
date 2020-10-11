@@ -100,6 +100,7 @@ export default function ImageAttachmentUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
+  const [itemState, setItemState] = useState(item);
   const [personIdsToAddState, setPersonIdsToAddState] = useState([]);
   const personIdsToAdd = useRef([]);
   const [personIdsToRemoveState, setPersonIdsToRemoveState] = useState([]);
@@ -218,6 +219,17 @@ export default function ImageAttachmentUpdatePanel(props) {
     if(lastModelChanged&&
       lastModelChanged.ImageAttachment&&
       lastModelChanged.ImageAttachment[String(item.id)]) {
+
+        //update image
+        if(lastModelChanged.ImageAttachment[String(item.id)].op === "update-image"&&
+            lastModelChanged.ImageAttachment[String(item.id)].newItem) {
+              
+              //update item
+              let newItem = lastModelChanged.ImageAttachment[String(item.id)].newItem;
+              if(itemState.id === newItem.id) setItemState({...itemState, ...newItem});
+
+              return;
+        }
 
         //updated item
         if(lastModelChanged.ImageAttachment[String(item.id)].op === "update"&&
@@ -870,7 +882,7 @@ function setAjvErrors(err) {
             {/* Attributes Page [0] */}
             <ImageAttachmentAttributesPage
               hidden={tabsValue !== 0}
-              item={item}
+              item={itemState}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
               foreignKeys = {foreignKeys}
@@ -888,7 +900,7 @@ function setAjvErrors(err) {
               {/* Associations Page [1] */}
               <ImageAttachmentAssociationsPage
                 hidden={tabsValue !== 1 || deleted}
-                item={item}
+                item={itemState}
                 personIdsToAdd={personIdsToAddState}
                 personIdsToRemove={personIdsToRemoveState}
                 handleTransferToAdd={handleTransferToAdd}

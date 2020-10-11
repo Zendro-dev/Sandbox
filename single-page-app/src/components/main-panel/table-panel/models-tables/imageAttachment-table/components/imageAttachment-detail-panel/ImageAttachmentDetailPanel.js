@@ -12,6 +12,7 @@ import ImageAttachmentAttributesPage from './components/imageAttachment-attribut
 import ImageAttachmentAssociationsPage from './components/imageAttachment-associations-page/ImageAttachmentAssociationsPage'
 import ImageAttachmentUpdatePanel from '../imageAttachment-update-panel/ImageAttachmentUpdatePanel'
 import ImageAttachmentDeleteConfirmationDialog from '../ImageAttachmentDeleteConfirmationDialog'
+import ImageAttachmentUpdateImageDialog from '../../components/ImageAttachmentUpdateImageDialog'
 import PersonDetailPanel from '../../../person-table/components/person-detail-panel/PersonDetailPanel'
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -86,6 +87,9 @@ export default function ImageAttachmentDetailPanel(props) {
   const [updateItem, setUpdateItem] = useState(undefined);
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
+  
+  const [updateImageDialogOpen, setUpdateImageDialogOpen] = useState(false);
+  const [imageAttachmentUpdateItem, setImageAttachmentUpdateItem] = useState(undefined);
 
   const [personDetailDialogOpen, setPersonDetailDialogOpen] = useState(false);
   const [personDetailItem, setPersonDetailItem] = useState(undefined);
@@ -199,8 +203,9 @@ export default function ImageAttachmentDetailPanel(props) {
       lastModelChanged['ImageAttachment'][String(item['id'])]) {
           
         //updated item
-        if(lastModelChanged['ImageAttachment'][String(item['id'])].op === "update"&&
-            lastModelChanged['ImageAttachment'][String(item['id'])].newItem) {
+        if((lastModelChanged['ImageAttachment'][String(item['id'])].op === "update"
+         || lastModelChanged['ImageAttachment'][String(item['id'])].op === "update-image")
+        && lastModelChanged['ImageAttachment'][String(item['id'])].newItem) {
               //replace item
               setItemState(lastModelChanged['ImageAttachment'][String(item['id'])].newItem);
               //show alert
@@ -477,6 +482,35 @@ export default function ImageAttachmentDetailPanel(props) {
     });
   };
 
+  /**
+   * Image Update-Dialog handlers
+   */
+  const handleImageUpdateClicked = (event, item) => {
+    setImageAttachmentUpdateItem(item);
+    setUpdateImageDialogOpen(true);
+  }
+
+  const handleImageUpdateCancel = (event) => {
+    setImageAttachmentUpdateItem(undefined);
+    delayedCloseImageUpdateDialog(event, 500);
+  }
+
+  const handleImageUpdateDone = (event, newItem) => {
+    dispatch(modelChange('ImageAttachment', 'update-image', imageAttachmentUpdateItem, newItem))
+    setImageAttachmentUpdateItem(undefined);
+    delayedCloseImageUpdateDialog(event, 500);
+  }
+
+  const delayedCloseImageUpdateDialog = async (event, ms) => {
+    await new Promise(resolve => {
+      //set timeout
+      window.setTimeout(function() {
+        setUpdateImageDialogOpen(false);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
   return (
     <div>
       {/* Dialog Mode */}
@@ -701,6 +735,7 @@ export default function ImageAttachmentDetailPanel(props) {
           permissions={permissions}
           item={updateItem}
           handleClose={handleUpdateDialogClose}
+          handleImageUpdateClicked={handleImageUpdateClicked}
         />
       )}
 
@@ -723,6 +758,16 @@ export default function ImageAttachmentDetailPanel(props) {
           handleClose={handlePersonDetailDialogClose}
         />
       )}
+
+      {/* Dialog: Update Image */}
+      {(updateImageDialogOpen) && (
+        <ImageAttachmentUpdateImageDialog
+          item={imageAttachmentUpdateItem}
+          handleCancel={handleImageUpdateCancel}
+          handleDone={handleImageUpdateDone}
+        />
+      )}
+
     </div>
   );
 }

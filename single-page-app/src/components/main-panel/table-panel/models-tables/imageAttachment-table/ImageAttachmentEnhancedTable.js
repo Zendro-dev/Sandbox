@@ -1320,7 +1320,8 @@ export default function ImageAttachmentEnhancedTable(props) {
 
   const handleImageUpdateDone = (event, newItem) => {
     delayedCloseImageUpdateDialog(event, 500);
-    if(newItem && typeof newItem === 'object') {
+    if(newItem && typeof newItem === 'object'
+    && updateItem && updateItem.id === newItem.id) {
       setUpdateItem({...updateItem, ...newItem});
     }
   }
