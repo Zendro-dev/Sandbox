@@ -46,6 +46,37 @@ module.exports = {
             }]
         },
         /**
+         * Model: int_post_author
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_author',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'int_post_author',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_author',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_author',
+                permissions: 'delete'
+            }]
+        },
+        /**
          * Model: mariadb_author
          */
         {
@@ -166,6 +197,37 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: 'post_book',
+                permissions: 'delete'
+            }]
+        },
+        /**
+         * Model: int_post_book
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_book',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'int_post_book',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_book',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'int_post_book',
                 permissions: 'delete'
             }]
         },

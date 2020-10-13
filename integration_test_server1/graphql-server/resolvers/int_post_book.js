@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const post_book = require(path.join(__dirname, '..', 'models', 'index.js')).post_book;
+const int_post_book = require(path.join(__dirname, '..', 'models', 'index.js')).int_post_book;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,14 +14,14 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addAuthors': 'post_author'
+    'addAuthors': 'int_post_author'
 }
 
 
 
 
 /**
- * post_book.prototype.authorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * int_post_book.prototype.authorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -31,53 +31,55 @@ const associationArgsDef = {
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-post_book.prototype.authorsFilter = function({
+int_post_book.prototype.authorsFilter = function({
     search,
     order,
     pagination
 }, context) {
 
-
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.post_author.idAttribute(),
-        "value": this.author_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.post_authors({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if(this.author_ids.length !== 0){
+      let nsearch = helper.addSearchField({
+          "search": search,
+          "field": models.int_post_author.idAttribute(),
+          "value": this.author_ids.join(','),
+          "valueType": "Array",
+          "operator": "in"
+      });
+      return resolvers.int_post_authors({
+          search: nsearch,
+          order: order,
+          pagination: pagination
+      }, context);
+    }
+    return;
 }
 
 /**
- * post_book.prototype.countFilteredAuthors - Count number of associated records that holds the conditions specified in the search argument
+ * int_post_book.prototype.countFilteredAuthors - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-post_book.prototype.countFilteredAuthors = function({
+int_post_book.prototype.countFilteredAuthors = function({
     search
 }, context) {
 
 
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.post_author.idAttribute(),
+        "field": models.int_post_author.idAttribute(),
         "value": this.author_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.countPost_authors({
+    return resolvers.countInt_post_authors({
         search: nsearch
     }, context);
 }
 
 /**
- * post_book.prototype.authorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * int_post_book.prototype.authorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -87,7 +89,7 @@ post_book.prototype.countFilteredAuthors = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-post_book.prototype.authorsConnection = function({
+int_post_book.prototype.authorsConnection = function({
     search,
     order,
     pagination
@@ -96,12 +98,12 @@ post_book.prototype.authorsConnection = function({
 
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.post_author.idAttribute(),
+        "field": models.int_post_author.idAttribute(),
         "value": this.author_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.post_authorsConnection({
+    return resolvers.int_post_authorsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -117,7 +119,7 @@ post_book.prototype.authorsConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-post_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
+int_post_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
     if (helper.isNonEmptyArray(input.addAuthors)) {
         promises.push(this.add_authors(input, benignErrorReporter));
@@ -135,16 +137,16 @@ post_book.prototype.handleAssociations = async function(input, benignErrorReport
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-post_book.prototype.add_authors = async function(input, benignErrorReporter) {
+int_post_book.prototype.add_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
     input.addAuthors.forEach(id => {
-        promises.push(models.post_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
+        promises.push(models.int_post_author.add_book_ids(id, [`${this.getIdValue()}`], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await post_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
+    await int_post_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
     this.author_ids = helper.unionIds(this.author_ids, input.addAuthors);
 }
 
@@ -155,16 +157,16 @@ post_book.prototype.add_authors = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-post_book.prototype.remove_authors = async function(input, benignErrorReporter) {
+int_post_book.prototype.remove_authors = async function(input, benignErrorReporter) {
 
     //handle inverse association
     let promises = [];
     input.removeAuthors.forEach(id => {
-        promises.push(models.post_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
+        promises.push(models.int_post_author.remove_book_ids(id, [ `${this.getIdValue()}`], benignErrorReporter));
     });
     await Promise.all(promises);
 
-    await post_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
+    await int_post_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
     this.author_ids = helper.differenceIds(this.author_ids, input.removeAuthors);
 }
 
@@ -187,7 +189,7 @@ post_book.prototype.remove_authors = async function(input, benignErrorReporter) 
 async function checkCountAndReduceRecordsLimit({
     search,
     pagination
-}, context, resolverName, modelName = 'post_book') {
+}, context, resolverName, modelName = 'int_post_book') {
     //defaults
     let inputPaginationValues = {
         limit: undefined,
@@ -220,7 +222,7 @@ async function checkCountAndReduceRecordsLimit({
  * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  */
 function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOnePost_book")
+    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneInt_post_book")
 }
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -231,15 +233,15 @@ function checkCountForOneAndReduceRecordsLimit(context) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let post_book = await resolvers.readOnePost_book({
+    let int_post_book = await resolvers.readOneInt_post_book({
         id: id
     }, context);
     //check that record actually exists
-    if (post_book === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (int_post_book === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(post_book.countFilteredAuthors({}, context));
+    promises_to_many.push(int_post_book.countFilteredAuthors({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -259,14 +261,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`post_book with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`int_post_book with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * post_books - Check user authorization and return certain number, specified in pagination argument, of records that
+     * int_post_books - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -275,25 +277,25 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    post_books: async function({
+    int_post_books: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "post_books");
+            }, context, "int_post_books");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await post_book.readAll(search, order, pagination, benignErrorReporter);
+            return await int_post_book.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * post_booksConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * int_post_booksConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -302,77 +304,77 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    post_booksConnection: async function({
+    int_post_booksConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
             await checkCountAndReduceRecordsLimit({
                 search,
                 pagination
-            }, context, "post_booksConnection");
+            }, context, "int_post_booksConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await post_book.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await int_post_book.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOnePost_book - Check user authorization and return one record with the specified id in the id argument.
+     * readOneInt_post_book - Check user authorization and return one record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Record with id requested
      */
-    readOnePost_book: async function({
+    readOneInt_post_book: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
             checkCountForOneAndReduceRecordsLimit(context);
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await post_book.readById(id, benignErrorReporter);
+            return await int_post_book.readById(id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countPost_books - Counts number of records that holds the conditions specified in the search argument
+     * countInt_post_books - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countPost_books: async function({
+    countInt_post_books: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await post_book.countRecords(search, benignErrorReporter);
+            return await int_post_book.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTablePost_book - Return table of records as needed for displaying a vuejs table
+     * vueTableInt_post_book - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTablePost_book: async function(_, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
-            return helper.vueTable(context.request, post_book, ["id", "id", "title", "genre", "ISBN"]);
+    vueTableInt_post_book: async function(_, context) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
+            return helper.vueTable(context.request, int_post_book, ["id", "title", "genre", "ISBN"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addPost_book - Check user authorization and creates a new record with data specified in the input argument.
+     * addInt_post_book - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -380,8 +382,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addPost_book: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'post_book', 'create');
+    addInt_post_book: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'int_post_book', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -390,43 +392,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdPost_book = await post_book.addOne(inputSanitized, benignErrorReporter);
-            await createdPost_book.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdPost_book;
+            let createdInt_post_book = await int_post_book.addOne(inputSanitized, benignErrorReporter);
+            await createdInt_post_book.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdInt_post_book;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddPost_bookCsv - Load csv file of records
+     * bulkAddInt_post_bookCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddPost_bookCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'post_book', 'create') === true) {
+    bulkAddInt_post_bookCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'int_post_book', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return post_book.bulkAddCsv(context, benignErrorReporter);
+            return int_post_book.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deletePost_book - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteInt_post_book - Check user authorization and delete a record with the specified id in the id argument.
      *
      * @param  {number} {id}    id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deletePost_book: async function({
+    deleteInt_post_book: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'post_book', 'delete') === true) {
+        if (await checkAuthorization(context, 'int_post_book', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return post_book.deleteOne(id, benignErrorReporter);
+                return int_post_book.deleteOne(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -434,7 +436,7 @@ module.exports = {
     },
 
     /**
-     * updatePost_book - Check user authorization and update the record specified in the input argument
+     * updateInt_post_book - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -442,8 +444,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updatePost_book: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'post_book', 'update');
+    updateInt_post_book: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'int_post_book', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -452,9 +454,9 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedPost_book = await post_book.updateOne(inputSanitized, benignErrorReporter);
-            await updatedPost_book.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedPost_book;
+            let updatedInt_post_book = await int_post_book.updateOne(inputSanitized, benignErrorReporter);
+            await updatedInt_post_book.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedInt_post_book;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -462,16 +464,16 @@ module.exports = {
 
 
     /**
-     * csvTableTemplatePost_book - Returns table's template
+     * csvTableTemplateInt_post_book - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplatePost_book: async function(_, context) {
-        if (await checkAuthorization(context, 'post_book', 'read') === true) {
+    csvTableTemplateInt_post_book: async function(_, context) {
+        if (await checkAuthorization(context, 'int_post_book', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return post_book.csvTableTemplate(benignErrorReporter);
+            return int_post_book.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

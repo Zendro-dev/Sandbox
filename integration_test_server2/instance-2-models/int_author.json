@@ -1,0 +1,25 @@
+{
+    "model" : "int_post_author",
+    "storageType" : "zendro-server",
+    "url": "http://server1-graphql-container:3000/graphql",
+    "attributes" : {
+        "id": "Int",
+        "name": "String",
+        "lastname": "String",
+        "email": "String",
+        "book_ids": "[ Int ]"
+    },
+
+    "associations":{
+      "books":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "int_post_book",
+        "targetKey": "author_ids",
+        "sourceKey": "book_ids",
+        "keyIn": "int_post_author",
+        "targetStorageType": "zendro-server"
+      }
+    },
+    "internalId": "id"
+  }

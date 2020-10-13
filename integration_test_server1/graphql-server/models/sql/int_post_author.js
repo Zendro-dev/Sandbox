@@ -19,31 +19,31 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'sq_book',
+    model: 'int_post_author',
     storageType: 'sql',
-    database: 'sqlite-database',
+    database: 'default-sql',
     attributes: {
-        id: 'String',
-        title: 'String',
-        genre: 'String',
-        ISBN: 'String',
-        author_ids: '[ String]'
+        id: 'Int',
+        name: 'String',
+        lastname: 'String',
+        email: 'String',
+        book_ids: '[ Int ]'
     },
     associations: {
-        authors: {
+        books: {
             type: 'to_many',
             reverseAssociationType: 'to_many',
-            target: 'sq_author',
-            targetKey: 'book_ids',
-            sourceKey: 'author_ids',
-            keyIn: 'sq_book',
+            target: 'int_post_book',
+            targetKey: 'author_ids',
+            sourceKey: 'book_ids',
+            keyIn: 'int_post_author',
             targetStorageType: 'sql'
         }
     },
     internalId: 'id',
     id: {
         name: 'id',
-        type: 'String'
+        type: 'Int'
     }
 };
 
@@ -55,33 +55,33 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class sq_book extends Sequelize.Model {
+module.exports = class int_post_author extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
             id: {
-                type: Sequelize[dict['String']],
+                type: Sequelize[dict['Int']],
                 primaryKey: true
             },
-            title: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            genre: {
+            lastname: {
                 type: Sequelize[dict['String']]
             },
-            ISBN: {
+            email: {
                 type: Sequelize[dict['String']]
             },
-            author_ids: {
-                type: Sequelize[dict['[String]']],
+            book_ids: {
+                type: Sequelize[dict['[Int]']],
                 defaultValue: []
             }
 
 
         }, {
-            modelName: "sq_book",
-            tableName: "sq_books",
+            modelName: "int_post_author",
+            tableName: "int_post_authors",
             sequelize
         });
     }
@@ -97,7 +97,7 @@ module.exports = class sq_book extends Sequelize.Model {
     static associate(models) {}
 
     static async readById(id) {
-        let item = await sq_book.findByPk(id);
+        let item = await int_post_author.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
@@ -157,7 +157,7 @@ module.exports = class sq_book extends Sequelize.Model {
             }
 
             if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total sq_books exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                throw new Error(`Request of total int_post_authors exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
             }
             let records = await super.findAll(options);
             return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -267,7 +267,7 @@ module.exports = class sq_book extends Sequelize.Model {
                 }
                 //check: limit
                 if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total sq_books exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
+                    throw new Error(`Request of total int_post_authors exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
                 }
 
                 /*
@@ -435,7 +435,7 @@ module.exports = class sq_book extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of sq_book records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of int_post_author records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -454,35 +454,35 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
     /**
-     * add_author_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_book_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_author_ids(id, author_ids) {
+    static async add_book_ids(id, book_ids) {
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(record.author_ids, author_ids);
+            let updated_ids = helper.unionIds(record.book_ids, book_ids);
             await record.update({
-                author_ids: updated_ids
+                book_ids: updated_ids
             });
         }
     }
 
     /**
-     * remove_author_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_author_ids(id, author_ids) {
+    static async remove_book_ids(id, book_ids) {
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+            let updated_ids = helper.differenceIds(record.book_ids, book_ids);
             await record.update({
-                author_ids: updated_ids
+                book_ids: updated_ids
             });
         }
     }
@@ -501,7 +501,7 @@ module.exports = class sq_book extends Sequelize.Model {
      */
 
     static idAttribute() {
-        return sq_book.definition.id.name;
+        return int_post_author.definition.id.name;
     }
 
     /**
@@ -511,17 +511,17 @@ module.exports = class sq_book extends Sequelize.Model {
      */
 
     static idAttributeType() {
-        return sq_book.definition.id.type;
+        return int_post_author.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of sq_book.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of int_post_author.
      *
      * @return {type} id value
      */
 
     getIdValue() {
-        return this[sq_book.idAttribute()]
+        return this[int_post_author.idAttribute()]
     }
 
     static get definition() {
@@ -537,7 +537,7 @@ module.exports = class sq_book extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(sq_book.definition.attributes);
+        let attributes = Object.keys(int_post_author.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

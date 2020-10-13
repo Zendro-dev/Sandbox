@@ -355,10 +355,12 @@ module.exports = class book_local extends Sequelize.Model {
     static async add_author_ids(id, author_ids) {
 
         let record = await super.findByPk(id);
-        let updated_ids = helper.unionIds(record.author_ids, author_ids);
-        await record.update({
-            author_ids: updated_ids
-        });
+        if (record !== null) {
+            let updated_ids = helper.unionIds(record.author_ids, author_ids);
+            await record.update({
+                author_ids: updated_ids
+            });
+        }
     }
 
 
@@ -375,10 +377,12 @@ module.exports = class book_local extends Sequelize.Model {
     static async remove_author_ids(id, author_ids) {
 
         let record = await super.findByPk(id);
-        let updated_ids = helper.differenceIds(record.author_ids, author_ids);
-        await record.update({
-            author_ids: updated_ids
-        });
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+            await record.update({
+                author_ids: updated_ids
+            });
+        }
     }
 
 

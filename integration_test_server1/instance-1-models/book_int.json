@@ -1,23 +1,23 @@
 {
-    "model" : "post_book",
+    "model" : "int_post_book",
     "storageType" : "sql",
     "database": "default-sql",
     "attributes" : {
-        "id": "String",
+        "id": "Int",
         "title": "String",
         "genre": "String",
         "ISBN": "String",
-        "author_ids": "[ String]"
+        "author_ids": "[ Int]"
     },
 
     "associations":{
       "authors":{
         "type": "to_many",
         "reverseAssociationType": "to_many",
-        "target": "post_author",
+        "target": "int_post_author",
         "targetKey": "book_ids",
         "sourceKey": "author_ids",
-        "keyIn": "post_book",
+        "keyIn": "int_post_book",
         "targetStorageType": "sql"
       }
     },

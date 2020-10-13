@@ -92,7 +92,7 @@ module.exports = class sq_author {
     }
 
     /**
-     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
@@ -295,22 +295,6 @@ module.exports = class sq_author {
             });
     }
 
-
-
-    static async add_book_ids(id, book_ids, benignErrorReporter) {
-      let responsibleAdapter = this.adapterForIri(id);
-      return await adapters[responsibleAdapter].add_book_ids(id, book_ids, benignErrorReporter);
-
-    }
-
-
-    static async remove_book_ids(id, book_ids, benignErrorReporter) {
-      let responsibleAdapter = this.adapterForIri(id);
-      return await adapters[responsibleAdapter].remove_book_ids(id, book_ids, benignErrorReporter);
-    }
-
-
-
     static get definition() {
         return definition;
     }
@@ -416,6 +400,30 @@ module.exports = class sq_author {
 
 
 
+    /**
+     * add_book_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async add_book_ids(id, book_ids, benignErrorReporter) {
+        let responsibleAdapter = this.adapterForIri(id);
+        return await adapters[responsibleAdapter].add_book_ids(id, book_ids, benignErrorReporter);
+    }
+
+
+    /**
+     * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async remove_book_ids(id, book_ids, benignErrorReporter) {
+        let responsibleAdapter = this.adapterForIri(id);
+        return await adapters[responsibleAdapter].remove_book_ids(id, book_ids, benignErrorReporter);
+    }
 
 
 

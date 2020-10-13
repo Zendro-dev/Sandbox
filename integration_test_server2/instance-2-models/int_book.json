@@ -1,24 +1,24 @@
 {
-    "model" : "post_book",
-    "storageType" : "sql",
-    "database": "default-sql",
+    "model" : "int_post_book",
+    "storageType" : "zendro-server",
+    "url": "http://server1-graphql-container:3000/graphql",
     "attributes" : {
-        "id": "String",
+        "id": "Int",
         "title": "String",
         "genre": "String",
         "ISBN": "String",
-        "author_ids": "[ String]"
+        "author_ids": "[ Int]"
     },
 
     "associations":{
       "authors":{
         "type": "to_many",
         "reverseAssociationType": "to_many",
-        "target": "post_author",
+        "target": "int_post_author",
         "targetKey": "book_ids",
         "sourceKey": "author_ids",
-        "keyIn": "post_book",
-        "targetStorageType": "sql"
+        "keyIn": "int_post_book",
+        "targetStorageType": "zendro-server"
       }
     },
 
