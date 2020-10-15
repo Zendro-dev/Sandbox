@@ -352,7 +352,16 @@ module.exports = class book_local extends Sequelize.Model {
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_author_ids(id, author_ids) {
+    static async add_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            author_ids.forEach(idx => {
+                promises.push(models.sq_author.add_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
 
         let record = await super.findByPk(id);
         if (record !== null) {
@@ -374,7 +383,16 @@ module.exports = class book_local extends Sequelize.Model {
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_author_ids(id, author_ids) {
+    static async remove_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            author_ids.forEach(idx => {
+                promises.push(models.sq_author.remove_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
 
         let record = await super.findByPk(id);
         if (record !== null) {

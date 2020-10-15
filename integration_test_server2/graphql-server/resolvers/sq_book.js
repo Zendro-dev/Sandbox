@@ -31,6 +31,7 @@ sq_book.prototype.countFilteredAuthors = function({
 }, context) {
 
 
+    if (this.author_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.sq_author.idAttribute(),
@@ -61,18 +62,25 @@ sq_book.prototype.authorsConnection = function({
     pagination
 }, context) {
 
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.sq_author.idAttribute(),
-        "value": this.author_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.sq_authorsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if (this.author_ids.length !== 0) {
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": models.sq_author.idAttribute(),
+            "value": this.author_ids.join(','),
+            "valueType": "Array",
+            "operator": "in"
+        });
+        return resolvers.sq_authorsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+        return resolvers.sq_authorsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    }
 }
 
 
@@ -104,13 +112,6 @@ sq_book.prototype.handleAssociations = async function(input, benignErrorReporter
  */
 sq_book.prototype.add_authors = async function(input, benignErrorReporter) {
 
-    //handle inverse association
-    let promises = [];
-    input.addAuthors.forEach(id => {
-        promises.push(models.sq_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
-
     await sq_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
     this.author_ids = helper.unionIds(this.author_ids, input.addAuthors);
 }
@@ -123,13 +124,6 @@ sq_book.prototype.add_authors = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 sq_book.prototype.remove_authors = async function(input, benignErrorReporter) {
-
-    //handle inverse association
-    let promises = [];
-    input.removeAuthors.forEach(id => {
-        promises.push(models.sq_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
 
     await sq_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
     this.author_ids = helper.differenceIds(this.author_ids, input.removeAuthors);

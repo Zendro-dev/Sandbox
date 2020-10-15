@@ -252,11 +252,11 @@ module.exports = class int_post_author {
 
         let query = `
             mutation addInt_post_author(
-                  $id:ID!
+                  $id:ID!  
               $name:String
               $lastname:String
               $email:String            ){
-              addInt_post_author(              id:$id
+              addInt_post_author(              id:$id  
               name:$name
               lastname:$lastname
               email:$email){
@@ -336,20 +336,20 @@ module.exports = class int_post_author {
         let query = `
             mutation
               updateInt_post_author(
-                $id:ID!
-                $name:String
-                $lastname:String
+                $id:ID! 
+                $name:String 
+                $lastname:String 
                 $email:String               ){
                 updateInt_post_author(
-                  id:$id
-                  name:$name
-                  lastname:$lastname
+                  id:$id 
+                  name:$name 
+                  lastname:$lastname 
                   email:$email                 ){
-                  id
-                  name
-                  lastname
-                  email
-                  book_ids
+                  id 
+                  name 
+                  lastname 
+                  email 
+                  book_ids 
                 }
               }`
 
@@ -458,8 +458,6 @@ module.exports = class int_post_author {
                   id                  book_ids                }
               }`
 
-        console.log("QUERY ADD: ", query)
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -505,7 +503,7 @@ module.exports = class int_post_author {
                 ){
                   id                  book_ids                }
               }`
-        console.log("QUERY REMOVE: ", query);
+
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 

@@ -38,18 +38,20 @@ post_author.prototype.booksFilter = function({
 }, context) {
 
 
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.post_book.idAttribute(),
-        "value": this.book_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.post_books({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if (this.book_ids.length !== 0) {
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": models.post_book.idAttribute(),
+            "value": this.book_ids.join(','),
+            "valueType": "Array",
+            "operator": "in"
+        });
+        return resolvers.post_books({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    }
 }
 
 /**
@@ -64,6 +66,7 @@ post_author.prototype.countFilteredBooks = function({
 }, context) {
 
 
+    if (this.book_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.post_book.idAttribute(),
@@ -94,18 +97,21 @@ post_author.prototype.booksConnection = function({
 }, context) {
 
 
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.post_book.idAttribute(),
-        "value": this.book_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.post_booksConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if (this.book_ids.length !== 0) {
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": models.post_book.idAttribute(),
+            "value": this.book_ids.join(','),
+            "valueType": "Array",
+            "operator": "in"
+        });
+        return resolvers.post_booksConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    }
+
 }
 
 
@@ -137,13 +143,6 @@ post_author.prototype.handleAssociations = async function(input, benignErrorRepo
  */
 post_author.prototype.add_books = async function(input, benignErrorReporter) {
 
-    //handle inverse association
-    let promises = [];
-    input.addBooks.forEach(id => {
-        promises.push(models.post_book.add_author_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
-
     await post_author.add_book_ids(this.getIdValue(), input.addBooks, benignErrorReporter);
     this.book_ids = helper.unionIds(this.book_ids, input.addBooks);
 }
@@ -156,13 +155,6 @@ post_author.prototype.add_books = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 post_author.prototype.remove_books = async function(input, benignErrorReporter) {
-
-    //handle inverse association
-    let promises = [];
-    input.removeBooks.forEach(id => {
-        promises.push(models.post_book.remove_author_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
 
     await post_author.remove_book_ids(this.getIdValue(), input.removeBooks, benignErrorReporter);
     this.book_ids = helper.differenceIds(this.book_ids, input.removeBooks);
