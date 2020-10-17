@@ -1,18 +1,20 @@
 version: "3.7"
 
 services:
-  sdb_postgres_i3_metaquery:
+  sdb_postgres_i3:
+    container_name: postgres-i3
     build:
       context: .
       dockerfile: Dockerfile.postgres
     volumes:
-      - sdb_db_data_i3_metaquery:/var/lib/postgresql/data
+      - sdb_db_data_i3:/var/lib/postgresql/data
     networks:
       - backend
 
-  sdb_science_db_graphql_server_i3_metaquery:
+  sdb_science_db_graphql_server_i3:
+    container_name: graphql-server-i3
     depends_on:
-      - sdb_postgres_i3_metaquery
+      - sdb_postgres_i3
     build:
       context: ./graphql-server
       dockerfile: Dockerfile.graphql_server
@@ -20,8 +22,7 @@ services:
       - 3000:3000
     environment:
       - PORT=3000
-      - REQUIRE_SIGN_IN=false
-      - ALLOW_ORIGIN=http://localhost:3001
+      - REQUIRE_SIGN_IN=true
     volumes:
       - .:/usr/ScienceDbStarterPack
       # Use the Sequelize config adjusted for the Docker setup of Sandbox:
@@ -37,8 +38,37 @@ services:
         npm install
         ./migrateDbAndStartServer.sh
 
+  sdb_graphiql:
+    stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
+    container_name: graphiql-auth-i3
+    depends_on:
+      - sdb_postgres_i3
+      - sdb_science_db_graphql_server_i3
+    build:
+      context: ./graphiql-auth
+      dockerfile: Dockerfile
+    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
+    ports:
+      - 7000:7000
+    environment:
+      - REACT_APP_SERVER_URL=http://localhost:3000/graphql
+      - REACT_APP_LOGIN_URL=http://localhost:3000/login
+      - PORT=7000
+    volumes:
+      - .:/usr/ScienceDbStarterPack
+    # Install dependencies and start single-page-app-server in development
+    # mode.
+    networks:
+      - backend
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
 volumes:
-  sdb_db_data_i3_metaquery:
+  sdb_db_data_i3:
 
 networks:
   backend:
