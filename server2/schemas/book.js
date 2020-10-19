@@ -50,8 +50,7 @@ enum bookField {
 
 input searchBookInput {
   field: bookField
-  value: String
-  valueType: InputType
+  value: typeValue
   operator: Operator
   excludeAdapterNames: [String]
   search: [searchBookInput]
@@ -71,7 +70,7 @@ type Query {
   readOneBook(book_id: ID!): book
   countBooks(search: searchBookInput ): Int
   vueTableBook : VueTableBook  csvTableTemplateBook: [String]
-  booksConnection(search:searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput ): BookConnection
+  booksConnection(search:searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput! ): BookConnection
 }
 
 type Mutation {

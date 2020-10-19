@@ -1,47 +1,55 @@
+const { existsSync }     = require('fs');
+const { join }           = require('path');
+const { Sequelize }      = require('sequelize');
+const { getModulesSync } = require('../../utils/module-helpers');
+const { getConnection, ConnectionError, getAndConnectDataModelClass }  = require('../../connection');
+const { cassandraClient } = require('../../connection');
 
-  const fs = require('fs');
-  const path = require('path');
-  const cassandraDriver = require('..').cassandraDriver;
-  const Sequelize = require('sequelize');
-  sequelize = require('../../connection');
+let adapters = {};
+module.exports = adapters;
 
-  let adapters = {};
-  module.exports = adapters;
+getModulesSync(__dirname).forEach(file => {
 
-  fs.readdirSync(__dirname)
-    .filter( file =>{ return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file.slice(-3) === '.js');
-  }).forEach( file =>{
-
-    let adapter = require(path.join(__dirname, file));
-    if (adapter.adapterName === undefined) {
-      adapter = require(path.join(__dirname, file)).getAndConnectDataModelClass(cassandraDriver);
-    }
-    if( adapters[adapter.adapterName] ){
-      throw new Error(`Duplicated adapter name ${adapter.adapterName}`);
-    }
-
-
-    switch(adapter.adapterType) {
-      case 'ddm-adapter':
-      case 'cenzontle-webservice-adapter':
-      case 'generic-adapter':
-      case 'cassandra-adapter':
-        adapters[adapter.adapterName] = adapter;
-        break;
-
-      case 'sql-adapter':
-        adapters[adapter.adapterName] = adapter.init(sequelize, Sequelize);
-        break;
-
-      case 'default':
-        throw new Error(`Adapter storageType '${adapter.storageType}' is not supported`);
-    }
-
-    let patches_patch = path.join(__dirname,'..','..','patches', file);
-    if(fs.existsSync(patches_patch)){
-        adapter = require(`${patches_patch}`).logic_patch(adapter);
-    }
-
-  });
-
+  let adapter = require(join(__dirname, file));
+  console.log("require('", join(__dirname, file) + "')");
+  console.log("adapterX:", adapter);
+  if( adapters[adapter.adapterName] ){
+    throw new Error(`Duplicated adapter name ${adapter.adapterName}`);
+  }
   
+
+  switch(adapter.adapterType) {
+    case 'ddm-adapter':
+    case 'zendro-webservice-adapter':
+    case 'generic-adapter':
+      adapters[adapter.adapterName] = adapter;
+      break;
+
+    case 'sql-adapter':
+      const { database } = adapter.definition;
+      const connection = getConnection(database || 'default-sql');
+      if (!connection) throw new ConnectionError(adapter.definition);
+      // setup storageHandler
+      // getAndConnectDataModelClass(adapter, connection);
+      adapters[adapter.adapterName] = adapter.init(connection, Sequelize);
+      break;
+
+    case 'cassandra-adapter':
+      console.log("cass ADAP: ", adapter);
+      getAndConnectDataModelClass(adapter, cassandraClient);
+      adapters[adapter.adapterName] = adapter;
+      break;
+
+    case 'default':
+      throw new Error(`
+        Adapter storageType '${adapter.storageType}' is not supported`
+      );
+  }
+
+  let patches_patch = join(__dirname,'..','..','patches', file);
+
+  if(existsSync(patches_patch)) {
+    adapter = require(`${patches_patch}`).logic_patch(adapter);
+  }
+
+});

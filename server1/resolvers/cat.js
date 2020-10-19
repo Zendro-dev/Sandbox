@@ -411,9 +411,9 @@ module.exports = {
     }, context) {
         try {
             if (await checkAuthorization(context, 'cat', 'read') === true) {
-                helper.checkCursorBasedPaginationArgument(pagination);
-                let limit = pagination.first !== undefined ? pagination.first : pagination.last;
-                helper.checkCountAndReduceRecordsLimit(limit, context, "catsConnection");
+                // helper.checkCursorBasedPaginationArgument(pagination);
+                // let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+                helper.checkCountAndReduceRecordsLimit(pagination.first, context, "catsConnection");
                 let filtering = await checkAuthorization(context, 'cat', 'search')
                 // await checkCountAndReduceRecordsLimit(search, context, "catsConnection", filtering);
                 return cat.readAllCursor(search, pagination, filtering);

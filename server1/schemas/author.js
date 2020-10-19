@@ -11,16 +11,14 @@ type author{
   """
   name: String
 
-
-
   """
   @search-request
   """
-  booksConnection(search: searchBookInput, order: [ orderBookInput ], pagination:  paginationCursorInput): BookConnection
+  booksConnection(search: searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput!): BookConnection
   """
   @count-request
   """
-  countFilteredBooks(search: searchBookInput): Int
+  countFilteredBooks(search: searchBookInput) : Int
 
 }
 
@@ -49,7 +47,6 @@ type VueTableAuthor{
 enum authorField {
   author_id
   name
-
 }
 
 input searchAuthorInput {
@@ -65,18 +62,19 @@ input orderAuthorInput{
   order: Order
 }
 
+
+
 type Query {
   readOneAuthor(author_id: ID!): author
   countAuthors(search: searchAuthorInput ): Int
   vueTableAuthor : VueTableAuthor  csvTableTemplateAuthor: [String]
-
-  authorsConnection(search:searchAuthorInput, order: [ orderAuthorInput ],pagination: paginationCursorInput): AuthorConnection
+  authorsConnection(search:searchAuthorInput, order: [ orderAuthorInput ], pagination: paginationCursorInput! ): AuthorConnection
 }
 
-  type Mutation {
+type Mutation {
   addAuthor(author_id: ID!, name: String   , addBooks:[ID] , skipAssociationsExistenceChecks:Boolean = false): author!
   updateAuthor(author_id: ID!, name: String   , addBooks:[ID], removeBooks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): author!
-deleteAuthor(author_id: ID!): String!
-bulkAddAuthorCsv: String }
-
+  deleteAuthor(author_id: ID!): String!
+  bulkAddAuthorCsv: String
+  }
 `;

@@ -80,6 +80,22 @@ module.exports = class author {
         return responsibleAdapter[0];
     }
 
+    /**
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
+     * adapter on adapter/index.js. Each key of the object will have
+     *
+     * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
+     * @return {object} mapped "edge" objects ({<id_model1>: id, <id_model2>:id}) to the adapter responsible for the primary Key
+     */
+    static mapBulkAssociationInputToAdapters(bulkAssociationInput) {
+        let mappedInput = {}
+        bulkAssociationInput.map((idMap) => {
+            let responsibleAdapter = this.adapterForIri(idMap.author_id);
+            mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
+        });
+        return mappedInput;
+    }
+
     static readById(id, benignErrorReporter) {
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
@@ -94,15 +110,12 @@ module.exports = class author {
             benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
             return adapters[responsibleAdapter[0]].readById(id, benignErrorReporter).then(result => {
                 let item = new author(result);
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-                    .then((valSuccess) => {
-                        return item;
-                    });
+                return validatorUtil.validateData('validateAfterRead', this, item);
             });
         }
     }
 
-    static countRecords(search, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
+    static countRecords(search, authorizedAdapters, benignErrorReporter) {
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -120,12 +133,6 @@ module.exports = class author {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        let searchAuthAdapters = [];
-
-        if (helper.isNotUndefinedAndNotNull(searchAuthorizedAdapters)) {
-            searchAuthAdapters = Array.from(searchAuthorizedAdapters).filter(adapter => adapter.adapterType === 'cassandra-adapter').map(adapter => adapter.adapterName);
-        }
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -136,7 +143,7 @@ module.exports = class author {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -147,9 +154,8 @@ module.exports = class author {
                     return adapter.countRecords(nsearch, benignErrorReporter);
 
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
-                case 'cassandra-adapter':
-                    return adapter.countRecords(search, benignErrorReporter, searchAuthAdapters.includes(adapter.adapterName));
+                case 'zendro-webservice-adapter':
+                    return adapter.countRecords(search, benignErrorReporter);
 
                 case 'default':
                     throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
@@ -171,7 +177,7 @@ module.exports = class author {
         });
     }
 
-    static readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
+    static readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter) {
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -189,20 +195,6 @@ module.exports = class author {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        let searchAuthAdapters = [];
-
-        if (helper.isNotUndefinedAndNotNull(searchAuthorizedAdapters)) {
-            searchAuthAdapters = Array.from(searchAuthorizedAdapters).filter(adapter => adapter.adapterType === 'cassandra-adapter').map(adapter => adapter.adapterName);
-        }
-
-
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -215,7 +207,7 @@ module.exports = class author {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -226,11 +218,8 @@ module.exports = class author {
 
                 case 'generic-adapter':
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
+                case 'zendro-webservice-adapter':
                     return adapter.readAllCursor(search, order, pagination, benignErrorReporter);
-
-                case 'cassandra-adapter':
-                    return adapter.readAllCursor(search, pagination, searchAuthAdapters.includes(adapter.adapterName));
 
                 default:
                     throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
@@ -257,9 +246,9 @@ module.exports = class author {
                     return total;
                 }, []);
             })
-            //phase 2: order & paginate
-            .then(nodes => {
-
+            //phase 2: validate & order & paginate
+            .then(async nodes => {
+                nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
                 if (order === undefined) {
                     order = [{
                         field: "author_id",
@@ -271,7 +260,6 @@ module.exports = class author {
                         first: Math.min(globals.LIMIT_RECORDS, nodes.length)
                     }
                 }
-
 
                 let ordered_records = helper.orderRecords(nodes, order);
                 let paginated_records = [];
@@ -287,7 +275,6 @@ module.exports = class author {
 
                 let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
                 return graphQLConnection;
-
             });
     }
 
@@ -347,34 +334,34 @@ module.exports = class author {
         return true;
     }
 
-    static addOne(input, benignErrorReporter) {
+    static async addOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.author_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new author(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.author_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new author(result));
     }
 
     static async deleteOne(id, benignErrorReporter) {
-        await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
+        //validate input
+        await validatorUtil.validateData('validateForDelete', this, id);
         let responsibleAdapter = this.adapterForIri(id);
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         return adapters[responsibleAdapter].deleteOne(id, benignErrorReporter);
     }
 
-    static updateOne(input, benignErrorReporter) {
+    static async updateOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.author_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new author(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.author_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new author(result));
+
     }
 
     static bulkAddCsv(context) {
@@ -393,6 +380,8 @@ module.exports = class author {
     static async csvTableTemplate(benignErrorReporter) {
         return helper.csvTableTemplate(definition);
     }
+
+
 
 
 

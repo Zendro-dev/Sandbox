@@ -12,8 +12,8 @@ const definition = {
     model: 'book',
     storageType: 'distributed-data-model',
     registry: [
-        'book_server1',
-        'book_server2'
+        'book_server1'
+        //'book_server2'
     ],
     attributes: {
         title: 'String',
@@ -36,7 +36,7 @@ const definition = {
     }
 };
 
-let registry = ["book_server1", "book_server2"];
+let registry = ["book_server1"]//, "book_server2"];
 
 module.exports = class book {
 
@@ -83,6 +83,22 @@ module.exports = class book {
         return responsibleAdapter[0];
     }
 
+    /**
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
+     * adapter on adapter/index.js. Each key of the object will have
+     *
+     * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
+     * @return {object} mapped "edge" objects ({<id_model1>: id, <id_model2>:id}) to the adapter responsible for the primary Key
+     */
+    static mapBulkAssociationInputToAdapters(bulkAssociationInput) {
+        let mappedInput = {}
+        bulkAssociationInput.map((idMap) => {
+            let responsibleAdapter = this.adapterForIri(idMap.book_id);
+            mappedInput[responsibleAdapter] === undefined ? mappedInput[responsibleAdapter] = [idMap] : mappedInput[responsibleAdapter].push(idMap)
+        });
+        return mappedInput;
+    }
+
     static readById(id, benignErrorReporter) {
         if (id !== null) {
             let responsibleAdapter = registry.filter(adapter => adapters[adapter].recognizeId(id));
@@ -97,15 +113,12 @@ module.exports = class book {
             benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
             return adapters[responsibleAdapter[0]].readById(id, benignErrorReporter).then(result => {
                 let item = new book(result);
-                return validatorUtil.ifHasValidatorFunctionInvoke('validateAfterRead', this, item)
-                    .then((valSuccess) => {
-                        return item;
-                    });
+                return validatorUtil.validateData('validateAfterRead', this, item);
             });
         }
     }
 
-    static countRecords(search, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
+    static countRecords(search, authorizedAdapters, benignErrorReporter) {
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -123,12 +136,6 @@ module.exports = class book {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        let searchAuthAdapters = [];
-
-        if (helper.isNotUndefinedAndNotNull(searchAuthorizedAdapters)) {
-            searchAuthAdapters = Array.from(searchAuthorizedAdapters).filter(adapter => adapter.adapterType === 'cassandra-adapter').map(adapter => adapter.adapterName);
-        }
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -139,7 +146,7 @@ module.exports = class book {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -150,9 +157,9 @@ module.exports = class book {
                     return adapter.countRecords(nsearch, benignErrorReporter);
 
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
+                case 'zendro-webservice-adapter':
                 case 'cassandra-adapter':
-                    return adapter.countRecords(search, benignErrorReporter, searchAuthAdapters.includes(adapter.adapterName));
+                    return adapter.countRecords(search, benignErrorReporter);
 
                 case 'default':
                     throw new Error(`Adapter type: '${adapter.adapterType}' is not supported`);
@@ -174,7 +181,7 @@ module.exports = class book {
         });
     }
 
-    static readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
+    static readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter) {
         let authAdapters = [];
         /**
          * Differentiated cases:
@@ -192,20 +199,6 @@ module.exports = class book {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        let searchAuthAdapters = [];
-
-        if (helper.isNotUndefinedAndNotNull(searchAuthorizedAdapters)) {
-            searchAuthAdapters = Array.from(searchAuthorizedAdapters).filter(adapter => adapter.adapterType === 'cassandra-adapter').map(adapter => adapter.adapterName);
-        }
-
-
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -218,7 +211,7 @@ module.exports = class book {
              *      resolve with current parameters.
              *
              *   ddm-adapter:
-             *   cenzontle-webservice-adapter:
+             *   zendro-webservice-adapter:
              *   generic-adapter:
              *      add exclusions to search.excludeAdapterNames parameter.
              */
@@ -229,11 +222,9 @@ module.exports = class book {
 
                 case 'generic-adapter':
                 case 'sql-adapter':
-                case 'cenzontle-webservice-adapter':
-                    return adapter.readAllCursor(search, order, pagination, benignErrorReporter);
-
+                case 'zendro-webservice-adapter':
                 case 'cassandra-adapter':
-                    return adapter.readAllCursor(search, pagination, searchAuthAdapters.includes(adapter.adapterName));
+                    return adapter.readAllCursor(search, pagination, benignErrorReporter);
 
                 default:
                     throw new Error(`Adapter type '${adapter.adapterType}' is not supported`);
@@ -260,9 +251,9 @@ module.exports = class book {
                     return total;
                 }, []);
             })
-            //phase 2: order & paginate
-            .then(nodes => {
-
+            //phase 2: validate & order & paginate
+            .then(async nodes => {
+                nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
                 if (order === undefined) {
                     order = [{
                         field: "book_id",
@@ -274,23 +265,29 @@ module.exports = class book {
                         first: Math.min(globals.LIMIT_RECORDS, nodes.length)
                     }
                 }
+                console.log("nodes:");
+                console.log(nodes);
 
-
-                let ordered_records = helper.orderRecords(nodes, order);
-                let paginated_records = [];
-
-                if (isForwardPagination) {
-                    paginated_records = helper.paginateRecordsCursor(ordered_records, pagination.first);
-                } else {
-                    paginated_records = helper.paginateRecordsBefore(ordered_records, pagination.last);
-                }
-
+                let ordered_records = helper.orderCassandraRecords(nodes);
+                console.log(ordered_records);
+                let paginated_records = helper.paginateRecordsCursor(ordered_records, pagination.first);
+                console.log(paginated_records);
                 let hasNextPage = ordered_records.length > pagination.first || someHasNextPage;
+
+                // let ordered_records = helper.orderRecords(nodes, order);
+                // let paginated_records = [];
+
+                // if (isForwardPagination) {
+                //     paginated_records = helper.paginateRecordsCursor(ordered_records, pagination.first);
+                // } else {
+                //     paginated_records = helper.paginateRecordsBefore(ordered_records, pagination.last);
+                // }
+
+                // let hasNextPage = ordered_records.length > pagination.first || someHasNextPage;
                 let hasPreviousPage = ordered_records.length > pagination.last || someHasPreviousPage;
 
                 let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
                 return graphQLConnection;
-
             });
     }
 
@@ -350,34 +347,34 @@ module.exports = class book {
         return true;
     }
 
-    static addOne(input, benignErrorReporter) {
+    static async addOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForCreate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.book_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new book(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.book_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].addOne(input, benignErrorReporter).then(result => new book(result));
     }
 
     static async deleteOne(id, benignErrorReporter) {
-        await validatorUtil.ifHasValidatorFunctionInvoke('validateForDelete', this, id);
+        //validate input
+        await validatorUtil.validateData('validateForDelete', this, id);
         let responsibleAdapter = this.adapterForIri(id);
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         return adapters[responsibleAdapter].deleteOne(id, benignErrorReporter);
     }
 
-    static updateOne(input, benignErrorReporter) {
+    static async updateOne(input, benignErrorReporter) {
         this.assertInputHasId(input);
-        return validatorUtil.ifHasValidatorFunctionInvoke('validateForUpdate', this, input)
-            .then(async (valSuccess) => {
-                let responsibleAdapter = this.adapterForIri(input.book_id);
-                //use default BenignErrorReporter if no BenignErrorReporter defined
-                benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-                return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new book(result));
-            });
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        let responsibleAdapter = this.adapterForIri(input.book_id);
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        return adapters[responsibleAdapter].updateOne(input, benignErrorReporter).then(result => new book(result));
+
     }
 
     static bulkAddCsv(context) {
@@ -403,11 +400,10 @@ module.exports = class book {
      *
      * @param {Id}   book_id   IdAttribute of the root model to be updated
      * @param {Id}   author_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
     static async add_author_id(book_id, author_id, benignErrorReporter) {
         let responsibleAdapter = this.adapterForIri(book_id);
-
         return await adapters[responsibleAdapter].add_author_id(book_id, author_id, benignErrorReporter);
     }
 
@@ -416,17 +412,50 @@ module.exports = class book {
      *
      * @param {Id}   book_id   IdAttribute of the root model to be updated
      * @param {Id}   author_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
     static async remove_author_id(book_id, author_id, benignErrorReporter) {
         let responsibleAdapter = this.adapterForIri(book_id);
-
         return await adapters[responsibleAdapter].remove_author_id(book_id, author_id, benignErrorReporter);
     }
 
 
 
 
+
+    /**
+     * bulkAssociateBookWithAuthor_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateBookWithAuthor_id(bulkAssociationInput, benignErrorReporter) {
+        let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
+        var promises = [];
+        Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkAssociateBookWithAuthor_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+        });
+        await Promise.all(promises);
+        return "Records successfully updated!";
+    }
+
+    /**
+     * bulkDisAssociateBookWithAuthor_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateBookWithAuthor_id(bulkAssociationInput, benignErrorReporter) {
+        let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
+        var promises = [];
+        Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkDisAssociateBookWithAuthor_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+        });
+        await Promise.all(promises);
+        return "Records successfully updated!";
+    }
 
 
 }

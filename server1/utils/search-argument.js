@@ -111,11 +111,56 @@ module.exports = class search{
    * 
    * @returns{string} Translated search instance into CQL string
    */
-  toCassandra(idAttribute, allowFiltering, stringAttributeArray){
-    let searchsInCassandra = '';
+  // toCassandra(idAttribute, allowFiltering, stringAttributeArray){
+  //   let searchsInCassandra = '';
 
+  //   if((this.operator === undefined || (this.value === undefined && this.search === undefined))){
+  //     //there's no search-operation arguments
+  //     console.log("no search op args");
+  //     return searchsInCassandra;
+
+  //   } else if(this.search === undefined && this.field === undefined) {
+  //     searchsInCassandra = this.transformCassandraOperator(this.operator) + this.value;
+      
+  //   } else if (this.search === undefined && (this.operator === 'tlt' || this.operator === 'tgt')) {
+  //     let op = (this.operator === 'tlt') ? '<' : '>';
+  //     searchsInCassandra = `token(${this.field}) ${op} token('${this.value}')`;
+  //     console.log("searchsIndCassandra: ", searchsInCassandra);
+  //   } else if(this.search === undefined) {
+  //     let validate = ajv.validate(uuidSchema, this.value.toString());
+  //     console.log("validate: ",validate);
+  //     let value = this.value;
+  //     if (this.field !== idAttribute && !validate) {
+  //       value = `'${this.value.toString()}'`;
+  //       console.log("value: ",value);
+  //     } else if (stringAttributeArray && stringAttributeArray.includes(this.field) && this.value.indexOf("'") !== 0) {
+  //       value = `'${this.value}'`;
+  //     }
+  //     searchsInCassandra = this.field + this.transformCassandraOperator(this.operator) + value;
+
+  //   } else if (this.operator === 'and') {
+  //     console.log("this.search", JSON.stringify(this.search));
+  //     searchsInCassandra = this.search.map(singleSearch => new search(singleSearch).toCassandra()).join(' and ');
+      
+  //   } else {
+  //     throw new Error('Statement not supported by CQL:\n' + JSON.stringify(this, null, 2));
+  //   }
+
+  //   if (allowFiltering) {
+  //     searchsInCassandra += ' ALLOW FILTERING';
+  //   }
+  //   console.log("***searchsInCassandra*** ",searchsInCassandra)
+
+  //   return searchsInCassandra;
+  // }
+
+  toCassandra(attributesDefinition, allowFiltering){
+    let searchsInCassandra = '';
+    let type = attributesDefinition[this.field];
+    console.log("this: ", this);
     if((this.operator === undefined || (this.value === undefined && this.search === undefined))){
       //there's no search-operation arguments
+      console.log("no search op args");
       return searchsInCassandra;
 
     } else if(this.search === undefined && this.field === undefined) {
@@ -124,16 +169,20 @@ module.exports = class search{
     } else if (this.search === undefined && (this.operator === 'tlt' || this.operator === 'tgt')) {
       let op = (this.operator === 'tlt') ? '<' : '>';
       searchsInCassandra = `token(${this.field}) ${op} token('${this.value}')`;
-
+      console.log("searchsIndCassandra: ", searchsInCassandra);
     } else if(this.search === undefined) {
       let validate = ajv.validate(uuidSchema, this.value.toString());
       console.log("validate: ",validate);
       let value = this.value;
-      if (this.field !== idAttribute && !validate) {
-        value = `'${this.value.toString()}'`;
-        console.log("value: ",value);
-      } else if (stringAttributeArray && stringAttributeArray.includes(this.field) && this.value.indexOf("'") !== 0) {
+      // if (this.field !== idAttribute && !validate) {
+      //   value = `'${this.value.toString()}'`;
+      //   console.log("value: ",value);
+      // } else if (stringAttributeArray && stringAttributeArray.includes(this.field) && this.value.indexOf("'") !== 0) {
+      //   value = `'${this.value}'`;
+      // }
+      if(type === 'String' || type.includes('Date')){
         value = `'${this.value}'`;
+        console.log("value: ", value);
       }
       searchsInCassandra = this.field + this.transformCassandraOperator(this.operator) + value;
 
@@ -152,5 +201,4 @@ module.exports = class search{
 
     return searchsInCassandra;
   }
-
 };

@@ -227,15 +227,15 @@ class cat {
             console.log("cursorSearchCondition: ", JSON.stringify(cursorSearchCondition));
             if (helper.isNotUndefinedAndNotNull(search)) {
                 // -- Use *both* the given search condition and the cursor --
-                searchTerms = new searchArg({
+                searchTerms = {
                     // field: null,
                     // value: null,
                     operator: 'and',
                     search: [search, cursorSearchCondition]
-                });
+                };
             } else {
                 // -- Use only the cursor --
-                searchTerms = new searchArg(cursorSearchCondition);
+                searchTerms = cursorSearchCondition;
             }
         }
 
@@ -252,7 +252,9 @@ class cat {
             //     searchTerms = new searchArg(searchTerms);
             // }
             searchTerms = new searchArg(searchTerms);
-            arg_cassandra = 'WHERE ' + searchTerms.toCassandra('cat_id', filteringAllowed) + ';';
+            console.log("searchTerms");
+            console.log(searchTerms);
+            arg_cassandra = 'WHERE ' + searchTerms.toCassandra(definition.attributes, filteringAllowed) + ';';
         }
         console.log("arg_cassandra: ", arg_cassandra);
         let query = 'SELECT * FROM cats ' + arg_cassandra;
@@ -260,13 +262,15 @@ class cat {
         // === Set page size if needed ===
 
         let options = {};
-        if (pagination && pagination.limit) {
-            options.fetchSize = parseInt(pagination.limit);
+        if (pagination && pagination.first) {
+            options.fetchSize = parseInt(pagination.first);
         }
 
         // === Call to database ===
 
         const result = await this.storageHandler.execute(query, [], options);
+        // console.log("result");
+        // console.log(result);
 
         // === Construct return object ===
 
@@ -309,7 +313,7 @@ class cat {
      */
     static encloseStringAttributesInApostrophes(obj) {
         for (let key of Object.keys(obj)) {
-            if (definition.attributes[key] === 'String' && obj[key].indexOf("'") !== 0) {
+            if ((definition.attributes[key] === 'String' || definition.attributes[key].includes('Date')) && obj[key].indexOf("'") !== 0) {
                 obj[key] = `'${obj[key]}'`;
             }
         }

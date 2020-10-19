@@ -4,6 +4,7 @@ const Sequelize = require('sequelize');
 const dict = require('../../utils/graphql-sequelize-types');
 const validatorUtil = require('../../utils/validatorUtil');
 const helper = require('../../utils/helper');
+const cassandraHelper = require('../../utils/cassandra_helpers');
 const searchArg = require('../../utils/search-argument');
 const path = require('path');
 const fileTools = require('../../utils/file-tools');
@@ -16,7 +17,6 @@ const models = require(path.join(__dirname, '..', 'index.js'));
 
 const remoteCenzontleURL = "";
 const iriRegex = new RegExp('server1');
-
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'book',
@@ -54,7 +54,7 @@ const stringAttributeArray = ['title', 'author_id', 'book_id'];
  * @return {object}           Sequelize model with associations defined
  */
 
-class book_server1 {
+module.exports = class book_server1 {
 
     constructor(input) {
         for (let key of Object.keys(input)) {
@@ -127,21 +127,11 @@ class book_server1 {
         return item;
     }
 
-    static async countRecords(search, filtering) {
-        let options = {};
+    static async countRecords(search, allowFiltering) {
         let result = 0;
-        let arg_cassandra = ';';
-        if (search !== undefined) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            arg_cassandra = 'WHERE ' + arg.toCassandra('book_id', filtering, stringAttributeArray);
-        }
-        const query = 'SELECT COUNT(*) AS count FROM books ' + arg_cassandra;
+        let whereOptions = cassandraHelper.searchConditionsToCassandra(search, allowFiltering);
+        
+        const query = 'SELECT COUNT(*) AS count FROM books ' + whereOptions;
         let queryResult = await this.storageHandler.execute(query);
         let item = queryResult.first();
         result = parseInt(item['count']);
@@ -152,66 +142,28 @@ class book_server1 {
         // === Set variables ===
 
         let offsetCursor = pagination ? pagination.after : null;
-        let arg_cassandra = ';';
-        let searchTerms = search;
+        console.log("offsetCursor: ", offsetCursor);
+        // let searchTerms = search;
 
         // === Set pagination offset if needed ===
 
-        /*
-         * In this section, a special operator is used: "tgt", meaning "TOKEN > TOKEN".
-         * This operator is implemented in utils/search-argument.js, toCassandra(idAttribute, allowFiltering)
-         *
-         * The Cassandra database is ordered by the TOKEN of the ID value, so if we want to cut away entries above the cursor,
-         * we need to enforce the condition TOKEN(id) > TOKEN(cursor_id), which is realized here by: id TGT cursor_id
-         */
-
-        if (helper.isNotUndefinedAndNotNull(offsetCursor)) {
-            let decoded_cursor = JSON.parse(this.base64Decode(offsetCursor));
-            let cursorId = decoded_cursor['book_id'];
-            let cursorSearchCondition = new {
-                field: 'book_id',
-                value: {
-                    value: cursorId
-                },
-                operator: 'tgt',
-                search: undefined
-            };
-            if (helper.isNotUndefinedAndNotNull(search)) {
-                // -- Use *both* the given search condition and the cursor --
-                searchTerms = new searchArg({
-                    field: null,
-                    value: null,
-                    operator: 'and',
-                    search: [search, cursorSearchCondition]
-                });
-            } else {
-                // -- Use only the cursor --
-                searchTerms = new searchArg(cursorSearchCondition);
-            }
-        }
-
-        // === Construct CQL statement ===
-
-        if (searchTerms && searchTerms.value && searchTerms.value.value) {
-            searchTerms = new searchArg(searchTerms);
-            arg_cassandra = ' ' + searchTerms.toCassandra('book_id', filteringAllowed, stringAttributeArray) + ';';
-        }
-
-        // -- Create a list of the table columns
-
-
-        let query = 'SELECT book_id, title, author_id, token(book_id) as toke FROM books' + arg_cassandra;
-
+        
+        let cassandraSearch = cassandraHelper.cursorPaginationArgumentsToCassandra(search, offsetCursor, 'book_id');
+        let whereOptions = cassandraHelper.searchConditionsToCassandra(cassandraSearch, allowFiltering);
+        
+        let query = 'SELECT book_id, title, author_id, token(book_id) as toke FROM books' + whereOptions;
+        
         // === Set page size if needed ===
 
         let options = {};
-        if (pagination && pagination.limit) {
-            options.fetchSize = parseInt(pagination.limit);
+        if (pagination && pagination.first) {
+            options.fetchSize = parseInt(pagination.first);
         }
 
         // === Call to database ===
 
         const result = await this.storageHandler.execute(query, [], options);
+
 
         // === Construct return object ===
 
@@ -222,6 +174,8 @@ class book_server1 {
             edge.cursor = rowAsbook.base64Enconde();
             return edge;
         });
+        console.log("row0:")
+        console.log(rows[0]);
         let nextCursor = null;
         let hasNextCursor = false;
         /*
@@ -354,6 +308,22 @@ class book_server1 {
         return new book_server1(result.first());
     }
 
+    static async bulkAssociateBookWithAuthor_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "author_id");
+        let promises = [];
+        let mutationCql = `UPDATE books SET author_id = ? WHERE book_id IN ?`
+        mappedForeignKeys.forEach(({
+            author_id,
+            book_id
+        }) => {
+            promises.push(this.storageHandler.execute(mutationCql,[author_id, book_id], {prepare: true}))
+        });
+
+
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
 
 
 
@@ -480,11 +450,11 @@ class book_server1 {
 
 }
 
-module.exports.getAndConnectDataModelClass = function(cassandraDriver) {
-    return Object.defineProperty(book_server1, 'storageHandler', {
-        value: cassandraDriver,
-        writable: false, // cannot be changed in the future
-        enumerable: true,
-        configurable: false
-    })
-}
+// module.exports.getAndConnectDataModelClass = function(cassandraDriver) {
+//     return Object.defineProperty(book_server1, 'storageHandler', {
+//         value: cassandraDriver,
+//         writable: false, // cannot be changed in the future
+//         enumerable: true,
+//         configurable: false
+//     })
+// }

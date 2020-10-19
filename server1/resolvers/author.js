@@ -87,7 +87,7 @@ author.prototype.booksConnection = function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 author.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -102,57 +102,39 @@ author.prototype.handleAssociations = async function(input, benignErrorReporter)
 }
 /**
  * add_books - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 author.prototype.add_books = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.addBooks) {
-        results.push(models.book.add_author_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.addBooks.map(associatedRecordId => {
+        return {
+            author_id: this.getIdValue(),
+            [models.book.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.book.bulkAssociateBookWithAuthor_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
  * remove_books - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 author.prototype.remove_books = async function(input, benignErrorReporter) {
-    let results = [];
-    for await (associatedRecordId of input.removeBooks) {
-        results.push(models.book.remove_author_id(associatedRecordId, this.getIdValue(), benignErrorReporter));
-    }
-    await Promise.all(results);
+    let bulkAssociationInput = input.removeBooks.map(associatedRecordId => {
+        return {
+            author_id: this.getIdValue(),
+            [models.book.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.book.bulkDisAssociateBookWithAuthor_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
-
-
-/**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} search  Search argument for filtering records
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {boolean} filtering Is filtering allowed (only for Cassandra)?
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, filtering, modelName = 'author') {
-    let count = await models[modelName].countRecords(search, filtering);
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneAuthor")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -217,6 +199,11 @@ module.exports = {
         order,
         pagination
     }, context) {
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "authorsConnection");
 
         //construct benignErrors reporter with context
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
@@ -239,8 +226,7 @@ module.exports = {
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await author.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+            return await author.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -265,6 +251,7 @@ module.exports = {
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, author.adapterForIri(author_id), 'read');
         if (authorizationCheck === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneAuthor");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
@@ -412,9 +399,8 @@ module.exports = {
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
 
-            return await author.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck);
+            return await author.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -424,6 +410,7 @@ module.exports = {
             }
         }
     },
+
 
     /**
      * csvTableTemplateAuthor - Returns table's template

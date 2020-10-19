@@ -14,7 +14,7 @@ type author{
   """
   @search-request
   """
-  booksConnection(search: searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput): BookConnection
+  booksConnection(search: searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput!): BookConnection
   """
   @count-request
   """
@@ -51,8 +51,7 @@ enum authorField {
 
 input searchAuthorInput {
   field: authorField
-  value: String
-  valueType: InputType
+  value: typeValue
   operator: Operator
   excludeAdapterNames: [String]
   search: [searchAuthorInput]
@@ -69,7 +68,7 @@ type Query {
   readOneAuthor(author_id: ID!): author
   countAuthors(search: searchAuthorInput ): Int
   vueTableAuthor : VueTableAuthor  csvTableTemplateAuthor: [String]
-  authorsConnection(search:searchAuthorInput, order: [ orderAuthorInput ], pagination: paginationCursorInput ): AuthorConnection
+  authorsConnection(search:searchAuthorInput, order: [ orderAuthorInput ], pagination: paginationCursorInput! ): AuthorConnection
 }
 
 type Mutation {

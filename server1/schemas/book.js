@@ -16,8 +16,6 @@ type book{
   """
   author_id: String
 
-
-
 author(search: searchAuthorInput): author
 
 }
@@ -48,7 +46,6 @@ enum bookField {
   book_id
   title
   author_id
-
 }
 
 input searchBookInput {
@@ -64,18 +61,24 @@ input orderBookInput{
   order: Order
 }
 
+input bulkAssociationBookWithAuthor_idInput{
+  book_id: ID!
+  author_id: ID!
+}
+
 type Query {
   readOneBook(book_id: ID!): book
   countBooks(search: searchBookInput ): Int
   vueTableBook : VueTableBook  csvTableTemplateBook: [String]
-
-  booksConnection(search:searchBookInput, order: [ orderBookInput ],pagination: paginationCursorInput): BookConnection
+  booksConnection(search:searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput! ): BookConnection
 }
 
-  type Mutation {
+type Mutation {
   addBook(book_id: ID!, title: String , addAuthor:ID   , skipAssociationsExistenceChecks:Boolean = false): book!
   updateBook(book_id: ID!, title: String , addAuthor:ID, removeAuthor:ID    , skipAssociationsExistenceChecks:Boolean = false): book!
-deleteBook(book_id: ID!): String!
-bulkAddBookCsv: String }
-
+  deleteBook(book_id: ID!): String!
+  bulkAddBookCsv: String
+  bulkAssociateBookWithAuthor_id(bulkAssociationInput: [bulkAssociationBookWithAuthor_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  bulkDisAssociateBookWithAuthor_id(bulkAssociationInput: [bulkAssociationBookWithAuthor_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+}
 `;

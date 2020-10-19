@@ -29,7 +29,7 @@ book.prototype.author = async function({
 }, context) {
 
     if (helper.isNotUndefinedAndNotNull(this.author_id)) {
-        if (search === undefined) {
+        if (search === undefined || search === null) {
             return resolvers.readOneAuthor({
                 [models.author.idAttribute()]: this.author_id
             }, context)
@@ -44,7 +44,10 @@ book.prototype.author = async function({
                 "operator": "eq"
             });
             let found = await resolvers.authorsConnection({
-                search: nsearch
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
             }, context);
             if (found) {
                 return found[0]
@@ -62,7 +65,7 @@ book.prototype.author = async function({
  * handleAssociations - handles the given associations in the create and update case.
  *
  * @param {object} input   Info of each field to create the new record
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
@@ -81,7 +84,7 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
  * add_author - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 book.prototype.add_author = async function(input, benignErrorReporter) {
     await book.add_author_id(this.getIdValue(), input.addAuthor, benignErrorReporter);
@@ -92,7 +95,7 @@ book.prototype.add_author = async function(input, benignErrorReporter) {
  * remove_author - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 book.prototype.remove_author = async function(input, benignErrorReporter) {
     if (input.removeAuthor == this.author_id) {
@@ -102,30 +105,6 @@ book.prototype.remove_author = async function(input, benignErrorReporter) {
 }
 
 
-
-
-/**
- * checkCountAndReduceRecordsLimit(search, context, query) - Make sure that the current set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} search  Search argument for filtering records
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {boolean} filtering Is filtering allowed (only for Cassandra)?
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit(search, context, resolverName, filtering, modelName = 'book') {
-    let count = await models[modelName].countRecords(search, filtering);
-    helper.checkCountAndReduceRecordLimitHelper(count, context, resolverName)
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneBook")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -190,6 +169,11 @@ module.exports = {
         order,
         pagination
     }, context) {
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = pagination.first !== undefined ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "booksConnection");
 
         //construct benignErrors reporter with context
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
@@ -212,8 +196,7 @@ module.exports = {
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await book.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+            return await book.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -238,6 +221,7 @@ module.exports = {
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, book.adapterForIri(book_id), 'read');
         if (authorizationCheck === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneBook");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
@@ -385,9 +369,8 @@ module.exports = {
             if (authorizationCheck.authorizationErrors.length > 0) {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
 
-            return await book.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck);
+            return await book.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
@@ -396,6 +379,47 @@ module.exports = {
                 throw new Error('No available adapters for data model "book"');
             }
         }
+    },
+
+    /**
+     * bulkAssociateBookWithAuthor_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateBookWithAuthor_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                author_id
+            }) => author_id)), models.author);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkAssociateBookWithAuthor_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateBookWithAuthor_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateBookWithAuthor_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                author_id
+            }) => author_id)), models.author);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkDisAssociateBookWithAuthor_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
     },
 
     /**
