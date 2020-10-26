@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+
+  db_postgres:
+    container_name: pgdb
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./initUserDb.sql:/docker-entrypoint-initdb.d/initUserDb.sql
+    networks:
+     - backend
+
+  graphql_server:
+    container_name: gqlserver
+    depends_on:
+      - db_postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - ../services/gql_server:/usr/src/app
+      - ../node_modules/:/usr/node_modules
+      - ./storage_config.json:/usr/src/app/config/data_models_storage_config.json
+      - ./seedUserDb.sql:/usr/src/seedUserDb.sql
+    ports:
+      - 3000:3000
+    environment:
+      JQ_PATH: /usr/bin/jq
+      LIMIT_RECORDS: 100
+      PGPASSWORD: zendro
+      PORT: 3000
+      REQUIRE_SIGN_IN: "false"
+    networks:
+      - backend
+      - frontend
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ./migrateDbAndStartServer.sh
+
+  spa:
+    stdin_open: true
+    container_name: spaserver
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - ../services/spa_server:/usr/src/app
+      - ../node_modules/:/usr/node_modules
+    ports:
+     - 8080:3000
+    environment:
+      JQ_PATH: /usr/bin/jq
+      REACT_APP_ZENDRO_MAX_RECORD_LIMIT: 100
+      REACT_APP_ZENDRO_GRAPHQL_SERVER_URL: http://localhost:3000/graphql
+      REACT_APP_ZENDRO_LOGIN_URL: http://localhost:3000/login
+      REACT_APP_ZENDRO_EXPORT_URL: http://localhost:3000/export
+      REACT_APP_ZENDRO_MAX_UPLOAD_SIZE: 500
+    networks:
+      - frontend
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm start
+
+networks:
+  backend:
+  frontend:

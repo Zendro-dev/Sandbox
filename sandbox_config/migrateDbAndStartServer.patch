@@ -1,0 +1,13 @@
+--- migrateDbAndStartServer.sh	2020-10-14 11:40:45.490000000 +0200
++++ migrateDbAndStartServer.patch	2020-10-14 11:44:03.250000000 +0200
+@@ -55,6 +55,13 @@
+
+ done
+
++psql \
++  -h db_postgres \
++  -U zendro -w \
++  -d zendro_development \
++  -P pager=off \
++  --single-transaction \
++  -f ../seedUserDb.sql

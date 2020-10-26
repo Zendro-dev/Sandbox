@@ -1,0 +1,43 @@
+{
+  "cwd": ".",
+  "env": {
+    "NODE_JQ_SKIP_INSTALL_BINARY": true
+  },
+  "docker": "./sandbox_config/docker-compose.yml",
+  "services": [
+    {
+      "name": "gql_server",
+      "template": "https://github.com/Zendro-dev/graphql-server.git",
+      "branch": "issue-foreign-key-arrays",
+      "url": "http://localhost:3000/graphql"
+    },
+    {
+      "name": "spa_server",
+      "branch": "master",
+      "template": "https://github.com/Zendro-dev/single-page-app.git",
+      "url": "http://localhost:8080"
+    }
+  ],
+  "models": [
+    {
+      "codegen": "https://github.com/Zendro-dev/graphql-server-model-codegen.git",
+      "branch": "issue-foreign-key-arrays",
+      "options": [ "--migrations" ],
+      "path": "../env_config/data_models",
+      "targets": [ "gql_server" ]
+    },
+    {
+      "codegen": "https://github.com/Zendro-dev/single-page-app-codegen.git",
+      "branch": "master",
+      "options": [ "-P", "-D" ],
+      "path": "../env_config/data_models",
+      "targets": [ "spa_server" ]
+    }
+  ],
+  "patches": [
+    {
+      "path": "../env_config/migrateDbAndStartServer.patch",
+      "target": "gql_server/migrateDbAndStartServer.sh"
+    }
+  ]
+}
