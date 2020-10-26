@@ -78,7 +78,9 @@ If you want changes to be permanent, you can clone a local repository and pass i
 
 Any changes you `stage` in any local git repository will be applied automatically to their child services. That way even re-creating everything preserves your changes.
 
-Be aware, though, that some commands, such as `branch`, won't work on `source` repositories. It is expected that the user manages their local repositories appropriately. The CLI should inform you of this when a command is skipping a `source` repo.
+Be aware, though, that some commands, such as `branch`, won't work on `source` repositories. It is expected that the users manage their local repositories appropriately. The CLI should inform you of this when a command is skipping a `source` repo.
+
+Finally, remember to update the `docker-compose` paths accordingly. Manual handling of `docker-compose` paths is something that soon won't be necessary.
 
 
 ## Troubleshooting
