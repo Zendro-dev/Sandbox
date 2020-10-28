@@ -1481,7 +1481,6 @@ export default function PersonEnhancedTable(props) {
                                       </Tooltip>
                                     </TableCell>
 
-
                                     {/* name */}
                                     <TableCell
                                       key='name'

@@ -8,7 +8,6 @@ import PersonAttributesPage from './components/person-attributes-page/PersonAttr
 import PersonAssociationsPage from './components/person-associations-page/PersonAssociationsPage'
 import PersonTabsA from './components/PersonTabsA'
 import PersonConfirmationDialog from './components/PersonConfirmationDialog'
-import ImageAttachmentDetailPanel from '../../../imageAttachment-table/components/imageAttachment-detail-panel/ImageAttachmentDetailPanel'
 import api from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
@@ -69,7 +68,6 @@ export default function PersonUpdatePanel(props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const {
-    permissions,
  
     item,
     handleClose,
@@ -98,13 +96,7 @@ export default function PersonUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const [imagesIdsToAddState, setImagesIdsToAddState] = useState([]);
-  const imagesIdsToAdd = useRef([]);
-  const [imagesIdsToRemoveState, setImagesIdsToRemoveState] = useState([]);
-  const imagesIdsToRemove = useRef([]);
 
-  const [imageAttachmentDetailDialogOpen, setImageAttachmentDetailDialogOpen] = useState(false);
-  const [imageAttachmentDetailItem, setImageAttachmentDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -238,11 +230,6 @@ export default function PersonUpdatePanel(props) {
     }
   }, [deleted, updated]);
 
-  useEffect(() => {
-    if (imageAttachmentDetailItem !== undefined) {
-      setImageAttachmentDetailDialogOpen(true);
-    }
-  }, [imageAttachmentDetailItem]);
 
   /**
    * Utils
@@ -313,41 +300,6 @@ export default function PersonUpdatePanel(props) {
   }
 
 
-  function setAddRemoveManyImages(variables) {
-    //data to notify changes
-    if(!changedAssociations.current.ImageAttachment_personId) changedAssociations.current.ImageAttachment_personId = {};
-
-    /**
-     * Case: The toAdd list isn't empty.
-     */
-    if(imagesIdsToAdd.current.length>0) {
-      //set ids to add
-      variables.addImages = [ ...imagesIdsToAdd.current];
-      //changes to nofity
-      changedAssociations.current.ImageAttachment_personId.added = true;
-      if(changedAssociations.current.ImageAttachment_personId.idsAdded){
-        imagesIdsToAdd.current.forEach((it) => {if(!changedAssociations.current.ImageAttachment_personId.idsAdded.includes(it)) changedAssociations.current.ImageAttachment_personId.idsAdded.push(it);});
-      } else {
-        changedAssociations.current.ImageAttachment_personId.idsAdded = [...imagesIdsToAdd.current];
-      }
-    }
-    /**
-     * Case: The toRemove list isn't empty.
-     */
-    if(imagesIdsToRemove.current.length>0) {
-      //set ids to remove
-      variables.removeImages = [ ...imagesIdsToRemove.current];
-      //changes to nofity
-      changedAssociations.current.ImageAttachment_personId.removed = true;
-      if(changedAssociations.current.ImageAttachment_personId.idsRemoved){
-        imagesIdsToRemove.current.forEach((it) => {if(!changedAssociations.current.ImageAttachment_personId.idsRemoved.includes(it)) changedAssociations.current.ImageAttachment_personId.idsRemoved.push(it);});
-      } else {
-        changedAssociations.current.ImageAttachment_personId.idsRemoved = [...imagesIdsToRemove.current];
-      }
-    }
-    
-    return;
-  }
 
 function setAjvErrors(err) {
     //check
@@ -430,7 +382,6 @@ function setAjvErrors(err) {
     //add & remove: to_one's
 
     //add & remove: to_many's
-    setAddRemoveManyImages(variables);
 
     /*
       API Request: api.person.updateItem
@@ -639,10 +590,6 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'images':
-        imagesIdsToAdd.current.push(itemId);
-        setImagesIdsToAddState([...imagesIdsToAdd.current]);
-        break;
 
       default:
         break;
@@ -650,26 +597,10 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'images') {
-      for(let i=0; i<imagesIdsToAdd.current.length; ++i)
-      {
-        if(imagesIdsToAdd.current[i] === itemId) {
-          imagesIdsToAdd.current.splice(i, 1);
-          setImagesIdsToAddState([...imagesIdsToAdd.current]);
-          return;
-        }
-      }
-      return;
-    }//end: case 'images'
   }
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-        case 'images':
-  
-        imagesIdsToRemove.current.push(itemId);
-        setImagesIdsToRemoveState([...imagesIdsToRemove.current]);
-        break;
 
       default:
         break;
@@ -677,36 +608,7 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-    if(associationKey === 'images') {
-      for(let i=0; i<imagesIdsToRemove.current.length; ++i)
-      {
-        if(imagesIdsToRemove.current[i] === itemId) {
-          imagesIdsToRemove.current.splice(i, 1);
-          setImagesIdsToRemoveState([...imagesIdsToRemove.current]);
-          return;
-        }
-      }
-      return;
-    }//end: case 'images'
   }
-
-  const handleClickOnImageAttachmentRow = (event, item) => {
-    setImageAttachmentDetailItem(item);
-  };
-
-  const handleImageAttachmentDetailDialogClose = (event) => {
-    delayedCloseImageAttachmentDetailPanel(event, 500);
-  }
-
-  const delayedCloseImageAttachmentDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setImageAttachmentDetailDialogOpen(false);
-        setImageAttachmentDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
 
 
   const startTimerToDebounceTabsChange = () => {
@@ -857,13 +759,10 @@ function setAjvErrors(err) {
               <PersonAssociationsPage
                 hidden={tabsValue !== 1 || deleted}
                 item={item}
-                imagesIdsToAdd={imagesIdsToAddState}
-                imagesIdsToRemove={imagesIdsToRemoveState}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
                 handleTransferToRemove={handleTransferToRemove}
                 handleUntransferFromRemove={handleUntransferFromRemove}
-                handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
               />
             </Grid>
           )}
@@ -880,15 +779,6 @@ function setAjvErrors(err) {
           handleReject={handleConfirmationReject}
         />
 
-        {/* Dialog: ImageAttachment Detail Panel */}
-        {(imageAttachmentDetailDialogOpen) && (
-          <ImageAttachmentDetailPanel
-            permissions={permissions}
-            item={imageAttachmentDetailItem}
-            dialog={true}
-            handleClose={handleImageAttachmentDetailDialogClose}
-          />
-        )}
       </div>
 
     </Dialog>

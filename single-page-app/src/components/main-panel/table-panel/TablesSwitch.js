@@ -6,7 +6,6 @@ import {
 import PropTypes from 'prop-types';
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
-const ImageAttachmentTable = lazy(() => import('./models-tables/imageAttachment-table/ImageAttachmentEnhancedTable'));
 const PersonTable = lazy(() => import('./models-tables/person-table/PersonEnhancedTable'));
 const RoleTable = lazy(() => import('./admin-tables/role-table/RoleEnhancedTable'));
 const RoleToUserTable = lazy(() => import('./admin-tables/role_to_user-table/Role_to_userEnhancedTable'));
@@ -20,13 +19,6 @@ export default function TablesSwitch(props) {
     <Suspense fallback={<div>Loading...</div>}>
       <Switch>
         {/* Models */}
-        <Route exact path="/main/model/imageAttachment" 
-          render={
-            /* acl check */
-            (permissions&&permissions.imageAttachment&&Array.isArray(permissions.imageAttachment)
-            &&(permissions.imageAttachment.includes('read') || permissions.imageAttachment.includes('*')))
-            ? ((props) => <ImageAttachmentTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
-        } />
         <Route exact path="/main/model/person" 
           render={
             /* acl check */

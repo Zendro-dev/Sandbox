@@ -1,0 +1,49 @@
+#Full instructions in: https://github.com/Zendro-dev/ScienceDbStarterPack
+
+#Clone latest-stable projects:
+./setup.sh
+  #
+  # Alternatively, the projects or projects branches can be cloned manually.
+  #
+
+#Copy seeders
+cp -r ./seeders ./graphql-server
+
+#Set the "host" field to the name of the postgres db container service in
+# graphql-server/config/data_models_storage_config.json 
+{
+  "default-sql": {
+    "storageType": "sql",
+    "username": "sciencedb",
+    "password": "sciencedb",
+    "database": "sciencedb_development",
+    "host": "sdb_postgres",    <<<<<<< HERE
+    "dialect": "postgres"
+  }
+}
+
+#Install generators
+docker build -f Dockerfile.code-generators -t sciencedb-code-generators:latest .
+
+  #
+  # The latest-stable branch of the generators are installed by default.
+  # The branch can be changed in 'Dockerfile.code-generators' before install the
+  # generators containers.
+  #
+  # Alternatively, the codegen projects can be cloned, installed and executed
+  # manually with the desired branch.
+  #
+
+#Generate code:
+// log into container
+docker run --rm -it -v `pwd`:/opt --user $(id -u):$(id -g) sciencedb-code-generators:latest 
+// generate graphql code
+graphql-server-model-codegen --jsonFiles /opt/data_model_definitions -o /opt/graphql-server
+// generate spa code
+single-page-app-codegen --jsonFiles /opt/data_model_definitions -o /opt/single-page-app
+//log out
+exit
+
+#Run containers
+docker-compose -f docker-compose-dev.yml up
+

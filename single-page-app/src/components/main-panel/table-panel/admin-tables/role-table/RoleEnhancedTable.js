@@ -1481,7 +1481,6 @@ export default function RoleEnhancedTable(props) {
                                       </Tooltip>
                                     </TableCell>
 
-
                                     {/* name */}
                                     <TableCell
                                       key='name'

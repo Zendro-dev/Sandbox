@@ -80,8 +80,6 @@ export default function PersonEnhancedTableHead(props) {
           </TableSortLabel>
         </TableCell>
 
-
-
         <TableCell
           key='name'
           align='left'

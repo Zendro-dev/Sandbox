@@ -10,6 +10,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
+
 import StringField from './components/StringField'
 
 const useStyles = makeStyles(theme => ({

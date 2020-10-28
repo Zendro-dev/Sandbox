@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import { useTranslation } from 'react-i18next';
 
 export default function PersonAssociationsMenuTabs(props) {
+  const { t } = useTranslation();
   const {
     associationSelected,
     handleClick,
@@ -19,7 +21,7 @@ export default function PersonAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='images' label='Images' value='images' />
+        <Tab key='no-associations' label={ t('modelPanels.noAssociations') } value='no-associations' />
       </Tabs>
     </div>
   );

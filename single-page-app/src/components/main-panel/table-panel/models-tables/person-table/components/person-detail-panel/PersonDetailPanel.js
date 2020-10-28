@@ -12,7 +12,6 @@ import PersonAttributesPage from './components/person-attributes-page/PersonAttr
 import PersonAssociationsPage from './components/person-associations-page/PersonAssociationsPage'
 import PersonUpdatePanel from '../person-update-panel/PersonUpdatePanel'
 import PersonDeleteConfirmationDialog from '../PersonDeleteConfirmationDialog'
-import ImageAttachmentDetailPanel from '../../../imageAttachment-table/components/imageAttachment-detail-panel/ImageAttachmentDetailPanel'
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -87,8 +86,6 @@ export default function PersonDetailPanel(props) {
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
-  const [imageAttachmentDetailDialogOpen, setImageAttachmentDetailDialogOpen] = useState(false);
-  const [imageAttachmentDetailItem, setImageAttachmentDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -221,12 +218,6 @@ export default function PersonDetailPanel(props) {
     }
   }, [deleted, updated]);
   
-  useEffect(() => {
-    if(imageAttachmentDetailItem !== undefined) {
-      setImageAttachmentDetailDialogOpen(true);
-    }
-  }, [imageAttachmentDetailItem]);
-
 
   useEffect(() => {
     if(updateItem !== undefined) {
@@ -451,23 +442,6 @@ export default function PersonDetailPanel(props) {
     });
   };
 
-  const handleClickOnImageAttachmentRow = (event, item) => {
-    setImageAttachmentDetailItem(item);
-  };
-
-  const handleImageAttachmentDetailDialogClose = (event) => {
-    delayedCloseImageAttachmentDetailPanel(event, 500);
-  }
-
-  const delayedCloseImageAttachmentDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setImageAttachmentDetailDialogOpen(false);
-        setImageAttachmentDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
 
   return (
     <div>
@@ -652,7 +626,6 @@ export default function PersonDetailPanel(props) {
                 <PersonAssociationsPage
                   item={itemState}
                   deleted={deleted}
-                  handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
                 />
               </Grid>
             </Grid>
@@ -679,7 +652,6 @@ export default function PersonDetailPanel(props) {
               <PersonAssociationsPage
                 item={itemState}
                 deleted={deleted}
-                handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
               />
             </Grid>
 
@@ -703,16 +675,6 @@ export default function PersonDetailPanel(props) {
           item={deleteConfirmationItem}
           handleAccept={handleDeleteConfirmationAccept}
           handleReject={handleDeleteConfirmationReject}
-        />
-      )}
-
-      {/* Dialog: ImageAttachment Detail Panel */}
-      {(imageAttachmentDetailDialogOpen) && (
-        <ImageAttachmentDetailPanel
-          permissions={permissions}
-          item={imageAttachmentDetailItem}
-          dialog={true}
-          handleClose={handleImageAttachmentDetailDialogClose}
         />
       )}
 

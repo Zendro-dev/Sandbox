@@ -13,99 +13,11 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
-const associationArgsDef = {
-    'addImages': 'imageAttachment'
-}
+const associationArgsDef = {}
 
 
 
 
-/**
- * person.prototype.imagesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-person.prototype.imagesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "personId",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.imageAttachments({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * person.prototype.countFilteredImages - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-person.prototype.countFilteredImages = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "personId",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.countImageAttachments({
-        search: nsearch
-    }, context);
-}
-
-/**
- * person.prototype.imagesConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-person.prototype.imagesConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "personId",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.imageAttachmentsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -118,49 +30,11 @@ person.prototype.imagesConnection = function({
  */
 person.prototype.handleAssociations = async function(input, benignErrorReporter) {
     let promises = [];
-    if (helper.isNonEmptyArray(input.addImages)) {
-        promises.push(this.add_images(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeImages)) {
-        promises.push(this.remove_images(input, benignErrorReporter));
-    }
+
+
 
     await Promise.all(promises);
 }
-/**
- * add_images - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-person.prototype.add_images = async function(input, benignErrorReporter) {
-    let bulkAssociationInput = input.addImages.map(associatedRecordId => {
-        return {
-            personId: this.getIdValue(),
-            [models.imageAttachment.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.imageAttachment.bulkAssociateImageAttachmentWithPersonId(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_images - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-person.prototype.remove_images = async function(input, benignErrorReporter) {
-    let bulkAssociationInput = input.removeImages.map(associatedRecordId => {
-        return {
-            personId: this.getIdValue(),
-            [models.imageAttachment.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.imageAttachment.bulkDisAssociateImageAttachmentWithPersonId(bulkAssociationInput, benignErrorReporter);
-}
-
 
 
 /**
@@ -180,7 +54,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(person.countFilteredImages({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

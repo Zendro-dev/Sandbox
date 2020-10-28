@@ -1481,7 +1481,6 @@ export default function UserEnhancedTable(props) {
                                       </Tooltip>
                                     </TableCell>
 
-
                                     {/* email */}
                                     <TableCell
                                       key='email'

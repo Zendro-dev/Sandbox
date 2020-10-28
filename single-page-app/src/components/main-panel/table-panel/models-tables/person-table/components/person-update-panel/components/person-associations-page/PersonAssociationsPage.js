@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { makeCancelable } from '../../../../../../../../../utils'
 import PropTypes from 'prop-types';
-import ImagesTransferLists from './images-transfer-lists/ImagesTransferLists'
 import PersonAssociationsMenuTabs from './PersonAssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -23,16 +22,8 @@ export default function PersonAssociationsPage(props) {
   const classes = useStyles();
   const {
     hidden,
-    item,
-    imagesIdsToAdd,
-    imagesIdsToRemove,
-    handleTransferToAdd,
-    handleUntransferFromAdd,
-    handleTransferToRemove,
-    handleUntransferFromRemove,
-    handleClickOnImageAttachmentRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('images');
+  const [associationSelected, setAssociationSelected] = React.useState('no-associations');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -109,21 +100,6 @@ export default function PersonAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Images Transfer Lists */}
-          {(associationSelected === 'images') && (
-            <Grid item xs={12} sm={11}>
-              <ImagesTransferLists
-                item={item}
-                idsToAdd={imagesIdsToAdd}
-                idsToRemove={imagesIdsToRemove}
-                handleTransferToAdd={handleTransferToAdd}
-                handleUntransferFromAdd={handleUntransferFromAdd}
-                handleTransferToRemove={handleTransferToRemove}
-                handleUntransferFromRemove={handleUntransferFromRemove}
-                handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
-              />
-            </Grid>
-          )}
 
         </Grid>
       </Fade>
@@ -132,12 +108,4 @@ export default function PersonAssociationsPage(props) {
 }
 PersonAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  item: PropTypes.object.isRequired,
-  imagesIdsToAdd: PropTypes.array.isRequired,
-  imagesIdsToRemove: PropTypes.array.isRequired,
-  handleTransferToAdd: PropTypes.func.isRequired,
-  handleUntransferFromAdd: PropTypes.func.isRequired,
-  handleTransferToRemove: PropTypes.func.isRequired,
-  handleUntransferFromRemove: PropTypes.func.isRequired,
-  handleClickOnImageAttachmentRow: PropTypes.func.isRequired,
 };

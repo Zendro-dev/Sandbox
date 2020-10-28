@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { makeCancelable } from '../../../../../../../../../utils'
 import PropTypes from 'prop-types';
-import ImagesTransferLists from './images-transfer-lists/ImagesTransferLists'
 import PersonAssociationsMenuTabs from './PersonAssociationsMenuTabs'
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -23,12 +22,8 @@ export default function PersonAssociationsPage(props) {
 
   const {
     hidden,
-    imagesIdsToAdd,
-    handleTransferToAdd,
-    handleUntransferFromAdd,
-    handleClickOnImageAttachmentRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('images');
+  const [associationSelected, setAssociationSelected] = React.useState('no-associations');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -105,17 +100,6 @@ export default function PersonAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Images Transfer Lists */}
-          {(associationSelected === 'images') && (
-            <Grid item xs={12} sm={10} md={9}>
-              <ImagesTransferLists
-                idsToAdd={imagesIdsToAdd}
-                handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
-                handleTransferToAdd={handleTransferToAdd}
-                handleUntransferFromAdd={handleUntransferFromAdd}
-              />
-            </Grid>
-          )}
 
         </Grid>
       </Fade>
@@ -124,8 +108,4 @@ export default function PersonAssociationsPage(props) {
 }
 PersonAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  imagesIdsToAdd: PropTypes.array.isRequired,
-  handleTransferToAdd: PropTypes.func.isRequired,
-  handleUntransferFromAdd: PropTypes.func.isRequired,
-  handleClickOnImageAttachmentRow: PropTypes.func.isRequired,
 };

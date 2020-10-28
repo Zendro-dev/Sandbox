@@ -1,6 +1,6 @@
 {
   "name": "second-server-graphql",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "description": "Schema as string",
   "main": "index.js",
   "scripts": {
@@ -46,7 +46,6 @@
     "supertest": "^4.0.2",
     "sync-request": "^6.1.0",
     "uuidv4": "^6.0.8",
-    "uuid": "^8.3.0",
     "xlsx": "^0.16.1"
   },
   "devDependencies": {

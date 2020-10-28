@@ -80,8 +80,6 @@ export default function UserEnhancedTableHead(props) {
           </TableSortLabel>
         </TableCell>
 
-
-
         <TableCell
           key='email'
           align='left'

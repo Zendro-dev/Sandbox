@@ -18,18 +18,6 @@ const modelsAttributes = {
       "email": "String",
       "password": "String",
   },
-  'imageAttachment': {
-      "id": "Int",
-      "fileName": "String",
-      "fileSizeKb": "Float",
-      "fileType": "String",
-      "filePath": "String",
-      "smallTnPath": "String",
-      "mediumTnPath": "String",
-      "licence": "String",
-      "description": "String",
-      "personId": "Int",
-  },
   'person': {
       "id": "Int",
       "name": "String",

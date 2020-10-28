@@ -8,7 +8,6 @@ import PersonAttributesPage from './components/person-attributes-page/PersonAttr
 import PersonAssociationsPage from './components/person-associations-page/PersonAssociationsPage'
 import PersonTabsA from './components/PersonTabsA'
 import PersonConfirmationDialog from './components/PersonConfirmationDialog'
-import ImageAttachmentDetailPanel from '../../../imageAttachment-table/components/imageAttachment-detail-panel/ImageAttachmentDetailPanel'
 import api from '../../../../../../../requests/requests.index.js'
 import { makeCancelable } from '../../../../../../../utils'
 import { makeStyles } from '@material-ui/core/styles';
@@ -57,7 +56,6 @@ export default function PersonCreatePanel(props) {
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
-    permissions,
     handleClose,
   } = props;
 
@@ -79,11 +77,7 @@ export default function PersonCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
-  const [imagesIdsToAddState, setImagesIdsToAddState] = useState([]);
-  const imagesIdsToAdd = useRef([]);
 
-  const [imageAttachmentDetailDialogOpen, setImageAttachmentDetailDialogOpen] = useState(false);
-  const [imageAttachmentDetailItem, setImageAttachmentDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -147,12 +141,6 @@ export default function PersonCreatePanel(props) {
     };
   }, []);
   
-  useEffect(() => {
-    if (imageAttachmentDetailItem !== undefined) {
-      setImageAttachmentDetailDialogOpen(true);
-    }
-  }, [imageAttachmentDetailItem]);
-
 
   /**
    * Utils
@@ -301,7 +289,6 @@ export default function PersonCreatePanel(props) {
     //add: to_one's
     
     //add: to_many's
-    variables.addImages = [...imagesIdsToAdd.current];
 
     /*
       API Request: api.person.createItem
@@ -510,12 +497,6 @@ export default function PersonCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'images':
-        if(imagesIdsToAdd.current.indexOf(itemId) === -1) {
-          imagesIdsToAdd.current.push(itemId);
-          setImagesIdsToAddState(imagesIdsToAdd.current);
-        }
-        break;
 
       default:
         break;
@@ -523,32 +504,8 @@ export default function PersonCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'images') {
-      let iof = imagesIdsToAdd.current.indexOf(itemId);
-      if(iof !== -1) {
-        imagesIdsToAdd.current.splice(iof, 1);
-      }
-      return;
-    }//end: case 'images'
   }
 
-  const handleClickOnImageAttachmentRow = (event, item) => {
-    setImageAttachmentDetailItem(item);
-  };
-
-  const handleImageAttachmentDetailDialogClose = (event) => {
-    delayedCloseImageAttachmentDetailPanel(event, 500);
-  }
-
-  const delayedCloseImageAttachmentDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setImageAttachmentDetailDialogOpen(false);
-        setImageAttachmentDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
 
   const startTimerToDebounceTabsChange = () => {
     return makeCancelable( new Promise(resolve => {
@@ -640,10 +597,8 @@ export default function PersonCreatePanel(props) {
               {/* Associations Page [1] */}
               <PersonAssociationsPage
                 hidden={tabsValue !== 1}
-                imagesIdsToAdd={imagesIdsToAddState}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
-                handleClickOnImageAttachmentRow={handleClickOnImageAttachmentRow}
               />
             </Grid>
           )}
@@ -660,15 +615,6 @@ export default function PersonCreatePanel(props) {
           handleReject={handleConfirmationReject}
         />
 
-        {/* Dialog: ImageAttachment Detail Panel */}
-        {(imageAttachmentDetailDialogOpen) && (
-          <ImageAttachmentDetailPanel
-            permissions={permissions}
-            item={imageAttachmentDetailItem}
-            dialog={true}
-            handleClose={handleImageAttachmentDetailDialogClose}
-          />
-        )}
       </div>
 
     </Dialog>

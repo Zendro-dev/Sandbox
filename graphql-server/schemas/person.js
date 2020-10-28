@@ -10,25 +10,7 @@ module.exports = `
     """
     name: String
 
-  
-
-    
-    """
-    @search-request
-    """
-    imagesFilter(search: searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationInput!): [ImageAttachment]
-
-
-    """
-    @search-request
-    """
-    imagesConnection(search: searchImageAttachmentInput, order: [ orderImageAttachmentInput ], pagination: paginationCursorInput!): ImageAttachmentConnection
-
-    """
-    @count-request
-    """
-    countFilteredImages(search: searchImageAttachmentInput) : Int
-  
+      
     }
 type PersonConnection{
   edges: [PersonEdge]
@@ -79,8 +61,8 @@ type PersonEdge{
   }
 
   type Mutation {
-    addPerson( name: String   , addImages:[ID] , skipAssociationsExistenceChecks:Boolean = false): Person!
-    updatePerson(id: ID!, name: String   , addImages:[ID], removeImages:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Person!
+    addPerson( name: String    , skipAssociationsExistenceChecks:Boolean = false): Person!
+    updatePerson(id: ID!, name: String    , skipAssociationsExistenceChecks:Boolean = false): Person!
     deletePerson(id: ID!): String!
     bulkAddPersonCsv: String!
       }
