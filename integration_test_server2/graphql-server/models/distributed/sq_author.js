@@ -206,12 +206,6 @@ module.exports = class sq_author {
             authAdapters = Array.from(authorizedAdapters)
         }
 
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
@@ -407,9 +401,9 @@ module.exports = class sq_author {
      * @param {Array}   book_ids Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async add_book_ids(id, book_ids, benignErrorReporter) {
+    static async add_book_ids(id, book_ids, benignErrorReporter, handle_inverse = true) {
         let responsibleAdapter = this.adapterForIri(id);
-        return await adapters[responsibleAdapter].add_book_ids(id, book_ids, benignErrorReporter);
+        return await adapters[responsibleAdapter].add_book_ids(id, book_ids, benignErrorReporter, handle_inverse);
     }
 
 
@@ -420,9 +414,9 @@ module.exports = class sq_author {
      * @param {Array}   book_ids Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
-    static async remove_book_ids(id, book_ids, benignErrorReporter) {
+    static async remove_book_ids(id, book_ids, benignErrorReporter, handle_inverse = true) {
         let responsibleAdapter = this.adapterForIri(id);
-        return await adapters[responsibleAdapter].remove_book_ids(id, book_ids, benignErrorReporter);
+        return await adapters[responsibleAdapter].remove_book_ids(id, book_ids, benignErrorReporter, handle_inverse);
     }
 
 

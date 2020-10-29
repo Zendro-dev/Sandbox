@@ -19,7 +19,7 @@ module.exports.validator_patch = function(int_post_book) {
         "$async": true,
         "properties": {
             "id": {
-                "type": ["integer", "string" ,"null"]
+                "type": ["integer","string", "null"]
             },
             "title": {
                 "type": ["string", "null"]

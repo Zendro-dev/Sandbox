@@ -32,13 +32,13 @@ module.exports = `
     """
     @search-request
     """
-    authorsFilter(search: searchInt_post_authorInput, order: [ orderInt_post_authorInput ], pagination: paginationInput): [int_post_author]
+    authorsFilter(search: searchInt_post_authorInput, order: [ orderInt_post_authorInput ], pagination: paginationInput!): [int_post_author]
 
 
     """
     @search-request
     """
-    authorsConnection(search: searchInt_post_authorInput, order: [ orderInt_post_authorInput ], pagination: paginationCursorInput): Int_post_authorConnection
+    authorsConnection(search: searchInt_post_authorInput, order: [ orderInt_post_authorInput ], pagination: paginationCursorInput!): Int_post_authorConnection
 
     """
     @count-request
@@ -90,11 +90,11 @@ type Int_post_bookEdge{
 
 
   type Query {
-    int_post_books(search: searchInt_post_bookInput, order: [ orderInt_post_bookInput ], pagination: paginationInput ): [int_post_book]
+    int_post_books(search: searchInt_post_bookInput, order: [ orderInt_post_bookInput ], pagination: paginationInput! ): [int_post_book]
     readOneInt_post_book(id: ID!): int_post_book
     countInt_post_books(search: searchInt_post_bookInput ): Int
     vueTableInt_post_book : VueTableInt_post_book    csvTableTemplateInt_post_book: [String]
-    int_post_booksConnection(search:searchInt_post_bookInput, order: [ orderInt_post_bookInput ], pagination: paginationCursorInput ): Int_post_bookConnection
+    int_post_booksConnection(search:searchInt_post_bookInput, order: [ orderInt_post_bookInput ], pagination: paginationCursorInput! ): Int_post_bookConnection
   }
 
   type Mutation {

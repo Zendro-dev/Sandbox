@@ -105,229 +105,47 @@ module.exports = class int_post_book extends Sequelize.Model {
     }
 
     static async countRecords(search) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search);
         return super.count(options);
     }
 
-    static readAll(search, order, pagination, benignErrorReporter) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAll(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        return super.count(options).then(async items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["id", "ASC"]
-                ];
-            }
-
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total int_post_books exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            let records = await super.findAll(options);
-            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-        });
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
+        let records = await super.findAll(options);
+        // validationCheck after read
+        return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
-    static readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let options = {};
-        options['where'] = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-        /*
-         * Count
-         */
-        return super.count(options).then(countA => {
-            options['offset'] = 0;
-            options['order'] = [];
-            options['limit'] = countA;
-            /*
-             * Order conditions
-             */
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            }
-            if (!options['order'].map(orderItem => {
-                    return orderItem[0]
-                }).includes("id")) {
-                options['order'] = [...options['order'], ...[
-                    ["id", "ASC"]
-                ]];
-            }
-
-            /*
-             * Pagination conditions
-             */
-            if (pagination) {
-                //forward
-                if (isForwardPagination) {
-                    if (pagination.after) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                } else { //backward
-                    if (pagination.before) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                }
-            }
-            //woptions: copy of {options} with only 'where' options
-            let woptions = {};
-            woptions['where'] = {
-                ...options['where']
-            };
-            /*
-             *  Count (with only where-options)
-             */
-            return super.count(woptions).then(countB => {
-                /*
-                 * Limit conditions
-                 */
-                if (pagination) {
-                    //forward
-                    if (isForwardPagination) {
-
-                        if (pagination.first) {
-                            options['limit'] = pagination.first;
-                        }
-                    } else { //backward
-                        if (pagination.last) {
-                            options['limit'] = pagination.last;
-                            options['offset'] = Math.max((countB - pagination.last), 0);
-                        }
-                    }
-                }
-                //check: limit
-                if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total int_post_books exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-                }
-
-                /*
-                 * Get records
-                 */
-                return super.findAll(options).then(async records => {
-                    //validate records
-                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-
-                    let edges = [];
-                    let pageInfo = {
-                        hasPreviousPage: false,
-                        hasNextPage: false,
-                        startCursor: null,
-                        endCursor: null
-                    };
-
-                    //edges
-                    if (records.length > 0) {
-                        edges = records.map(record => {
-                            return {
-                                node: record,
-                                cursor: record.base64Enconde()
-                            }
-                        });
-                    }
-
-                    //forward
-                    if (isForwardPagination) {
-
-                        pageInfo = {
-                            hasPreviousPage: ((countA - countB) > 0),
-                            hasNextPage: (pagination && pagination.first ? (countB > pagination.first) : false),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    } else { //backward
-
-                        pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (countB > pagination.last) : false),
-                            hasNextPage: ((countA - countB) > 0),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    }
-
-                    return {
-                        edges,
-                        pageInfo
-                    };
-
-                }).catch(error => {
-                    throw error;
-                });
-            }).catch(error => {
-                throw error;
-            });
-        }).catch(error => {
-            throw error;
-        });
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let records = await super.findAll(options);
+        // validationCheck after read
+        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after || pagination.before)) {
+            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
+                ...pagination,
+                includeCursor: false
+            }, this.idAttribute());
+            oppRecords = await super.findAll(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        return {
+            edges,
+            pageInfo
+        };
     }
 
     static async addOne(input) {
@@ -459,13 +277,20 @@ module.exports = class int_post_book extends Sequelize.Model {
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_author_ids(id, author_ids) {
-     console.log("id :", id)
-     console.log("add_author_ids: ", author_ids);
+    static async add_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            author_ids.forEach(idx => {
+                promises.push(models.int_post_author.add_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(record.author_ids, author_ids);
-            console.log("Updated ids: ", updated_ids);
+            let updated_ids = helper.unionIds(JSON.parse(record.author_ids), author_ids);
+            updated_ids = JSON.stringify(updated_ids);
             await record.update({
                 author_ids: updated_ids
             });
@@ -478,13 +303,20 @@ module.exports = class int_post_book extends Sequelize.Model {
      * @param {Id}   id   IdAttribute of the root model to be updated
      * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_author_ids(id, author_ids) {
-      console.log("id :", id)
-      console.log("remove_author_ids: ", author_ids);
+    static async remove_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            author_ids.forEach(idx => {
+                promises.push(models.int_post_author.remove_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(record.author_ids, author_ids);
-            console.log("Updated ids: ", updated_ids);
+            let updated_ids = helper.differenceIds(JSON.parse(record.author_ids), author_ids);
+            updated_ids = JSON.stringify(updated_ids);
             await record.update({
                 author_ids: updated_ids
             });
@@ -503,7 +335,6 @@ module.exports = class int_post_book extends Sequelize.Model {
      *
      * @return {type} Name of the attribute that functions as an internalId
      */
-
     static idAttribute() {
         return int_post_book.definition.id.name;
     }
@@ -513,7 +344,6 @@ module.exports = class int_post_book extends Sequelize.Model {
      *
      * @return {type} Type given in the JSON model
      */
-
     static idAttributeType() {
         return int_post_book.definition.id.type;
     }
@@ -523,7 +353,6 @@ module.exports = class int_post_book extends Sequelize.Model {
      *
      * @return {type} id value
      */
-
     getIdValue() {
         return this[int_post_book.idAttribute()]
     }

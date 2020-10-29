@@ -130,59 +130,6 @@ sq_author.prototype.remove_books = async function(input, benignErrorReporter) {
 }
 
 
-
-
-/**
- * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
- * set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} {search}  Search argument for filtering records
- * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
- * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
- * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
- * to start fetching.
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit({
-    search,
-    pagination
-}, context, resolverName, modelName = 'sq_author') {
-    //defaults
-    let inputPaginationValues = {
-        limit: undefined,
-        offset: 0,
-        search: undefined,
-        order: [
-            ["id", "ASC"]
-        ],
-    }
-
-    //check search
-    helper.checkSearchArgument(search);
-    if (search) inputPaginationValues.search = {
-        ...search
-    }; //copy
-
-    //get generic pagination values
-    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
-    //get records count
-    let count = (await models[modelName].countRecords(paginationValues.search));
-    //get effective records count
-    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
-    //do check and reduce of record limit.
-    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSq_author")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -247,6 +194,11 @@ module.exports = {
         order,
         pagination
     }, context) {
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "sq_authorsConnection");
 
         //construct benignErrors reporter with context
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
@@ -294,6 +246,7 @@ module.exports = {
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, sq_author.adapterForIri(id), 'read');
         if (authorizationCheck === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneSq_author");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 

@@ -29,7 +29,7 @@ type sq_book{
   """
   @search-request
   """
-  authorsConnection(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput): Sq_authorConnection
+  authorsConnection(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput!): Sq_authorConnection
   """
   @count-request
   """
@@ -87,7 +87,7 @@ type Query {
   readOneSq_book(id: ID!): sq_book
   countSq_books(search: searchSq_bookInput ): Int
   vueTableSq_book : VueTableSq_book  csvTableTemplateSq_book: [String]
-  sq_booksConnection(search:searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput ): Sq_bookConnection
+  sq_booksConnection(search:searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput! ): Sq_bookConnection
 }
 
 type Mutation {

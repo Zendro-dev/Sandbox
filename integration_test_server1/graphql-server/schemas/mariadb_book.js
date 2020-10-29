@@ -67,11 +67,11 @@ type Mariadb_bookEdge{
 
 
   type Query {
-    mariadb_books(search: searchMariadb_bookInput, order: [ orderMariadb_bookInput ], pagination: paginationInput ): [mariadb_book]
+    mariadb_books(search: searchMariadb_bookInput, order: [ orderMariadb_bookInput ], pagination: paginationInput! ): [mariadb_book]
     readOneMariadb_book(id: ID!): mariadb_book
     countMariadb_books(search: searchMariadb_bookInput ): Int
     vueTableMariadb_book : VueTableMariadb_book    csvTableTemplateMariadb_book: [String]
-    mariadb_booksConnection(search:searchMariadb_bookInput, order: [ orderMariadb_bookInput ], pagination: paginationCursorInput ): Mariadb_bookConnection
+    mariadb_booksConnection(search:searchMariadb_bookInput, order: [ orderMariadb_bookInput ], pagination: paginationCursorInput! ): Mariadb_bookConnection
   }
 
   type Mutation {

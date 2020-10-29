@@ -32,13 +32,13 @@ module.exports = `
     """
     @search-request
     """
-    booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput): [sq_book]
+    booksFilter(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationInput!): [sq_book]
 
 
     """
     @search-request
     """
-    booksConnection(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput): Sq_bookConnection
+    booksConnection(search: searchSq_bookInput, order: [ orderSq_bookInput ], pagination: paginationCursorInput!): Sq_bookConnection
 
     """
     @count-request
@@ -90,11 +90,11 @@ type Sq_authorEdge{
 
 
   type Query {
-    sq_authors(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationInput ): [sq_author]
+    sq_authors(search: searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationInput! ): [sq_author]
     readOneSq_author(id: ID!): sq_author
     countSq_authors(search: searchSq_authorInput ): Int
     vueTableSq_author : VueTableSq_author    csvTableTemplateSq_author: [String]
-    sq_authorsConnection(search:searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput ): Sq_authorConnection
+    sq_authorsConnection(search:searchSq_authorInput, order: [ orderSq_authorInput ], pagination: paginationCursorInput! ): Sq_authorConnection
   }
 
   type Mutation {

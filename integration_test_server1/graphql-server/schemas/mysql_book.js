@@ -67,11 +67,11 @@ type Mysql_bookEdge{
 
 
   type Query {
-    mysql_books(search: searchMysql_bookInput, order: [ orderMysql_bookInput ], pagination: paginationInput ): [mysql_book]
+    mysql_books(search: searchMysql_bookInput, order: [ orderMysql_bookInput ], pagination: paginationInput! ): [mysql_book]
     readOneMysql_book(id: ID!): mysql_book
     countMysql_books(search: searchMysql_bookInput ): Int
     vueTableMysql_book : VueTableMysql_book    csvTableTemplateMysql_book: [String]
-    mysql_booksConnection(search:searchMysql_bookInput, order: [ orderMysql_bookInput ], pagination: paginationCursorInput ): Mysql_bookConnection
+    mysql_booksConnection(search:searchMysql_bookInput, order: [ orderMysql_bookInput ], pagination: paginationCursorInput! ): Mysql_bookConnection
   }
 
   type Mutation {

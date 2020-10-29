@@ -36,7 +36,7 @@ module.exports = `
   }
 
   input paginationInput{
-    limit: Int
+    limit: Int!
     offset: Int
   }
 

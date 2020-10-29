@@ -98,7 +98,7 @@ module.exports = class int_post_author {
                 await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -132,7 +132,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return response.data.data.countInt_post_authors;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -141,7 +141,7 @@ module.exports = class int_post_author {
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query int_post_authors($search: searchInt_post_authorInput $pagination: paginationInput $order: [orderInt_post_authorInput]){
+        let query = `query int_post_authors($search: searchInt_post_authorInput $pagination: paginationInput! $order: [orderInt_post_authorInput]){
       int_post_authors(search:$search pagination:$pagination order:$order){id          name
                 lastname
                 email
@@ -168,14 +168,14 @@ module.exports = class int_post_author {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-            if (response && response.data && response.data.data) {
+            if (response && response.data && response.data.data && response.data.data.int_post_authors !== null) {
                 let data = response.data.data.int_post_authors;
                 data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
                     return new int_post_author(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -184,13 +184,7 @@ module.exports = class int_post_author {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let query = `query int_post_authorsConnection($search: searchInt_post_authorInput $pagination: paginationCursorInput $order: [orderInt_post_authorInput]){
+        let query = `query int_post_authorsConnection($search: searchInt_post_authorInput $pagination: paginationCursorInput! $order: [orderInt_post_authorInput]){
       int_post_authorsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  id  name
         lastname
         email
@@ -217,7 +211,7 @@ module.exports = class int_post_author {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-            if (response && response.data && response.data.data) {
+            if (response && response.data && response.data.data && response.data.data.int_post_authorsConnection !== null) {
                 let data_edges = response.data.data.int_post_authorsConnection.edges;
                 let pageInfo = response.data.data.int_post_authorsConnection.pageInfo;
 
@@ -238,7 +232,7 @@ module.exports = class int_post_author {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -286,7 +280,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return new int_post_author(response.data.data.addInt_post_author);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -322,7 +316,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return response.data.data.deleteInt_post_author;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -372,7 +366,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return new int_post_author(response.data.data.updateInt_post_author);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -476,7 +470,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return new int_post_author(response.data.data.updateInt_post_author);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -522,7 +516,7 @@ module.exports = class int_post_author {
             if (response && response.data && response.data.data) {
                 return new int_post_author(response.data.data.updateInt_post_author);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors

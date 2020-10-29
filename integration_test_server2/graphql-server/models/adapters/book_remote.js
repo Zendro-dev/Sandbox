@@ -54,7 +54,7 @@ module.exports = class book_remote {
             if (response && response.data && response.data.data) {
                 return response.data.data.readOneSq_book;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -87,7 +87,7 @@ module.exports = class book_remote {
             if (response && response.data && response.data.data) {
                 return response.data.data.countSq_books;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -97,12 +97,7 @@ module.exports = class book_remote {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-        let query = `query sq_booksConnection($search: searchSq_bookInput $pagination: paginationCursorInput $order: [orderSq_bookInput]){
+        let query = `query sq_booksConnection($search: searchSq_bookInput $pagination: paginationCursorInput! $order: [orderSq_bookInput]){
       sq_booksConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  id  title
          genre
          ISBN
@@ -126,10 +121,10 @@ module.exports = class book_remote {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-            if (response && response.data && response.data.data) {
+            if (response && response.data && response.data.data && response.data.data.sq_booksConnection !== null) {
                 return response.data.data.sq_booksConnection;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -168,7 +163,7 @@ module.exports = class book_remote {
             if (response && response.data && response.data.data) {
                 return response.data.data.addSq_book;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -196,7 +191,7 @@ module.exports = class book_remote {
             if (response && response.data && response.data.data) {
                 return response.data.data.deleteSq_book;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -239,7 +234,7 @@ module.exports = class book_remote {
             if (response && response.data && response.data.data) {
                 return response.data.data.updateSq_book;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors

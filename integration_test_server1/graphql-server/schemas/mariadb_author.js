@@ -67,11 +67,11 @@ type Mariadb_authorEdge{
 
 
   type Query {
-    mariadb_authors(search: searchMariadb_authorInput, order: [ orderMariadb_authorInput ], pagination: paginationInput ): [mariadb_author]
+    mariadb_authors(search: searchMariadb_authorInput, order: [ orderMariadb_authorInput ], pagination: paginationInput! ): [mariadb_author]
     readOneMariadb_author(id: ID!): mariadb_author
     countMariadb_authors(search: searchMariadb_authorInput ): Int
     vueTableMariadb_author : VueTableMariadb_author    csvTableTemplateMariadb_author: [String]
-    mariadb_authorsConnection(search:searchMariadb_authorInput, order: [ orderMariadb_authorInput ], pagination: paginationCursorInput ): Mariadb_authorConnection
+    mariadb_authorsConnection(search:searchMariadb_authorInput, order: [ orderMariadb_authorInput ], pagination: paginationCursorInput! ): Mariadb_authorConnection
   }
 
   type Mutation {

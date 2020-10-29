@@ -38,18 +38,20 @@ sq_book.prototype.authorsFilter = function({
 }, context) {
 
 
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.sq_author.idAttribute(),
-        "value": this.author_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.sq_authors({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if (this.author_ids.length !== 0) {
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": models.sq_author.idAttribute(),
+            "value": this.author_ids.join(','),
+            "valueType": "Array",
+            "operator": "in"
+        });
+        return resolvers.sq_authors({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    }
 }
 
 /**
@@ -64,6 +66,7 @@ sq_book.prototype.countFilteredAuthors = function({
 }, context) {
 
 
+    if (this.author_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.sq_author.idAttribute(),
@@ -94,18 +97,21 @@ sq_book.prototype.authorsConnection = function({
 }, context) {
 
 
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.sq_author.idAttribute(),
-        "value": this.author_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.sq_authorsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
+    if (this.author_ids.length !== 0) {
+        let nsearch = helper.addSearchField({
+            "search": search,
+            "field": models.sq_author.idAttribute(),
+            "value": this.author_ids.join(','),
+            "valueType": "Array",
+            "operator": "in"
+        });
+        return resolvers.sq_authorsConnection({
+            search: nsearch,
+            order: order,
+            pagination: pagination
+        }, context);
+    }
+
 }
 
 
@@ -137,13 +143,6 @@ sq_book.prototype.handleAssociations = async function(input, benignErrorReporter
  */
 sq_book.prototype.add_authors = async function(input, benignErrorReporter) {
 
-    //handle inverse association
-    let promises = [];
-    input.addAuthors.forEach(id => {
-        promises.push(models.sq_author.add_book_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
-
     await sq_book.add_author_ids(this.getIdValue(), input.addAuthors, benignErrorReporter);
     this.author_ids = helper.unionIds(this.author_ids, input.addAuthors);
 }
@@ -157,71 +156,12 @@ sq_book.prototype.add_authors = async function(input, benignErrorReporter) {
  */
 sq_book.prototype.remove_authors = async function(input, benignErrorReporter) {
 
-    //handle inverse association
-    let promises = [];
-    input.removeAuthors.forEach(id => {
-        promises.push(models.sq_author.remove_book_ids(id, [this.getIdValue()], benignErrorReporter));
-    });
-    await Promise.all(promises);
-
     await sq_book.remove_author_ids(this.getIdValue(), input.removeAuthors, benignErrorReporter);
     this.author_ids = helper.differenceIds(this.author_ids, input.removeAuthors);
 }
 
 
 
-
-/**
- * checkCountAndReduceRecordsLimit({search, pagination}, context, resolverName, modelName) - Make sure that the current
- * set of requested records does not exceed the record limit set in globals.js.
- *
- * @param {object} {search}  Search argument for filtering records
- * @param {object} {pagination}  If limit-offset pagination, this object will include 'offset' and 'limit' properties
- * to get the records from and to respectively. If cursor-based pagination, this object will include 'first' or 'last'
- * properties to indicate the number of records to fetch, and 'after' or 'before' cursors to indicate from which record
- * to start fetching.
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @param {string} resolverName The resolver that makes this check
- * @param {string} modelName The model to do the count
- */
-async function checkCountAndReduceRecordsLimit({
-    search,
-    pagination
-}, context, resolverName, modelName = 'sq_book') {
-    //defaults
-    let inputPaginationValues = {
-        limit: undefined,
-        offset: 0,
-        search: undefined,
-        order: [
-            ["id", "ASC"]
-        ],
-    }
-
-    //check search
-    helper.checkSearchArgument(search);
-    if (search) inputPaginationValues.search = {
-        ...search
-    }; //copy
-
-    //get generic pagination values
-    let paginationValues = helper.getGenericPaginationValues(pagination, "id", inputPaginationValues);
-    //get records count
-    let count = (await models[modelName].countRecords(paginationValues.search));
-    //get effective records count
-    let effectiveCount = helper.getEffectiveRecordsCount(count, paginationValues.limit, paginationValues.offset);
-    //do check and reduce of record limit.
-    helper.checkCountAndReduceRecordLimitHelper(effectiveCount, context, resolverName);
-}
-
-/**
- * checkCountForOneAndReduceRecordsLimit(context) - Make sure that the record limit is not exhausted before requesting a single record
- *
- * @param {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- */
-function checkCountForOneAndReduceRecordsLimit(context) {
-    helper.checkCountAndReduceRecordLimitHelper(1, context, "readOneSq_book")
-}
 /**
  * countAllAssociatedRecords - Count records associated with another given record
  *
@@ -281,10 +221,7 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'sq_book', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "sq_books");
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "sq_books");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sq_book.readAll(search, order, pagination, benignErrorReporter);
         } else {
@@ -308,10 +245,9 @@ module.exports = {
         pagination
     }, context) {
         if (await checkAuthorization(context, 'sq_book', 'read') === true) {
-            await checkCountAndReduceRecordsLimit({
-                search,
-                pagination
-            }, context, "sq_booksConnection");
+            helper.checkCursorBasedPaginationArgument(pagination);
+            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+            helper.checkCountAndReduceRecordsLimit(limit, context, "sq_booksConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sq_book.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
@@ -330,7 +266,7 @@ module.exports = {
         id
     }, context) {
         if (await checkAuthorization(context, 'sq_book', 'read') === true) {
-            checkCountForOneAndReduceRecordsLimit(context);
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneSq_book");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return await sq_book.readById(id, benignErrorReporter);
         } else {

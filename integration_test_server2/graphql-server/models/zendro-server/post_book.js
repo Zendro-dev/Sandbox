@@ -98,7 +98,7 @@ module.exports = class post_book {
                 await validatorUtil.validateData('validateAfterRead', this, item);
                 return item;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -132,7 +132,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return response.data.data.countPost_books;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -141,7 +141,7 @@ module.exports = class post_book {
     }
 
     static async readAll(search, order, pagination, benignErrorReporter) {
-        let query = `query post_books($search: searchPost_bookInput $pagination: paginationInput $order: [orderPost_bookInput]){
+        let query = `query post_books($search: searchPost_bookInput $pagination: paginationInput! $order: [orderPost_bookInput]){
       post_books(search:$search pagination:$pagination order:$order){id          title
                 genre
                 ISBN
@@ -168,14 +168,14 @@ module.exports = class post_book {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-            if (response && response.data && response.data.data) {
+            if (response && response.data && response.data.data && response.data.data.post_books !== null) {
                 let data = response.data.data.post_books;
                 data = await validatorUtil.bulkValidateData('validateAfterRead', this, data, benignErrorReporter);
                 return data.map(item => {
                     return new post_book(item)
                 });
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -184,13 +184,7 @@ module.exports = class post_book {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let query = `query post_booksConnection($search: searchPost_bookInput $pagination: paginationCursorInput $order: [orderPost_bookInput]){
+        let query = `query post_booksConnection($search: searchPost_bookInput $pagination: paginationCursorInput! $order: [orderPost_bookInput]){
       post_booksConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  id  title
         genre
         ISBN
@@ -217,7 +211,7 @@ module.exports = class post_book {
             // STATUS-CODE is 200
             // NO ERROR as such has been detected by the server (Express)
             // check if data was send
-            if (response && response.data && response.data.data) {
+            if (response && response.data && response.data.data && response.data.data.post_booksConnection !== null) {
                 let data_edges = response.data.data.post_booksConnection.edges;
                 let pageInfo = response.data.data.post_booksConnection.pageInfo;
 
@@ -238,7 +232,7 @@ module.exports = class post_book {
                     pageInfo
                 };
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -286,7 +280,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return new post_book(response.data.data.addPost_book);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -322,7 +316,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return response.data.data.deletePost_book;
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -372,7 +366,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return new post_book(response.data.data.updatePost_book);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -476,7 +470,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return new post_book(response.data.data.updatePost_book);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors
@@ -522,7 +516,7 @@ module.exports = class post_book {
             if (response && response.data && response.data.data) {
                 return new post_book(response.data.data.updatePost_book);
             } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
             }
         } catch (error) {
             //handle caught errors

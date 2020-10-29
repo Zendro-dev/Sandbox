@@ -67,11 +67,11 @@ type Mysql_authorEdge{
 
 
   type Query {
-    mysql_authors(search: searchMysql_authorInput, order: [ orderMysql_authorInput ], pagination: paginationInput ): [mysql_author]
+    mysql_authors(search: searchMysql_authorInput, order: [ orderMysql_authorInput ], pagination: paginationInput! ): [mysql_author]
     readOneMysql_author(id: ID!): mysql_author
     countMysql_authors(search: searchMysql_authorInput ): Int
     vueTableMysql_author : VueTableMysql_author    csvTableTemplateMysql_author: [String]
-    mysql_authorsConnection(search:searchMysql_authorInput, order: [ orderMysql_authorInput ], pagination: paginationCursorInput ): Mysql_authorConnection
+    mysql_authorsConnection(search:searchMysql_authorInput, order: [ orderMysql_authorInput ], pagination: paginationCursorInput! ): Mysql_authorConnection
   }
 
   type Mutation {
