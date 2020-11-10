@@ -179,7 +179,8 @@ module.exports = class post_author extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            authors: records
         };
     }
 

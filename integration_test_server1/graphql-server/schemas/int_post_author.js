@@ -6,29 +6,29 @@ module.exports = `
     id: ID
     """
     @original-field
-    
+
     """
     name: String
 
     """
     @original-field
-    
+
     """
     lastname: String
 
     """
     @original-field
-    
+
     """
     email: String
 
     """
     @original-field
-    
+
     """
     book_ids: [Int]
 
-      
+
     """
     @search-request
     """
@@ -44,10 +44,11 @@ module.exports = `
     @count-request
     """
     countFilteredBooks(search: searchInt_post_bookInput) : Int
-  
+
     }
 type Int_post_authorConnection{
   edges: [Int_post_authorEdge]
+  authors: [int_post_author]
   pageInfo: pageInfo!
 }
 
