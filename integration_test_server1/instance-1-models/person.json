@@ -1,0 +1,49 @@
+{
+    "model" : "person",
+    "storageType" : "sql",
+    "database": "default-sql",
+    "attributes" : {
+        "id": "String",
+        "name": "String",
+        "age": "Int",
+        "email":"String",
+        "parents_id": "[String]",
+        "children_id": "[String]",
+        "friends_id": "[String]"
+    },
+
+    "associations":{
+      "friends":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "person",
+        "targetKey": "friends_id",
+        "sourceKey": "friends_id",
+        "keyIn": "person",
+        "targetStorageType": "sql"
+      },
+
+      "parents":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "person",
+        "targetKey": "children_id",
+        "sourceKey": "parents_id",
+        "keyIn": "person",
+        "targetStorageType": "sql"
+      },
+
+      "children":{
+        "type": "to_many",
+        "reverseAssociationType": "to_many",
+        "target": "person",
+        "targetKey": "parents_id",
+        "sourceKey": "children_id",
+        "keyIn": "person",
+        "targetStorageType": "sql"
+      }
+
+    },
+
+    "internalId": "id"
+}

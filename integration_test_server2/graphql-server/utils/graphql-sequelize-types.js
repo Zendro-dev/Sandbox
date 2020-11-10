@@ -11,6 +11,11 @@ module.exports = {
   "Date": "DATEONLY",
   "Time": "TIME",
   "DateTime": "DATE",
-  "[String]": "JSON",
-  "[Int]": "JSON"
+  "[String]": "TEXT",
+  "[Int]": "TEXT",
+  "[Float]": "TEXT",
+  "[Boolean]": "TEXT",
+  "[Date]": "TEXT",
+  "[Time]": "TEXT",
+  "[DateTime]": "TEXT"
 }

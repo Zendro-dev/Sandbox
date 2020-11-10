@@ -39,7 +39,8 @@ module.exports = {
                 type: Sequelize[dict['String']]
             },
             author_ids: {
-                type: Sequelize[dict['[Int]']]
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
             }
 
         });

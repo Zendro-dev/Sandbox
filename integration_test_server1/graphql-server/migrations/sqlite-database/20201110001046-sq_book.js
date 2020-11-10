@@ -14,7 +14,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('sq_authors', {
+        return queryInterface.createTable('sq_books', {
 
             id: {
                 type: Sequelize.STRING,
@@ -29,17 +29,18 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            name: {
+            title: {
                 type: Sequelize[dict['String']]
             },
-            lastname: {
+            genre: {
                 type: Sequelize[dict['String']]
             },
-            email: {
+            ISBN: {
                 type: Sequelize[dict['String']]
             },
-            book_ids: {
-                type: Sequelize[dict['[String]']]
+            author_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             }
 
         });
@@ -53,7 +54,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('sq_authors');
+        return queryInterface.dropTable('sq_books');
     }
 
 };

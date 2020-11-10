@@ -75,7 +75,7 @@ module.exports = class post_book extends Sequelize.Model {
             },
             author_ids: {
                 type: Sequelize[dict['[String]']],
-                defaultValue: []
+                defaultValue: '[]'
             }
 
 
@@ -94,6 +94,36 @@ module.exports = class post_book extends Sequelize.Model {
         return this.sequelize;
     }
 
+    /**
+     * Cast array to JSON string for the storage.
+     * @param  {object} record  Original data record.
+     * @return {object}         Record with JSON string if necessary.
+     */
+    static preWriteCast(record) {
+        for (let attr in definition.attributes) {
+            let type = definition.attributes[attr].replace(/\s+/g, '');
+            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
+                record[attr] = JSON.stringify(record[attr]);
+            }
+        }
+        return record;
+    }
+
+    /**
+     * Cast JSON string to array for the validation.
+     * @param  {object} record  Record with JSON string if necessary.
+     * @return {object}         Parsed data record.
+     */
+    static postReadCast(record) {
+        for (let attr in definition.attributes) {
+            let type = definition.attributes[attr].replace(/\s+/g, '');
+            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
+                record[attr] = JSON.parse(record[attr]);
+            }
+        }
+        return record;
+    }
+
     static associate(models) {}
 
     static async readById(id) {
@@ -101,6 +131,7 @@ module.exports = class post_book extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
+        item = post_book.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
@@ -116,6 +147,7 @@ module.exports = class post_book extends Sequelize.Model {
         // build the sequelize options object for limit-offset-based pagination
         let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
+        records = records.map(x => post_book.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -127,6 +159,9 @@ module.exports = class post_book extends Sequelize.Model {
         // build the sequelize options object for cursor-based pagination
         let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
+
+        records = records.map(x => post_book.postReadCast(x))
+
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
         // get the first record (if exists) in the opposite direction to determine pageInfo.
@@ -151,6 +186,7 @@ module.exports = class post_book extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
+        input = post_book.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -158,6 +194,8 @@ module.exports = class post_book extends Sequelize.Model {
                 });
                 return item;
             });
+            post_book.postReadCast(result.dataValues)
+            post_book.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -183,6 +221,7 @@ module.exports = class post_book extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
+        input = post_book.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -195,7 +234,8 @@ module.exports = class post_book extends Sequelize.Model {
                 });
                 return updated;
             });
-
+            post_book.postReadCast(result.dataValues)
+            post_book.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -289,7 +329,8 @@ module.exports = class post_book extends Sequelize.Model {
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(record.author_ids, author_ids);
+            let updated_ids = helper.unionIds(JSON.parse(record.author_ids), author_ids);
+            updated_ids = JSON.stringify(updated_ids);
             await record.update({
                 author_ids: updated_ids
             });
@@ -314,7 +355,8 @@ module.exports = class post_book extends Sequelize.Model {
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(record.author_ids, author_ids);
+            let updated_ids = helper.differenceIds(JSON.parse(record.author_ids), author_ids);
+            updated_ids = JSON.stringify(updated_ids);
             await record.update({
                 author_ids: updated_ids
             });

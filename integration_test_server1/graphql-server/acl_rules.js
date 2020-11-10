@@ -324,6 +324,37 @@ module.exports = {
                 permissions: 'delete'
             }]
         },
+        /**
+         * Model: person
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'person',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'person',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'person',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'person',
+                permissions: 'delete'
+            }]
+        },
 
         //adapters
     ]

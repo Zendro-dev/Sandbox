@@ -6,49 +6,55 @@ const ajv = validatorUtil.addDateTimeAjvKeywords(new Ajv({
 }))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(int_post_book) {
+module.exports.validator_patch = function(person) {
 
-    int_post_book.prototype.validationControl = {
+    person.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    int_post_book.prototype.validatorSchema = {
+    person.prototype.validatorSchema = {
         "$async": true,
         "properties": {
             "id": {
+                "type": ["string", "null"]
+            },
+            "name": {
+                "type": ["string", "null"]
+            },
+            "age": {
                 "type": ["integer", "null"]
             },
-            "title": {
+            "email": {
                 "type": ["string", "null"]
             },
-            "genre": {
-                "type": ["string", "null"]
+            "parents_id": {
+                "type": ["array", "null"]
             },
-            "ISBN": {
-                "type": ["string", "null"]
+            "children_id": {
+                "type": ["array", "null"]
             },
-            "author_ids": {
+            "friends_id": {
                 "type": ["array", "null"]
             }
         }
     }
 
-    int_post_book.prototype.asyncValidate = ajv.compile(
-        int_post_book.prototype.validatorSchema
+    person.prototype.asyncValidate = ajv.compile(
+        person.prototype.validatorSchema
     )
 
-    int_post_book.prototype.validateForCreate = async function(record) {
-        return await int_post_book.prototype.asyncValidate(record)
+    person.prototype.validateForCreate = async function(record) {
+        return await person.prototype.asyncValidate(record)
     }
 
-    int_post_book.prototype.validateForUpdate = async function(record) {
-        return await int_post_book.prototype.asyncValidate(record)
+    person.prototype.validateForUpdate = async function(record) {
+        return await person.prototype.asyncValidate(record)
     }
 
-    int_post_book.prototype.validateForDelete = async function(id) {
+    person.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -59,9 +65,9 @@ module.exports.validator_patch = function(int_post_book) {
         }
     }
 
-    int_post_book.prototype.validateAfterRead = async function(record) {
-        return await int_post_book.prototype.asyncValidate(record)
+    person.prototype.validateAfterRead = async function(record) {
+        return await person.prototype.asyncValidate(record)
     }
 
-    return int_post_book
+    return person
 }

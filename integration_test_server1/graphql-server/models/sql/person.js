@@ -19,24 +19,44 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'sq_book',
+    model: 'person',
     storageType: 'sql',
-    database: 'sqlite-database',
+    database: 'default-sql',
     attributes: {
         id: 'String',
-        title: 'String',
-        genre: 'String',
-        ISBN: 'String',
-        author_ids: '[ String]'
+        name: 'String',
+        age: 'Int',
+        email: 'String',
+        parents_id: '[String]',
+        children_id: '[String]',
+        friends_id: '[String]'
     },
     associations: {
-        authors: {
+        friends: {
             type: 'to_many',
             reverseAssociationType: 'to_many',
-            target: 'sq_author',
-            targetKey: 'book_ids',
-            sourceKey: 'author_ids',
-            keyIn: 'sq_book',
+            target: 'person',
+            targetKey: 'friends_id',
+            sourceKey: 'friends_id',
+            keyIn: 'person',
+            targetStorageType: 'sql'
+        },
+        parents: {
+            type: 'to_many',
+            reverseAssociationType: 'to_many',
+            target: 'person',
+            targetKey: 'children_id',
+            sourceKey: 'parents_id',
+            keyIn: 'person',
+            targetStorageType: 'sql'
+        },
+        children: {
+            type: 'to_many',
+            reverseAssociationType: 'to_many',
+            target: 'person',
+            targetKey: 'parents_id',
+            sourceKey: 'children_id',
+            keyIn: 'person',
             targetStorageType: 'sql'
         }
     },
@@ -55,7 +75,7 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class sq_book extends Sequelize.Model {
+module.exports = class person extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
@@ -64,24 +84,32 @@ module.exports = class sq_book extends Sequelize.Model {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            title: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            genre: {
+            age: {
+                type: Sequelize[dict['Int']]
+            },
+            email: {
                 type: Sequelize[dict['String']]
             },
-            ISBN: {
-                type: Sequelize[dict['String']]
+            parents_id: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             },
-            author_ids: {
+            children_id: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            friends_id: {
                 type: Sequelize[dict['[String]']],
                 defaultValue: '[]'
             }
 
 
         }, {
-            modelName: "sq_book",
-            tableName: "sq_books",
+            modelName: "person",
+            tableName: "people",
             sequelize
         });
     }
@@ -127,11 +155,11 @@ module.exports = class sq_book extends Sequelize.Model {
     static associate(models) {}
 
     static async readById(id) {
-        let item = await sq_book.findByPk(id);
+        let item = await person.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        item = sq_book.postReadCast(item)
+        item = person.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
@@ -147,7 +175,7 @@ module.exports = class sq_book extends Sequelize.Model {
         // build the sequelize options object for limit-offset-based pagination
         let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
-        records = records.map(x => sq_book.postReadCast(x))
+        records = records.map(x => person.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -160,7 +188,7 @@ module.exports = class sq_book extends Sequelize.Model {
         let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
         let records = await super.findAll(options);
 
-        records = records.map(x => sq_book.postReadCast(x))
+        records = records.map(x => person.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -186,7 +214,7 @@ module.exports = class sq_book extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = sq_book.preWriteCast(input)
+        input = person.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -194,8 +222,8 @@ module.exports = class sq_book extends Sequelize.Model {
                 });
                 return item;
             });
-            sq_book.postReadCast(result.dataValues)
-            sq_book.postReadCast(result._previousDataValues)
+            person.postReadCast(result.dataValues)
+            person.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -221,7 +249,7 @@ module.exports = class sq_book extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = sq_book.preWriteCast(input)
+        input = person.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -234,8 +262,8 @@ module.exports = class sq_book extends Sequelize.Model {
                 });
                 return updated;
             });
-            sq_book.postReadCast(result.dataValues)
-            sq_book.postReadCast(result._previousDataValues)
+            person.postReadCast(result.dataValues)
+            person.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -293,7 +321,7 @@ module.exports = class sq_book extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of sq_book records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of person records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -312,53 +340,153 @@ module.exports = class sq_book extends Sequelize.Model {
 
 
     /**
-     * add_author_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     * add_friends_id - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   friends_id Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+    static async add_friends_id(id, friends_id, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            author_ids.forEach(idx => {
-                promises.push(models.sq_author.add_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            friends_id.forEach(idx => {
+                promises.push(models.person.add_friends_id(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.author_ids), author_ids);
+            let updated_ids = helper.unionIds(JSON.parse(record.friends_id), friends_id);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                author_ids: updated_ids
+                friends_id: updated_ids
+            });
+        }
+    }
+    /**
+     * add_parents_id - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   parents_id Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_parents_id(id, parents_id, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            parents_id.forEach(idx => {
+                promises.push(models.person.add_children_id(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.parents_id), parents_id);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                parents_id: updated_ids
+            });
+        }
+    }
+    /**
+     * add_children_id - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   children_id Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_children_id(id, children_id, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            children_id.forEach(idx => {
+                promises.push(models.person.add_parents_id(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.children_id), children_id);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                children_id: updated_ids
             });
         }
     }
 
     /**
-     * remove_author_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     * remove_friends_id - field Mutation (model-layer) for to_many associationsArguments to remove
      *
      * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Array}   author_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Array}   friends_id Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_author_ids(id, author_ids, benignErrorReporter, handle_inverse = true) {
+    static async remove_friends_id(id, friends_id, benignErrorReporter, handle_inverse = true) {
         //handle inverse association
         if (handle_inverse) {
             let promises = [];
-            author_ids.forEach(idx => {
-                promises.push(models.sq_author.remove_book_ids(idx, [`${id}`], benignErrorReporter, false));
+            friends_id.forEach(idx => {
+                promises.push(models.person.remove_friends_id(idx, [`${id}`], benignErrorReporter, false));
             });
             await Promise.all(promises);
         }
 
         let record = await super.findByPk(id);
         if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.author_ids), author_ids);
+            let updated_ids = helper.differenceIds(JSON.parse(record.friends_id), friends_id);
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
-                author_ids: updated_ids
+                friends_id: updated_ids
+            });
+        }
+    }
+    /**
+     * remove_parents_id - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   parents_id Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_parents_id(id, parents_id, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            parents_id.forEach(idx => {
+                promises.push(models.person.remove_children_id(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.parents_id), parents_id);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                parents_id: updated_ids
+            });
+        }
+    }
+    /**
+     * remove_children_id - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Array}   children_id Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_children_id(id, children_id, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            children_id.forEach(idx => {
+                promises.push(models.person.remove_parents_id(idx, [`${id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.children_id), children_id);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                children_id: updated_ids
             });
         }
     }
@@ -376,7 +504,7 @@ module.exports = class sq_book extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return sq_book.definition.id.name;
+        return person.definition.id.name;
     }
 
     /**
@@ -385,16 +513,16 @@ module.exports = class sq_book extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return sq_book.definition.id.type;
+        return person.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of sq_book.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of person.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[sq_book.idAttribute()]
+        return this[person.idAttribute()]
     }
 
     static get definition() {
@@ -410,7 +538,7 @@ module.exports = class sq_book extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(sq_book.definition.attributes);
+        let attributes = Object.keys(person.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
