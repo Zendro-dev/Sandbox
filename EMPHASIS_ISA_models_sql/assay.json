@@ -1,0 +1,78 @@
+{
+  "model": "assay",
+  "storageType": "sql",
+  "attributes": {
+    "assay_id": "String",
+    "measurement": "String",
+    "technology": "String",
+    "platform": "String",
+    "method": "String",
+
+    "study_id": "String",
+    "factor_ids": "[String]",
+    "material_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "study": {
+      "type": "to_one",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "study_id",
+      "keyIn": "assay",
+      "label": "name"
+    },
+    "assayResults": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "assayResult",
+      "targetKey": "assay_id",
+      "keyIn": "assayResult",
+      "label": "value_as_str"
+    },
+    "factors": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "assay_ids",
+      "sourceKey": "factor_ids",
+      "keyIn": "assay",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+
+    },
+    "materials": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "assay_ids",
+      "sourceKey": "material_ids",
+      "keyIn": "assay",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "ontologyAnnotations": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "assay_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keyIn": "assay",
+      "reverseAssociationType": "to_many",
+      "label": "ontology"
+
+    },
+    "fileAttachments": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "assay_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keyIn": "assay",
+      "reverseAssociationType": "to_many",
+      "label": "fileName"
+    }
+  },
+  "internalId": "assay_id"
+}

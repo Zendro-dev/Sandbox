@@ -1,0 +1,135 @@
+mutation {
+  i1: addInvestigation(
+    investigation_id:"phenomis/investigations/1",
+    title:"Arabidopsis drought response",
+    description:"This investigation aims at investigation arabidopsis response to drought stress by measuring leaf area and leaf dry weight",
+    startDate:"2018-12-03",
+    endDate:"2019-03-05",
+  ) {
+    title
+  }
+  
+  s1: addStudy(
+    study_id:"phenomis/studies/1",
+    name: "arabidopsis 3 geneotypes expose to drought stress",
+    description:"expose columbia-0, oxford, and martian to two weeks drought and measure leaf area and leaf dry weight",
+    startDate:"2018-12-03",
+    endDate:"2019-03-05",
+    addInvestigation:"phenomis/investigations/1"
+  ) {
+    study_id
+  }
+  
+  a1: addAssay(
+    assay_id:"phenomis/assays/1"
+    measurement:"total leaf area"
+    method:"manual"
+    addStudy:"phenomis/studies/1"
+  ) {
+    assay_id
+  }
+  
+  a2: addAssay(
+    assay_id:"phenomis/assays/2"
+    measurement:"total leaf dry weight"
+    method:"manual"
+    addStudy:"phenomis/studies/1"
+  ) {
+    assay_id
+  }
+  
+  m1: addMaterial(material_id:"phenomis/materials/1",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual1",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m2: addMaterial(material_id:"phenomis/materials/2",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual2",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m3: addMaterial(material_id:"phenomis/materials/3",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual3",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m4: addMaterial(material_id:"phenomis/materials/4",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual4",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m5: addMaterial(material_id:"phenomis/materials/5",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual5",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m6: addMaterial(material_id:"phenomis/materials/6",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual6",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m7: addMaterial(material_id:"phenomis/materials/7",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual7",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m8: addMaterial(material_id:"phenomis/materials/8",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual8",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m9: addMaterial(material_id:"phenomis/materials/9",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual9",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m10: addMaterial(material_id:"phenomis/materials/10",description:"columbia-0",name:"arabidopsis thaliana columbia-0 individual10",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+
+  m11: addMaterial(material_id:"phenomis/materials/11",description:"oxford",name:"arabidopsis thaliana oxford individual1",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m12: addMaterial(material_id:"phenomis/materials/12",description:"oxford",name:"arabidopsis thaliana oxford individual2",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m13: addMaterial(material_id:"phenomis/materials/13",description:"oxford",name:"arabidopsis thaliana oxford individual3",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m14: addMaterial(material_id:"phenomis/materials/14",description:"oxford",name:"arabidopsis thaliana oxford individual4",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m15: addMaterial(material_id:"phenomis/materials/15",description:"oxford",name:"arabidopsis thaliana oxford individual5",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m16: addMaterial(material_id:"phenomis/materials/16",description:"oxford",name:"arabidopsis thaliana oxford individual6",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m17: addMaterial(material_id:"phenomis/materials/17",description:"oxford",name:"arabidopsis thaliana oxford individual7",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m18: addMaterial(material_id:"phenomis/materials/18",description:"oxford",name:"arabidopsis thaliana oxford individual8",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m19: addMaterial(material_id:"phenomis/materials/19",description:"oxford",name:"arabidopsis thaliana oxford individual9",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m20: addMaterial(material_id:"phenomis/materials/20",description:"oxford",name:"arabidopsis thaliana oxford individual10",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+
+  m21: addMaterial(material_id:"phenomis/materials/21",description:"martian",name:"arabidopsis thaliana martian individual1",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m22: addMaterial(material_id:"phenomis/materials/22",description:"martian",name:"arabidopsis thaliana martian individual2",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m23: addMaterial(material_id:"phenomis/materials/23",description:"martian",name:"arabidopsis thaliana martian individual3",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m24: addMaterial(material_id:"phenomis/materials/24",description:"martian",name:"arabidopsis thaliana martian individual4",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m25: addMaterial(material_id:"phenomis/materials/25",description:"martian",name:"arabidopsis thaliana martian individual5",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m26: addMaterial(material_id:"phenomis/materials/26",description:"martian",name:"arabidopsis thaliana martian individual6",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m27: addMaterial(material_id:"phenomis/materials/27",description:"martian",name:"arabidopsis thaliana martian individual7",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m28: addMaterial(material_id:"phenomis/materials/28",description:"martian",name:"arabidopsis thaliana martian individual8",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m29: addMaterial(material_id:"phenomis/materials/29",description:"martian",name:"arabidopsis thaliana martian individual9",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	m30: addMaterial(material_id:"phenomis/materials/30",description:"martian",name:"arabidopsis thaliana martian individual10",type:"plant",addStudies:"phenomis/studies/1",addAssays:["phenomis/assays/1","phenomis/assays/2"]) {material_id}
+	
+	aR1: addAssayResult( assayResult_id:"phenomis/assayResults/1", unit:"g", value_as_float: 0.15, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/1" ){ assay_id }
+aR2: addAssayResult( assayResult_id:"phenomis/assayResults/2", unit:"g", value_as_float: 0.51, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/2" ){ assay_id }
+aR3: addAssayResult( assayResult_id:"phenomis/assayResults/3", unit:"g", value_as_float: 0.70, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/3" ){ assay_id }
+aR4: addAssayResult( assayResult_id:"phenomis/assayResults/4", unit:"g", value_as_float: 0.51, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/4" ){ assay_id }
+aR5: addAssayResult( assayResult_id:"phenomis/assayResults/5", unit:"g", value_as_float: 0.07, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/5" ){ assay_id }
+aR6: addAssayResult( assayResult_id:"phenomis/assayResults/6", unit:"g", value_as_float: 0.37, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/6" ){ assay_id }
+aR7: addAssayResult( assayResult_id:"phenomis/assayResults/7", unit:"g", value_as_float: 0.50, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/7" ){ assay_id }
+aR8: addAssayResult( assayResult_id:"phenomis/assayResults/8", unit:"g", value_as_float: 0.49, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/8" ){ assay_id }
+aR9: addAssayResult( assayResult_id:"phenomis/assayResults/9", unit:"g", value_as_float: 0.21, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/9" ){ assay_id }
+aR10: addAssayResult( assayResult_id:"phenomis/assayResults/10", unit:"g", value_as_float: 0.54, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/10" ){ assay_id }
+aR11: addAssayResult( assayResult_id:"phenomis/assayResults/11", unit:"g", value_as_float: 0.98, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/11" ){ assay_id }
+aR12: addAssayResult( assayResult_id:"phenomis/assayResults/12", unit:"g", value_as_float: 0.94, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/12" ){ assay_id }
+aR13: addAssayResult( assayResult_id:"phenomis/assayResults/13", unit:"g", value_as_float: 1.05, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/13" ){ assay_id }
+aR14: addAssayResult( assayResult_id:"phenomis/assayResults/14", unit:"g", value_as_float: 0.76, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/14" ){ assay_id }
+aR15: addAssayResult( assayResult_id:"phenomis/assayResults/15", unit:"g", value_as_float: 0.74, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/15" ){ assay_id }
+aR16: addAssayResult( assayResult_id:"phenomis/assayResults/16", unit:"g", value_as_float: 0.58, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/16" ){ assay_id }
+aR17: addAssayResult( assayResult_id:"phenomis/assayResults/17", unit:"g", value_as_float: 0.94, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/17" ){ assay_id }
+aR18: addAssayResult( assayResult_id:"phenomis/assayResults/18", unit:"g", value_as_float: 0.77, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/18" ){ assay_id }
+aR19: addAssayResult( assayResult_id:"phenomis/assayResults/19", unit:"g", value_as_float: 0.97, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/19" ){ assay_id }
+aR20: addAssayResult( assayResult_id:"phenomis/assayResults/20", unit:"g", value_as_float: 0.71, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/20" ){ assay_id }
+aR21: addAssayResult( assayResult_id:"phenomis/assayResults/21", unit:"g", value_as_float: 1.62, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/21" ){ assay_id }
+aR22: addAssayResult( assayResult_id:"phenomis/assayResults/22", unit:"g", value_as_float: 1.01, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/22" ){ assay_id }
+aR23: addAssayResult( assayResult_id:"phenomis/assayResults/23", unit:"g", value_as_float: 1.59, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/23" ){ assay_id }
+aR24: addAssayResult( assayResult_id:"phenomis/assayResults/24", unit:"g", value_as_float: 1.30, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/24" ){ assay_id }
+aR25: addAssayResult( assayResult_id:"phenomis/assayResults/25", unit:"g", value_as_float: 1.07, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/25" ){ assay_id }
+aR26: addAssayResult( assayResult_id:"phenomis/assayResults/26", unit:"g", value_as_float: 1.27, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/26" ){ assay_id }
+aR27: addAssayResult( assayResult_id:"phenomis/assayResults/27", unit:"g", value_as_float: 1.06, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/27" ){ assay_id }
+aR28: addAssayResult( assayResult_id:"phenomis/assayResults/28", unit:"g", value_as_float: 1.06, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/28" ){ assay_id }
+aR29: addAssayResult( assayResult_id:"phenomis/assayResults/29", unit:"g", value_as_float: 1.18, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/29" ){ assay_id }
+aR30: addAssayResult( assayResult_id:"phenomis/assayResults/30", unit:"g", value_as_float: 1.67, addAssay: "phenomis/assays/2", addObservedMaterial: "phenomis/materials/30" ){ assay_id }
+aR31: addAssayResult( assayResult_id:"phenomis/assayResults/31", unit:"cm2", value_as_float: 447.75, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/1" ){ assay_id }
+aR32: addAssayResult( assayResult_id:"phenomis/assayResults/32", unit:"cm2", value_as_float: 419.05, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/2" ){ assay_id }
+aR33: addAssayResult( assayResult_id:"phenomis/assayResults/33", unit:"cm2", value_as_float: 450.16, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/3" ){ assay_id }
+aR34: addAssayResult( assayResult_id:"phenomis/assayResults/34", unit:"cm2", value_as_float: 443.38, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/4" ){ assay_id }
+aR35: addAssayResult( assayResult_id:"phenomis/assayResults/35", unit:"cm2", value_as_float: 439.76, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/5" ){ assay_id }
+aR36: addAssayResult( assayResult_id:"phenomis/assayResults/36", unit:"cm2", value_as_float: 424.99, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/6" ){ assay_id }
+aR37: addAssayResult( assayResult_id:"phenomis/assayResults/37", unit:"cm2", value_as_float: 453.85, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/7" ){ assay_id }
+aR38: addAssayResult( assayResult_id:"phenomis/assayResults/38", unit:"cm2", value_as_float: 473.62, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/8" ){ assay_id }
+aR39: addAssayResult( assayResult_id:"phenomis/assayResults/39", unit:"cm2", value_as_float: 420.70, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/9" ){ assay_id }
+aR40: addAssayResult( assayResult_id:"phenomis/assayResults/40", unit:"cm2", value_as_float: 435.39, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/10" ){ assay_id }
+aR41: addAssayResult( assayResult_id:"phenomis/assayResults/41", unit:"cm2", value_as_float: 447.07, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/11" ){ assay_id }
+aR42: addAssayResult( assayResult_id:"phenomis/assayResults/42", unit:"cm2", value_as_float: 408.55, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/12" ){ assay_id }
+aR43: addAssayResult( assayResult_id:"phenomis/assayResults/43", unit:"cm2", value_as_float: 451.42, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/13" ){ assay_id }
+aR44: addAssayResult( assayResult_id:"phenomis/assayResults/44", unit:"cm2", value_as_float: 456.34, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/14" ){ assay_id }
+aR45: addAssayResult( assayResult_id:"phenomis/assayResults/45", unit:"cm2", value_as_float: 452.64, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/15" ){ assay_id }
+aR46: addAssayResult( assayResult_id:"phenomis/assayResults/46", unit:"cm2", value_as_float: 437.07, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/16" ){ assay_id }
+aR47: addAssayResult( assayResult_id:"phenomis/assayResults/47", unit:"cm2", value_as_float: 463.20, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/17" ){ assay_id }
+aR48: addAssayResult( assayResult_id:"phenomis/assayResults/48", unit:"cm2", value_as_float: 449.11, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/18" ){ assay_id }
+aR49: addAssayResult( assayResult_id:"phenomis/assayResults/49", unit:"cm2", value_as_float: 470.56, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/19" ){ assay_id }
+aR50: addAssayResult( assayResult_id:"phenomis/assayResults/50", unit:"cm2", value_as_float: 393.15, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/20" ){ assay_id }
+aR51: addAssayResult( assayResult_id:"phenomis/assayResults/51", unit:"cm2", value_as_float: 502.02, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/21" ){ assay_id }
+aR52: addAssayResult( assayResult_id:"phenomis/assayResults/52", unit:"cm2", value_as_float: 458.19, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/22" ){ assay_id }
+aR53: addAssayResult( assayResult_id:"phenomis/assayResults/53", unit:"cm2", value_as_float: 489.41, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/23" ){ assay_id }
+aR54: addAssayResult( assayResult_id:"phenomis/assayResults/54", unit:"cm2", value_as_float: 459.37, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/24" ){ assay_id }
+aR55: addAssayResult( assayResult_id:"phenomis/assayResults/55", unit:"cm2", value_as_float: 473.60, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/25" ){ assay_id }
+aR56: addAssayResult( assayResult_id:"phenomis/assayResults/56", unit:"cm2", value_as_float: 492.23, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/26" ){ assay_id }
+aR57: addAssayResult( assayResult_id:"phenomis/assayResults/57", unit:"cm2", value_as_float: 464.59, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/27" ){ assay_id }
+aR58: addAssayResult( assayResult_id:"phenomis/assayResults/58", unit:"cm2", value_as_float: 466.66, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/28" ){ assay_id }
+aR59: addAssayResult( assayResult_id:"phenomis/assayResults/59", unit:"cm2", value_as_float: 476.02, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/29" ){ assay_id }
+aR60: addAssayResult( assayResult_id:"phenomis/assayResults/60", unit:"cm2", value_as_float: 467.70, addAssay: "phenomis/assays/1", addObservedMaterial: "phenomis/materials/30" ){ assay_id }
+
+}

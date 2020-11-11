@@ -1,0 +1,96 @@
+
+{
+  "model": "fileAttachment",
+  "storageType": "sql",
+  "attributes": {
+    "fileAttachment_id": "String",
+    "fileName": "String",
+    "mimeType": "String",
+    "fileSizeKb": "Int",
+    "fileURL": "String",
+    "isImage": "Boolean",
+    "smallThumbnailURL": "String",
+    "bigThumbnailURL": "String",
+
+    "investigation_ids": "[String]",
+    "study_ids": "[String]",
+    "assay_ids": "[String]",
+    "assayResult_ids": "[String]",
+    "factor_ids": "[String]",
+    "material_ids": "[String]",
+    "protocol_ids": "[String]"
+  },
+  "associations": {
+    "investigations": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "investigation",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "investigation_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "title"
+    },
+    "studies": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "study_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "assays": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "assay_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "measurement"
+    },
+    "assayResults": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "assayResult",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "assayResult_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "value_as_str"
+    },
+    "factors": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "factor_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "materials": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "material_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "protocols": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "protocol",
+      "targetKey": "fileAttachment_ids",
+      "sourceKey": "protocol_ids",
+      "keyIn": "fileAttachment",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    }
+  },
+  "internalId": "fileAttachment_id"
+}

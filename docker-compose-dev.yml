@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   sdb_postgres:
-    container_name: zendroStarterPack_postgres
+    container_name: ISA-demo_postgres
     build:
       context: .
       dockerfile: Dockerfile.postgres
@@ -12,7 +12,7 @@ services:
       - backend
 
   sdb_science_db_graphql_server:
-    container_name: zendroStarterPack_graphql-server
+    container_name: ISA-demo_graphql-server
     depends_on:
       - sdb_postgres
     build:
@@ -23,9 +23,10 @@ services:
       - 3000:3000
     environment:
       PORT: "3000"
+      JQ_PATH: /usr/bin/jq
       ## modifiable environment variables. Uncomment and set or export the needed environment settings.
       # LIMIT_RECORDS : ${LIMIT_RECORDS:-10000}
-      # REQUIRE_SIGN_IN: ${REQUIRE_SIGN_IN:-"true"}  
+      REQUIRE_SIGN_IN: "false" 
       # ALLOW_ORIGIN: ${ALLOW_ORIGIN:-"http://localhost:8080"}
       # JWT_SECRET: ${JWT_SECRET:-"something-secret"}
       # SALT_ROUNDS: ${SALT_ROUNDS:-10} 
@@ -49,11 +50,10 @@ services:
       - /bin/sh
       - -c
       - |
-        npm install
         ./migrateDbAndStartServer.sh
 
   sdb_science_db_app_server:
-    container_name: zendroStarterPack_spa
+    container_name: ISA-demo_spa
     # Workaround. See https://github.com/facebook/create-react-app/issues/8688
     stdin_open: true
     depends_on:
@@ -82,33 +82,33 @@ services:
         npm install
         npm run serve
 
-  sdb_graphiql:
-    container_name: zendroStarterPack_graphiql-auth
-    depends_on:
-      - sdb_postgres
-      - sdb_science_db_graphql_server
-    build:
-      context: ./graphiql-auth
-      dockerfile: Dockerfile
-    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 7000:7000
-    environment:
-      - REACT_APP_SERVER_URL=http://localhost:3000/graphql
-      - REACT_APP_LOGIN_URL=http://localhost:3000/login
-      - PORT=7000
-    volumes:
-      - .:/usr/ScienceDbStarterPack
-    # Install dependencies and start single-page-app-server in development
-    # mode.
-    networks:
-      - backend
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npm install
-        npm start
+  # sdb_graphiql:
+  #   container_name: ISA-demo_graphiql-auth
+  #   depends_on:
+  #     - sdb_postgres
+  #     - sdb_science_db_graphql_server
+  #   build:
+  #     context: ./graphiql-auth
+  #     dockerfile: Dockerfile
+  #   # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
+  #   ports:
+  #     - 7000:7000
+  #   environment:
+  #     - REACT_APP_SERVER_URL=http://localhost:3000/graphql
+  #     - REACT_APP_LOGIN_URL=http://localhost:3000/login
+  #     - PORT=7000
+  #   volumes:
+  #     - .:/usr/ScienceDbStarterPack
+  #   # Install dependencies and start single-page-app-server in development
+  #   # mode.
+  #   networks:
+  #     - backend
+  #   command:
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       npm install
+  #       npm start
    
 
 volumes:
