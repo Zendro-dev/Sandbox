@@ -28,6 +28,9 @@ module.exports = `
     ne
     regexp
     notRegexp
+    contains
+    contained
+    not
   }
 
   enum Order{

@@ -1,0 +1,56 @@
+{
+  "model": "investigation",
+  "storageType": "sql",
+  "attributes": {
+    "investigation_id": "String",
+    "title": "String",
+    "description": "String",
+    "startDate": "Date",
+    "endDate": "Date",
+
+    "ontologyAnnotation_ids": "[String]",
+    "contact_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "contacts": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "contact",
+      "targetKey": "investigation_ids",
+      "sourceKey": "contact_ids",
+      "keyIn": "investigation",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "studies": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "investigation_id",
+      "keyIn": "study",
+      "label": "name"
+    },
+    "ontologyAnnotations": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "investigation_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keyIn": "investigation",
+      "reverseAssociationType": "to_many",
+      "label": "ontology"
+    },
+    "fileAttachments": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "investigation_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keyIn": "investigation",
+      "reverseAssociationType": "to_many",
+      "label": "fileName"
+    }
+  },
+  "internalId": "investigation_id"
+}

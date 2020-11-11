@@ -138,11 +138,11 @@ export default function UserEnhancedTable(props) {
   const actionText = useRef(t('modelPanels.gotIt', "Got it"));
   const action = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' 
+      <Button color='inherit' variant='text' size='small'
       onClick={() => { closeSnackbar(key) }}>
         {actionText.current}
       </Button>
-    </> 
+    </>
   ));
 
   //snackbar (for: getCount)
@@ -155,11 +155,11 @@ export default function UserEnhancedTable(props) {
   const actionTextB = useRef(t('modelPanels.gotIt', "Got it"));
   const actionB = useRef((key) => (
     <>
-      <Button color='inherit' variant='text' size='small' 
+      <Button color='inherit' variant='text' size='small'
       onClick={() => { closeSnackbar(key) }}>
         {actionTextB.current}
       </Button>
-    </> 
+    </>
   ));
 
   //toggle buttons
@@ -187,9 +187,9 @@ export default function UserEnhancedTable(props) {
 
    /**
     * showMessage
-    * 
+    *
     * Show the given message in a notistack snackbar.
-    * 
+    *
     */
    const showMessage = useCallback((message, withDetail) => {
     enqueueSnackbar( message, {
@@ -203,9 +203,9 @@ export default function UserEnhancedTable(props) {
 
   /**
    * showMessageB
-   * 
+   *
    * Show the given message in a notistack snackbar.
-   * 
+   *
    */
   const showMessageB = useCallback((message, withDetail) => {
     enqueueSnackbar( message, {
@@ -219,7 +219,7 @@ export default function UserEnhancedTable(props) {
 
   /**
    * configurePagination
-   * 
+   *
    * Set the configuration needed to perform a reload of data
    * in the given mode.
    */
@@ -239,7 +239,7 @@ export default function UserEnhancedTable(props) {
           includeCursor: false,
         }
         break;
-      
+
       case "reload":
         //set direction
         isForwardPagination.current = true;
@@ -331,7 +331,7 @@ export default function UserEnhancedTable(props) {
         isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         configurePagination('previousPage');
-        
+
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
@@ -343,7 +343,7 @@ export default function UserEnhancedTable(props) {
         isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         configurePagination('nextPage');
-        
+
         //reload
         setDataTrigger(prevDataTrigger => !prevDataTrigger);
         return;
@@ -366,12 +366,12 @@ export default function UserEnhancedTable(props) {
     isCursorPaginating.current = false;
     setIsOnApiRequest(false);
     return;
-    
+
   }, [configurePagination]);
 
   /**
    * clearRequestGetData
-   * 
+   *
    * Clear all configurations related to an api request.
    * Also clears table data and count.
    */
@@ -387,20 +387,20 @@ export default function UserEnhancedTable(props) {
 
   /**
     * getCount
-    * 
+    *
     * Get @count from GrahpQL Server (async).
     * Uses current state properties to fill query request.
     * Updates state to inform new @count retreived.
-    * 
+    *
     */
   const getCount = useCallback(async () => {
     //return if there is an active count operation
     if(isCountingRef.current) return;
-    
+
     cancelCountingPromises();
     isCountingRef.current = true;
     errorsB.current = [];
-    
+
     /*
       API Request: api.user.getCountItems
     */
@@ -440,7 +440,7 @@ export default function UserEnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
- 
+
           showMessageB(newError.message, withDetails);
           return;
         }
@@ -479,11 +479,11 @@ export default function UserEnhancedTable(props) {
 
   /**
     * getData
-    * 
+    *
     * Get @items from GrahpQL Server.
     * Uses current state properties to fill query request.
     * Updates state to inform new @items retreived.
-    * 
+    *
     */
   const getData = useCallback(async () => {
     updateSizes();
@@ -543,7 +543,7 @@ export default function UserEnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
- 
+
           showMessage(newError.message, withDetails);
           clearRequestGetData();
           return;
@@ -552,11 +552,11 @@ export default function UserEnhancedTable(props) {
         //get items
         let its = response.value.edges.map(o => o.node);
         let pi =  response.value.pageInfo;
-          
+
         /*
           Check: empty page
         */
-        if( its.length === 0 ) 
+        if( its.length === 0 )
         {
           onEmptyPage(pi);
           return;
@@ -569,7 +569,7 @@ export default function UserEnhancedTable(props) {
 
         //configure pagination (default)
         configurePagination('reload');
-      
+
         //ok
         setItems([...its]);
 
@@ -622,9 +622,9 @@ export default function UserEnhancedTable(props) {
   useEffect(() => {
     if (!isOnApiRequestRef.current) {
       getData();
-    } 
-    else { 
-      isPendingApiRequestRef.current = true; 
+    }
+    else {
+      isPendingApiRequestRef.current = true;
     }
   }, [getData]);
 
@@ -682,18 +682,18 @@ export default function UserEnhancedTable(props) {
 
   useEffect(() => {
     //return if this flag is set
-    if(isGettingFirstDataRef.current) { 
-      isGettingFirstDataRef.current = false; 
-      return; 
-    } 
+    if(isGettingFirstDataRef.current) {
+      isGettingFirstDataRef.current = false;
+      return;
+    }
     else {
       //get data from the new page
       pageRef.current = page;
       if (!isOnApiRequestRef.current) {
-        setDataTrigger(prevDataTrigger => !prevDataTrigger); 
-      } 
-      else { 
-        isPendingApiRequestRef.current = true; 
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+      }
+      else {
+        isPendingApiRequestRef.current = true;
       }
     }
   }, [page]);
@@ -706,20 +706,20 @@ export default function UserEnhancedTable(props) {
     if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
     //set strict contention
     isCursorPaginating.current = true;
-    
+
     //configure pagination
     configurePagination('reset');
-    //reload    
+    //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }, [rowsPerPage, configurePagination]);
 
-  useEffect(() => {      
+  useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
 
       //configure pagination
       configurePagination('reload');
-      //reload    
+      //reload
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateSizes();
@@ -745,11 +745,11 @@ export default function UserEnhancedTable(props) {
 
   /**
     * doDelete
-    * 
+    *
     * Delete @item using GrahpQL Server mutation.
     * Uses current state properties to fill query request.
     * Updates state to inform new @item deleted.
-    * 
+    *
     */
   async function doDelete(event, item) {
     errors.current = [];
@@ -797,7 +797,7 @@ export default function UserEnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-  
+
           showMessage(newError.message, withDetails);
           clearRequestDoDelete();
           return;
@@ -818,7 +818,7 @@ export default function UserEnhancedTable(props) {
         //will count
         cancelCountingPromises();
         isCountingRef.current = false;
-        
+
         reloadData();
         return;
       },
@@ -850,11 +850,11 @@ export default function UserEnhancedTable(props) {
 
   /**
     * getCsvTemplate
-    * 
+    *
     * Get @csvTemplate using GrahpQL Server query.
     * Uses current state properties to fill query request.
     * Updates state to inform new @item received.
-    * 
+    *
     */
   async function getCsvTemplate() {
     errors.current = [];
@@ -898,7 +898,7 @@ export default function UserEnhancedTable(props) {
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
-  
+
           showMessage(newError.message, withDetails);
           clearRequestGetCsvTemplate();
           return;
@@ -955,7 +955,7 @@ export default function UserEnhancedTable(props) {
     */
   function cancelCountingPromises() {
     cancelableCountingPromises.current.forEach(p => p.cancel());
-    cancelableCountingPromises.current = [];    
+    cancelableCountingPromises.current = [];
   }
 
   function clearRequestDoDelete() {
@@ -970,7 +970,7 @@ export default function UserEnhancedTable(props) {
   function reloadData() {
     //configure pagination
     configurePagination('reload');
-    //reload    
+    //reload
     setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 
@@ -1000,7 +1000,7 @@ export default function UserEnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      
+
       case 'plot':
         return 1;
 
@@ -1021,7 +1021,7 @@ export default function UserEnhancedTable(props) {
     {
       //configure pagination
       configurePagination('reset');
-      
+
       if(page !== 0) {
         isGettingFirstDataRef.current = true; //avoids to get data on [page] effect
         setPage(0);
@@ -1075,7 +1075,7 @@ export default function UserEnhancedTable(props) {
     if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
     //set strict contention
     isCursorPaginating.current = true;
-    
+
 
     //configure pagination
     configurePagination('reset');
@@ -1526,6 +1526,7 @@ export default function UserEnhancedTable(props) {
                       <UserPlotly />
                     )}
                   </div>
+
                 </SwipeableViews>
               </Paper>
             </Grid>

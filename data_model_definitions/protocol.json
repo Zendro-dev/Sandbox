@@ -1,0 +1,58 @@
+{
+  "model": "protocol",
+  "storageType": "sql",
+  "attributes": {
+    "protocol_id": "String",
+    "name": "String",
+    "description": "String",
+    "type": "Date",
+
+    "study_ids": "[String]",
+    "assay_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "protocol_ids",
+      "sourceKey": "study_ids",
+      "keyIn": "protocol",
+      "reverseAssociationType": "to_many",
+      "label": "name"
+    },
+    "assays": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "protocol_ids",
+      "sourceKey": "assay_ids",
+      "keyIn": "protocol",
+      "reverseAssociationType": "to_many",
+      "label": "measurement"
+    },
+    "ontologyAnnotation": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "protocol_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keyIn": "protocol",
+      "reverseAssociationType": "to_many",
+      "label": "ontology"
+    },
+    "fileAttachments": {
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "protocol_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keyIn": "protocol",
+      "reverseAssociationType": "to_many",
+      "label": "fileName"
+    }
+  },
+  "internalId": "protocol_id"
+}

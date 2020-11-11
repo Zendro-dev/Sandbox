@@ -75,7 +75,7 @@ export default function UserEnhancedTableToolbar(props) {
 
   const [displayedSearch, setDisplayedSearch] = useState('');
   const [downloadsAnchorEl, setDownloadsAnchorEl] = React.useState(null);
-  
+
   const exportServerUrl = useSelector(state => state.urls.exportServerUrl)
 
   //debouncing & event contention
@@ -107,7 +107,7 @@ export default function UserEnhancedTableToolbar(props) {
                   </Typography>
                 </Grid>
 
-                {/* 
+                {/*
                   Conditional rendering: ToggleButtons
                 */}
                 {(showToggleButtons) && (
@@ -120,7 +120,7 @@ export default function UserEnhancedTableToolbar(props) {
                       <Tooltip title={ t('modelPanels.table', "Table") }>
                         <ToggleButton value="table">
                           <TableIcon fontSize="small" />
-                        </ToggleButton>    
+                        </ToggleButton>
                       </Tooltip>
                       <Tooltip title={ t('modelPanels.plot', "Plot") }>
                         <ToggleButton value="plot">
@@ -297,7 +297,7 @@ export default function UserEnhancedTableToolbar(props) {
                                           <input type="hidden" name="model" value='user' />
                                             <ButtonBase
                                               id='UserEnhancedTableToolbar-button-exportData'
-                                              className={classes.textButton} 
+                                              className={classes.textButton}
                                               color="default"
                                               type="submit"
                                               onClick={(event)=>{
@@ -324,7 +324,7 @@ export default function UserEnhancedTableToolbar(props) {
                                         <Grid container justify='flex-start'>
                                           <ButtonBase
                                             id='UserEnhancedTableToolbar-button-exportTemplate'
-                                            className={classes.textButton} 
+                                            className={classes.textButton}
                                             color="default"
                                             onClick={()=>{
                                               if(!isDownloading.current) {
@@ -348,7 +348,7 @@ export default function UserEnhancedTableToolbar(props) {
                                         <Grid container justify='flex-end'>
                                           <Button
                                             id='UserEnhancedTableToolbar-button-closeDownloadOptions'
-                                            className={classes.actionButton} 
+                                            className={classes.actionButton}
                                             color="primary"
                                             onClick={handleDownloadsMenuClose}
                                           >
