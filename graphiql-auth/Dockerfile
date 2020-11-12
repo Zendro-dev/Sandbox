@@ -9,7 +9,7 @@ COPY . .
 # Install dependencies
 RUN apk update && \
  apk add git && apk add bash && \
- rm .git* && \
+ rm -rf .git* && \
  npm install
 
 EXPOSE 7000
