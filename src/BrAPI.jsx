@@ -2,7 +2,7 @@ import React     from 'react';
 import SwaggerUI from 'swagger-ui-react';
 import brapiJson from './schema/brapi-phenotyping.json';
 
-import { GRAPHQL_ENDPOINT } from './config/globals';
+import { GRAPHQL_SERVER } from './config/globals';
 
 import 'swagger-ui-react/swagger-ui.css';
 
@@ -24,7 +24,7 @@ export default class Swagger extends React.Component {
 
     if (req.url.includes('/observations?')) {
 
-      req.url = `${GRAPHQL_ENDPOINT}/graphql`;
+      req.url = `${GRAPHQL_SERVER}`;
       req.method = 'POST';
       req.body = JSON.stringify({ query });
       req.headers = {

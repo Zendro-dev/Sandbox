@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import BrAPI from './BrAPI';
 
-import { GRAPHQL_ENDPOINT } from './config/globals';
+import { LOGIN_URL } from './config/globals';
 
 
 export default class App extends React.Component {
@@ -19,7 +19,7 @@ export default class App extends React.Component {
     let res;
     try {
       res = await axios({
-        url: `${GRAPHQL_ENDPOINT}/login`,
+        url: `${LOGIN_URL}`,
         method: 'POST',
         data: {
           email: 'admin@zen.dro',
