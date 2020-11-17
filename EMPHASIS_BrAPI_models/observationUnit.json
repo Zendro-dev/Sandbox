@@ -1,0 +1,105 @@
+{
+    "model": "observationUnit",
+    "storageType": "sql",
+    "attributes": {
+        "observationLevel": "String",
+        "observationUnitName": "String",
+        "observationUnitPUI": "String",
+        "plantNumber": "String",
+        "plotNumber": "String",
+
+        "programDbId": "String",
+        "studyDbId": "String",
+        "trialDbId": "String",
+        "observationUnitDbId": "String",
+        "germplasmDbId": "String",
+        "locationDbId": "String",
+        "eventDbIds": "[String]"
+    },
+    "associations": {
+        "observationTreatments": {
+            "type": "to_many",
+            "target": "observationTreatment",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationTreatment",
+            "targetStorageType": "sql",
+            "label": "factor"
+        },
+        "observationUnitPosition": {
+            "type": "to_one",
+            "target": "observationUnitPosition",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observationUnitPosition",
+            "targetStorageType": "sql",
+            "label": "observationUnitPositionName"
+        },
+        "observations": {
+            "type": "to_many",
+            "target": "observation",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "observationVariableName",
+            "sublabel" : "value"
+        },
+        "germplasm": {
+            "type": "to_one",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "germplasmName"
+        },
+        "location": {
+            "type": "to_one",
+            "target": "location",
+            "targetKey": "locationDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "locationName"
+        },
+        "program": {
+            "type": "to_one",
+            "target": "program",
+            "targetKey": "programDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "programName"
+        },
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "studyName"
+        },
+        "trial": {
+            "type": "to_one",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "trialName"
+        },
+        "images": {
+            "type": "to_many",
+            "target": "image",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "image",
+            "targetStorageType": "sql",
+            "label": "imageName"
+        },
+        "events": {
+            "type": "to_many",
+            "target": "event",
+            "targetKey": "observationUnitDbIds",
+            "sourceKey": "eventDbIds",
+            "keyIn": "observationUnit",
+            "reverseAssociationType": "to_many",
+            "targetStorageType": "sql",
+            "label": "eventType"
+        }
+    },
+    "internalId": "observationUnitDbId"
+}

@@ -1,0 +1,157 @@
+
+export default () => ({
+  models: [
+    {
+      id: 0,
+      name: 'breedingMethod',
+      title: 'BreedingMethod',
+      url: '/main/model/breedingMethod',
+    },
+    {
+      id: 1,
+      name: 'contact',
+      title: 'Contact',
+      url: '/main/model/contact',
+    },
+    {
+      id: 2,
+      name: 'environmentParameter',
+      title: 'EnvironmentParameter',
+      url: '/main/model/environmentParameter',
+    },
+    {
+      id: 3,
+      name: 'event',
+      title: 'Event',
+      url: '/main/model/event',
+    },
+    {
+      id: 4,
+      name: 'eventParameter',
+      title: 'EventParameter',
+      url: '/main/model/eventParameter',
+    },
+    {
+      id: 5,
+      name: 'germplasm',
+      title: 'Germplasm',
+      url: '/main/model/germplasm',
+    },
+    {
+      id: 6,
+      name: 'image',
+      title: 'Image',
+      url: '/main/model/image',
+    },
+    {
+      id: 7,
+      name: 'location',
+      title: 'Location',
+      url: '/main/model/location',
+    },
+    {
+      id: 8,
+      name: 'method',
+      title: 'Method',
+      url: '/main/model/method',
+    },
+    {
+      id: 9,
+      name: 'observation',
+      title: 'Observation',
+      url: '/main/model/observation',
+    },
+    {
+      id: 10,
+      name: 'observationTreatment',
+      title: 'ObservationTreatment',
+      url: '/main/model/observationTreatment',
+    },
+    {
+      id: 11,
+      name: 'observationUnit',
+      title: 'ObservationUnit',
+      url: '/main/model/observationUnit',
+    },
+    {
+      id: 12,
+      name: 'observationUnitPosition',
+      title: 'ObservationUnitPosition',
+      url: '/main/model/observationUnitPosition',
+    },
+    {
+      id: 13,
+      name: 'observationVariable',
+      title: 'ObservationVariable',
+      url: '/main/model/observationVariable',
+    },
+    {
+      id: 14,
+      name: 'ontologyReference',
+      title: 'OntologyReference',
+      url: '/main/model/ontologyReference',
+    },
+    {
+      id: 15,
+      name: 'program',
+      title: 'Program',
+      url: '/main/model/program',
+    },
+    {
+      id: 16,
+      name: 'scale',
+      title: 'Scale',
+      url: '/main/model/scale',
+    },
+    {
+      id: 17,
+      name: 'season',
+      title: 'Season',
+      url: '/main/model/season',
+    },
+    {
+      id: 18,
+      name: 'study',
+      title: 'Study',
+      url: '/main/model/study',
+    },
+    {
+      id: 19,
+      name: 'trait',
+      title: 'Trait',
+      url: '/main/model/trait',
+    },
+    {
+      id: 20,
+      name: 'trial',
+      title: 'Trial',
+      url: '/main/model/trial',
+    },
+  ],
+  adminModels: [
+    {
+      id: 21,
+      name: 'role',
+      title: 'Role',
+      url: '/main/admin/role',
+    },
+    {
+      id: 22,
+      name: 'role_to_user',
+      title: 'Role_to_user',
+      url: '/main/admin/role_to_user',
+    },
+    {
+      id: 23,
+      name: 'user',
+      title: 'User',
+      url: '/main/admin/user',
+    },
+  ],
+  zendroStudio: {
+    id: 24,
+    name: 'zendro-studio',
+    title: 'Zendro Studio',
+    url: '/main/zendro-studio',
+  },
+})

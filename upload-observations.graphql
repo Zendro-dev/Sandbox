@@ -1,0 +1,7 @@
+mutation{
+    o1: addObservation(observationDbId:"BrAPI-test/observations/1",collector:"Bob",observationTimeStamp:"2007-12-03T10:15:30Z",uploadedBy:"Alice",value:"5"){observationDbId}
+    o2: addObservation(observationDbId:"BrAPI-test/observations/2",collector:"Bob",observationTimeStamp:"2007-12-04T10:15:30Z",uploadedBy:"Alice",value:"10"){observationDbId}
+    o3: addObservation(observationDbId:"BrAPI-test/observations/3",collector:"Bob",observationTimeStamp:"2007-12-05T10:15:30Z",uploadedBy:"Alice",value:"15"){observationDbId}
+    o4: addObservation(observationDbId:"BrAPI-test/observations/4",collector:"Bob",observationTimeStamp:"2007-12-06T10:15:30Z",uploadedBy:"Alice",value:"20"){observationDbId}
+		o5: addObservation(observationDbId:"BrAPI-test/observations/5",collector:"Bob",observationTimeStamp:"2007-12-07T10:15:30Z",uploadedBy:"Alice",value:"25"){observationDbId}
+}

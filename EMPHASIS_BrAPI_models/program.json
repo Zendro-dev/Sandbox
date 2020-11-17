@@ -1,0 +1,40 @@
+{
+    "model": "program",
+    "storageType": "sql",
+    "attributes": {
+        "abbreviation": "String",
+        "commonCropName": "String",
+        "documentationURL": "String",
+        "leadPersonDbId": "String",
+        "objective": "String",
+        "programName": "String",
+        "programDbId": "String"
+    },
+    "associations" : {
+        "trials" : {
+            "type": "to_many",
+            "target": "trial",
+            "targetKey": "programDbId",
+            "keyIn": "trial",
+            "targetStorageType": "sql",
+            "label": "trialName"
+        },
+        "observationUnits": {
+            "type": "to_many",
+            "target": "observationUnit",
+            "targetKey": "programDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "observationUnitName"
+        },
+        "leadPerson": {
+            "type": "to_one",
+            "target": "contact",
+            "targetKey": "leadPersonDbId",
+            "keyIn": "program",
+            "targetStorageType": "sql",
+            "label": "name"
+        }
+    },
+    "internalId": "programDbId"
+}
