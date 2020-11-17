@@ -86,6 +86,8 @@ module.exports = {
       'NODE_ENV': 'development',
       'BASE_URL': '/',
       'PORT': 8080,
+      'GRAPHQL_SERVER': 'http://localhost:3000/graphql',
+      'LOGIN_URL': 'http://localhost:3000/login',
     }),
 
     // Generate dist/index.html

@@ -22,10 +22,12 @@ export default class App extends React.Component {
         url: `${LOGIN_URL}`,
         method: 'POST',
         data: {
-          email: 'admin@zen.dro',
-          password: 'admin',
+          email: '',
+          password: '',
         }
       });
+
+      console.log({ 'login-response': res });
     }
     catch (error) {
       console.log(error);
