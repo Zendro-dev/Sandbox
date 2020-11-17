@@ -70,6 +70,7 @@ module.exports = {
     inline: true,
     overlay: true,
     stats: 'minimal',
+    port: process.env.PORT,
   },
 
 
@@ -84,6 +85,7 @@ module.exports = {
     new EnvironmentPlugin({
       'NODE_ENV': 'development',
       'BASE_URL': '/',
+      'PORT': 8080,
     }),
 
     // Generate dist/index.html
