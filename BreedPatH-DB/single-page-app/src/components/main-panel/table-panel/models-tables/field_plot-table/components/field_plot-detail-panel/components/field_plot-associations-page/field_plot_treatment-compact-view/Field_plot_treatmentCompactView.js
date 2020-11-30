@@ -155,7 +155,7 @@ export default function FieldPlotTreatmentCompactView(props) {
       API Request: readOneField_plot
     */
     let label = 'name';
-    let sublabel = 'id';
+    let sublabel = 'description';
     let variables = {
       pagination: {
         after: isForwardPagination.current ? pageInfo.current.endCursor : null,
@@ -216,11 +216,15 @@ export default function FieldPlotTreatmentCompactView(props) {
           clearRequestGetData();
           return;
         }
- 
+
         //check: readOneField_plot type
         if(typeof readOneField_plot !== 'object'
-        || typeof readOneField_plot.field_plot_treatment!== 'object' //can be null
-        ) {
+        || !Number.isInteger(readOneField_plot.countFilteredField_plot_treatment)
+        || typeof readOneField_plot.field_plot_treatmentConnection !== 'object'
+        || readOneField_plot.field_plot_treatmentConnection === null
+        || !Array.isArray(readOneField_plot.field_plot_treatmentConnection.edges)
+        || typeof readOneField_plot.field_plot_treatmentConnection.pageInfo !== 'object'
+        || readOneField_plot.field_plot_treatmentConnection.pageInfo === null) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -235,12 +239,52 @@ export default function FieldPlotTreatmentCompactView(props) {
           clearRequestGetData();
           return;
         }
-        //get item
-        let it = readOneField_plot.field_plot_treatment;
+        //get items
+        let newCount = readOneField_plot.countFilteredField_plot_treatment;
+        let its = readOneField_plot.field_plot_treatmentConnection.edges.map(o => o.node);
+        let pi = readOneField_plot.field_plot_treatmentConnection.pageInfo;
+
+        //check: graphql errors
+        if(response.data.errors) {
+          let newError = {};
+          let withDetails=true;
+          variant.current='info';
+          newError.message = 'readOneField_plot ' + t('modelPanels.errors.data.e3', 'fetched with errors.');
+          newError.locations=[{association: 'field_plot_treatment', query: 'readOneField_plot', method: 'getData()', request: 'api.field_plot.getField_plot_treatmentConnection'}];
+          newError.path=['detail', `id:${item.id}`, 'field_plot_treatment'];
+          newError.extensions = {graphQL:{data:response.data.data, errors:response.data.errors}};
+          errors.current.push(newError);
+          console.log("Error: ", newError);
+
+          showMessage(newError.message, withDetails);
+        }
+
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 && pi&&pi.hasPreviousPage ) 
+        {
+          //configure
+          isOnApiRequestRef.current = false;
+          isCursorPaginating.current = false;
+          isForwardPagination.current = false;
+          setIsOnApiRequest(false);
+          
+          //reload
+          setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          return;
+        }//else
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
 
         //ok
-        setCount((it) ? 1 : 0);
-        setItems((it) ? [it] : []);
+        setCount(newCount);
+        setItems([...its]);
+
+        //ends request
         isOnApiRequestRef.current = false;
         isCursorPaginating.current = false;
         includeCursor.current = false;
@@ -658,7 +702,7 @@ function resetReloadData() {
 
               {/* Toolbar */}
               <FieldPlotTreatmentCompactViewToolbar 
-                title={'Field_plot_treatment'}
+                title={'Field_plot_treatments'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
                 onReloadClick={handleReloadClick}
@@ -698,7 +742,7 @@ function resetReloadData() {
                       {items.map(it => {
                         let key = it.id;
                         let label = it.name;
-                        let sublabel = undefined;
+                        let sublabel = it.description;
        
                         return (
                           <ListItem key={key} 
@@ -745,7 +789,7 @@ function resetReloadData() {
                                   
                                   {/* Sublabel */}
                                   {(sublabel) && (
-                                    <Tooltip title={ 'id' }>
+                                    <Tooltip title={ 'description' }>
                                       <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
@@ -784,7 +828,7 @@ function resetReloadData() {
               )}
 
               {/* Pagination */}
-              {(false) && (
+              {(true) && (
                 
                 <FieldPlotTreatmentCompactViewCursorPagination
                   count={count}

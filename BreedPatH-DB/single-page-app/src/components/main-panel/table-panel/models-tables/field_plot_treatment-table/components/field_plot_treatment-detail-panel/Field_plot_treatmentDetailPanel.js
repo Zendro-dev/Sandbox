@@ -395,7 +395,7 @@ export default function FieldPlotTreatmentDetailPanel(props) {
     initialValueOkStates.description = (item.description!==null ? 1 : 0);
     initialValueOkStates.chemical = (item.chemical!==null ? 1 : 0);
     initialValueOkStates.pesticide_type = (item.pesticide_type!==null ? 1 : 0);
-    initialValueOkStates.field_plot_id = (item.field_plot_id!==null ? 1 : 0);
+    initialValueOkStates.field_plot_id = -2; //FK
 
     return initialValueOkStates;
   }

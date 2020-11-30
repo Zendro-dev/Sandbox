@@ -1160,7 +1160,9 @@ function resetReloadData() {
    * Toggle buttons handlers
    */
   const handleToggleButtonValueChange = (event, newValue) => {
-    setToggleButtonValue(newValue);
+    if(newValue){
+      setToggleButtonValue(newValue);
+    }
   }
 
   return (
@@ -1414,15 +1416,6 @@ function resetReloadData() {
                                       padding="default"
                                     >
                                       {String((item.genotype_id!==null)?item.genotype_id:'')}
-                                    </TableCell>
-
-                                    {/* field_plot_treatment_id */}
-                                    <TableCell
-                                      key='field_plot_treatment_id'
-                                      align='right'
-                                      padding="default"
-                                    >
-                                      {String((item.field_plot_treatment_id!==null)?item.field_plot_treatment_id:'')}
                                     </TableCell>
 
                                   </TableRow>,

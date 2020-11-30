@@ -33,8 +33,8 @@ const definition = {
         field_plot: {
             type: 'to_one',
             target: 'field_plot',
-            targetKey: 'field_plot_treatment_id',
-            keyIn: 'field_plot',
+            targetKey: 'field_plot_id',
+            keyIn: 'field_plot_treatment',
             targetStorageType: 'sql',
             label: 'field_name',
             sublabel: 'coordinates_or_name'
@@ -90,9 +90,9 @@ module.exports = class field_plot_treatment extends Sequelize.Model {
     }
 
     static associate(models) {
-        field_plot_treatment.hasOne(models.field_plot, {
+        field_plot_treatment.belongsTo(models.field_plot, {
             as: 'field_plot',
-            foreignKey: 'field_plot_treatment_id'
+            foreignKey: 'field_plot_id'
         });
     }
 
@@ -452,7 +452,48 @@ module.exports = class field_plot_treatment extends Sequelize.Model {
 
 
 
+    /**
+     * add_field_plot_id - field Mutation (model-layer) for to_one associationsArguments to add 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   field_plot_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async add_field_plot_id(id, field_plot_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            return field_plot_treatment.update({
+                field_plot_id: field_plot_id
+            }, {
+                where: {
+                    id: id
+                }
+            }, {
+                transaction: transaction
+            })
+        });
+        return updated;
+    }
 
+    /**
+     * remove_field_plot_id - field Mutation (model-layer) for to_one associationsArguments to remove 
+     *
+     * @param {Id}   id   IdAttribute of the root model to be updated
+     * @param {Id}   field_plot_id Foreign Key (stored in "Me") of the Association to be updated. 
+     */
+    static async remove_field_plot_id(id, field_plot_id) {
+        let updated = await sequelize.transaction(async transaction => {
+            return field_plot_treatment.update({
+                field_plot_id: null
+            }, {
+                where: {
+                    id: id,
+                    field_plot_id: field_plot_id
+                }
+            }, {
+                transaction: transaction
+            })
+        });
+        return updated;
+    }
 
 
 

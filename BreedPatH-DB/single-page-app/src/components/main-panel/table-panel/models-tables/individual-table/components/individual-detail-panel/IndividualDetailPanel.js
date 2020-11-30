@@ -410,7 +410,6 @@ export default function IndividualDetailPanel(props) {
     initialValueOkStates.name = (item.name!==null ? 1 : 0);
     initialValueOkStates.description = (item.description!==null ? 1 : 0);
     initialValueOkStates.genotype_id = -2; //FK
-    initialValueOkStates.individual_id = (item.individual_id!==null ? 1 : 0);
 
     return initialValueOkStates;
   }

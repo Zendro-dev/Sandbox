@@ -40,15 +40,24 @@ module.exports = `
     """
     genotype_id: Int
 
-    """
-    @original-field
-    
-    """
-    field_plot_treatment_id: Int
-
     genotype(search: searchGenotypeInput): genotype
-  field_plot_treatment(search: searchField_plot_treatmentInput): field_plot_treatment
     
+    """
+    @search-request
+    """
+    field_plot_treatmentFilter(search: searchField_plot_treatmentInput, order: [ orderField_plot_treatmentInput ], pagination: paginationInput): [field_plot_treatment]
+
+
+    """
+    @search-request
+    """
+    field_plot_treatmentConnection(search: searchField_plot_treatmentInput, order: [ orderField_plot_treatmentInput ], pagination: paginationCursorInput): Field_plot_treatmentConnection
+
+    """
+    @count-request
+    """
+    countFilteredField_plot_treatment(search: searchField_plot_treatmentInput) : Int
+  
     """
     @search-request
     """
@@ -95,7 +104,6 @@ type Field_plotEdge{
     area_sqm
     type
     genotype_id
-    field_plot_treatment_id
   }
   input searchField_plotInput {
     field: field_plotField
@@ -117,8 +125,8 @@ type Field_plotEdge{
     field_plotsConnection(search:searchField_plotInput, order: [ orderField_plotInput ], pagination: paginationCursorInput ): Field_plotConnection
   }
     type Mutation {
-    addField_plot( field_name: String, coordinates_or_name: String, year: String, area_sqm: Float, type: String , addGenotype:ID, addField_plot_treatment:ID  , addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): field_plot!
-    updateField_plot(id: ID!, field_name: String, coordinates_or_name: String, year: String, area_sqm: Float, type: String , addGenotype:ID, removeGenotype:ID , addField_plot_treatment:ID, removeField_plot_treatment:ID   , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): field_plot!
+    addField_plot( field_name: String, coordinates_or_name: String, year: String, area_sqm: Float, type: String , addGenotype:ID  , addField_plot_treatment:[ID], addMeasurements:[ID] , skipAssociationsExistenceChecks:Boolean = false): field_plot!
+    updateField_plot(id: ID!, field_name: String, coordinates_or_name: String, year: String, area_sqm: Float, type: String , addGenotype:ID, removeGenotype:ID   , addField_plot_treatment:[ID], removeField_plot_treatment:[ID] , addMeasurements:[ID], removeMeasurements:[ID]  , skipAssociationsExistenceChecks:Boolean = false): field_plot!
   deleteField_plot(id: ID!): String!
   bulkAddField_plotCsv: String! }
 

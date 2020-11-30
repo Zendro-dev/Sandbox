@@ -134,24 +134,6 @@ export default function IndividualEnhancedTableHead(props) {
           </TableSortLabel>
         </TableCell>
 
-        <TableCell
-          key='individual_id'
-          align='right'
-          padding="default"
-          sortDirection={orderBy === 'individual_id' ? order : false}
-        >
-          {/* individual_id */}
-          <TableSortLabel
-              active={orderBy === 'individual_id'}
-              direction={order}
-              onClick={(event) => {onRequestSort(event, 'individual_id')}}
-          >
-            <Typography color="inherit" variant="caption">
-              individual_id
-            </Typography>
-          </TableSortLabel>
-        </TableCell>
-
       </TableRow>
     </TableHead>
   );

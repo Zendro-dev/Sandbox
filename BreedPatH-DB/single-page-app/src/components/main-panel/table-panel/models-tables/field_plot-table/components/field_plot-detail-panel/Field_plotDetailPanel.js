@@ -413,7 +413,6 @@ export default function FieldPlotDetailPanel(props) {
     initialValueOkStates.area_sqm = (item.area_sqm!==null ? 1 : 0);
     initialValueOkStates.type = (item.type!==null ? 1 : 0);
     initialValueOkStates.genotype_id = -2; //FK
-    initialValueOkStates.field_plot_treatment_id = -2; //FK
 
     return initialValueOkStates;
   }

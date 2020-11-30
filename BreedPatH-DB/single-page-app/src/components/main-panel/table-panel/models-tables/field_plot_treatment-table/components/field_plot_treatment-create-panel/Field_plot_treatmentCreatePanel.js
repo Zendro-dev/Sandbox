@@ -65,6 +65,7 @@ export default function FieldPlotTreatmentCreatePanel(props) {
   const [tabsValue, setTabsValue] = useState(0);
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
+  const [foreignKeys, setForeignKeys] = useState({});
 
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [confirmationTitle, setConfirmationTitle] = useState('');
@@ -193,7 +194,7 @@ export default function FieldPlotTreatmentCreatePanel(props) {
     initialValueOkStates.description = 0;
     initialValueOkStates.chemical = 0;
     initialValueOkStates.pesticide_type = 0;
-    initialValueOkStates.field_plot_id = 0;
+    initialValueOkStates.field_plot_id = -2; //FK
 
     return initialValueOkStates;
   }
@@ -207,7 +208,7 @@ export default function FieldPlotTreatmentCreatePanel(props) {
     _initialValueAjvStates.description = {errors: []};
     _initialValueAjvStates.chemical = {errors: []};
     _initialValueAjvStates.pesticide_type = {errors: []};
-    _initialValueAjvStates.field_plot_id = {errors: []};
+    _initialValueAjvStates.field_plot_id = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -319,6 +320,7 @@ export default function FieldPlotTreatmentCreatePanel(props) {
     }
 
     //delete: fk's
+    delete variables.field_plot_id;
 
     //add: to_one's
     setAddField_plot(variables);
@@ -572,6 +574,8 @@ export default function FieldPlotTreatmentCreatePanel(props) {
           field_plotIdsToAdd.current = [];
           field_plotIdsToAdd.current.push(itemId);
           setField_plotIdsToAddState(field_plotIdsToAdd.current);
+          handleSetValue(itemId, 1, 'field_plot_id');
+          setForeignKeys({...foreignKeys, field_plot_id: itemId});
         }
         break;
 
@@ -582,8 +586,12 @@ export default function FieldPlotTreatmentCreatePanel(props) {
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
     if(associationKey === 'field_plot') {
-      field_plotIdsToAdd.current = [];
-      setField_plotIdsToAddState([]);
+      if(field_plotIdsToAdd.current.length > 0) {
+        field_plotIdsToAdd.current = [];
+        setField_plotIdsToAddState([]);
+        handleSetValue(null, 0, 'field_plot_id');
+        setForeignKeys({...foreignKeys, field_plot_id: null});
+      }
       return;
     }//end: case 'field_plot'
   }
@@ -680,6 +688,7 @@ export default function FieldPlotTreatmentCreatePanel(props) {
               hidden={tabsValue !== 0}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>

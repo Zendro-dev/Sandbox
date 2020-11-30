@@ -26,8 +26,7 @@ const definition = {
         year: 'String',
         area_sqm: 'Float',
         type: 'String',
-        genotype_id: 'Int',
-        field_plot_treatment_id: 'Int'
+        genotype_id: 'Int'
     },
     associations: {
         genotype: {
@@ -40,13 +39,13 @@ const definition = {
             sublabel: 'id'
         },
         field_plot_treatment: {
-            type: 'to_one',
+            type: 'to_many',
             target: 'field_plot_treatment',
-            targetKey: 'field_plot_treatment_id',
-            keyIn: 'field_plot',
+            targetKey: 'field_plot_id',
+            keyIn: 'field_plot_treatment',
             targetStorageType: 'sql',
             label: 'name',
-            sublabel: 'id'
+            sublabel: 'description'
         },
         measurements: {
             type: 'to_many',
@@ -94,9 +93,6 @@ module.exports = class field_plot extends Sequelize.Model {
             },
             genotype_id: {
                 type: Sequelize[dict['Int']]
-            },
-            field_plot_treatment_id: {
-                type: Sequelize[dict['Int']]
             }
 
 
@@ -112,9 +108,9 @@ module.exports = class field_plot extends Sequelize.Model {
             as: 'genotype',
             foreignKey: 'genotype_id'
         });
-        field_plot.belongsTo(models.field_plot_treatment, {
+        field_plot.hasMany(models.field_plot_treatment, {
             as: 'field_plot_treatment',
-            foreignKey: 'field_plot_treatment_id'
+            foreignKey: 'field_plot_id'
         });
         field_plot.hasMany(models.measurement, {
             as: 'measurements',
@@ -498,26 +494,6 @@ module.exports = class field_plot extends Sequelize.Model {
         });
         return updated;
     }
-    /**
-     * add_field_plot_treatment_id - field Mutation (model-layer) for to_one associationsArguments to add 
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   field_plot_treatment_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async add_field_plot_treatment_id(id, field_plot_treatment_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return field_plot.update({
-                field_plot_treatment_id: field_plot_treatment_id
-            }, {
-                where: {
-                    id: id
-                }
-            }, {
-                transaction: transaction
-            })
-        });
-        return updated;
-    }
 
     /**
      * remove_genotype_id - field Mutation (model-layer) for to_one associationsArguments to remove 
@@ -533,27 +509,6 @@ module.exports = class field_plot extends Sequelize.Model {
                 where: {
                     id: id,
                     genotype_id: genotype_id
-                }
-            }, {
-                transaction: transaction
-            })
-        });
-        return updated;
-    }
-    /**
-     * remove_field_plot_treatment_id - field Mutation (model-layer) for to_one associationsArguments to remove 
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   field_plot_treatment_id Foreign Key (stored in "Me") of the Association to be updated. 
-     */
-    static async remove_field_plot_treatment_id(id, field_plot_treatment_id) {
-        let updated = await sequelize.transaction(async transaction => {
-            return field_plot.update({
-                field_plot_treatment_id: null
-            }, {
-                where: {
-                    id: id,
-                    field_plot_treatment_id: field_plot_treatment_id
                 }
             }, {
                 transaction: transaction

@@ -12,8 +12,6 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 
 import StringField from './components/StringField'
 
-import IntField from './components/IntField'
-
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -69,7 +67,7 @@ export default function IndividualAttributesFormView(props) {
                     { t('modelPanels.model') + ': Individual' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 4 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 3 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
@@ -100,18 +98,6 @@ export default function IndividualAttributesFormView(props) {
                 label='description'
                 valueOk={valueOkStates.description}
                 valueAjv={valueAjvStates.description}
-                handleSetValue={handleSetValue}
-              />
-            </CardContent>
-
-            {/* individual_id */}
-            <CardContent key='individual_id' className={classes.cardContent} >
-              <IntField
-                itemKey='individual_id'
-                name='individual_id'
-                label='individual_id'
-                valueOk={valueOkStates.individual_id}
-                valueAjv={valueAjvStates.individual_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>

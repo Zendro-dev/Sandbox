@@ -100,8 +100,8 @@ type Field_plot_treatmentEdge{
     field_plot_treatmentsConnection(search:searchField_plot_treatmentInput, order: [ orderField_plot_treatmentInput ], pagination: paginationCursorInput ): Field_plot_treatmentConnection
   }
     type Mutation {
-    addField_plot_treatment( start_date: String, end_date: String, name: String, description: String, chemical: String, pesticide_type: String, field_plot_id: Int , addField_plot:ID   , skipAssociationsExistenceChecks:Boolean = false): field_plot_treatment!
-    updateField_plot_treatment(id: ID!, start_date: String, end_date: String, name: String, description: String, chemical: String, pesticide_type: String, field_plot_id: Int , addField_plot:ID, removeField_plot:ID    , skipAssociationsExistenceChecks:Boolean = false): field_plot_treatment!
+    addField_plot_treatment( start_date: String, end_date: String, name: String, description: String, chemical: String, pesticide_type: String , addField_plot:ID   , skipAssociationsExistenceChecks:Boolean = false): field_plot_treatment!
+    updateField_plot_treatment(id: ID!, start_date: String, end_date: String, name: String, description: String, chemical: String, pesticide_type: String , addField_plot:ID, removeField_plot:ID    , skipAssociationsExistenceChecks:Boolean = false): field_plot_treatment!
   deleteField_plot_treatment(id: ID!): String!
   bulkAddField_plot_treatmentCsv: String! }
 

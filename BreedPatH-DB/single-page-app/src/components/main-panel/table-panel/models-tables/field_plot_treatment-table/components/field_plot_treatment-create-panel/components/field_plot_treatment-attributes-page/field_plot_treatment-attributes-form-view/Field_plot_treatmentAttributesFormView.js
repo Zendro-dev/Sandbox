@@ -12,8 +12,6 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 
 import StringField from './components/StringField'
 
-import IntField from './components/IntField'
-
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -148,18 +146,6 @@ export default function FieldPlotTreatmentAttributesFormView(props) {
                 label='pesticide_type'
                 valueOk={valueOkStates.pesticide_type}
                 valueAjv={valueAjvStates.pesticide_type}
-                handleSetValue={handleSetValue}
-              />
-            </CardContent>
-
-            {/* field_plot_id */}
-            <CardContent key='field_plot_id' className={classes.cardContent} >
-              <IntField
-                itemKey='field_plot_id'
-                name='field_plot_id'
-                label='field_plot_id'
-                valueOk={valueOkStates.field_plot_id}
-                valueAjv={valueAjvStates.field_plot_id}
                 handleSetValue={handleSetValue}
               />
             </CardContent>

@@ -35,7 +35,7 @@ role.prototype.usersFilter = async function({
     pagination
 }, context) {
     if (await checkAuthorization(context, 'user', 'read') === true) {
-        await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+        await checkCountAndReduceRecordsLimit(search, context, "usersConnection");
         return this.usersFilterImpl({
             search,
             order,
@@ -63,7 +63,7 @@ role.prototype.usersConnection = async function({
     pagination
 }, context) {
     if (await checkAuthorization(context, 'user', 'read') === true) {
-        await checkCountAndReduceRecordsLimit(search, context, "rolesConnection");
+        await checkCountAndReduceRecordsLimit(search, context, "usersConnection");
         return this.usersConnectionImpl({
             search,
             order,

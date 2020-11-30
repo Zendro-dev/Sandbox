@@ -1160,7 +1160,9 @@ function resetReloadData() {
    * Toggle buttons handlers
    */
   const handleToggleButtonValueChange = (event, newValue) => {
-    setToggleButtonValue(newValue);
+    if(newValue){
+      setToggleButtonValue(newValue);
+    }
   }
 
   return (

@@ -190,7 +190,7 @@ app.use('/graphql', cors(), graphqlHTTP((req) => ({
  schema: Schema,
  rootValue: resolvers,
  pretty: true,
- graphiql: true,
+ graphiql: false,
  context: {
    request: req,
    acl: acl,

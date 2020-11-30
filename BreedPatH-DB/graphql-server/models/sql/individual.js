@@ -23,8 +23,7 @@ const definition = {
     attributes: {
         name: 'String',
         description: 'String',
-        genotype_id: 'Int',
-        individual_id: 'Int'
+        genotype_id: 'Int'
     },
     associations: {
         genotype: {
@@ -99,9 +98,6 @@ module.exports = class individual extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             genotype_id: {
-                type: Sequelize[dict['Int']]
-            },
-            individual_id: {
                 type: Sequelize[dict['Int']]
             }
 

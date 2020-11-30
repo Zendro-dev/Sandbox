@@ -4,8 +4,7 @@
 	"attributes" : {
 		"name" : "String",
 		"description" : "String",
-    "genotype_id": "Int",
-    "individual_id": "Int"
+    "genotype_id": "Int"
 	},
 	"associations" : {
 		"genotype" : {

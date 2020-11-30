@@ -1783,7 +1783,7 @@ export default function SequencingExperimentToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'sequencing_experiment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'sequencing_experiment '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'sequencing_experiment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'sequencing_experiment '}>
                                 <Avatar>
                                   {"sequencing_experiment".slice(0,1)}
                                 </Avatar>
@@ -1802,8 +1802,8 @@ export default function SequencingExperimentToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -2031,7 +2031,7 @@ export default function SequencingExperimentToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'sequencing_experiment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'sequencing_experiment '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'sequencing_experiment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'sequencing_experiment '}>
                                 <Avatar>
                                   {"sequencing_experiment".slice(0,1)}
                                 </Avatar>
@@ -2050,8 +2050,8 @@ export default function SequencingExperimentToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>

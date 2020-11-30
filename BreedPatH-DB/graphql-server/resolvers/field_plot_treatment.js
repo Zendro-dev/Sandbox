@@ -29,32 +29,31 @@ const associationArgsDef = {
 field_plot_treatment.prototype.field_plot = async function({
     search
 }, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "field_plot_treatment_id",
-        "value": {
-            "value": this.getIdValue()
-        },
-        "operator": "eq"
-    });
 
-    let found = await resolvers.field_plots({
-        search: nsearch
-    }, context);
-    if (found) {
-        if (found.length > 1) {
-            let foundIds = [];
-            found.forEach(field_plot => {
-                foundIds.push(field_plot.getIdValue())
-            })
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found ${found.length} field_plots matching field_plot_treatment with id ${this.getIdValue()}. Consider making this association a "to_many", using unique constraints, or moving the foreign key into the field_plot_treatment model. Returning first field_plot. Found field_plots ${models.field_plot.idAttribute()}s: [${foundIds.toString()}]`
-            ));
+    if (helper.isNotUndefinedAndNotNull(this.field_plot_id)) {
+        if (search === undefined) {
+            return resolvers.readOneField_plot({
+                [models.field_plot.idAttribute()]: this.field_plot_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.field_plot.idAttribute(),
+                "value": {
+                    "value": this.field_plot_id
+                },
+                "operator": "eq"
+            });
+            let found = await resolvers.field_plots({
+                search: nsearch
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
         }
-        return found[0];
     }
-    return found;
 }
 
 
@@ -87,7 +86,8 @@ field_plot_treatment.prototype.handleAssociations = async function(input, benign
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
 field_plot_treatment.prototype.add_field_plot = async function(input, benignErrorReporter) {
-    await models.field_plot.add_field_plot_treatment_id(input.addField_plot, this.getIdValue(), benignErrorReporter);
+    await field_plot_treatment.add_field_plot_id(this.getIdValue(), input.addField_plot, benignErrorReporter);
+    this.field_plot_id = input.addField_plot;
 }
 
 /**
@@ -97,7 +97,10 @@ field_plot_treatment.prototype.add_field_plot = async function(input, benignErro
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote cenzontle services
  */
 field_plot_treatment.prototype.remove_field_plot = async function(input, benignErrorReporter) {
-    await models.field_plot.remove_field_plot_treatment_id(input.removeField_plot, this.getIdValue(), benignErrorReporter);
+    if (input.removeField_plot == this.field_plot_id) {
+        await field_plot_treatment.remove_field_plot_id(this.getIdValue(), input.removeField_plot, benignErrorReporter);
+        this.field_plot_id = null;
+    }
 }
 
 

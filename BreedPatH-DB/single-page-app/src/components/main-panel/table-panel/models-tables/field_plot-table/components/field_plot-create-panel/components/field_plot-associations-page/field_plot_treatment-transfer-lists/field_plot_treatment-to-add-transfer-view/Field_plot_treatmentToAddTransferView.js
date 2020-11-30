@@ -1388,7 +1388,6 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
 
   const handleAddItem = (event, item) => {
     if(lidsToAdd.current.indexOf(item.id) === -1) {
-      lidsToAdd.current = [];
       lidsToAdd.current.push(item.id);
       setThereAreItemsToAdd(true);
       updateHeights();
@@ -1401,9 +1400,13 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
   };
 
   const handleRemoveItem = (event, item) => {
-    if(lidsToAdd.current.length > 0) {
-      lidsToAdd.current = [];
-      setThereAreItemsToAdd(false);
+    let iof = lidsToAdd.current.indexOf(item.id);
+    if(iof !== -1) { 
+      lidsToAdd.current.splice(iof, 1);
+
+      if(lidsToAdd.current.length === 0) {
+        setThereAreItemsToAdd(false);
+      }
       updateHeights();
       //reload A (full)
       resetReloadDataA();
@@ -1465,7 +1468,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                     {items.map(it => {
                       let key = it.id;
                       let label = it.name;
-                      let sublabel = undefined;
+                      let sublabel = it.description;
 
                       return (
                         <ListItem key={key} 
@@ -1512,7 +1515,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                 
                                 {/* Sublabel */}
                                 {(sublabel) && (
-                                  <Tooltip title={ 'id' }>
+                                  <Tooltip title={ 'description' }>
                                     <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                   </Tooltip>
                                 )}
@@ -1644,10 +1647,9 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
 
             {/* Toolbar */}
             <FieldPlotTreatmentToAddTransferViewToolbar 
-              title={'Field_plot_treatment'}
+              title={'Field_plot_treatments'}
               titleIcon={2}
               search={searchB}
-              searchDisabled={true}
               onSearchEnter={handleSearchEnterB}
               onReloadClick={handleReloadClickB}
             />
@@ -1707,7 +1709,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                     {itemsB.map(it => {
                       let key = it.id;
                       let label = it.name;
-                      let sublabel = undefined;
+                      let sublabel = it.description;
 
                       return (
                         <ListItem key={key} 
@@ -1754,7 +1756,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                 
                                 {/* Sublabel */}
                                 {(sublabel) && (
-                                  <Tooltip title={ 'id' }>
+                                  <Tooltip title={ 'description' }>
                                     <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                   </Tooltip>
                                 )}
@@ -1807,7 +1809,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
             )}
 
             {/* Pagination */}
-            {(false) && (
+            {(true) && (
               
               <FieldPlotTreatmentToAddTransferViewCursorPagination
                 count={countB}

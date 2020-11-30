@@ -50,7 +50,7 @@ export default function FieldPlotTreatmentTransferLists(props) {
                 { t('modelPanels.toAddHelperA', "Please select ") }
               </Typography>
               <Typography variant="body2" display='inline'>
-                {  t('modelPanels.theRecord', "the record ") }
+                {  t('modelPanels.theRecords', "the records ") }
               </Typography>
               <Typography variant="body2" display='inline'>
                 { t('modelPanels.toAddHelperB', " that you want to be associated with this ") }

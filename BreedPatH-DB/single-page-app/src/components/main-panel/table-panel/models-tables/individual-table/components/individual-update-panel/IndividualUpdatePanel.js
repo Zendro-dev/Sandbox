@@ -287,7 +287,6 @@ export default function IndividualUpdatePanel(props) {
     initialValues.name = item.name;
     initialValues.description = item.description;
     initialValues.genotype_id = item.genotype_id;
-    initialValues.individual_id = item.individual_id;
 
     return initialValues;
   }
@@ -313,7 +312,6 @@ export default function IndividualUpdatePanel(props) {
   initialValueOkStates.name = (item.name!==null ? 1 : 0);
   initialValueOkStates.description = (item.description!==null ? 1 : 0);
     initialValueOkStates.genotype_id = -2; //FK
-  initialValueOkStates.individual_id = (item.individual_id!==null ? 1 : 0);
 
     return initialValueOkStates;
   }
@@ -324,7 +322,6 @@ export default function IndividualUpdatePanel(props) {
     _initialValueAjvStates.name = {errors: []};
     _initialValueAjvStates.description = {errors: []};
     _initialValueAjvStates.genotype_id = {errors: []}; //FK
-    _initialValueAjvStates.individual_id = {errors: []};
 
     return _initialValueAjvStates;
   }
@@ -353,7 +350,6 @@ export default function IndividualUpdatePanel(props) {
     if(values.current.name !== item.name) { return true;}
     if(values.current.description !== item.description) { return true;}
     if(Number(values.current.genotype_id) !== Number(item.genotype_id)) { return true;}
-    if(Number(values.current.individual_id) !== Number(item.individual_id)) { return true;}
     return false;
   }
 

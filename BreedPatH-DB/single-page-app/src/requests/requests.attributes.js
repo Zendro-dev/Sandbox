@@ -15,7 +15,6 @@ export default function getAttributes(filterName) {
         "area_sqm": "Float",
         "type": "String",
         "genotype_id": "Int",
-        "field_plot_treatment_id": "Int",
       };
     case 'field_plot_treatment':
       return {
@@ -44,7 +43,6 @@ export default function getAttributes(filterName) {
         "name": "String",
         "description": "String",
         "genotype_id": "Int",
-        "individual_id": "Int",
       };
     case 'marker_data':
       return {

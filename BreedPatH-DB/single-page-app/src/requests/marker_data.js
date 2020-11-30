@@ -262,7 +262,6 @@ export default {
           name,
           description,
           genotype_id,
-          individual_id,
       } } }`;
 
     /**

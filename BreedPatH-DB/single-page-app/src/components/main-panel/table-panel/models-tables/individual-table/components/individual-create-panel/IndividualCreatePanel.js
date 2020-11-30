@@ -196,7 +196,6 @@ export default function IndividualCreatePanel(props) {
     initialValues.name = null;
     initialValues.description = null;
     initialValues.genotype_id = null;
-    initialValues.individual_id = null;
 
     return initialValues;
   }
@@ -214,7 +213,6 @@ export default function IndividualCreatePanel(props) {
     initialValueOkStates.name = 0;
     initialValueOkStates.description = 0;
     initialValueOkStates.genotype_id = -2; //FK
-    initialValueOkStates.individual_id = 0;
 
     return initialValueOkStates;
   }
@@ -225,7 +223,6 @@ export default function IndividualCreatePanel(props) {
     _initialValueAjvStates.name = {errors: []};
     _initialValueAjvStates.description = {errors: []};
     _initialValueAjvStates.genotype_id = {errors: []}; //FK
-    _initialValueAjvStates.individual_id = {errors: []};
 
     return _initialValueAjvStates;
   }

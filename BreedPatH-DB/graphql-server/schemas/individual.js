@@ -22,12 +22,6 @@ module.exports = `
     """
     genotype_id: Int
 
-    """
-    @original-field
-    
-    """
-    individual_id: Int
-
     genotype(search: searchGenotypeInput): genotype
   mother_to(search: searchGenotypeInput): genotype
   father_to(search: searchGenotypeInput): genotype
@@ -91,7 +85,6 @@ type IndividualEdge{
     name
     description
     genotype_id
-    individual_id
   }
   input searchIndividualInput {
     field: individualField
@@ -113,8 +106,8 @@ type IndividualEdge{
     individualsConnection(search:searchIndividualInput, order: [ orderIndividualInput ], pagination: paginationCursorInput ): IndividualConnection
   }
     type Mutation {
-    addIndividual( name: String, description: String, individual_id: Int , addGenotype:ID, addMother_to:ID, addFather_to:ID  , addMarker_data_snps:[ID], addSamples:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
-    updateIndividual(id: ID!, name: String, description: String, individual_id: Int , addGenotype:ID, removeGenotype:ID , addMother_to:ID, removeMother_to:ID , addFather_to:ID, removeFather_to:ID   , addMarker_data_snps:[ID], removeMarker_data_snps:[ID] , addSamples:[ID], removeSamples:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
+    addIndividual( name: String, description: String , addGenotype:ID, addMother_to:ID, addFather_to:ID  , addMarker_data_snps:[ID], addSamples:[ID] , skipAssociationsExistenceChecks:Boolean = false): individual!
+    updateIndividual(id: ID!, name: String, description: String , addGenotype:ID, removeGenotype:ID , addMother_to:ID, removeMother_to:ID , addFather_to:ID, removeFather_to:ID   , addMarker_data_snps:[ID], removeMarker_data_snps:[ID] , addSamples:[ID], removeSamples:[ID]  , skipAssociationsExistenceChecks:Boolean = false): individual!
   deleteIndividual(id: ID!): String!
   bulkAddIndividualCsv: String! }
 

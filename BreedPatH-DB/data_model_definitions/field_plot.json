@@ -7,8 +7,7 @@
 		"year": "String",
 		"area_sqm": "Float",
 		"type": "String",
-    "genotype_id": "Int",
-    "field_plot_treatment_id": "Int"
+    "genotype_id": "Int"
 	},
 	"associations" : {
 		"genotype" : {
@@ -21,13 +20,13 @@
 			"sublabel": "id"
 		},
 		"field_plot_treatment" : {
-			"type" : "to_one",
+			"type" : "to_many",
 			"target" : "field_plot_treatment",
-			"targetKey" : "field_plot_treatment_id",
-			"keyIn" : "field_plot",
+			"targetKey" : "field_plot_id",
+			"keyIn" : "field_plot_treatment",
 			"targetStorageType" : "sql",
 			"label": "name",
-      "sublabel": "id"
+      "sublabel": "description"
 		},
 		"measurements": {
 			"type" : "to_many",

@@ -16,6 +16,7 @@ export default function FieldPlotTreatmentAttributesPage(props) {
   const {
     valueOkStates,
     valueAjvStates,
+    foreignKeys,
     hidden,
     handleSetValue,
   } = props;
@@ -34,6 +35,7 @@ export default function FieldPlotTreatmentAttributesPage(props) {
             <FieldPlotTreatmentAttributesFormView
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys={foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>
@@ -45,6 +47,7 @@ export default function FieldPlotTreatmentAttributesPage(props) {
 FieldPlotTreatmentAttributesPage.propTypes = {
   valueOkStates: PropTypes.object.isRequired,
   valueAjvStates: PropTypes.object.isRequired,
+    foreignKeys: PropTypes.object.isRequired,
   hidden: PropTypes.bool.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };

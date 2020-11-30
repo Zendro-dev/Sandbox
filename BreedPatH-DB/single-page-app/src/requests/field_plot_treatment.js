@@ -158,7 +158,6 @@ export default {
           $description:String,
           $chemical:String,
           $pesticide_type:String,
-          $field_plot_id:Int,
           $addField_plot: ID,
           ) { addField_plot_treatment(
             start_date:$start_date,
@@ -167,7 +166,6 @@ export default {
             description:$description,
             chemical:$chemical,
             pesticide_type:$pesticide_type,
-            field_plot_id:$field_plot_id,
             addField_plot: $addField_plot,
           ) {
             id,
@@ -209,7 +207,6 @@ export default {
           $description:String,
           $chemical:String,
           $pesticide_type:String,
-          $field_plot_id:Int,
           $addField_plot: ID,
           $removeField_plot: ID,
           ) { updateField_plot_treatment(
@@ -220,7 +217,6 @@ export default {
             description: $description,
             chemical: $chemical,
             pesticide_type: $pesticide_type,
-            field_plot_id: $field_plot_id,
             addField_plot: $addField_plot,
             removeField_plot: $removeField_plot,
           ) {
@@ -297,7 +293,6 @@ export default {
           area_sqm,
           type,
           genotype_id,
-          field_plot_treatment_id,
       } } }`;
 
     /**

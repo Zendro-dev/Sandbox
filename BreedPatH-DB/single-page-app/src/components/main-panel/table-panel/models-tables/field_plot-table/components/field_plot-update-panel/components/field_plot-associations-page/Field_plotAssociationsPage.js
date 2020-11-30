@@ -27,6 +27,7 @@ export default function FieldPlotAssociationsPage(props) {
     hidden,
     item,
     field_plot_treatmentIdsToAdd,
+    field_plot_treatmentIdsToRemove,
     genotypeIdsToAdd,
     measurementsIdsToAdd,
     measurementsIdsToRemove,
@@ -121,8 +122,11 @@ export default function FieldPlotAssociationsPage(props) {
               <FieldPlotTreatmentTransferLists
                 item={item}
                 idsToAdd={field_plot_treatmentIdsToAdd}
+                idsToRemove={field_plot_treatmentIdsToRemove}
                 handleTransferToAdd={handleTransferToAdd}
                 handleUntransferFromAdd={handleUntransferFromAdd}
+                handleTransferToRemove={handleTransferToRemove}
+                handleUntransferFromRemove={handleUntransferFromRemove}
                 handleClickOnField_plot_treatmentRow={handleClickOnField_plot_treatmentRow}
               />
             </Grid>
@@ -164,6 +168,7 @@ FieldPlotAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
   item: PropTypes.object.isRequired,
   field_plot_treatmentIdsToAdd: PropTypes.array.isRequired,
+  field_plot_treatmentIdsToRemove: PropTypes.array.isRequired,
   genotypeIdsToAdd: PropTypes.array.isRequired,
   measurementsIdsToAdd: PropTypes.array.isRequired,
   measurementsIdsToRemove: PropTypes.array.isRequired,

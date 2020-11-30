@@ -93,7 +93,7 @@ export default function FieldPlotTreatmentCompactViewToolbar(props) {
               SearchField + Actions
               Only rendered for to_many associations.
             */}
-            {(false) && (
+            {(true) && (
               <Grid item xs={12}>
                 <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
 

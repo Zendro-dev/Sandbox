@@ -15,8 +15,6 @@ import Key from '@material-ui/icons/VpnKey';
 
 import StringField from './components/StringField'
 
-import IntField from './components/IntField'
-
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -75,7 +73,7 @@ export default function IndividualAttributesFormView(props) {
                     { t('modelPanels.model') + ': Individual' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 3 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 2 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
@@ -120,18 +118,6 @@ export default function IndividualAttributesFormView(props) {
                 label='description'
                 text={item.description}
                 valueOk={valueOkStates.description}
-              />
-            </CardContent>
-
-            {/* individual_id */}
-            <CardContent key='individual_id' className={classes.cardContent} >
-              <IntField
-                itemKey='individual_id'
-                name='individual_id'
-                label='individual_id'
-                text={item.individual_id}
-                isForeignKey={false}
-                valueOk={valueOkStates.individual_id}
               />
             </CardContent>
 

@@ -80,6 +80,7 @@ export default function FieldPlotTreatmentUpdatePanel(props) {
   const [valueOkStates, setValueOkStates] = useState(getInitialValueOkStates());
   const [valueAjvStates, setValueAjvStates] = useState(getInitialValueAjvStates());
   const lastFetchTime = useRef(Date.now());
+    const [foreignKeys, setForeignKeys] = useState(getInitialForeignKeys());
   
   const [updated, setUpdated] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -266,6 +267,13 @@ export default function FieldPlotTreatmentUpdatePanel(props) {
     return initialValues;
   }
 
+  function getInitialForeignKeys() {
+    let initialForeignKeys = {};
+    
+    initialForeignKeys.field_plot_id = item.field_plot_id;
+
+    return initialForeignKeys;
+  }
 
   function getInitialValueOkStates() {
     /*
@@ -283,7 +291,7 @@ export default function FieldPlotTreatmentUpdatePanel(props) {
   initialValueOkStates.description = (item.description!==null ? 1 : 0);
   initialValueOkStates.chemical = (item.chemical!==null ? 1 : 0);
   initialValueOkStates.pesticide_type = (item.pesticide_type!==null ? 1 : 0);
-  initialValueOkStates.field_plot_id = (item.field_plot_id!==null ? 1 : 0);
+    initialValueOkStates.field_plot_id = -2; //FK
 
     return initialValueOkStates;
   }
@@ -297,7 +305,7 @@ export default function FieldPlotTreatmentUpdatePanel(props) {
     _initialValueAjvStates.description = {errors: []};
     _initialValueAjvStates.chemical = {errors: []};
     _initialValueAjvStates.pesticide_type = {errors: []};
-    _initialValueAjvStates.field_plot_id = {errors: []};
+    _initialValueAjvStates.field_plot_id = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -467,6 +475,7 @@ function setAjvErrors(err) {
     }
 
     //delete: fk's
+    delete variables.field_plot_id;
 
     //add & remove: to_one's
     setAddRemoveField_plot(variables);
@@ -719,6 +728,8 @@ function setAjvErrors(err) {
         field_plotIdsToAdd.current = [];
         field_plotIdsToAdd.current.push(itemId);
         setField_plotIdsToAddState(field_plotIdsToAdd.current);
+        handleSetValue(itemId, 1, 'field_plot_id');
+        setForeignKeys({...foreignKeys, field_plot_id: itemId});
         break;
 
       default:
@@ -730,6 +741,8 @@ function setAjvErrors(err) {
     if(associationKey === 'field_plot') {
       field_plotIdsToAdd.current = [];
       setField_plotIdsToAddState([]);
+      handleSetValue(null, 0, 'field_plot_id');
+      setForeignKeys({...foreignKeys, field_plot_id: null});
       return;
     }//end: case 'field_plot'
   }
@@ -885,6 +898,7 @@ function setAjvErrors(err) {
               item={item}
               valueOkStates={valueOkStates}
               valueAjvStates={valueAjvStates}
+              foreignKeys = {foreignKeys}
               handleSetValue={handleSetValue}
             />
           </Grid>

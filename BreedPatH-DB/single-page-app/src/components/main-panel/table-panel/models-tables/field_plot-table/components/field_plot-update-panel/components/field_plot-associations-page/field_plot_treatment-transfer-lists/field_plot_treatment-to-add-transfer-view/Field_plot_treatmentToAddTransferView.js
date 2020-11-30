@@ -30,7 +30,6 @@ import Add from '@material-ui/icons/AddCircle';
 import Remove from '@material-ui/icons/RemoveCircle';
 import TransferArrows from '@material-ui/icons/SettingsEthernetOutlined';
 import Key from '@material-ui/icons/VpnKey';
-import { green, grey } from '@material-ui/core/colors';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -152,7 +151,6 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
   
   //associated ids
   const lidsAssociated = useRef(undefined);
-  const [associatedItem, setAssociatedItem] = useState(null);
 
 
   const cancelablePromises = useRef([]);
@@ -302,8 +300,9 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
         }
         //check: readOneField_plot type
         if(typeof readOneField_plot !== 'object'
-        || typeof readOneField_plot.field_plot_treatment!== 'object' //can be null
-        ) {
+        || typeof readOneField_plot.field_plot_treatmentConnection !== 'object'
+        || readOneField_plot.field_plot_treatmentConnection === null
+        || !Array.isArray(readOneField_plot.field_plot_treatmentConnection.edges)) {
           let newError = {};
           let withDetails=true;
           variant.current='error';
@@ -318,8 +317,8 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
           clearRequestGetData();
           return;
         }
-        //get item
-        let idso = readOneField_plot.field_plot_treatment;
+        //get items
+        let idso = readOneField_plot.field_plot_treatmentConnection.edges.map(o => o.node);
 
         //check: graphql errors
         if(response.data.errors) {
@@ -332,24 +331,18 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
           console.log("Error: ", newError);
         }
 
-        //ok
-        //set associated id
-        lidsAssociated.current = (idso !== null) ? [idso.id] : [];
-        setAssociatedItem((idso !== null) ? {...idso} : null);
-        
-        /**
-         * To do:
-         * Associated id, if exist, will be excluded from 
-         * TableA (to associate items).
-         * 
-         * The current associated item will be deleted if:
-         * a) is marked to delete in the current associated item component, or
-         * b) another item is in the to_add list.
-         */
-        //set ops: excluded ids: toAddId + associatedId
+        //set associated ids
+        lidsAssociated.current = idso.map(function(item){ return item.id});
+
+        //set ops: excluded ids: toAddIds + associatedIds
         let ops = null;
-        //let exIds = lidsToAdd.current.concat(lidsAssociated.current);
-        let exIds = lidsToAdd.current;
+        let exIds = [];
+        if(lidsToAdd.current !== undefined && lidsToAdd.current.length > 0) {
+          exIds = lidsToAdd.current;
+        }
+        if(lidsAssociated.current !== undefined && lidsAssociated.current.length > 0) {
+          exIds = exIds.concat(lidsAssociated.current);
+        }
         if(exIds.length > 0) {
           ops = {
             exclude: [{
@@ -358,6 +351,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
             }]
           };
         }
+
         /*
           API Request: countField_plot_treatments
         */
@@ -1693,7 +1687,6 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
 
   const handleAddItem = (event, item) => {
     if(lidsToAdd.current.indexOf(item.id) === -1) {
-      lidsToAdd.current = [];
       lidsToAdd.current.push(item.id);
       setThereAreItemsToAdd(true);
       updateHeights();
@@ -1706,9 +1699,13 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
   };
 
   const handleRemoveItem = (event, item) => {
-    if(lidsToAdd.current.length > 0) {
-      lidsToAdd.current = [];
-      setThereAreItemsToAdd(false);
+    let iof = lidsToAdd.current.indexOf(item.id);
+    if(iof !== -1) { 
+      lidsToAdd.current.splice(iof, 1);
+
+      if(lidsToAdd.current.length === 0) {
+        setThereAreItemsToAdd(false);
+      }
       updateHeights();
       //reload A (full)
       resetReloadDataA();
@@ -1771,7 +1768,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                       {items.map(it => {
                         let key = it.id;
                         let label = it.name;
-                        let sublabel = undefined;
+                        let sublabel = it.description;
                         
                         return (
                           <ListItem key={key} 
@@ -1783,10 +1780,8 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'field_plot_treatment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'field_plot_treatment '}>
-                                <Avatar>
-                                  {"field_plot_treatment".slice(0,1)}
-                                </Avatar>
+                              <Tooltip title={ 'field_plot_treatment' }>
+                                <Avatar>{"field_plot_treatment".slice(0,1)}</Avatar>
                               </Tooltip>
                             </ListItemAvatar>
 
@@ -1802,8 +1797,8 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                                        <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -1820,7 +1815,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                   
                                   {/* Sublabel */}
                                   {(sublabel) && (
-                                    <Tooltip title={ 'id' }>
+                                    <Tooltip title={ 'description' }>
                                       <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
@@ -1955,10 +1950,9 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
 
               {/* Toolbar */}
               <FieldPlotTreatmentToAddTransferViewToolbar 
-                title={'Field_plot_treatment'}
+                title={'Field_plot_treatments'}
                 titleIcon={2}
                 search={searchB}
-                searchDisabled={true}
                 onSearchEnter={handleSearchEnterB}
                 onReloadClick={handleReloadClickB}
               />
@@ -2018,7 +2012,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                       {itemsB.map(it => {
                         let key = it.id;
                         let label = it.name;
-                        let sublabel = undefined;
+                        let sublabel = it.description;
 
                         
                         return (
@@ -2031,10 +2025,8 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'field_plot_treatment — ' + t('modelPanels.associatedRecord', 'Associated record') : 'field_plot_treatment '}>
-                                <Avatar>
-                                  {"field_plot_treatment".slice(0,1)}
-                                </Avatar>
+                              <Tooltip title={ 'field_plot_treatment' }>
+                                <Avatar>{"field_plot_treatment".slice(0,1)}</Avatar>
                               </Tooltip>
                             </ListItemAvatar>
 
@@ -2050,8 +2042,8 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ t('modelPanels.internalId', 'Unique Identifier') }>
+                                        <Key fontSize="small" color="disabled" style={{ marginTop:8}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -2068,7 +2060,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
                                   
                                   {/* Sublabel */}
                                   {(sublabel) && (
-                                    <Tooltip title={ 'id' }>
+                                    <Tooltip title={ 'description' }>
                                       <Typography component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
@@ -2121,7 +2113,7 @@ export default function FieldPlotTreatmentToAddTransferView(props) {
               )}
 
               {/* Pagination */}
-              {(false) && (
+              {(true) && (
                 
                 <FieldPlotTreatmentToAddTransferViewCursorPagination
                   count={countB}

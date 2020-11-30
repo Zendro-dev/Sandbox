@@ -79,6 +79,38 @@ services:
       traefik.port: "8080"
     restart: unless-stopped
 
+  sdb_graphiql:
+    depends_on:
+      - sdb_postgres
+      - sdb_science_db_graphql_server
+    build:
+      context: ./graphiql-auth
+      dockerfile: Dockerfile
+    environment:
+      - REACT_APP_SERVER_URL=http://api.breedpath-db.org/graphql
+      - REACT_APP_LOGIN_URL=http://api.breedpath-db.org/login
+      - PORT=7000
+    volumes:
+      - .:/usr/ScienceDbStarterPack
+    # Install dependencies and start single-page-app-server in development
+    # mode.
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "sdb_graphiql"
+      traefik.frontend.rule: "Host:graphiql.breedpath-db.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "7000"
+    networks:
+      - backend
+      - reverseproxy
+
   #sdb_minio:
   #  image: minio/minio:RELEASE.2019-02-20T22-44-29Z
   #  volumes:

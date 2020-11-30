@@ -447,6 +447,9 @@ module.exports = class role extends Sequelize.Model {
             options['where'] = arg_sequelize;
         }
 
+        // DEBUG
+        console.log('\n**********\nQuery options are:\n' + JSON.stringify(options) + '\n*********\n')
+
         return this.countUsers(options).then(items => {
             if (order !== undefined) {
                 options['order'] = order.map((orderItem) => {

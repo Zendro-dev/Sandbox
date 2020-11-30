@@ -1783,7 +1783,7 @@ export default function MotherToToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'genotype — ' + t('modelPanels.associatedRecord', 'Associated record') : 'genotype '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'genotype — ' + t('modelPanels.associatedRecord', 'Associated record') : 'genotype '}>
                                 <Avatar>
                                   {"genotype".slice(0,1)}
                                 </Avatar>
@@ -1802,8 +1802,8 @@ export default function MotherToToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -2031,7 +2031,7 @@ export default function MotherToToAddTransferView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem.id===it.id) ? 'genotype — ' + t('modelPanels.associatedRecord', 'Associated record') : 'genotype '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'genotype — ' + t('modelPanels.associatedRecord', 'Associated record') : 'genotype '}>
                                 <Avatar>
                                   {"genotype".slice(0,1)}
                                 </Avatar>
@@ -2050,8 +2050,8 @@ export default function MotherToToAddTransferView(props) {
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>

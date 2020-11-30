@@ -188,24 +188,6 @@ export default function FieldPlotEnhancedTableHead(props) {
           </TableSortLabel>
         </TableCell>
 
-        <TableCell
-          key='field_plot_treatment_id'
-          align='right'
-          padding="default"
-          sortDirection={orderBy === 'field_plot_treatment_id' ? order : false}
-        >
-          {/* field_plot_treatment_id */}
-          <TableSortLabel
-              active={orderBy === 'field_plot_treatment_id'}
-              direction={order}
-              onClick={(event) => {onRequestSort(event, 'field_plot_treatment_id')}}
-          >
-            <Typography color="inherit" variant="caption">
-              field_plot_treatment_id
-            </Typography>
-          </TableSortLabel>
-        </TableCell>
-
       </TableRow>
     </TableHead>
   );

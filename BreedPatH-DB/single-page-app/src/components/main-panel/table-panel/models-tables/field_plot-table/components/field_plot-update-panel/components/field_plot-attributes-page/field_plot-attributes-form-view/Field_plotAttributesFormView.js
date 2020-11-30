@@ -72,7 +72,7 @@ export default function FieldPlotAttributesFormView(props) {
                     { t('modelPanels.model') + ': Field_plot' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 7 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 6 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>

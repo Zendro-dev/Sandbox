@@ -293,7 +293,6 @@ export default {
           area_sqm,
           type,
           genotype_id,
-          field_plot_treatment_id,
       } } }`;
 
     /**

@@ -85,8 +85,6 @@ export default {
               area_sqm,
               type,
               genotype_id,
-              field_plot_treatment_id,
-              field_plot_treatment{ id },
               genotype{ id },
             }
           }`
@@ -158,8 +156,8 @@ export default {
           $year:String,
           $area_sqm:Float,
           $type:String,
-          $addField_plot_treatment: ID,
           $addGenotype: ID,
+          $addField_plot_treatment: [ID],
           $addMeasurements: [ID],
           ) { addField_plot(
             field_name:$field_name,
@@ -167,8 +165,8 @@ export default {
             year:$year,
             area_sqm:$area_sqm,
             type:$type,
-            addField_plot_treatment: $addField_plot_treatment,
             addGenotype: $addGenotype,
+            addField_plot_treatment: $addField_plot_treatment,
             addMeasurements: $addMeasurements,
           ) {
             id,
@@ -178,8 +176,6 @@ export default {
             area_sqm,
             type,
             genotype_id,
-            field_plot_treatment_id,
-            field_plot_treatment{ id },
             genotype{ id },
           } }`;
 
@@ -210,10 +206,10 @@ export default {
           $year:String,
           $area_sqm:Float,
           $type:String,
-          $addField_plot_treatment: ID,
-          $removeField_plot_treatment: ID,
           $addGenotype: ID,
           $removeGenotype: ID,
+          $addField_plot_treatment: [ID],
+          $removeField_plot_treatment: [ID],
           $addMeasurements: [ID],
           $removeMeasurements: [ID],
           ) { updateField_plot(
@@ -223,10 +219,10 @@ export default {
             year: $year,
             area_sqm: $area_sqm,
             type: $type,
-            addField_plot_treatment: $addField_plot_treatment,
-            removeField_plot_treatment: $removeField_plot_treatment,
             addGenotype: $addGenotype,
             removeGenotype: $removeGenotype,
+            addField_plot_treatment: $addField_plot_treatment,
+            removeField_plot_treatment: $removeField_plot_treatment,
             addMeasurements: $addMeasurements,
             removeMeasurements: $removeMeasurements,
           ) {
@@ -237,8 +233,6 @@ export default {
             area_sqm,
             type,
             genotype_id,
-            field_plot_treatment_id,
-            field_plot_treatment{ id },
             genotype{ id },
           } }`;
 
@@ -294,18 +288,44 @@ export default {
    * @param {String} ops Object with adittional query options.
    */
   getField_plot_treatmentConnection(url, itemId, label, sublabel, searchText, variables, ops) {
-    var query = 
-      `{ readOneField_plot(id: ${itemId}) { 
-        field_plot_treatment{ 
-          id,
-          start_date,
-          end_date,
-          name,
-          description,
-          chemical,
-          pesticide_type,
-          field_plot_id,
-      } } }`;
+    //search
+    var s = getSearchArgument('field_plot_treatment', searchText, ops); 
+
+    var qbody = `
+          pageInfo {
+            startCursor
+            endCursor
+            hasPreviousPage
+            hasNextPage
+          },
+          edges {
+            node {
+              id,
+              start_date,
+              end_date,
+              name,
+              description,
+              chemical,
+              pesticide_type,
+              field_plot_id,
+            }
+          }`
+
+    var query = (s) ?
+      `query readOneField_plot($pagination: paginationCursorInput) {
+        readOneField_plot(id: ${itemId}) { 
+          field_plot_treatmentConnection( ${s}, pagination: $pagination ) { 
+            ${qbody},
+          },
+          countFilteredField_plot_treatment( ${s} ) 
+      } }` :      
+      `query readOneField_plot($pagination: paginationCursorInput) {
+        readOneField_plot(id: ${itemId}) { 
+          field_plot_treatmentConnection( pagination: $pagination ) { 
+            ${qbody},
+          },
+          countFilteredField_plot_treatment 
+      } }`;
 
     /**
      * Debug
@@ -329,8 +349,8 @@ export default {
    */
   getAssociatedField_plot_treatmentConnection(url, itemId) {
     var query = 
-    `{ readOneField_plot( id: ${itemId} ){ 
-      field_plot_treatment{ id } } }`;
+      `{ readOneField_plot( id: ${itemId} ){ 
+        field_plot_treatmentConnection{ edges { node { id } } } } }`;
     /**
      * Debug
      */

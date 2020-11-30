@@ -195,7 +195,6 @@ export default function FieldPlotCreatePanel(props) {
     initialValues.area_sqm = null;
     initialValues.type = null;
     initialValues.genotype_id = null;
-    initialValues.field_plot_treatment_id = null;
 
     return initialValues;
   }
@@ -216,7 +215,6 @@ export default function FieldPlotCreatePanel(props) {
     initialValueOkStates.area_sqm = 0;
     initialValueOkStates.type = 0;
     initialValueOkStates.genotype_id = -2; //FK
-    initialValueOkStates.field_plot_treatment_id = -2; //FK
 
     return initialValueOkStates;
   }
@@ -230,7 +228,6 @@ export default function FieldPlotCreatePanel(props) {
     _initialValueAjvStates.area_sqm = {errors: []};
     _initialValueAjvStates.type = {errors: []};
     _initialValueAjvStates.genotype_id = {errors: []}; //FK
-    _initialValueAjvStates.field_plot_treatment_id = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -265,14 +262,6 @@ export default function FieldPlotCreatePanel(props) {
     return false;
   }
 
-  function setAddField_plot_treatment(variables) {
-    if(field_plot_treatmentIdsToAdd.current.length>0) {
-      //set the new id on toAdd property
-      variables.addField_plot_treatment = field_plot_treatmentIdsToAdd.current[0];
-    } else {
-      //do nothing
-    }
-  }
   function setAddGenotype(variables) {
     if(genotypeIdsToAdd.current.length>0) {
       //set the new id on toAdd property
@@ -351,13 +340,12 @@ export default function FieldPlotCreatePanel(props) {
 
     //delete: fk's
     delete variables.genotype_id;
-    delete variables.field_plot_treatment_id;
 
     //add: to_one's
-    setAddField_plot_treatment(variables);
     setAddGenotype(variables);
     
     //add: to_many's
+    variables.addField_plot_treatment = field_plot_treatmentIdsToAdd.current;
     variables.addMeasurements = measurementsIdsToAdd.current;
 
     /*
@@ -604,11 +592,8 @@ export default function FieldPlotCreatePanel(props) {
     switch(associationKey) {
       case 'field_plot_treatment':
         if(field_plot_treatmentIdsToAdd.current.indexOf(itemId) === -1) {
-          field_plot_treatmentIdsToAdd.current = [];
           field_plot_treatmentIdsToAdd.current.push(itemId);
           setField_plot_treatmentIdsToAddState(field_plot_treatmentIdsToAdd.current);
-          handleSetValue(itemId, 1, 'field_plot_treatment_id');
-          setForeignKeys({...foreignKeys, field_plot_treatment_id: itemId});
         }
         break;
       case 'genotype':
@@ -634,11 +619,9 @@ export default function FieldPlotCreatePanel(props) {
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
     if(associationKey === 'field_plot_treatment') {
-      if(field_plot_treatmentIdsToAdd.current.length > 0) {
-        field_plot_treatmentIdsToAdd.current = [];
-        setField_plot_treatmentIdsToAddState([]);
-        handleSetValue(null, 0, 'field_plot_treatment_id');
-        setForeignKeys({...foreignKeys, field_plot_treatment_id: null});
+      let iof = field_plot_treatmentIdsToAdd.current.indexOf(itemId);
+      if(iof !== -1) {
+        field_plot_treatmentIdsToAdd.current.splice(iof, 1);
       }
       return;
     }//end: case 'field_plot_treatment'

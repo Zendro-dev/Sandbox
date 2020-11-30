@@ -15,8 +15,6 @@ import Key from '@material-ui/icons/VpnKey';
 
 import StringField from './components/StringField'
 
-import IntField from './components/IntField'
-
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -75,7 +73,7 @@ export default function FieldPlotTreatmentAttributesFormView(props) {
                     { t('modelPanels.model') + ': Field_plot_treatment' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 7 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 6 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
@@ -164,18 +162,6 @@ export default function FieldPlotTreatmentAttributesFormView(props) {
                 label='pesticide_type'
                 text={item.pesticide_type}
                 valueOk={valueOkStates.pesticide_type}
-              />
-            </CardContent>
-
-            {/* field_plot_id */}
-            <CardContent key='field_plot_id' className={classes.cardContent} >
-              <IntField
-                itemKey='field_plot_id'
-                name='field_plot_id'
-                label='field_plot_id'
-                text={item.field_plot_id}
-                isForeignKey={false}
-                valueOk={valueOkStates.field_plot_id}
               />
             </CardContent>
 

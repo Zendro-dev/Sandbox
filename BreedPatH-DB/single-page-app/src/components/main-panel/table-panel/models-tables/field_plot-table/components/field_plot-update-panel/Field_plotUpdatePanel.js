@@ -101,8 +101,10 @@ export default function FieldPlotUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const field_plot_treatmentIdsToAdd = useRef((item.field_plot_treatment&& item.field_plot_treatment.id) ? [item.field_plot_treatment.id] : []);
-  const [field_plot_treatmentIdsToAddState, setField_plot_treatmentIdsToAddState] = useState((item.field_plot_treatment&& item.field_plot_treatment.id) ? [item.field_plot_treatment.id] : []);
+  const [field_plot_treatmentIdsToAddState, setField_plot_treatmentIdsToAddState] = useState([]);
+  const field_plot_treatmentIdsToAdd = useRef([]);
+  const [field_plot_treatmentIdsToRemoveState, setField_plot_treatmentIdsToRemoveState] = useState([]);
+  const field_plot_treatmentIdsToRemove = useRef([]);
   const genotypeIdsToAdd = useRef((item.genotype&& item.genotype.id) ? [item.genotype.id] : []);
   const [genotypeIdsToAddState, setGenotypeIdsToAddState] = useState((item.genotype&& item.genotype.id) ? [item.genotype.id] : []);
   const [measurementsIdsToAddState, setMeasurementsIdsToAddState] = useState([]);
@@ -284,7 +286,6 @@ export default function FieldPlotUpdatePanel(props) {
     initialValues.area_sqm = item.area_sqm;
     initialValues.type = item.type;
     initialValues.genotype_id = item.genotype_id;
-    initialValues.field_plot_treatment_id = item.field_plot_treatment_id;
 
     return initialValues;
   }
@@ -293,7 +294,6 @@ export default function FieldPlotUpdatePanel(props) {
     let initialForeignKeys = {};
     
     initialForeignKeys.genotype_id = item.genotype_id;
-    initialForeignKeys.field_plot_treatment_id = item.field_plot_treatment_id;
 
     return initialForeignKeys;
   }
@@ -314,7 +314,6 @@ export default function FieldPlotUpdatePanel(props) {
   initialValueOkStates.area_sqm = (item.area_sqm!==null ? 1 : 0);
   initialValueOkStates.type = (item.type!==null ? 1 : 0);
     initialValueOkStates.genotype_id = -2; //FK
-    initialValueOkStates.field_plot_treatment_id = -2; //FK
 
     return initialValueOkStates;
   }
@@ -328,7 +327,6 @@ export default function FieldPlotUpdatePanel(props) {
     _initialValueAjvStates.area_sqm = {errors: []};
     _initialValueAjvStates.type = {errors: []};
     _initialValueAjvStates.genotype_id = {errors: []}; //FK
-    _initialValueAjvStates.field_plot_treatment_id = {errors: []}; //FK
 
     return _initialValueAjvStates;
   }
@@ -360,71 +358,9 @@ export default function FieldPlotUpdatePanel(props) {
     if(values.current.area_sqm !== item.area_sqm) { return true;}
     if(values.current.type !== item.type) { return true;}
     if(Number(values.current.genotype_id) !== Number(item.genotype_id)) { return true;}
-    if(Number(values.current.field_plot_treatment_id) !== Number(item.field_plot_treatment_id)) { return true;}
     return false;
   }
 
-  function setAddRemoveField_plot_treatment(variables) {
-    //data to notify changes
-    changedAssociations.current.field_plot_treatment = {added: false, removed: false};
-    
-    /*
-     * Case I: Currently, this record is associated.
-     */
-    if(item.field_plot_treatment&&item.field_plot_treatment.id) {
-      /*
-       * Case I.a: The toAdd list isn't empty.
-       */      
-      if(field_plot_treatmentIdsToAdd.current.length>0) {
-        /*
-         * Case I.a.1: There is a new ID (current association changed).
-         */
-        if(item.field_plot_treatment.id!== field_plot_treatmentIdsToAdd.current[0]) {
-          //set id to add
-          variables.addField_plot_treatment = field_plot_treatmentIdsToAdd.current[0];
-          
-          changedAssociations.current.field_plot_treatment.added = true;
-          changedAssociations.current.field_plot_treatment.idsAdded = field_plot_treatmentIdsToAdd.current;
-          changedAssociations.current.field_plot_treatment.removed = true;
-          changedAssociations.current.field_plot_treatment.idsRemoved = [item.field_plot_treatment.id];
-        } else {
-          /*
-           * Case I.a.2: The ID on toAdd list es equal to the current associated ID.
-           */
-          //do nothing here (nothing changes).
-        }
-      } else {
-        /*
-         * Case I.b: The toAdd list is empty (current association removed).
-         */
-        //set id to remove
-        variables.removeField_plot_treatment = item.field_plot_treatment.id;
-        
-        changedAssociations.current.field_plot_treatment.removed = true;
-        changedAssociations.current.field_plot_treatment.idsRemoved = [item.field_plot_treatment.id];
-      }
-    } else { //currently not to-one-associated
-      /*
-       * Case II: Currently, this record is not associated.
-       */
-      
-      /*
-       * Case II.a: The toAdd list isn't empty (has new id to add).
-       */
-      if(field_plot_treatmentIdsToAdd.current.length>0) {
-        //set id to add
-        variables.addField_plot_treatment = field_plot_treatmentIdsToAdd.current[0];
-        
-        changedAssociations.current.field_plot_treatment.added = true;
-        changedAssociations.current.field_plot_treatment.idsAdded = field_plot_treatmentIdsToAdd.current;
-      } else {
-        /*
-         * Case II.b: The toAdd list is empty.
-         */
-        //do nothing here (nothing changes).
-      }
-    }
-  }
   function setAddRemoveGenotype(variables) {
     //data to notify changes
     changedAssociations.current.genotype = {added: false, removed: false};
@@ -560,13 +496,26 @@ function setAjvErrors(err) {
 
     //delete: fk's
     delete variables.genotype_id;
-    delete variables.field_plot_treatment_id;
 
     //add & remove: to_one's
-    setAddRemoveField_plot_treatment(variables);
     setAddRemoveGenotype(variables);
 
     //add & remove: to_many's
+    //data to notify changes
+    changedAssociations.current.field_plot_treatment = {added: false, removed: false};
+    
+    if(field_plot_treatmentIdsToAdd.current.length>0) {
+      variables.addField_plot_treatment = field_plot_treatmentIdsToAdd.current;
+      
+      changedAssociations.current.field_plot_treatment.added = true;
+      changedAssociations.current.field_plot_treatment.idsAdded = field_plot_treatmentIdsToAdd.current;
+    }
+    if(field_plot_treatmentIdsToRemove.current.length>0) {
+      variables.removeField_plot_treatment = field_plot_treatmentIdsToRemove.current;
+      
+      changedAssociations.current.field_plot_treatment.removed = true;
+      changedAssociations.current.field_plot_treatment.idsRemoved = field_plot_treatmentIdsToRemove.current;
+    }
     //data to notify changes
     changedAssociations.current.measurements = {added: false, removed: false};
     
@@ -826,11 +775,8 @@ function setAjvErrors(err) {
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
       case 'field_plot_treatment':
-        field_plot_treatmentIdsToAdd.current = [];
         field_plot_treatmentIdsToAdd.current.push(itemId);
         setField_plot_treatmentIdsToAddState(field_plot_treatmentIdsToAdd.current);
-        handleSetValue(itemId, 1, 'field_plot_treatment_id');
-        setForeignKeys({...foreignKeys, field_plot_treatment_id: itemId});
         break;
       case 'genotype':
         genotypeIdsToAdd.current = [];
@@ -851,10 +797,14 @@ function setAjvErrors(err) {
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
     if(associationKey === 'field_plot_treatment') {
-      field_plot_treatmentIdsToAdd.current = [];
-      setField_plot_treatmentIdsToAddState([]);
-      handleSetValue(null, 0, 'field_plot_treatment_id');
-      setForeignKeys({...foreignKeys, field_plot_treatment_id: null});
+      for(let i=0; i<field_plot_treatmentIdsToAdd.current.length; ++i)
+      {
+        if(field_plot_treatmentIdsToAdd.current[i] === itemId) {
+          field_plot_treatmentIdsToAdd.current.splice(i, 1);
+          setField_plot_treatmentIdsToAddState(field_plot_treatmentIdsToAdd.current);
+          return;
+        }
+      }
       return;
     }//end: case 'field_plot_treatment'
     if(associationKey === 'genotype') {
@@ -879,6 +829,10 @@ function setAjvErrors(err) {
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
+      case 'field_plot_treatment':
+        field_plot_treatmentIdsToRemove.current.push(itemId);
+        setField_plot_treatmentIdsToRemoveState(field_plot_treatmentIdsToRemove.current);
+        break;
       case 'measurements':
         measurementsIdsToRemove.current.push(itemId);
         setMeasurementsIdsToRemoveState(measurementsIdsToRemove.current);
@@ -890,6 +844,17 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
+    if(associationKey === 'field_plot_treatment') {
+      for(let i=0; i<field_plot_treatmentIdsToRemove.current.length; ++i)
+      {
+        if(field_plot_treatmentIdsToRemove.current[i] === itemId) {
+          field_plot_treatmentIdsToRemove.current.splice(i, 1);
+          setField_plot_treatmentIdsToRemoveState(field_plot_treatmentIdsToRemove.current);
+          return;
+        }
+      }
+      return;
+    }//end: case 'field_plot_treatment'
     if(associationKey === 'measurements') {
       for(let i=0; i<measurementsIdsToRemove.current.length; ++i)
       {
@@ -1100,6 +1065,7 @@ function setAjvErrors(err) {
               hidden={tabsValue !== 1 || deleted}
               item={item}
               field_plot_treatmentIdsToAdd={field_plot_treatmentIdsToAddState}
+              field_plot_treatmentIdsToRemove={field_plot_treatmentIdsToRemoveState}
               genotypeIdsToAdd={genotypeIdsToAddState}
               measurementsIdsToAdd={measurementsIdsToAddState}
               measurementsIdsToRemove={measurementsIdsToRemoveState}
