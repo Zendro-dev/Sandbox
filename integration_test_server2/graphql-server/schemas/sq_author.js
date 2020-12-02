@@ -39,6 +39,7 @@ type sq_author{
 
 type Sq_authorConnection{
 edges: [Sq_authorEdge]
+sq_authors: [sq_author]
 pageInfo: pageInfo!
 }
 

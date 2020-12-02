@@ -38,7 +38,7 @@ post_author.prototype.booksFilter = function({
 }, context) {
 
 
-    if (this.book_ids.length !== 0) {
+    //if (this.book_ids.length !== 0) {
         let nsearch = helper.addSearchField({
             "search": search,
             "field": models.post_book.idAttribute(),
@@ -51,7 +51,7 @@ post_author.prototype.booksFilter = function({
             order: order,
             pagination: pagination
         }, context);
-    }
+    //}
 }
 
 /**
@@ -66,7 +66,7 @@ post_author.prototype.countFilteredBooks = function({
 }, context) {
 
 
-    if (this.book_ids.length === 0) return 0;
+    //if (this.book_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.post_book.idAttribute(),
@@ -97,7 +97,7 @@ post_author.prototype.booksConnection = function({
 }, context) {
 
 
-    if (this.book_ids.length !== 0) {
+    //if (this.book_ids.length !== 0) {
         let nsearch = helper.addSearchField({
             "search": search,
             "field": models.post_book.idAttribute(),
@@ -110,7 +110,7 @@ post_author.prototype.booksConnection = function({
             order: order,
             pagination: pagination
         }, context);
-    }
+    //}
 
 }
 

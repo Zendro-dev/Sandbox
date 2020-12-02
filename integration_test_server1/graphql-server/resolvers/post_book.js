@@ -38,7 +38,7 @@ post_book.prototype.authorsFilter = function({
 }, context) {
 
 
-    if (this.author_ids.length !== 0) {
+    //if (this.author_ids.length !== 0) {
         let nsearch = helper.addSearchField({
             "search": search,
             "field": models.post_author.idAttribute(),
@@ -51,7 +51,7 @@ post_book.prototype.authorsFilter = function({
             order: order,
             pagination: pagination
         }, context);
-    }
+    //}
 }
 
 /**
@@ -66,7 +66,7 @@ post_book.prototype.countFilteredAuthors = function({
 }, context) {
 
 
-    if (this.author_ids.length === 0) return 0;
+    //if (this.author_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.post_author.idAttribute(),
@@ -97,7 +97,7 @@ post_book.prototype.authorsConnection = function({
 }, context) {
 
 
-    if (this.author_ids.length !== 0) {
+    //if (this.author_ids.length !== 0) {
         let nsearch = helper.addSearchField({
             "search": search,
             "field": models.post_author.idAttribute(),
@@ -110,7 +110,7 @@ post_book.prototype.authorsConnection = function({
             order: order,
             pagination: pagination
         }, context);
-    }
+//    }
 
 }
 
@@ -124,15 +124,19 @@ post_book.prototype.authorsConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 post_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
-    let promises = [];
+    let promises_remove = [];
+    let promises_add = [];
     if (helper.isNonEmptyArray(input.addAuthors)) {
-        promises.push(this.add_authors(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeAuthors)) {
-        promises.push(this.remove_authors(input, benignErrorReporter));
+        promises_add.push(this.add_authors(input, benignErrorReporter));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises_add);
+
+    if (helper.isNonEmptyArray(input.removeAuthors)) {
+        promises_remove.push(this.remove_authors(input, benignErrorReporter));
+    }
+
+    await Promise.all(promises_remove);
 }
 /**
  * add_authors - field Mutation for to_many associations to add
