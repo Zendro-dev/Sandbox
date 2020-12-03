@@ -92,7 +92,7 @@ module.exports = class sq_book {
     }
 
     /**
-     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters 
+     * mapBulkAssociationInputToAdapters - maps the input of a bulkAssociate to the responsible adapters
      * adapter on adapter/index.js. Each key of the object will have
      *
      * @param {Array} bulkAssociationInput Array of "edges" between two records to be associated
@@ -284,7 +284,7 @@ module.exports = class sq_book {
                 let hasNextPage = ordered_records.length > pagination.first || someHasNextPage;
                 let hasPreviousPage = ordered_records.length > pagination.last || someHasPreviousPage;
 
-                let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage);
+                let graphQLConnection = helper.toGraphQLConnectionObject(paginated_records, this, hasNextPage, hasPreviousPage, "sq_books");
                 return graphQLConnection;
             });
     }

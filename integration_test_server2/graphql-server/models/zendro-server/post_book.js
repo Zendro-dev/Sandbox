@@ -219,8 +219,9 @@ module.exports = class post_book {
                 let nodes = data_edges.map(e => e.node);
                 let valid_nodes = await validatorUtil.bulkValidateData('validateAfterRead', this, nodes, benignErrorReporter);
 
-                let edges = valid_nodes.map(e => {
-                    let temp_node = new post_book(e);
+                let nodes_model = valid_nodes.map(e => new post_book(e));
+
+                let edges = nodes_model.map(temp_node => {
                     return {
                         node: temp_node,
                         cursor: temp_node.base64Enconde()
@@ -229,7 +230,8 @@ module.exports = class post_book {
 
                 return {
                     edges,
-                    pageInfo
+                    pageInfo,
+                    post_books: nodes_model
                 };
             } else {
                 throw new Error(`Remote server (${remoteZendroURL}) did not respond with data.`);

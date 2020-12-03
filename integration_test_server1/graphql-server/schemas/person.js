@@ -92,6 +92,7 @@ module.exports = `
     }
 type PersonConnection{
   edges: [PersonEdge]
+  people: [person]
   pageInfo: pageInfo!
 }
 

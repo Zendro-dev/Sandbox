@@ -40,20 +40,18 @@ person.prototype.friendsFilter = function({
 }, context) {
 
 
-    if (this.friends_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.friends_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.people({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.friends_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.people({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 /**
@@ -68,7 +66,6 @@ person.prototype.countFilteredFriends = function({
 }, context) {
 
 
-    if (this.friends_id.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.person.idAttribute(),
@@ -99,21 +96,18 @@ person.prototype.friendsConnection = function({
 }, context) {
 
 
-    if (this.friends_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.friends_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.peopleConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
-
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.friends_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.peopleConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 /**
  * person.prototype.parentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -133,20 +127,18 @@ person.prototype.parentsFilter = function({
 }, context) {
 
 
-    if (this.parents_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.parents_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.people({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.parents_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.people({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 /**
@@ -161,7 +153,6 @@ person.prototype.countFilteredParents = function({
 }, context) {
 
 
-    if (this.parents_id.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.person.idAttribute(),
@@ -192,21 +183,18 @@ person.prototype.parentsConnection = function({
 }, context) {
 
 
-    if (this.parents_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.parents_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.peopleConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
-
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.parents_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.peopleConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 /**
  * person.prototype.childrenFilter - Check user authorization and return certain number, specified in pagination argument, of records
@@ -226,20 +214,18 @@ person.prototype.childrenFilter = function({
 }, context) {
 
 
-    if (this.children_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.children_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.people({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.children_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.people({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 /**
@@ -254,7 +240,6 @@ person.prototype.countFilteredChildren = function({
 }, context) {
 
 
-    if (this.children_id.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.person.idAttribute(),
@@ -285,21 +270,18 @@ person.prototype.childrenConnection = function({
 }, context) {
 
 
-    if (this.children_id.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.person.idAttribute(),
-            "value": this.children_id.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.peopleConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
-
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.person.idAttribute(),
+        "value": this.children_id.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.peopleConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 
@@ -312,27 +294,32 @@ person.prototype.childrenConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 person.prototype.handleAssociations = async function(input, benignErrorReporter) {
-    let promises = [];
+
+    let promises_add = [];
     if (helper.isNonEmptyArray(input.addFriends)) {
-        promises.push(this.add_friends(input, benignErrorReporter));
+        promises_add.push(this.add_friends(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.addParents)) {
-        promises.push(this.add_parents(input, benignErrorReporter));
+        promises_add.push(this.add_parents(input, benignErrorReporter));
     }
     if (helper.isNonEmptyArray(input.addChildren)) {
-        promises.push(this.add_children(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeFriends)) {
-        promises.push(this.remove_friends(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeParents)) {
-        promises.push(this.remove_parents(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeChildren)) {
-        promises.push(this.remove_children(input, benignErrorReporter));
+        promises_add.push(this.add_children(input, benignErrorReporter));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises_add);
+    let promises_remove = [];
+    if (helper.isNonEmptyArray(input.removeFriends)) {
+        promises_remove.push(this.remove_friends(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeParents)) {
+        promises_remove.push(this.remove_parents(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeChildren)) {
+        promises_remove.push(this.remove_children(input, benignErrorReporter));
+    }
+
+    await Promise.all(promises_remove);
+
 }
 /**
  * add_friends - field Mutation for to_many associations to add

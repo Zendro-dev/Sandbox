@@ -26,6 +26,7 @@ module.exports = `
     }
 type Mysql_authorConnection{
   edges: [Mysql_authorEdge]
+  mysql_authors: [mysql_author]
   pageInfo: pageInfo!
 }
 

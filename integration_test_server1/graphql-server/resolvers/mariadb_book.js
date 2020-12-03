@@ -29,11 +29,16 @@ const associationArgsDef = {}
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 mariadb_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
-    let promises = [];
+
+    let promises_add = [];
 
 
+    await Promise.all(promises_add);
+    let promises_remove = [];
 
-    await Promise.all(promises);
+
+    await Promise.all(promises_remove);
+
 }
 
 

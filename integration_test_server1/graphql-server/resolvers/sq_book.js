@@ -38,20 +38,18 @@ sq_book.prototype.authorsFilter = function({
 }, context) {
 
 
-    if (this.author_ids.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.sq_author.idAttribute(),
-            "value": this.author_ids.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.sq_authors({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.sq_author.idAttribute(),
+        "value": this.author_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.sq_authors({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 /**
@@ -66,7 +64,6 @@ sq_book.prototype.countFilteredAuthors = function({
 }, context) {
 
 
-    if (this.author_ids.length === 0) return 0;
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.sq_author.idAttribute(),
@@ -97,21 +94,18 @@ sq_book.prototype.authorsConnection = function({
 }, context) {
 
 
-    if (this.author_ids.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.sq_author.idAttribute(),
-            "value": this.author_ids.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.sq_authorsConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
-
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.sq_author.idAttribute(),
+        "value": this.author_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.sq_authorsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 
@@ -124,15 +118,20 @@ sq_book.prototype.authorsConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 sq_book.prototype.handleAssociations = async function(input, benignErrorReporter) {
-    let promises = [];
+
+    let promises_add = [];
     if (helper.isNonEmptyArray(input.addAuthors)) {
-        promises.push(this.add_authors(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeAuthors)) {
-        promises.push(this.remove_authors(input, benignErrorReporter));
+        promises_add.push(this.add_authors(input, benignErrorReporter));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises_add);
+    let promises_remove = [];
+    if (helper.isNonEmptyArray(input.removeAuthors)) {
+        promises_remove.push(this.remove_authors(input, benignErrorReporter));
+    }
+
+    await Promise.all(promises_remove);
+
 }
 /**
  * add_authors - field Mutation for to_many associations to add

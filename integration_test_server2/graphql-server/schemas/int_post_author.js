@@ -48,6 +48,7 @@ module.exports = `
     }
 type Int_post_authorConnection{
   edges: [Int_post_authorEdge]
+  int_post_authors: [int_post_author]
   pageInfo: pageInfo!
 }
 

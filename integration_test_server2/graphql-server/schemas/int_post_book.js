@@ -48,6 +48,7 @@ module.exports = `
     }
 type Int_post_bookConnection{
   edges: [Int_post_bookEdge]
+  int_post_books: [int_post_book]
   pageInfo: pageInfo!
 }
 

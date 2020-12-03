@@ -26,6 +26,7 @@ module.exports = `
     }
 type Mariadb_bookConnection{
   edges: [Mariadb_bookEdge]
+  mariadb_books: [mariadb_book]
   pageInfo: pageInfo!
 }
 

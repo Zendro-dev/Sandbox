@@ -26,6 +26,7 @@ module.exports = `
     }
 type Mysql_bookConnection{
   edges: [Mysql_bookEdge]
+  mysql_books: [mysql_book]
   pageInfo: pageInfo!
 }
 

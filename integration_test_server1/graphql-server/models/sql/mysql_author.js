@@ -121,7 +121,7 @@ module.exports = class mysql_author extends Sequelize.Model {
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search);
+        options['where'] = helper.searchConditionsToSequelize(search, mysql_author.definition.attributes);
         return super.count(options);
     }
 
@@ -129,7 +129,7 @@ module.exports = class mysql_author extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), mysql_author.definition.attributes);
         let records = await super.findAll(options);
         records = records.map(x => mysql_author.postReadCast(x))
         // validationCheck after read
@@ -141,7 +141,7 @@ module.exports = class mysql_author extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), mysql_author.definition.attributes);
         let records = await super.findAll(options);
 
         records = records.map(x => mysql_author.postReadCast(x))
@@ -155,7 +155,7 @@ module.exports = class mysql_author extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute());
+            }, this.idAttribute(), mysql_author.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -163,7 +163,8 @@ module.exports = class mysql_author extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            mysql_authors: records
         };
     }
 

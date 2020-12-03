@@ -31,7 +31,7 @@ sq_author.prototype.countFilteredBooks = function({
 }, context) {
 
 
-    if (this.book_ids.length === 0) return 0;
+
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.sq_book.idAttribute(),
@@ -62,25 +62,18 @@ sq_author.prototype.booksConnection = function({
     pagination
 }, context) {
 
-    if (this.book_ids.length !== 0) {
-        let nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.sq_book.idAttribute(),
-            "value": this.book_ids.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-        return resolvers.sq_booksConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-        return resolvers.sq_booksConnection({
-            search: nsearch,
-            order: order,
-            pagination: pagination
-        }, context);
-    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.sq_book.idAttribute(),
+        "value": this.book_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.sq_booksConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
 }
 
 
@@ -93,15 +86,20 @@ sq_author.prototype.booksConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 sq_author.prototype.handleAssociations = async function(input, benignErrorReporter) {
-    let promises = [];
+
+    let promises_add = [];
     if (helper.isNonEmptyArray(input.addBooks)) {
-        promises.push(this.add_books(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeBooks)) {
-        promises.push(this.remove_books(input, benignErrorReporter));
+        promises_add.push(this.add_books(input, benignErrorReporter));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises_add);
+    let promises_remove = [];
+    if (helper.isNonEmptyArray(input.removeBooks)) {
+        promises_remove.push(this.remove_books(input, benignErrorReporter));
+    }
+
+    await Promise.all(promises_remove);
+
 }
 /**
  * add_books - field Mutation for to_many associations to add

@@ -137,7 +137,7 @@ module.exports = class post_book extends Sequelize.Model {
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search);
+        options['where'] = helper.searchConditionsToSequelize(search, post_book.definition.attributes);
         return super.count(options);
     }
 
@@ -145,7 +145,7 @@ module.exports = class post_book extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute());
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), post_book.definition.attributes);
         let records = await super.findAll(options);
         records = records.map(x => post_book.postReadCast(x))
         // validationCheck after read
@@ -157,7 +157,7 @@ module.exports = class post_book extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), post_book.definition.attributes);
         let records = await super.findAll(options);
 
         records = records.map(x => post_book.postReadCast(x))
@@ -171,7 +171,7 @@ module.exports = class post_book extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute());
+            }, this.idAttribute(), post_book.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -179,7 +179,8 @@ module.exports = class post_book extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            post_books: records
         };
     }
 

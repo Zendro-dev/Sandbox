@@ -26,6 +26,7 @@ module.exports = `
     }
 type Mariadb_authorConnection{
   edges: [Mariadb_authorEdge]
+  mariadb_authors: [mariadb_author]
   pageInfo: pageInfo!
 }
 

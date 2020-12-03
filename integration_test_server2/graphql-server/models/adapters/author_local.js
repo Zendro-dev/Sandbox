@@ -160,7 +160,7 @@ module.exports = class author_local extends Sequelize.Model {
             }
 
             let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
+            let arg_sequelize = arg.toSequelize(author_local.definition.attributes);
             options['where'] = arg_sequelize;
         }
         return super.count(options);
@@ -168,7 +168,7 @@ module.exports = class author_local extends Sequelize.Model {
 
     static async readAllCursor(search, order, pagination) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute());
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), author_local.definition.attributes);
         let records = await super.findAll(options);
         records = records.map(x => author_local.postReadCast(x))
 
@@ -179,7 +179,7 @@ module.exports = class author_local extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute());
+            }, this.idAttribute(), author_local.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -187,7 +187,8 @@ module.exports = class author_local extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            sq_authors: records
         };
     }
 

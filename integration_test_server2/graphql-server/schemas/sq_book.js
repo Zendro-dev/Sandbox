@@ -39,6 +39,7 @@ type sq_book{
 
 type Sq_bookConnection{
 edges: [Sq_bookEdge]
+sq_books: [sq_book]
 pageInfo: pageInfo!
 }
 
