@@ -1,0 +1,35 @@
+{
+  "model": "metodo",
+  "storageType": "sql",
+  "attributes": {
+    "id": "String",
+    "descripcion": "String",
+    "referencia": "String",
+    "link_referencia": "String"
+  },
+
+  "associations":{
+    "caracteristicas_cuantitativas":{
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "caracteristica_cuantitativa",
+      "targetKey" : "metodo_id",
+      "keyIn": "caracteristica_cuantitativa",
+      "label": "nombre_corto",
+      "sublabel": "valor"
+    },
+
+    "caracteristicas_cualitativas":{
+      "type": "to_many",
+      "targetStorageType": "sql",
+      "target": "caracteristica_cualitativa",
+      "targetKey": "metodo_id",
+      "keyIn": "caracteristica_cualitativa",
+      "label": "nombre_corto",
+      "sublabel": "valor"
+    }
+
+  },
+
+  "internalId": "id"
+}

@@ -1,0 +1,31 @@
+{
+  "model": "caracteristica_cualitativa",
+  "storageType": "sql",
+  "attributes":{
+      "nombre": "String",
+      "valor": "String",
+      "nombre_corto":"String",
+      "comentarios": "String",
+      "metodo_id": "String",
+      "registro_id": "String"
+  },
+
+  "associations":{
+    "registro" :{
+      "type": "to_one",
+      "targetStorageType": "generic",
+      "target": "Ejemplar",
+      "targetKey": "registro_id",
+      "keyIn": "caracteristica_cualitativa",
+      "label": "nombrecomun"
+    },
+
+    "metodo": {
+      "type": "to_one",
+      "targetStorageType": "sql",
+      "target": "metodo",
+      "targetKey": "metodo_id",
+      "keyIn": "caracteristica_cualitativa"
+    }
+  }
+}
