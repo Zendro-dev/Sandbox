@@ -4,8 +4,8 @@
   "attributes": {
     "id": "String",
     "descripcion": "String",
-    "referencia": "String",
-    "link_referencia": "String"
+    "referencias": "[String]",
+    "link_referencias": "[String]"
   },
 
   "associations":{

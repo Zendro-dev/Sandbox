@@ -59,6 +59,44 @@ module.exports = class role_to_user extends Sequelize.Model {
         });
     }
 
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
+    }
+
+    /**
+      * Cast array to JSON string for the storage.
+      * @param  {object} record  Original data record.
+      * @return {object}         Record with JSON string if necessary.
+      */
+    static preWriteCast(record){
+        for(let attr in definition.attributes){
+            let type = definition.attributes[ attr ].replace(/\s+/g, '');
+            if(type[0]==='[' && record[ attr ]!== undefined && record[ attr ]!== null){
+                record[ attr ] = JSON.stringify(record[attr]);
+            }
+        }
+        return record;
+    }
+
+    /**
+     * Cast JSON string to array for the validation.
+     * @param  {object} record  Record with JSON string if necessary.
+     * @return {object}         Parsed data record.
+     */
+    static postReadCast(record){
+        for(let attr in definition.attributes){
+            let type = definition.attributes[ attr ].replace(/\s+/g, '');
+            if(type[0]==='[' && record[attr] !== undefined && record[ attr ]!== null){
+                record[ attr ] = JSON.parse(record[attr]);
+            }
+        }
+        return record;
+    }
+    
     static associate(models) {}
 
     static async readById(id) {
@@ -66,245 +104,71 @@ module.exports = class role_to_user extends Sequelize.Model {
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
+        item = role_to_user.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search, role_to_user.definition.attributes);
         return super.count(options);
     }
 
-    static readAll(search, order, pagination, benignErrorReporter) {
-        let options = {};
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAll(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
-
-        return super.count(options).then(async items => {
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            } else if (pagination !== undefined) {
-                options['order'] = [
-                    ["id", "ASC"]
-                ];
-            }
-
-            if (pagination !== undefined) {
-                options['offset'] = pagination.offset === undefined ? 0 : pagination.offset;
-                options['limit'] = pagination.limit === undefined ? (items - options['offset']) : pagination.limit;
-            } else {
-                options['offset'] = 0;
-                options['limit'] = items;
-            }
-
-            if (globals.LIMIT_RECORDS < options['limit']) {
-                throw new Error(`Request of total role_to_users exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-            }
-            let records = await super.findAll(options);
-            return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-        });
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, 
+            this.idAttribute(), role_to_user.definition.attributes);
+        let records = await super.findAll(options);
+        records = records.map(x => role_to_user.postReadCast(x))
+        // validationCheck after read
+        return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
 
-    static readAllCursor(search, order, pagination, benignErrorReporter) {
-        //check valid pagination arguments
-        let argsValid = (pagination === undefined) || (pagination.first && !pagination.before && !pagination.last) || (pagination.last && !pagination.after && !pagination.first);
-        if (!argsValid) {
-            throw new Error('Illegal cursor based pagination arguments. Use either "first" and optionally "after", or "last" and optionally "before"!');
-        }
-
-        let isForwardPagination = !pagination || !(pagination.last != undefined);
-        let options = {};
-        options['where'] = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize();
-            options['where'] = arg_sequelize;
-        }
-
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
-        /*
-         * Count
-         */
-        return super.count(options).then(countA => {
-            options['offset'] = 0;
-            options['order'] = [];
-            options['limit'] = countA;
-            /*
-             * Order conditions
-             */
-            if (order !== undefined) {
-                options['order'] = order.map((orderItem) => {
-                    return [orderItem.field, orderItem.order];
-                });
-            }
-            if (!options['order'].map(orderItem => {
-                    return orderItem[0]
-                }).includes("id")) {
-                options['order'] = [...options['order'], ...[
-                    ["id", "ASC"]
-                ]];
-            }
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, 
+            this.idAttribute(), role_to_user.definition.attributes);
+        let records = await super.findAll(options);
 
-            /*
-             * Pagination conditions
-             */
-            if (pagination) {
-                //forward
-                if (isForwardPagination) {
-                    if (pagination.after) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.after));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursor(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                } else { //backward
-                    if (pagination.before) {
-                        let decoded_cursor = JSON.parse(this.base64Decode(pagination.before));
-                        options['where'] = {
-                            ...options['where'],
-                            ...helper.parseOrderCursorBefore(options['order'], decoded_cursor, "id", pagination.includeCursor)
-                        };
-                    }
-                }
-            }
-            //woptions: copy of {options} with only 'where' options
-            let woptions = {};
-            woptions['where'] = {
-                ...options['where']
-            };
-            /*
-             *  Count (with only where-options)
-             */
-            return super.count(woptions).then(countB => {
-                /*
-                 * Limit conditions
-                 */
-                if (pagination) {
-                    //forward
-                    if (isForwardPagination) {
-
-                        if (pagination.first) {
-                            options['limit'] = pagination.first;
-                        }
-                    } else { //backward
-                        if (pagination.last) {
-                            options['limit'] = pagination.last;
-                            options['offset'] = Math.max((countB - pagination.last), 0);
-                        }
-                    }
-                }
-                //check: limit
-                if (globals.LIMIT_RECORDS < options['limit']) {
-                    throw new Error(`Request of total role_to_users exceeds max limit of ${globals.LIMIT_RECORDS}. Please use pagination.`);
-                }
-
-                /*
-                 * Get records
-                 */
-                return super.findAll(options).then(async records => {
-                    //validate records
-                    records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
-
-                    let edges = [];
-                    let pageInfo = {
-                        hasPreviousPage: false,
-                        hasNextPage: false,
-                        startCursor: null,
-                        endCursor: null
-                    };
-
-                    //edges
-                    if (records.length > 0) {
-                        edges = records.map(record => {
-                            return {
-                                node: record,
-                                cursor: record.base64Enconde()
-                            }
-                        });
-                    }
-
-                    //forward
-                    if (isForwardPagination) {
-
-                        pageInfo = {
-                            hasPreviousPage: ((countA - countB) > 0),
-                            hasNextPage: (pagination && pagination.first ? (countB > pagination.first) : false),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    } else { //backward
-
-                        pageInfo = {
-                            hasPreviousPage: (pagination && pagination.last ? (countB > pagination.last) : false),
-                            hasNextPage: ((countA - countB) > 0),
-                            startCursor: (records.length > 0) ? edges[0].cursor : null,
-                            endCursor: (records.length > 0) ? edges[edges.length - 1].cursor : null
-                        }
-                    }
-
-                    return {
-                        edges,
-                        pageInfo
-                    };
-
-                }).catch(error => {
-                    throw error;
-                });
-            }).catch(error => {
-                throw error;
-            });
-        }).catch(error => {
-            throw error;
-        });
+        records = records.map(x => role_to_user.postReadCast(x))
+        // validationCheck after read
+        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after || pagination.before)) {
+            let oppOptions = helper.buildOppositeSearchSequelize(search, order, 
+                {...pagination, includeCursor: false}, 
+                this.idAttribute(), role_to_user.definition.attributes);
+            oppRecords = await super.findAll(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        return {
+            edges,
+            pageInfo
+        };
     }
 
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
+        input = role_to_user.preWriteCast(input)
         try {
-            const result = await sequelize.transaction(async (t) => {
+            const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
                     transaction: t
                 });
                 return item;
             });
+            role_to_user.postReadCast(result.dataValues)
+            role_to_user.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -330,8 +194,9 @@ module.exports = class role_to_user extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
+        input = role_to_user.preWriteCast(input)
         try {
-            let result = await sequelize.transaction(async (t) => {
+            let result = await this.sequelize.transaction(async (t) => {
                 let updated = await super.update(input, {
                     where: {
                         [this.idAttribute()]: input[this.idAttribute()]
@@ -341,6 +206,8 @@ module.exports = class role_to_user extends Sequelize.Model {
                 });
                 return updated;
             });
+            role_to_user.postReadCast(result[1][0].dataValues)
+            role_to_user.postReadCast(result[1][0]._previousDataValues)
             if (result[0] === 0) {
                 throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
             }
@@ -432,7 +299,6 @@ module.exports = class role_to_user extends Sequelize.Model {
      *
      * @return {type} Name of the attribute that functions as an internalId
      */
-
     static idAttribute() {
         return role_to_user.definition.id.name;
     }
@@ -442,7 +308,6 @@ module.exports = class role_to_user extends Sequelize.Model {
      *
      * @return {type} Type given in the JSON model
      */
-
     static idAttributeType() {
         return role_to_user.definition.id.type;
     }
@@ -452,7 +317,6 @@ module.exports = class role_to_user extends Sequelize.Model {
      *
      * @return {type} id value
      */
-
     getIdValue() {
         return this[role_to_user.idAttribute()]
     }
