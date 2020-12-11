@@ -27,8 +27,7 @@ services:
       - ./graphql-server/config/config_postgres_docker.json:/usr/Sandbox/graphql-server/config/config.json
     networks:
       - backend_pgmn
-      - CONABIO
-      - SIAGRO
+      - SIAGRO_PGMN
     # Await POSTGRES role and DB creation, migrate schema, then start web
     # server:
     command:
@@ -43,8 +42,6 @@ volumes:
 
 networks:
   backend_pgmn:
-  SIAGRO:
-    external: true
-  CONABIO:
+  SIAGRO_PGMN:
     external: true
 
