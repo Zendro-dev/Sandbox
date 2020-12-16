@@ -564,7 +564,7 @@ module.exports = class Taxon {
                 response_connection.edges.forEach(element => {
                     element.node = new models.ejemplar(element.node);
                 });
-
+	    	response_connection.pageInfo["hasPreviousPage"] = false;
             return response_connection;
             } else {
             throw new Error(`Invalid response from remote cenz-server: Zacatuche`);

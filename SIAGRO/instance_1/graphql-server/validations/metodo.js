@@ -25,10 +25,10 @@ module.exports.validator_patch = function(metodo) {
                 "type": ["string", "null"]
             },
             "referencias": {
-                "type": ["array", "null"]
+                "type": ["array", "string", "null"]
             },
             "link_referencias": {
-                "type": ["array", "null"]
+                "type": ["array", "string" ,"null"]
             }
         }
     }

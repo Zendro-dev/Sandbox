@@ -109,8 +109,13 @@ exports.replacePojoNullValueWithLiteralNull = function(pojo) {
  * @return {any}                 The value casted according to the attribute type given in attributes_type.
  */
 castCsv = function( value, column, attributes_type){
+
+  let attribute_type = attributes_type[column];
+  if(typeof attribute_type === 'string'){
+    attribute_type = attribute_type.replace(/\s+/g, ''); 
+  }
   if(!(typeof value === "string" && value.match(/\s*null\s*/i) )){
-    switch ( attributes_type[column] ) {
+    switch ( attribute_type ) {
       case 'String':
         value = String(value);
         break;
@@ -133,6 +138,12 @@ castCsv = function( value, column, attributes_type){
       case 'Float':
         value = Number(value);
         break;
+      case '[Boolean]': 
+      case '[Float]': 
+      case '[Int]':
+      case '[String]':
+        value = JSON.stringify(value.split("::") );
+        break;		    
       default:
         value = String(value);
         break;

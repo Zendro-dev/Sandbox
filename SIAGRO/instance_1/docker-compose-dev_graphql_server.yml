@@ -12,7 +12,7 @@ services:
 
   sdb_science_db_graphql_server_pgmn:
     depends_on:
-      - sdb_postgres
+      - sdb_postgres_pgmn
     build:
       context: ./graphql-server
       dockerfile: Dockerfile.graphql_server
