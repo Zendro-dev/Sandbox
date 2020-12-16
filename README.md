@@ -41,7 +41,7 @@ The following software tools are necessary to run the Sandbox
 
 ### Download the Sandbox
 
-Either clone this repository or directly download as [ZIP](https://github.com/Zendro-dev/Sandbox/archive/Zendro-BreedingAPI-Sandbox.zip).
+You can directly the Sandbox download as [ZIP](https://github.com/Zendro-dev/Sandbox/archive/Zendro-BreedingAPI-Sandbox.zip).
 
 The extracted folder consists of a few important files and folders:
 
