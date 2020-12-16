@@ -25,8 +25,9 @@ The Zendro-BreedingAPI aims to implement specifically the _schema_, i.e. the dat
 **_Note_**   
 >The schemas defined in this Sandbox are a prototype. For now, only essential parts of BrAPI-core and BrAPI-phenotyping as well as the germplasm schema are implemented.
 
-
 For an overview of the implemented data models and their associations, have look at the following UML \(also included as `pdf` in the Sandbox\).
+
+<a href="https://github.com/Zendro-dev/Sandbox/blob/Zendro-BreedingAPI-Sandbox/misc/BreedingAPI_models_UML.pdf"><img src="https://github.com/Zendro-dev/Sandbox/blob/Zendro-BreedingAPI-Sandbox/misc/BreedingAPI_models_UML.png"/></a>
 
 ## Prerequisites
 
