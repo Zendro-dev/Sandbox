@@ -1,0 +1,40 @@
+{
+    "model": "location",
+    "storageType": "sql",
+    "attributes": {
+        "abbreviation": "String",
+        "coordinateDescription": "String",
+        "countryCode": "String",
+        "countryName": "String",
+        "documentationURL": "String",
+        "environmentType": "String",
+        "exposure": "String",
+        "instituteAddress": "String",
+        "instituteName": "String",
+        "locationName": "String",
+        "locationType": "String",
+        "siteStatus": "String",
+        "slope": "String",
+        "topography": "String",
+        "locationDbId": "String"
+    },
+    "associations": {
+        "observationUnits": {
+            "type": "to_many",
+            "target": "observationUnit",
+            "targetKey": "locationDbId",
+            "keyIn": "observationUnit",
+            "targetStorageType": "sql",
+            "label": "observationUnitName"
+        },
+        "studies": {
+            "type": "to_many",
+            "target": "study",
+            "targetKey": "locationDbId",
+            "keyIn": "study",
+            "targetStorageType": "sql",
+            "label": "studyName"
+        }
+    },
+    "internalId": "locationDbId"
+}

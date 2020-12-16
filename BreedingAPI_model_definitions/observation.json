@@ -1,0 +1,69 @@
+{
+    "model": "observation",
+    "storageType": "sql",
+    "attributes": {
+        "collector": "String",
+        "germplasmDbId": "String",
+        "observationTimeStamp": "DateTime",
+        "observationUnitDbId": "String",
+        "observationVariableDbId": "String",
+        "studyDbId": "String",
+        "uploadedBy": "String",
+        "value": "String",
+        "observationDbId": "String",
+
+        "seasonDbId": "String",
+        "imageDbId": "String"
+    },
+    "associations": {
+        "season": {
+            "type": "to_one",
+            "target": "season",
+            "targetKey": "seasonDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "season"
+        },
+        "germplasm": {
+            "type": "to_one",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "germplasmName"
+        },
+        "observationUnit": {
+            "type": "to_one",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "observationUnitName"
+        },
+        "observationVariable": {
+            "type": "to_one",
+            "target": "observationVariable",
+            "targetKey": "observationVariableDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "observationVariableName"
+        },
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "studyName"
+        },
+        "image": {
+            "type": "to_one",
+            "target": "image",
+            "targetKey": "imageDbId",
+            "keyIn": "observation",
+            "targetStorageType": "sql",
+            "label": "imageName"
+        }
+    },
+    "internalId": "observationDbId"
+}

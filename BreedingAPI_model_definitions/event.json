@@ -1,0 +1,43 @@
+{
+    "model": "event",
+    "storageType": "sql",
+    "attributes": {
+        "eventDbId": "String",
+        "eventDescription": "String",
+        "eventType": "String",
+        "date": "DateTime",
+
+        "observationUnitDbIds": "[String]",
+        "studyDbId": "String"
+    },
+    "associations": {
+        "eventParameters": {
+            "type": "to_many",
+            "target": "eventParameter",
+            "targetKey": "eventDbId",
+            "keyIn": "eventParameter",
+            "targetStorageType": "sql",
+            "label": "key"
+        },
+        "observationUnits": {
+            "type": "to_many",
+            "target": "observationUnit",
+            "targetKey": "eventDbIds",
+            "sourceKey": "observationUnitDbIds",
+            "keyIn": "event",
+            "reverseAssociationType": "to_many",
+            "targetStorageType": "sql",
+            "label": "observationUnitName"
+        },
+        "study": {
+            "type": "to_one",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keyIn": "event",
+            "targetStorageType": "sql",
+            "label": "studyName",
+            "sublabel": "studyDbId"
+        }
+    },
+    "internalId": "eventType"
+}

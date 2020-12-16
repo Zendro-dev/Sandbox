@@ -1,0 +1,46 @@
+{
+    "model": "contact",
+    "storageType": "sql",
+    "attributes": {
+        "contactDbId": "String",
+        "email": "String",
+        "instituteName": "String",
+        "name": "String",
+        "orcid": "String",
+        "type": "String",
+
+        "studyDbIds": "[String]",
+        "trialDbIds": "[String]"
+    },
+    "associations": {
+        "studies": {
+            "type": "to_many",
+            "target": "study",
+            "targetKey": "contactDbIds",
+            "sourceKey": "studyDbIds",
+            "keyIn": "contact",
+            "reverseAssociationType": "to_many",
+            "targetStorageType": "sql",
+            "label": "studyName"
+        },
+        "trials": {
+            "type": "to_many",
+            "target": "trial",
+            "targetKey": "contactDbIds",
+            "sourceKey": "trialDbIds",
+            "keyIn": "contact",
+            "reverseAssociationType": "to_many",
+            "targetStorageType": "sql",
+            "label": "trialName"
+        },
+        "programs": {
+            "type": "to_many",
+            "target": "program",
+            "targetKey": "leadPersonDbId",
+            "keyIn":"program",
+            "targetStorageType": "sql",
+            "label": "programName"
+        }
+    },
+    "internalId": "contactDbId"
+}

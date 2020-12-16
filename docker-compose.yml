@@ -1,0 +1,109 @@
+version: "3.7"
+
+services:
+  zendro_postgres:
+    container_name: BrAPI_Sandbox_postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    volumes:
+      - zendro_pg_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  zendro_graphql_server:
+    container_name: BrAPI_Sandbox_graphql-server
+    depends_on:
+      - zendro_postgres
+    build:
+      context: ./graphql-server
+      dockerfile: Dockerfile.graphql_server
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      JQ_PATH: /usr/bin/jq
+      NODE_JQ_SKIP_INSTALL_BINARY: "true"
+      REQUIRE_SIGN_IN: "true"
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - backend
+    # Await POSTGRES role and DB creation, migrate schema, then start web
+    # server:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install --save
+        ./migrateDbAndStartServer.sh
+
+  zendro_app_server:
+    container_name: BrAPI_Sandbox_spa
+    # Workaround. See https://github.com/facebook/create-react-app/issues/8688
+    stdin_open: true
+    depends_on:
+      - zendro_postgres
+      - zendro_graphql_server
+    build:
+      context: ./single-page-app
+      dockerfile: Dockerfile.app
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+      - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
+      - REACT_APP_ZENDRO_EXPORT_URLhttp://localhost:3000/export
+      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+    volumes:
+      - .:/usr/src/app
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+        reservations:
+          memory: 1024M
+    # Install dependencies and start single-page-app-server in development
+    # mode.
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install --save
+        node --max_old_space_size=4096 /usr/local/bin/npm run serve
+
+  zendro_graphiql:
+    container_name: BrAPI_Sandbox_graphiql-auth
+    # Workaround. See https://github.com/facebook/create-react-app/issues/8688
+    stdin_open: true
+    depends_on:
+      - zendro_postgres
+      - zendro_graphql_server
+    build:
+      context: ./graphiql-auth
+      dockerfile: Dockerfile
+    ports: 
+      - "7000:7000"
+    environment:
+      - REACT_APP_SERVER_URL=http://localhost:3000/graphql
+      - REACT_APP_LOGIN_URL=http://localhost:3000/login
+      - PORT=7000
+    volumes:
+      - .:/usr/src/app
+    # Install dependencies and start single-page-app-server in development
+    # mode.
+    networks:
+      - backend
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
+volumes:
+  zendro_pg_data:
+
+networks:
+  backend:
