@@ -40,6 +40,8 @@ The following software tools are necessary to run the Sandbox
 
 ### Download the Sandbox
 
+Either clone this repository or directly download as [ZIP](https://github.com/Zendro-dev/Sandbox/archive/Zendro-BreedingAPI-Sandbox.zip).
+
 The extracted folder consists of a few important files and folders:
 
 * `BreedingAPI_model_definitions:`JSON definitions of the used BrAPI schemas that are fed into zendro to generate the API as well as the corresponding interfaces.
