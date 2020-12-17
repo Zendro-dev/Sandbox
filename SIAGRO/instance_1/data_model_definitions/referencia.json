@@ -4,7 +4,7 @@
 	"attributes": {
 		"referencia_id": "String",
 		"referencia": "String",
-		"registros_ids": "[ String ]"
+		"registros_ids": "[String]"
 	},
 
 	"associations": {
@@ -12,7 +12,7 @@
 			"type": "to_many",
 			"target": "registro",
 			"targetKey": "referencias_ids",
-			"keyIn": "registro",
+			"keyIn": "referencia",
 			"targetStorageType": "sql",
 			"label": "descripcion_alimento",
 			"sourceKey": "registros_ids",

@@ -6,8 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const RegistroTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-Registro" */ './registro-transfer-lists/RegistroTransferLists'));
 const MetodoTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-Metodo" */ './metodo-transfer-lists/MetodoTransferLists'));
+const RegistroTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-Registro" */ './registro-transfer-lists/RegistroTransferLists'));
 
 const debounceTimeout = 700;
 
@@ -26,18 +26,18 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
   const {
     hidden,
     item,
-    registroIdsToAdd,
-    registroIdsToRemove,
     metodoIdsToAdd,
     metodoIdsToRemove,
+    registroIdsToAdd,
+    registroIdsToRemove,
     handleTransferToAdd,
     handleUntransferFromAdd,
     handleTransferToRemove,
     handleUntransferFromRemove,
-    handleClickOnEjemplarRow,
     handleClickOnMetodoRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('registro');
+  const [associationSelected, setAssociationSelected] = React.useState('metodo');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -114,23 +114,6 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Registro Transfer Lists */}
-          {(associationSelected === 'registro') && (
-            <Grid item xs={12} sm={11}>
-              <Suspense fallback={<div />}>
-                <RegistroTransferLists
-                  item={item}
-                  idsToAdd={registroIdsToAdd}
-                  idsToRemove={registroIdsToRemove}
-                  handleTransferToAdd={handleTransferToAdd}
-                  handleUntransferFromAdd={handleUntransferFromAdd}
-                  handleTransferToRemove={handleTransferToRemove}
-                  handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
-                />
-              </Suspense>
-            </Grid>
-          )}
           {/* Metodo Transfer Lists */}
           {(associationSelected === 'metodo') && (
             <Grid item xs={12} sm={11}>
@@ -148,6 +131,23 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
               </Suspense>
             </Grid>
           )}
+          {/* Registro Transfer Lists */}
+          {(associationSelected === 'registro') && (
+            <Grid item xs={12} sm={11}>
+              <Suspense fallback={<div />}>
+                <RegistroTransferLists
+                  item={item}
+                  idsToAdd={registroIdsToAdd}
+                  idsToRemove={registroIdsToRemove}
+                  handleTransferToAdd={handleTransferToAdd}
+                  handleUntransferFromAdd={handleUntransferFromAdd}
+                  handleTransferToRemove={handleTransferToRemove}
+                  handleUntransferFromRemove={handleUntransferFromRemove}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
+                />
+              </Suspense>
+            </Grid>
+          )}
 
         </Grid>
       </Fade>
@@ -157,14 +157,14 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
 CaracteristicaCuantitativaAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
   item: PropTypes.object.isRequired,
-  registroIdsToAdd: PropTypes.array.isRequired,
-  registroIdsToRemove: PropTypes.array.isRequired,
   metodoIdsToAdd: PropTypes.array.isRequired,
   metodoIdsToRemove: PropTypes.array.isRequired,
+  registroIdsToAdd: PropTypes.array.isRequired,
+  registroIdsToRemove: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
   handleClickOnMetodoRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

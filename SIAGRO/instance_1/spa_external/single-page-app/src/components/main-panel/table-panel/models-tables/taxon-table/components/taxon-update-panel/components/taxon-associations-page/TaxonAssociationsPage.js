@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const EjemplaresTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-Ejemplares" */ './ejemplares-transfer-lists/EjemplaresTransferLists'));
+const AlimentosTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-Alimentos" */ './alimentos-transfer-lists/AlimentosTransferLists'));
 
 const debounceTimeout = 700;
 
@@ -25,15 +25,15 @@ export default function TaxonAssociationsPage(props) {
   const {
     hidden,
     item,
-    ejemplaresIdsToAdd,
-    ejemplaresIdsToRemove,
+    alimentosIdsToAdd,
+    alimentosIdsToRemove,
     handleTransferToAdd,
     handleUntransferFromAdd,
     handleTransferToRemove,
     handleUntransferFromRemove,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('ejemplares');
+  const [associationSelected, setAssociationSelected] = React.useState('alimentos');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -110,19 +110,19 @@ export default function TaxonAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Ejemplares Transfer Lists */}
-          {(associationSelected === 'ejemplares') && (
+          {/* Alimentos Transfer Lists */}
+          {(associationSelected === 'alimentos') && (
             <Grid item xs={12} sm={11}>
               <Suspense fallback={<div />}>
-                <EjemplaresTransferLists
+                <AlimentosTransferLists
                   item={item}
-                  idsToAdd={ejemplaresIdsToAdd}
-                  idsToRemove={ejemplaresIdsToRemove}
+                  idsToAdd={alimentosIdsToAdd}
+                  idsToRemove={alimentosIdsToRemove}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}
                   handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -136,11 +136,11 @@ export default function TaxonAssociationsPage(props) {
 TaxonAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
   item: PropTypes.object.isRequired,
-  ejemplaresIdsToAdd: PropTypes.array.isRequired,
-  ejemplaresIdsToRemove: PropTypes.array.isRequired,
+  alimentosIdsToAdd: PropTypes.array.isRequired,
+  alimentosIdsToRemove: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

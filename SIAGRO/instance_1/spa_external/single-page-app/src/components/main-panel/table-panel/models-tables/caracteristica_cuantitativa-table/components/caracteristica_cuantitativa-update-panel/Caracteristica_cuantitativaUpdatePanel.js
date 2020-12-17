@@ -31,8 +31,8 @@ import { amber, red } from '@material-ui/core/colors';
 const CaracteristicaCuantitativaAttributesPage = lazy(() => import(/* webpackChunkName: "Update-Attributes-CaracteristicaCuantitativa" */ './components/caracteristica_cuantitativa-attributes-page/Caracteristica_cuantitativaAttributesPage'));
 const CaracteristicaCuantitativaAssociationsPage = lazy(() => import(/* webpackChunkName: "Update-Associations-CaracteristicaCuantitativa" */ './components/caracteristica_cuantitativa-associations-page/Caracteristica_cuantitativaAssociationsPage'));
 const CaracteristicaCuantitativaConfirmationDialog = lazy(() => import(/* webpackChunkName: "Update-Confirmation-CaracteristicaCuantitativa" */ './components/Caracteristica_cuantitativaConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-Ejemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
 const MetodoDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-Metodo" */ '../../../metodo-table/components/metodo-detail-panel/MetodoDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-Registro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const debounceTimeout = 700;
 const appBarHeight = 64;
@@ -101,19 +101,19 @@ export default function CaracteristicaCuantitativaUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const [registroIdsToAddState, setRegistroIdsToAddState] = useState([]);
-  const registroIdsToAdd = useRef([]);
-  const [registroIdsToRemoveState, setRegistroIdsToRemoveState] = useState([]);
-  const registroIdsToRemove = useRef([]);
   const [metodoIdsToAddState, setMetodoIdsToAddState] = useState([]);
   const metodoIdsToAdd = useRef([]);
   const [metodoIdsToRemoveState, setMetodoIdsToRemoveState] = useState([]);
   const metodoIdsToRemove = useRef([]);
+  const [registroIdsToAddState, setRegistroIdsToAddState] = useState([]);
+  const registroIdsToAdd = useRef([]);
+  const [registroIdsToRemoveState, setRegistroIdsToRemoveState] = useState([]);
+  const registroIdsToRemove = useRef([]);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
   const [metodoDetailDialogOpen, setMetodoDetailDialogOpen] = useState(false);
   const [metodoDetailItem, setMetodoDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -248,15 +248,15 @@ export default function CaracteristicaCuantitativaUpdatePanel(props) {
   }, [deleted, updated]);
 
   useEffect(() => {
-    if (ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
-    }
-  }, [ejemplarDetailItem]);
-  useEffect(() => {
     if (metodoDetailItem !== undefined) {
       setMetodoDetailDialogOpen(true);
     }
   }, [metodoDetailItem]);
+  useEffect(() => {
+    if (registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
+    }
+  }, [registroDetailItem]);
 
   /**
    * Utils
@@ -358,33 +358,6 @@ export default function CaracteristicaCuantitativaUpdatePanel(props) {
     return false;
   }
 
-  function setAddRemoveOneRegistro(variables) {
-    //data to notify changes
-    if(!changedAssociations.current.caracteristica_cuantitativa_registro_id) changedAssociations.current.caracteristica_cuantitativa_registro_id = {};
-    
-    /**
-     * Case: The toAdd list isn't empty.
-     */
-    if(registroIdsToAdd.current.length>0) {
-      //set id to add
-      variables.addRegistro = registroIdsToAdd.current[0];      
-      //changes to nofity
-      changedAssociations.current.caracteristica_cuantitativa_registro_id.added = true;
-      changedAssociations.current.caracteristica_cuantitativa_registro_id.idsAdded = [registroIdsToAdd.current[0]];
-    }
-    /**
-     * Case: The toRemove list isn't empty.
-     */
-    if(registroIdsToRemove.current.length>0) {
-      //set id to remove
-      variables.removeRegistro = registroIdsToRemove.current[0];
-      //changes to nofity
-      changedAssociations.current.caracteristica_cuantitativa_registro_id.removed = true;
-      changedAssociations.current.caracteristica_cuantitativa_registro_id.idsRemoved = [registroIdsToRemove.current[0]];
-    }
-
-    return;
-  }
   function setAddRemoveOneMetodo(variables) {
     //data to notify changes
     if(!changedAssociations.current.caracteristica_cuantitativa_metodo_id) changedAssociations.current.caracteristica_cuantitativa_metodo_id = {};
@@ -408,6 +381,33 @@ export default function CaracteristicaCuantitativaUpdatePanel(props) {
       //changes to nofity
       changedAssociations.current.caracteristica_cuantitativa_metodo_id.removed = true;
       changedAssociations.current.caracteristica_cuantitativa_metodo_id.idsRemoved = [metodoIdsToRemove.current[0]];
+    }
+
+    return;
+  }
+  function setAddRemoveOneRegistro(variables) {
+    //data to notify changes
+    if(!changedAssociations.current.caracteristica_cuantitativa_registro_id) changedAssociations.current.caracteristica_cuantitativa_registro_id = {};
+    
+    /**
+     * Case: The toAdd list isn't empty.
+     */
+    if(registroIdsToAdd.current.length>0) {
+      //set id to add
+      variables.addRegistro = registroIdsToAdd.current[0];      
+      //changes to nofity
+      changedAssociations.current.caracteristica_cuantitativa_registro_id.added = true;
+      changedAssociations.current.caracteristica_cuantitativa_registro_id.idsAdded = [registroIdsToAdd.current[0]];
+    }
+    /**
+     * Case: The toRemove list isn't empty.
+     */
+    if(registroIdsToRemove.current.length>0) {
+      //set id to remove
+      variables.removeRegistro = registroIdsToRemove.current[0];
+      //changes to nofity
+      changedAssociations.current.caracteristica_cuantitativa_registro_id.removed = true;
+      changedAssociations.current.caracteristica_cuantitativa_registro_id.idsRemoved = [registroIdsToRemove.current[0]];
     }
 
     return;
@@ -495,8 +495,8 @@ function setAjvErrors(err) {
     delete variables.registro_id; //FK
 
     //add & remove: to_one's
-    setAddRemoveOneRegistro(variables);
     setAddRemoveOneMetodo(variables);
+    setAddRemoveOneRegistro(variables);
 
     //add & remove: to_many's
 
@@ -708,19 +708,19 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'registro':
-        registroIdsToAdd.current = [];
-        registroIdsToAdd.current.push(itemId);
-        setRegistroIdsToAddState([itemId]);
-        handleSetValue(itemId, -2, 'registro_id');
-        setForeignKeys({...foreignKeys, registro_id: itemId});
-        break;
       case 'metodo':
         metodoIdsToAdd.current = [];
         metodoIdsToAdd.current.push(itemId);
         setMetodoIdsToAddState([itemId]);
         handleSetValue(itemId, -2, 'metodo_id');
         setForeignKeys({...foreignKeys, metodo_id: itemId});
+        break;
+      case 'registro':
+        registroIdsToAdd.current = [];
+        registroIdsToAdd.current.push(itemId);
+        setRegistroIdsToAddState([itemId]);
+        handleSetValue(itemId, -2, 'registro_id');
+        setForeignKeys({...foreignKeys, registro_id: itemId});
         break;
 
       default:
@@ -729,16 +729,6 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'registro') {
-      if(registroIdsToAdd.current.length > 0
-      && registroIdsToAdd.current[0] === itemId) {
-        registroIdsToAdd.current = [];
-        setRegistroIdsToAddState([]);
-        handleSetValue(null, -2, 'registro_id');
-        setForeignKeys({...foreignKeys, registro_id: null});
-      }
-      return;
-    }//end: case 'registro'
     if(associationKey === 'metodo') {
       if(metodoIdsToAdd.current.length > 0
       && metodoIdsToAdd.current[0] === itemId) {
@@ -749,23 +739,33 @@ function setAjvErrors(err) {
       }
       return;
     }//end: case 'metodo'
+    if(associationKey === 'registro') {
+      if(registroIdsToAdd.current.length > 0
+      && registroIdsToAdd.current[0] === itemId) {
+        registroIdsToAdd.current = [];
+        setRegistroIdsToAddState([]);
+        handleSetValue(null, -2, 'registro_id');
+        setForeignKeys({...foreignKeys, registro_id: null});
+      }
+      return;
+    }//end: case 'registro'
   }
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-        case 'registro':
-          registroIdsToRemove.current = [];
-          registroIdsToRemove.current.push(itemId);
-          setRegistroIdsToRemoveState([itemId]);
-          handleSetValue(null, -2, 'registro_id');
-          setForeignKeys({...foreignKeys, registro_id: null});
-        break;
         case 'metodo':
           metodoIdsToRemove.current = [];
           metodoIdsToRemove.current.push(itemId);
           setMetodoIdsToRemoveState([itemId]);
           handleSetValue(null, -2, 'metodo_id');
           setForeignKeys({...foreignKeys, metodo_id: null});
+        break;
+        case 'registro':
+          registroIdsToRemove.current = [];
+          registroIdsToRemove.current.push(itemId);
+          setRegistroIdsToRemoveState([itemId]);
+          handleSetValue(null, -2, 'registro_id');
+          setForeignKeys({...foreignKeys, registro_id: null});
         break;
 
       default:
@@ -774,16 +774,6 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-    if(associationKey === 'registro') {
-      if(registroIdsToRemove.current.length > 0
-      && registroIdsToRemove.current[0] === itemId) {
-        registroIdsToRemove.current = [];
-        setRegistroIdsToRemoveState([]);
-        handleSetValue(itemId, -2, 'registro_id');
-        setForeignKeys({...foreignKeys, registro_id: itemId});
-      }
-      return;
-    }//end: case 'registro'
     if(associationKey === 'metodo') {
       if(metodoIdsToRemove.current.length > 0
       && metodoIdsToRemove.current[0] === itemId) {
@@ -794,25 +784,17 @@ function setAjvErrors(err) {
       }
       return;
     }//end: case 'metodo'
+    if(associationKey === 'registro') {
+      if(registroIdsToRemove.current.length > 0
+      && registroIdsToRemove.current[0] === itemId) {
+        registroIdsToRemove.current = [];
+        setRegistroIdsToRemoveState([]);
+        handleSetValue(itemId, -2, 'registro_id');
+        setForeignKeys({...foreignKeys, registro_id: itemId});
+      }
+      return;
+    }//end: case 'registro'
   }
-
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
-  };
-
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
-  }
-
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
 
   const handleClickOnMetodoRow = (event, item) => {
     setMetodoDetailItem(item);
@@ -827,6 +809,24 @@ function setAjvErrors(err) {
       window.setTimeout(function() {
         setMetodoDetailDialogOpen(false);
         setMetodoDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
+  };
+
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
+  }
+
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -985,16 +985,16 @@ function setAjvErrors(err) {
                 <CaracteristicaCuantitativaAssociationsPage
                   hidden={tabsValue !== 1 || deleted}
                   item={item}
-                  registroIdsToAdd={registroIdsToAddState}
-                  registroIdsToRemove={registroIdsToRemoveState}
                   metodoIdsToAdd={metodoIdsToAddState}
                   metodoIdsToRemove={metodoIdsToRemoveState}
+                  registroIdsToAdd={registroIdsToAddState}
+                  registroIdsToRemove={registroIdsToRemoveState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}
                   handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
                   handleClickOnMetodoRow={handleClickOnMetodoRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -1014,17 +1014,6 @@ function setAjvErrors(err) {
           />
         </Suspense>
 
-        {/* Dialog: Ejemplar Detail Panel */}
-        {(ejemplarDetailDialogOpen) && (
-          <Suspense fallback={<div />}>
-            <EjemplarDetailPanel
-              permissions={permissions}
-              item={ejemplarDetailItem}
-              dialog={true}
-              handleClose={handleEjemplarDetailDialogClose}
-            />
-          </Suspense>
-        )}
         {/* Dialog: Metodo Detail Panel */}
         {(metodoDetailDialogOpen) && (
           <Suspense fallback={<div />}>
@@ -1033,6 +1022,17 @@ function setAjvErrors(err) {
               item={metodoDetailItem}
               dialog={true}
               handleClose={handleMetodoDetailDialogClose}
+            />
+          </Suspense>
+        )}
+        {/* Dialog: Registro Detail Panel */}
+        {(registroDetailDialogOpen) && (
+          <Suspense fallback={<div />}>
+            <RegistroDetailPanel
+              permissions={permissions}
+              item={registroDetailItem}
+              dialog={true}
+              handleClose={handleRegistroDetailDialogClose}
             />
           </Suspense>
         )}

@@ -34,8 +34,8 @@ const CaracteristicaCuantitativaAttributesPage = lazy(() => import(/* webpackChu
 const CaracteristicaCuantitativaAssociationsPage = lazy(() => import(/* webpackChunkName: "Detail-Associations-CaracteristicaCuantitativa" */ './components/caracteristica_cuantitativa-associations-page/Caracteristica_cuantitativaAssociationsPage'));
 const CaracteristicaCuantitativaUpdatePanel = lazy(() => import(/* webpackChunkName: "Detail-Update-CaracteristicaCuantitativa" */ '../caracteristica_cuantitativa-update-panel/Caracteristica_cuantitativaUpdatePanel'));
 const CaracteristicaCuantitativaDeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Detail-Delete-CaracteristicaCuantitativa" */ '../Caracteristica_cuantitativaDeleteConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-Ejemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
 const MetodoDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-Metodo" */ '../../../metodo-table/components/metodo-detail-panel/MetodoDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-Registro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const appBarHeight = 72;
 
@@ -89,10 +89,10 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
   const [metodoDetailDialogOpen, setMetodoDetailDialogOpen] = useState(false);
   const [metodoDetailItem, setMetodoDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -226,16 +226,16 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
   }, [deleted, updated]);
   
   useEffect(() => {
-    if(ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
-    }
-  }, [ejemplarDetailItem]);
-
-  useEffect(() => {
     if(metodoDetailItem !== undefined) {
       setMetodoDetailDialogOpen(true);
     }
   }, [metodoDetailItem]);
+
+  useEffect(() => {
+    if(registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
+    }
+  }, [registroDetailItem]);
 
 
   useEffect(() => {
@@ -468,23 +468,6 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
     });
   };
 
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
-  };
-
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
-  }
-
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
   const handleClickOnMetodoRow = (event, item) => {
     setMetodoDetailItem(item);
   };
@@ -498,6 +481,23 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
       window.setTimeout(function() {
         setMetodoDetailDialogOpen(false);
         setMetodoDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
+  };
+
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
+  }
+
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -687,8 +687,8 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
                   <CaracteristicaCuantitativaAssociationsPage
                     item={itemState}
                     deleted={deleted}
-                    handleClickOnEjemplarRow={handleClickOnEjemplarRow}
                     handleClickOnMetodoRow={handleClickOnMetodoRow}
+                    handleClickOnRegistroRow={handleClickOnRegistroRow}
                   />
                 </Suspense>
               </Grid>
@@ -719,8 +719,8 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
                 <CaracteristicaCuantitativaAssociationsPage
                   item={itemState}
                   deleted={deleted}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
                   handleClickOnMetodoRow={handleClickOnMetodoRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -752,17 +752,6 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
         </Suspense>
       )}
 
-      {/* Dialog: Ejemplar Detail Panel */}
-      {(ejemplarDetailDialogOpen) && (
-        <Suspense fallback={<div />}>
-          <EjemplarDetailPanel
-            permissions={permissions}
-            item={ejemplarDetailItem}
-            dialog={true}
-            handleClose={handleEjemplarDetailDialogClose}
-          />
-        </Suspense>
-      )}
       {/* Dialog: Metodo Detail Panel */}
       {(metodoDetailDialogOpen) && (
         <Suspense fallback={<div />}>
@@ -771,6 +760,17 @@ export default function CaracteristicaCuantitativaDetailPanel(props) {
             item={metodoDetailItem}
             dialog={true}
             handleClose={handleMetodoDetailDialogClose}
+          />
+        </Suspense>
+      )}
+      {/* Dialog: Registro Detail Panel */}
+      {(registroDetailDialogOpen) && (
+        <Suspense fallback={<div />}>
+          <RegistroDetailPanel
+            permissions={permissions}
+            item={registroDetailItem}
+            dialog={true}
+            handleClose={handleRegistroDetailDialogClose}
           />
         </Suspense>
       )}

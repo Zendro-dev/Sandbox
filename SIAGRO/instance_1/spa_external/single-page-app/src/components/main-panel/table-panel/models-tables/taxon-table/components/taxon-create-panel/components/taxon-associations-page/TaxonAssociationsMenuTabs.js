@@ -19,7 +19,7 @@ export default function TaxonAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='ejemplares' label='Ejemplares' value='ejemplares' />
+        <Tab key='alimentos' label='Alimentos' value='alimentos' />
       </Tabs>
     </div>
   );

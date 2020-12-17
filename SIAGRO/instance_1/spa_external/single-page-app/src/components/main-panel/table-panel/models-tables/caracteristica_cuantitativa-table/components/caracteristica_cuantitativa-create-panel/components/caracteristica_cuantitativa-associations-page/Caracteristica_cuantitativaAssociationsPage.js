@@ -6,8 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const RegistroTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-Registro" */ './registro-transfer-lists/RegistroTransferLists'));
 const MetodoTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-Metodo" */ './metodo-transfer-lists/MetodoTransferLists'));
+const RegistroTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-Registro" */ './registro-transfer-lists/RegistroTransferLists'));
 
 const debounceTimeout = 700;
 
@@ -25,14 +25,14 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
 
   const {
     hidden,
-    registroIdsToAdd,
     metodoIdsToAdd,
+    registroIdsToAdd,
     handleTransferToAdd,
     handleUntransferFromAdd,
-    handleClickOnEjemplarRow,
     handleClickOnMetodoRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('registro');
+  const [associationSelected, setAssociationSelected] = React.useState('metodo');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -110,19 +110,6 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
           </Grid>
 
           {/* Transfer Lists */}
-          {/* Registro Transfer Lists */}
-          {(associationSelected === 'registro') && (
-            <Grid item xs={12} sm={10} md={9}>
-              <Suspense fallback={<div />}>
-                <RegistroTransferLists
-                  idsToAdd={registroIdsToAdd}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
-                  handleTransferToAdd={handleTransferToAdd}
-                  handleUntransferFromAdd={handleUntransferFromAdd}
-                />
-              </Suspense>
-            </Grid>
-          )}
           {/* Metodo Transfer Lists */}
           {(associationSelected === 'metodo') && (
             <Grid item xs={12} sm={10} md={9}>
@@ -136,6 +123,19 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
               </Suspense>
             </Grid>
           )}
+          {/* Registro Transfer Lists */}
+          {(associationSelected === 'registro') && (
+            <Grid item xs={12} sm={10} md={9}>
+              <Suspense fallback={<div />}>
+                <RegistroTransferLists
+                  idsToAdd={registroIdsToAdd}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
+                  handleTransferToAdd={handleTransferToAdd}
+                  handleUntransferFromAdd={handleUntransferFromAdd}
+                />
+              </Suspense>
+            </Grid>
+          )}
         </Grid>
       </Fade>
     </div>
@@ -143,10 +143,10 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
 }
 CaracteristicaCuantitativaAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  registroIdsToAdd: PropTypes.array.isRequired,
   metodoIdsToAdd: PropTypes.array.isRequired,
+  registroIdsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
   handleClickOnMetodoRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

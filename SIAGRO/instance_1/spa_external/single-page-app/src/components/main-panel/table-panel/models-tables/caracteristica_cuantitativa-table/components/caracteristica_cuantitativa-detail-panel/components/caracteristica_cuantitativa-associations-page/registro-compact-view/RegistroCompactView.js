@@ -65,7 +65,7 @@ export default function RegistroCompactView(props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {
     item,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
 
   const [items, setItems] = useState([]);
@@ -294,12 +294,12 @@ export default function RegistroCompactView(props) {
     /*
      * Case 1:
      * The relation 'registro' for this item was updated from the target model (in the peer relation).
-     * That is to say that this current item was associated or dis-associated with some 'Ejemplar',
+     * That is to say that this current item was associated or dis-associated with some 'registro',
      * but this action happened on the peer relation, identified by 'caracteristica_cuantitativa_registro_id'.
      * 
      * Conditions:
-     * A: the current item 'internalId' attribute is in the removedIds of the updated 'Ejemplar'.
-     * B: the current item 'internalId' attribute is in the addedIds of the updated 'Ejemplar'.
+     * A: the current item 'internalId' attribute is in the removedIds of the updated 'registro'.
+     * B: the current item 'internalId' attribute is in the addedIds of the updated 'registro'.
      * 
      * Actions:
      * if A:
@@ -310,8 +310,8 @@ export default function RegistroCompactView(props) {
      * - reload table.
      * - return
      */
-    if(lastModelChanged.Ejemplar) {
-      let oens = Object.entries(lastModelChanged.Ejemplar);
+    if(lastModelChanged.registro) {
+      let oens = Object.entries(lastModelChanged.registro);
       oens.forEach( (entry) => {
         if(entry[1].changedAssociations&&
           entry[1].changedAssociations.caracteristica_cuantitativa_registro_id) {
@@ -323,11 +323,6 @@ export default function RegistroCompactView(props) {
                 let iof = idsRemoved.indexOf(item.id);
                 if(iof !== -1) {
 
-                  //strict contention
-                  if (!isOnApiRequestRef.current) {
-                    //reload
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                  }
                   return;
                 }
               }
@@ -339,11 +334,6 @@ export default function RegistroCompactView(props) {
               if(idsAdded) {
                 let iof = idsAdded.indexOf(item.id);
                 if(iof !== -1) {
-                  //strict contention
-                  if (!isOnApiRequestRef.current) {
-                    //reload
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                  }
                   return;
                 }
               }
@@ -354,7 +344,7 @@ export default function RegistroCompactView(props) {
 
     /*
      * Case 2: 
-     * The attributes of some 'Ejemplar' were modified or the item was deleted.
+     * The attributes of some 'registro' were modified or the item was deleted.
      * 
      * Conditions:
      * A: the item was modified and is currently displayed in the list.
@@ -369,17 +359,17 @@ export default function RegistroCompactView(props) {
      * - reload table.
      * - return
      */
-    if(lastModelChanged.Ejemplar) {
+    if(lastModelChanged.registro) {
 
-      let oens = Object.entries(lastModelChanged.Ejemplar);
+      let oens = Object.entries(lastModelChanged.registro);
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.id;
+          let idUpdated = entry[1].item.;
           
           //lookup item on table
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -390,11 +380,6 @@ export default function RegistroCompactView(props) {
         //case B: deleted
         if(entry[1].op === "delete") {
 
-          //strict contention
-          if (!isOnApiRequestRef.current) {
-            //reload
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-          }
           return;
         }
       });
@@ -423,8 +408,6 @@ export default function RegistroCompactView(props) {
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-      //reload
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
   }, [isOnApiRequest]);
@@ -476,18 +459,12 @@ export default function RegistroCompactView(props) {
 
 
 
-  const handleReloadClick = (event) => {
-    //check strict contention
-    if(isOnApiRequestRef.current) { return; }
-    //reload
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
 
   /**
    * Items handlers
    */
   const handleRowClicked = (event, item) => {
-    handleClickOnEjemplarRow(event, item);
+    handleClickOnRegistroRow(event, item);
   }
 
   return (
@@ -502,7 +479,7 @@ export default function RegistroCompactView(props) {
 
               {/* Toolbar */}
               <RegistroCompactViewToolbar 
-                title={'Ejemplar'}
+                title={'Registro'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
                 onReloadClick={handleReloadClick}
@@ -541,13 +518,13 @@ export default function RegistroCompactView(props) {
                     <List id='RegistroCompactView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.id;
+                        let key = it.;
                         let label = it.nombrecomun;
                         let sublabel = undefined;
        
                         return (
                           <ListItem 
-                            id={'RegistroCompactView-listA-listItem-'+it.id}
+                            id={'RegistroCompactView-listA-listItem-'+it.}
                             key={key} 
                             role="listitem" 
                             button 
@@ -557,8 +534,8 @@ export default function RegistroCompactView(props) {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ 'Ejemplar' }>
-                                <Avatar>{"ejemplar".slice(0,1)}</Avatar>
+                              <Tooltip title={ 'registro' }>
+                                <Avatar>{"registro".slice(0,1)}</Avatar>
                               </Tooltip>
                             </ListItemAvatar>
 
@@ -568,10 +545,10 @@ export default function RegistroCompactView(props) {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ 'id' }>
+                                      <Tooltip title={ '' }>
                                         <Typography
-                                        id={'RegistroCompactView-listA-listItem-id-'+it.id}
-                                        variant="body1" display="block" noWrap={true}>{it.id}</Typography>
+                                        id={'RegistroCompactView-listA-listItem-id-'+it.}
+                                        variant="body1" display="block" noWrap={true}>{it.}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -589,7 +566,7 @@ export default function RegistroCompactView(props) {
                                   {(label) && (
                                     <Tooltip title={ 'nombrecomun' }>
                                       <Typography
-                                      id={'RegistroCompactView-listA-listItem-label-'+it.id}
+                                      id={'RegistroCompactView-listA-listItem-label-'+it.}
                                       component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
                                   )}
@@ -598,7 +575,7 @@ export default function RegistroCompactView(props) {
                                   {(sublabel) && (
                                     <Tooltip title={ '' }>
                                       <Typography
-                                      id={'RegistroCompactView-listA-listItem-sublabel-'+it.id}
+                                      id={'RegistroCompactView-listA-listItem-sublabel-'+it.}
                                       component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}

@@ -4,10 +4,9 @@
  */
 
 const modelNamesIndex = [
-  "caracteristica_cualitativa",
   "caracteristica_cuantitativa",
-  "ejemplar",
   "metodo",
+  "referencia",
   "taxon",
   "role",
   "role_to_user",
@@ -44,21 +43,17 @@ export async function loadApi(target) {
 
     let module = null;
     switch(modelName) {
-      case 'caracteristica_cualitativa': 
-        module =  await import(/* webpackChunkName: "Request-CaracteristicaCualitativa" */ './caracteristica_cualitativa');
-        api['caracteristica_cualitativa'] = module.default;
-        break;
       case 'caracteristica_cuantitativa': 
         module =  await import(/* webpackChunkName: "Request-CaracteristicaCuantitativa" */ './caracteristica_cuantitativa');
         api['caracteristica_cuantitativa'] = module.default;
         break;
-      case 'ejemplar': 
-        module =  await import(/* webpackChunkName: "Request-Ejemplar" */ './ejemplar');
-        api['ejemplar'] = module.default;
-        break;
       case 'metodo': 
         module =  await import(/* webpackChunkName: "Request-Metodo" */ './metodo');
         api['metodo'] = module.default;
+        break;
+      case 'referencia': 
+        module =  await import(/* webpackChunkName: "Request-Referencia" */ './referencia');
+        api['referencia'] = module.default;
         break;
       case 'taxon': 
         module =  await import(/* webpackChunkName: "Request-Taxon" */ './taxon');

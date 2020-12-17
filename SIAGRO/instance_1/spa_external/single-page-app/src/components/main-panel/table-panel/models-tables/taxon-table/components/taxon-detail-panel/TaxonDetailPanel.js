@@ -34,7 +34,7 @@ const TaxonAttributesPage = lazy(() => import(/* webpackChunkName: "Detail-Attri
 const TaxonAssociationsPage = lazy(() => import(/* webpackChunkName: "Detail-Associations-Taxon" */ './components/taxon-associations-page/TaxonAssociationsPage'));
 const TaxonUpdatePanel = lazy(() => import(/* webpackChunkName: "Detail-Update-Taxon" */ '../taxon-update-panel/TaxonUpdatePanel'));
 const TaxonDeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Detail-Delete-Taxon" */ '../TaxonDeleteConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-Ejemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-Registro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const appBarHeight = 72;
 
@@ -88,8 +88,8 @@ export default function TaxonDetailPanel(props) {
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -223,10 +223,10 @@ export default function TaxonDetailPanel(props) {
   }, [deleted, updated]);
   
   useEffect(() => {
-    if(ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
+    if(registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
     }
-  }, [ejemplarDetailItem]);
+  }, [registroDetailItem]);
 
 
   useEffect(() => {
@@ -469,19 +469,19 @@ export default function TaxonDetailPanel(props) {
     });
   };
 
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
   };
 
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
   }
 
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -671,7 +671,7 @@ export default function TaxonDetailPanel(props) {
                   <TaxonAssociationsPage
                     item={itemState}
                     deleted={deleted}
-                    handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                    handleClickOnRegistroRow={handleClickOnRegistroRow}
                   />
                 </Suspense>
               </Grid>
@@ -702,7 +702,7 @@ export default function TaxonDetailPanel(props) {
                 <TaxonAssociationsPage
                   item={itemState}
                   deleted={deleted}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -734,14 +734,14 @@ export default function TaxonDetailPanel(props) {
         </Suspense>
       )}
 
-      {/* Dialog: Ejemplar Detail Panel */}
-      {(ejemplarDetailDialogOpen) && (
+      {/* Dialog: Registro Detail Panel */}
+      {(registroDetailDialogOpen) && (
         <Suspense fallback={<div />}>
-          <EjemplarDetailPanel
+          <RegistroDetailPanel
             permissions={permissions}
-            item={ejemplarDetailItem}
+            item={registroDetailItem}
             dialog={true}
-            handleClose={handleEjemplarDetailDialogClose}
+            handleClose={handleRegistroDetailDialogClose}
           />
         </Suspense>
       )}

@@ -10,7 +10,7 @@
 		"food_description": "String",
 		"procedencia": "String",
 		"taxon_id": "String",
-		"referencias_ids": "[ String ]"
+		"referencias_ids": "[String]"
 	},
 
 	"associations": {

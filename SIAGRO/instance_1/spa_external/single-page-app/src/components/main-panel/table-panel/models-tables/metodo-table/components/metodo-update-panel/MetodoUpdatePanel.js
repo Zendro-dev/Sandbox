@@ -31,7 +31,6 @@ import { amber, red } from '@material-ui/core/colors';
 const MetodoAttributesPage = lazy(() => import(/* webpackChunkName: "Update-Attributes-Metodo" */ './components/metodo-attributes-page/MetodoAttributesPage'));
 const MetodoAssociationsPage = lazy(() => import(/* webpackChunkName: "Update-Associations-Metodo" */ './components/metodo-associations-page/MetodoAssociationsPage'));
 const MetodoConfirmationDialog = lazy(() => import(/* webpackChunkName: "Update-Confirmation-Metodo" */ './components/MetodoConfirmationDialog'));
-const CaracteristicaCualitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-CaracteristicaCualitativa" */ '../../../caracteristica_cualitativa-table/components/caracteristica_cualitativa-detail-panel/Caracteristica_cualitativaDetailPanel'));
 const CaracteristicaCuantitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-CaracteristicaCuantitativa" */ '../../../caracteristica_cuantitativa-table/components/caracteristica_cuantitativa-detail-panel/Caracteristica_cuantitativaDetailPanel'));
 
 const debounceTimeout = 700;
@@ -100,17 +99,11 @@ export default function MetodoUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const [caracteristicas_cualitativasIdsToAddState, setCaracteristicas_cualitativasIdsToAddState] = useState([]);
-  const caracteristicas_cualitativasIdsToAdd = useRef([]);
-  const [caracteristicas_cualitativasIdsToRemoveState, setCaracteristicas_cualitativasIdsToRemoveState] = useState([]);
-  const caracteristicas_cualitativasIdsToRemove = useRef([]);
   const [caracteristicas_cuantitativasIdsToAddState, setCaracteristicas_cuantitativasIdsToAddState] = useState([]);
   const caracteristicas_cuantitativasIdsToAdd = useRef([]);
   const [caracteristicas_cuantitativasIdsToRemoveState, setCaracteristicas_cuantitativasIdsToRemoveState] = useState([]);
   const caracteristicas_cuantitativasIdsToRemove = useRef([]);
 
-  const [caracteristica_cualitativaDetailDialogOpen, setCaracteristica_cualitativaDetailDialogOpen] = useState(false);
-  const [caracteristica_cualitativaDetailItem, setCaracteristica_cualitativaDetailItem] = useState(undefined);
   const [caracteristica_cuantitativaDetailDialogOpen, setCaracteristica_cuantitativaDetailDialogOpen] = useState(false);
   const [caracteristica_cuantitativaDetailItem, setCaracteristica_cuantitativaDetailItem] = useState(undefined);
 
@@ -247,11 +240,6 @@ export default function MetodoUpdatePanel(props) {
   }, [deleted, updated]);
 
   useEffect(() => {
-    if (caracteristica_cualitativaDetailItem !== undefined) {
-      setCaracteristica_cualitativaDetailDialogOpen(true);
-    }
-  }, [caracteristica_cualitativaDetailItem]);
-  useEffect(() => {
     if (caracteristica_cuantitativaDetailItem !== undefined) {
       setCaracteristica_cuantitativaDetailDialogOpen(true);
     }
@@ -338,41 +326,6 @@ export default function MetodoUpdatePanel(props) {
   }
 
 
-  function setAddRemoveManyCaracteristicas_cualitativas(variables) {
-    //data to notify changes
-    if(!changedAssociations.current.caracteristica_cualitativa_metodo_id) changedAssociations.current.caracteristica_cualitativa_metodo_id = {};
-
-    /**
-     * Case: The toAdd list isn't empty.
-     */
-    if(caracteristicas_cualitativasIdsToAdd.current.length>0) {
-      //set ids to add
-      variables.addCaracteristicas_cualitativas = [ ...caracteristicas_cualitativasIdsToAdd.current];
-      //changes to nofity
-      changedAssociations.current.caracteristica_cualitativa_metodo_id.added = true;
-      if(changedAssociations.current.caracteristica_cualitativa_metodo_id.idsAdded){
-        caracteristicas_cualitativasIdsToAdd.current.forEach((it) => {if(!changedAssociations.current.caracteristica_cualitativa_metodo_id.idsAdded.includes(it)) changedAssociations.current.caracteristica_cualitativa_metodo_id.idsAdded.push(it);});
-      } else {
-        changedAssociations.current.caracteristica_cualitativa_metodo_id.idsAdded = [...caracteristicas_cualitativasIdsToAdd.current];
-      }
-    }
-    /**
-     * Case: The toRemove list isn't empty.
-     */
-    if(caracteristicas_cualitativasIdsToRemove.current.length>0) {
-      //set ids to remove
-      variables.removeCaracteristicas_cualitativas = [ ...caracteristicas_cualitativasIdsToRemove.current];
-      //changes to nofity
-      changedAssociations.current.caracteristica_cualitativa_metodo_id.removed = true;
-      if(changedAssociations.current.caracteristica_cualitativa_metodo_id.idsRemoved){
-        caracteristicas_cualitativasIdsToRemove.current.forEach((it) => {if(!changedAssociations.current.caracteristica_cualitativa_metodo_id.idsRemoved.includes(it)) changedAssociations.current.caracteristica_cualitativa_metodo_id.idsRemoved.push(it);});
-      } else {
-        changedAssociations.current.caracteristica_cualitativa_metodo_id.idsRemoved = [...caracteristicas_cualitativasIdsToRemove.current];
-      }
-    }
-    
-    return;
-  }
   function setAddRemoveManyCaracteristicas_cuantitativas(variables) {
     //data to notify changes
     if(!changedAssociations.current.caracteristica_cuantitativa_metodo_id) changedAssociations.current.caracteristica_cuantitativa_metodo_id = {};
@@ -488,7 +441,6 @@ function setAjvErrors(err) {
     //add & remove: to_one's
 
     //add & remove: to_many's
-    setAddRemoveManyCaracteristicas_cualitativas(variables);
     setAddRemoveManyCaracteristicas_cuantitativas(variables);
 
     /*
@@ -699,10 +651,6 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'caracteristicas_cualitativas':
-        caracteristicas_cualitativasIdsToAdd.current.push(itemId);
-        setCaracteristicas_cualitativasIdsToAddState([...caracteristicas_cualitativasIdsToAdd.current]);
-        break;
       case 'caracteristicas_cuantitativas':
         caracteristicas_cuantitativasIdsToAdd.current.push(itemId);
         setCaracteristicas_cuantitativasIdsToAddState([...caracteristicas_cuantitativasIdsToAdd.current]);
@@ -714,17 +662,6 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'caracteristicas_cualitativas') {
-      for(let i=0; i<caracteristicas_cualitativasIdsToAdd.current.length; ++i)
-      {
-        if(caracteristicas_cualitativasIdsToAdd.current[i] === itemId) {
-          caracteristicas_cualitativasIdsToAdd.current.splice(i, 1);
-          setCaracteristicas_cualitativasIdsToAddState([...caracteristicas_cualitativasIdsToAdd.current]);
-          return;
-        }
-      }
-      return;
-    }//end: case 'caracteristicas_cualitativas'
     if(associationKey === 'caracteristicas_cuantitativas') {
       for(let i=0; i<caracteristicas_cuantitativasIdsToAdd.current.length; ++i)
       {
@@ -740,11 +677,6 @@ function setAjvErrors(err) {
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-        case 'caracteristicas_cualitativas':
-  
-        caracteristicas_cualitativasIdsToRemove.current.push(itemId);
-        setCaracteristicas_cualitativasIdsToRemoveState([...caracteristicas_cualitativasIdsToRemove.current]);
-        break;
         case 'caracteristicas_cuantitativas':
   
         caracteristicas_cuantitativasIdsToRemove.current.push(itemId);
@@ -757,17 +689,6 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-    if(associationKey === 'caracteristicas_cualitativas') {
-      for(let i=0; i<caracteristicas_cualitativasIdsToRemove.current.length; ++i)
-      {
-        if(caracteristicas_cualitativasIdsToRemove.current[i] === itemId) {
-          caracteristicas_cualitativasIdsToRemove.current.splice(i, 1);
-          setCaracteristicas_cualitativasIdsToRemoveState([...caracteristicas_cualitativasIdsToRemove.current]);
-          return;
-        }
-      }
-      return;
-    }//end: case 'caracteristicas_cualitativas'
     if(associationKey === 'caracteristicas_cuantitativas') {
       for(let i=0; i<caracteristicas_cuantitativasIdsToRemove.current.length; ++i)
       {
@@ -780,24 +701,6 @@ function setAjvErrors(err) {
       return;
     }//end: case 'caracteristicas_cuantitativas'
   }
-
-  const handleClickOnCaracteristica_cualitativaRow = (event, item) => {
-    setCaracteristica_cualitativaDetailItem(item);
-  };
-
-  const handleCaracteristica_cualitativaDetailDialogClose = (event) => {
-    delayedCloseCaracteristica_cualitativaDetailPanel(event, 500);
-  }
-
-  const delayedCloseCaracteristica_cualitativaDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setCaracteristica_cualitativaDetailDialogOpen(false);
-        setCaracteristica_cualitativaDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
 
   const handleClickOnCaracteristica_cuantitativaRow = (event, item) => {
     setCaracteristica_cuantitativaDetailItem(item);
@@ -969,15 +872,12 @@ function setAjvErrors(err) {
                 <MetodoAssociationsPage
                   hidden={tabsValue !== 1 || deleted}
                   item={item}
-                  caracteristicas_cualitativasIdsToAdd={caracteristicas_cualitativasIdsToAddState}
-                  caracteristicas_cualitativasIdsToRemove={caracteristicas_cualitativasIdsToRemoveState}
                   caracteristicas_cuantitativasIdsToAdd={caracteristicas_cuantitativasIdsToAddState}
                   caracteristicas_cuantitativasIdsToRemove={caracteristicas_cuantitativasIdsToRemoveState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}
                   handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
                   handleClickOnCaracteristica_cuantitativaRow={handleClickOnCaracteristica_cuantitativaRow}
                 />
               </Suspense>
@@ -998,17 +898,6 @@ function setAjvErrors(err) {
           />
         </Suspense>
 
-        {/* Dialog: Caracteristica_cualitativa Detail Panel */}
-        {(caracteristica_cualitativaDetailDialogOpen) && (
-          <Suspense fallback={<div />}>
-            <CaracteristicaCualitativaDetailPanel
-              permissions={permissions}
-              item={caracteristica_cualitativaDetailItem}
-              dialog={true}
-              handleClose={handleCaracteristica_cualitativaDetailDialogClose}
-            />
-          </Suspense>
-        )}
         {/* Dialog: Caracteristica_cuantitativa Detail Panel */}
         {(caracteristica_cuantitativaDetailDialogOpen) && (
           <Suspense fallback={<div />}>

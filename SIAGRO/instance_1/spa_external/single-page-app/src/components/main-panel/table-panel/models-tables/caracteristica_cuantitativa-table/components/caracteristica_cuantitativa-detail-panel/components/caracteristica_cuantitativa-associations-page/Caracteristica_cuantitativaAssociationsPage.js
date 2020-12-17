@@ -5,8 +5,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const RegistroCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-Registro" */ './registro-compact-view/RegistroCompactView'));
 const MetodoCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-Metodo" */ './metodo-compact-view/MetodoCompactView'));
+const RegistroCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-Registro" */ './registro-compact-view/RegistroCompactView'));
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,10 +23,10 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
   const {
     item,
     deleted,
-    handleClickOnEjemplarRow,
     handleClickOnMetodoRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('registro');
+  const [associationSelected, setAssociationSelected] = React.useState('metodo');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -51,17 +51,6 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
           />
         </Grid>
 
-        {/* Registro Compact View */}
-        {(associationSelected === 'registro') && (
-          <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
-            <Suspense fallback={<div />}>
-              <RegistroCompactView
-                item={item}
-                handleClickOnEjemplarRow={handleClickOnEjemplarRow}
-              />
-            </Suspense>
-          </Grid>
-        )}
         {/* Metodo Compact View */}
         {(associationSelected === 'metodo') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
@@ -69,6 +58,17 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
               <MetodoCompactView
                 item={item}
                 handleClickOnMetodoRow={handleClickOnMetodoRow}
+              />
+            </Suspense>
+          </Grid>
+        )}
+        {/* Registro Compact View */}
+        {(associationSelected === 'registro') && (
+          <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
+            <Suspense fallback={<div />}>
+              <RegistroCompactView
+                item={item}
+                handleClickOnRegistroRow={handleClickOnRegistroRow}
               />
             </Suspense>
           </Grid>
@@ -81,6 +81,6 @@ export default function CaracteristicaCuantitativaAssociationsPage(props) {
 CaracteristicaCuantitativaAssociationsPage.propTypes = {
   item: PropTypes.object.isRequired,
   deleted: PropTypes.bool,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired, 
   handleClickOnMetodoRow: PropTypes.func.isRequired, 
+  handleClickOnRegistroRow: PropTypes.func.isRequired, 
 };

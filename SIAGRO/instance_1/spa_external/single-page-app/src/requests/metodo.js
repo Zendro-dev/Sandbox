@@ -192,7 +192,6 @@ export default {
           $descripcion:String,
           $referencias:[String],
           $link_referencias:[String],
-          $addCaracteristicas_cualitativas: [ID],
           $addCaracteristicas_cuantitativas: [ID],
 `;
 
@@ -202,7 +201,6 @@ export default {
             descripcion:$descripcion,
             referencias:$referencias,
             link_referencias:$link_referencias,
-            addCaracteristicas_cualitativas: $addCaracteristicas_cualitativas,
             addCaracteristicas_cuantitativas: $addCaracteristicas_cuantitativas,
 `;
 
@@ -273,8 +271,6 @@ export default {
           $descripcion:String,
           $referencias:[String],
           $link_referencias:[String],
-          $addCaracteristicas_cualitativas: [ID],
-          $removeCaracteristicas_cualitativas: [ID],
           $addCaracteristicas_cuantitativas: [ID],
           $removeCaracteristicas_cuantitativas: [ID],
 `;
@@ -285,8 +281,6 @@ export default {
             descripcion: $descripcion,
             referencias: $referencias,
             link_referencias: $link_referencias,
-            addCaracteristicas_cualitativas: $addCaracteristicas_cualitativas,
-            removeCaracteristicas_cualitativas: $removeCaracteristicas_cualitativas,
             addCaracteristicas_cuantitativas: $addCaracteristicas_cuantitativas,
             removeCaracteristicas_cuantitativas: $removeCaracteristicas_cuantitativas,
 `;
@@ -381,314 +375,6 @@ export default {
     //return value
     return {value: result, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
-
-
-/**
- * Filter
- * ------
- */
-
-  /**
-   * getCaracteristicas_cualitativas   *
-   * Get caracteristica_cualitativas records associated to the given metodo record
-   * through association 'Caracteristicas_cualitativas', from GraphQL Server.
-   *
-   *
-   * @param {String} url GraphQL Server url
-   * @param {Number} itemId Model item internalId.
-   * @param {String} searchText Text string currently on search bar.
-   * @param {Object} variables Object with cursor-based-pagination variables.
-   * @param {String} ops Object with adittional query options.
-   */
-  async getCaracteristicas_cualitativas(url, itemId, searchText, variables, ops) {
-    //internal checks
-    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
-    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-    let graphqlErrors = [];
-
-    //set attributes
-    let qattributes = 
-    `id,
-     nombre,
-     valor,
-     nombre_corto,
-     comentarios,
-     metodo_id,
-     registro_id,
-`;
-
-    variables["id"] = itemId;
-    //set search
-    let s = getSearchArgument('caracteristica_cualitativa', searchText, ops, 'object');
-    if(s) variables.search = s.search;
-    let qbody = `
-          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
-          edges {
-            node {
-              ${qattributes}
-            }
-          }`;
-
-    let query =
-      `query readOneMetodo($id:ID!, $search: searchCaracteristica_cualitativaInput, $pagination: paginationCursorInput!) {
-             readOneMetodo(id:$id) {
-                caracteristicas_cualitativasConnection(search: $search, pagination: $pagination) {
-                  ${qbody},
-                },
-             }}`;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getCaracteristicas_cualitativas', query, variables);
-
-//request
-    let response = await requestGraphql({ url, query, variables });
-    let items = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "readOneMetodo");
-    if(check === 'ok') {
-      //check type
-      if(!response.data.data["readOneMetodo"]
-      || typeof response.data.data["readOneMetodo"] !== 'object'
-      || !response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"]
-      || typeof response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"] !== 'object'
-      || !Array.isArray(response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"].edges)
-      || typeof response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"].pageInfo !== 'object' 
-      || response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"].pageInfo === null)
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      items = response.data.data["readOneMetodo"]["caracteristicas_cualitativasConnection"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
-
-/**
- * Filter
- * ------
- */
-
-  /**
-   * getCaracteristicas_cualitativasCount
-   * 
-   * Get caracteristica_cualitativas records count associated to the given metodo record
-   * through association 'Caracteristicas_cualitativas', from GraphQL Server.
-   * 
-   * 
-   * @param {String} url GraphQL Server url
-   * @param {Number} itemId Model item internalId.
-   * @param {String} searchText Text string currently on search bar.
-   * @param {String} ops Object with adittional query options.
-   */
-  async getCaracteristicas_cualitativasCount(url, itemId, searchText, ops) {
-    let graphqlErrors = [];
-
-    let variables = {"id": itemId};
-    //search
-    let s = getSearchArgument('caracteristica_cualitativa', searchText, ops, 'object');
-    if(s) variables.search = s.search;
-    //query
-    let query =
-      `query readOneMetodo($id:ID!, $search: searchCaracteristica_cualitativaInput) { 
-             readOneMetodo(id:$id) {
-              countFilteredCaracteristicas_cualitativas(search: $search) 
-       }}`
-
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getCaracteristicas_cualitativasCount', query, variables);
-    
-    //request
-    let response = await requestGraphql({ url, query, variables });
-    let count = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "readOneMetodo");
-    if(check === 'ok') {
-      //check type
-      if(!response.data.data["readOneMetodo"]
-      || typeof response.data.data["readOneMetodo"] !== 'object'
-      || !Number.isInteger(response.data.data["readOneMetodo"]["countFilteredCaracteristicas_cualitativas"])) 
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      count = response.data.data["readOneMetodo"]["countFilteredCaracteristicas_cualitativas"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
-
-/**
- * Filter
- * ------
- */
-
-  /**
-   * getNotAssociatedCaracteristicas_cualitativasCount
-   *
-   * Get count of not associated Caracteristicas_cualitativas from GraphQL Server.
-   *
-   * @param {String} url GraphQL Server url.
-   * @param {String} itemId Model item internalId.
-   * @param {String} searchText Text string currently on search bar.
-   * @param {String} ops Object with adittional query options.
-   */
-  async getNotAssociatedCaracteristicas_cualitativasCount(url, itemId, searchText, ops) {
-    let graphqlErrors = [];
-    /**
-     * Algorithm:
-     *    1. get a filtered count over all items.
-     *       filters:
-     *          1.1: exclude itemId in association.targetKey field.
-     *          1.2: include null values in association.targetKey field.  
-     *    2. @return filtered count. 
-     */
-    //search
-    let s = getSearchArgument('caracteristica_cualitativa', searchText, ops, 'object');
-  
-    //make filter to exclude itemId on FK & include null's
-    let f1 = {field: "metodo_id", valueType: "String", value: itemId, operator: "ne"};
-    let f2 = {field: "metodo_id", valueType: "String", value: null, operator: "eq"};
-    let nf = {operator: "or", search: [ f1, f2 ]};
-    
-    //add new filter to ands array
-    if(s) s.search.search.push(nf);
-    else  s = {search: nf};
-
-    //set search
-    let variables = {search: s.search};
-
-     //set query
-    let query = 
-     `query countCaracteristica_cualitativas($search: searchCaracteristica_cualitativaInput) {
-            countCaracteristica_cualitativas(search: $search) }`;
-    
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedCaracteristicas_cualitativasCount', query, variables);
-    //request
-    let response = await requestGraphql({ url, query, variables });
-    let count = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "countCaracteristica_cualitativas");
-    if(check === 'ok') {
-      //check type
-      if(!Number.isInteger(response.data.data["countCaracteristica_cualitativas"])) 
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      count = response.data.data["countCaracteristica_cualitativas"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
-
-/**
- * Filter
- * ------
- */
-
-/**
- * getNotAssociatedCaracteristicas_cualitativas
- *
- * Get not associated Caracteristicas_cualitativas items from GraphQL Server.
- *
- * @param {String} url GraphQL Server url.
- * @param {String} itemId Model item internalId.
- * @param {String} searchText Text string currently on search bar.
- * @param {Object} variables Object with cursor-based-pagination variables.
- * @param {String} ops Object with additional query options.
- * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
- */
-async getNotAssociatedCaracteristicas_cualitativas(url, itemId, searchText, variables, ops, batchSize) {
-   //internal checks
-   if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
-   if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-  let graphqlErrors = [];
-
-  //set attributes
-  let qattributes = 
-    `id,
-     nombre,
-     valor,
-     nombre_corto,
-     comentarios,
-     metodo_id,
-     registro_id,
-`;
-    /**
-     * Algorithm:
-     *    1. get a filtered items.
-     *       filters:
-     *          1.1: exclude itemId in association.targetKey field.
-     *          1.2: include null values in association.targetKey field.  
-     *    2. @return filtered items. 
-     */
-    //search
-    let s = getSearchArgument('caracteristica_cualitativa', searchText, ops, 'object');
-  
-    //make filter to exclude itemId on FK & include null's
-    let f1 = {field: "metodo_id", valueType: "String", value: itemId, operator: "ne"};
-    let f2 = {field: "metodo_id", valueType: "String", value: null, operator: "eq"};
-    let nf = {operator: "or", search: [ f1, f2 ]};
-    
-    //add new filter to ands array
-    if(s) s.search.search.push(nf);
-    else  s = {search: nf};
-
-    //set search
-    variables.search = s.search;
-    //set query
-    let qbody = `
-          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
-          edges {
-            node {
-              ${qattributes}
-            }
-          }`;
-    let query =
-      `query caracteristica_cualitativasConnection($search: searchCaracteristica_cualitativaInput, $pagination: paginationCursorInput!) {
-             caracteristica_cualitativasConnection(search: $search, pagination: $pagination) {
-                  ${qbody},
-                },
-             }`;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedCaracteristicas_cualitativas', query, variables);
-
-    //request
-    let response = await requestGraphql({ url, query, variables });
-    let items = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "caracteristica_cualitativasConnection");
-    if(check === 'ok') {
-      //check type
-      if(!response.data.data["caracteristica_cualitativasConnection"]
-      || typeof response.data.data["caracteristica_cualitativasConnection"] !== 'object'
-      || !Array.isArray(response.data.data["caracteristica_cualitativasConnection"].edges)
-      || typeof response.data.data["caracteristica_cualitativasConnection"].pageInfo !== 'object' 
-      || response.data.data["caracteristica_cualitativasConnection"].pageInfo === null)
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      items = response.data.data["caracteristica_cualitativasConnection"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
 
 
 /**

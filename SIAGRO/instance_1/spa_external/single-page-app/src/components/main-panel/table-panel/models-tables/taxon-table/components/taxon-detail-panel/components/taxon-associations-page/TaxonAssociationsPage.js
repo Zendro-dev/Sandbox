@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const EjemplaresCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-Ejemplares" */ './ejemplares-compact-view/EjemplaresCompactView'));
+const AlimentosCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-Alimentos" */ './alimentos-compact-view/AlimentosCompactView'));
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -22,9 +22,9 @@ export default function TaxonAssociationsPage(props) {
   const {
     item,
     deleted,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('ejemplares');
+  const [associationSelected, setAssociationSelected] = React.useState('alimentos');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -49,13 +49,13 @@ export default function TaxonAssociationsPage(props) {
           />
         </Grid>
 
-        {/* Ejemplares Compact View */}
-        {(associationSelected === 'ejemplares') && (
+        {/* Alimentos Compact View */}
+        {(associationSelected === 'alimentos') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <Suspense fallback={<div />}>
-              <EjemplaresCompactView
+              <AlimentosCompactView
                 item={item}
-                handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                handleClickOnRegistroRow={handleClickOnRegistroRow}
               />
             </Suspense>
           </Grid>
@@ -68,5 +68,5 @@ export default function TaxonAssociationsPage(props) {
 TaxonAssociationsPage.propTypes = {
   item: PropTypes.object.isRequired,
   deleted: PropTypes.bool,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired, 
+  handleClickOnRegistroRow: PropTypes.func.isRequired, 
 };

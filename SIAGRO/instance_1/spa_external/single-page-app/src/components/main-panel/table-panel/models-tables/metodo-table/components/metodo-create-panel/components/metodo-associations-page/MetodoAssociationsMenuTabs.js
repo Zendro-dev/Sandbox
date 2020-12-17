@@ -19,7 +19,6 @@ export default function MetodoAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='caracteristicas_cualitativas' label='Caracteristicas_cualitativas' value='caracteristicas_cualitativas' />
         <Tab key='caracteristicas_cuantitativas' label='Caracteristicas_cuantitativas' value='caracteristicas_cuantitativas' />
       </Tabs>
     </div>

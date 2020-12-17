@@ -31,7 +31,7 @@ import { amber, red } from '@material-ui/core/colors';
 const TaxonAttributesPage = lazy(() => import(/* webpackChunkName: "Update-Attributes-Taxon" */ './components/taxon-attributes-page/TaxonAttributesPage'));
 const TaxonAssociationsPage = lazy(() => import(/* webpackChunkName: "Update-Associations-Taxon" */ './components/taxon-associations-page/TaxonAssociationsPage'));
 const TaxonConfirmationDialog = lazy(() => import(/* webpackChunkName: "Update-Confirmation-Taxon" */ './components/TaxonConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-Ejemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Update-Detail-Registro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const debounceTimeout = 700;
 const appBarHeight = 64;
@@ -99,13 +99,13 @@ export default function TaxonUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const [ejemplaresIdsToAddState, setEjemplaresIdsToAddState] = useState([]);
-  const ejemplaresIdsToAdd = useRef([]);
-  const [ejemplaresIdsToRemoveState, setEjemplaresIdsToRemoveState] = useState([]);
-  const ejemplaresIdsToRemove = useRef([]);
+  const [alimentosIdsToAddState, setAlimentosIdsToAddState] = useState([]);
+  const alimentosIdsToAdd = useRef([]);
+  const [alimentosIdsToRemoveState, setAlimentosIdsToRemoveState] = useState([]);
+  const alimentosIdsToRemove = useRef([]);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -240,10 +240,10 @@ export default function TaxonUpdatePanel(props) {
   }, [deleted, updated]);
 
   useEffect(() => {
-    if (ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
+    if (registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
     }
-  }, [ejemplarDetailItem]);
+  }, [registroDetailItem]);
 
   /**
    * Utils
@@ -378,36 +378,36 @@ export default function TaxonUpdatePanel(props) {
   }
 
 
-  function setAddRemoveManyEjemplares(variables) {
+  function setAddRemoveManyAlimentos(variables) {
     //data to notify changes
-    if(!changedAssociations.current.Taxon_ejemplares) changedAssociations.current.Taxon_ejemplares = {};
+    if(!changedAssociations.current.registro_taxon_id) changedAssociations.current.registro_taxon_id = {};
 
     /**
      * Case: The toAdd list isn't empty.
      */
-    if(ejemplaresIdsToAdd.current.length>0) {
+    if(alimentosIdsToAdd.current.length>0) {
       //set ids to add
-      variables.addEjemplares = [ ...ejemplaresIdsToAdd.current];
+      variables.addAlimentos = [ ...alimentosIdsToAdd.current];
       //changes to nofity
-      changedAssociations.current.Taxon_ejemplares.added = true;
-      if(changedAssociations.current.Taxon_ejemplares.idsAdded){
-        ejemplaresIdsToAdd.current.forEach((it) => {if(!changedAssociations.current.Taxon_ejemplares.idsAdded.includes(it)) changedAssociations.current.Taxon_ejemplares.idsAdded.push(it);});
+      changedAssociations.current.registro_taxon_id.added = true;
+      if(changedAssociations.current.registro_taxon_id.idsAdded){
+        alimentosIdsToAdd.current.forEach((it) => {if(!changedAssociations.current.registro_taxon_id.idsAdded.includes(it)) changedAssociations.current.registro_taxon_id.idsAdded.push(it);});
       } else {
-        changedAssociations.current.Taxon_ejemplares.idsAdded = [...ejemplaresIdsToAdd.current];
+        changedAssociations.current.registro_taxon_id.idsAdded = [...alimentosIdsToAdd.current];
       }
     }
     /**
      * Case: The toRemove list isn't empty.
      */
-    if(ejemplaresIdsToRemove.current.length>0) {
+    if(alimentosIdsToRemove.current.length>0) {
       //set ids to remove
-      variables.removeEjemplares = [ ...ejemplaresIdsToRemove.current];
+      variables.removeAlimentos = [ ...alimentosIdsToRemove.current];
       //changes to nofity
-      changedAssociations.current.Taxon_ejemplares.removed = true;
-      if(changedAssociations.current.Taxon_ejemplares.idsRemoved){
-        ejemplaresIdsToRemove.current.forEach((it) => {if(!changedAssociations.current.Taxon_ejemplares.idsRemoved.includes(it)) changedAssociations.current.Taxon_ejemplares.idsRemoved.push(it);});
+      changedAssociations.current.registro_taxon_id.removed = true;
+      if(changedAssociations.current.registro_taxon_id.idsRemoved){
+        alimentosIdsToRemove.current.forEach((it) => {if(!changedAssociations.current.registro_taxon_id.idsRemoved.includes(it)) changedAssociations.current.registro_taxon_id.idsRemoved.push(it);});
       } else {
-        changedAssociations.current.Taxon_ejemplares.idsRemoved = [...ejemplaresIdsToRemove.current];
+        changedAssociations.current.registro_taxon_id.idsRemoved = [...alimentosIdsToRemove.current];
       }
     }
     
@@ -493,7 +493,7 @@ function setAjvErrors(err) {
     //add & remove: to_one's
 
     //add & remove: to_many's
-    setAddRemoveManyEjemplares(variables);
+    setAddRemoveManyAlimentos(variables);
 
     /*
       API Request: api.taxon.updateItem
@@ -703,9 +703,9 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'ejemplares':
-        ejemplaresIdsToAdd.current.push(itemId);
-        setEjemplaresIdsToAddState([...ejemplaresIdsToAdd.current]);
+      case 'alimentos':
+        alimentosIdsToAdd.current.push(itemId);
+        setAlimentosIdsToAddState([...alimentosIdsToAdd.current]);
         break;
 
       default:
@@ -714,25 +714,25 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'ejemplares') {
-      for(let i=0; i<ejemplaresIdsToAdd.current.length; ++i)
+    if(associationKey === 'alimentos') {
+      for(let i=0; i<alimentosIdsToAdd.current.length; ++i)
       {
-        if(ejemplaresIdsToAdd.current[i] === itemId) {
-          ejemplaresIdsToAdd.current.splice(i, 1);
-          setEjemplaresIdsToAddState([...ejemplaresIdsToAdd.current]);
+        if(alimentosIdsToAdd.current[i] === itemId) {
+          alimentosIdsToAdd.current.splice(i, 1);
+          setAlimentosIdsToAddState([...alimentosIdsToAdd.current]);
           return;
         }
       }
       return;
-    }//end: case 'ejemplares'
+    }//end: case 'alimentos'
   }
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-        case 'ejemplares':
+        case 'alimentos':
   
-        ejemplaresIdsToRemove.current.push(itemId);
-        setEjemplaresIdsToRemoveState([...ejemplaresIdsToRemove.current]);
+        alimentosIdsToRemove.current.push(itemId);
+        setAlimentosIdsToRemoveState([...alimentosIdsToRemove.current]);
         break;
 
       default:
@@ -741,32 +741,32 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-    if(associationKey === 'ejemplares') {
-      for(let i=0; i<ejemplaresIdsToRemove.current.length; ++i)
+    if(associationKey === 'alimentos') {
+      for(let i=0; i<alimentosIdsToRemove.current.length; ++i)
       {
-        if(ejemplaresIdsToRemove.current[i] === itemId) {
-          ejemplaresIdsToRemove.current.splice(i, 1);
-          setEjemplaresIdsToRemoveState([...ejemplaresIdsToRemove.current]);
+        if(alimentosIdsToRemove.current[i] === itemId) {
+          alimentosIdsToRemove.current.splice(i, 1);
+          setAlimentosIdsToRemoveState([...alimentosIdsToRemove.current]);
           return;
         }
       }
       return;
-    }//end: case 'ejemplares'
+    }//end: case 'alimentos'
   }
 
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
   };
 
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
   }
 
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -924,13 +924,13 @@ function setAjvErrors(err) {
                 <TaxonAssociationsPage
                   hidden={tabsValue !== 1 || deleted}
                   item={item}
-                  ejemplaresIdsToAdd={ejemplaresIdsToAddState}
-                  ejemplaresIdsToRemove={ejemplaresIdsToRemoveState}
+                  alimentosIdsToAdd={alimentosIdsToAddState}
+                  alimentosIdsToRemove={alimentosIdsToRemoveState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}
                   handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -950,14 +950,14 @@ function setAjvErrors(err) {
           />
         </Suspense>
 
-        {/* Dialog: Ejemplar Detail Panel */}
-        {(ejemplarDetailDialogOpen) && (
+        {/* Dialog: Registro Detail Panel */}
+        {(registroDetailDialogOpen) && (
           <Suspense fallback={<div />}>
-            <EjemplarDetailPanel
+            <RegistroDetailPanel
               permissions={permissions}
-              item={ejemplarDetailItem}
+              item={registroDetailItem}
               dialog={true}
-              handleClose={handleEjemplarDetailDialogClose}
+              handleClose={handleRegistroDetailDialogClose}
             />
           </Suspense>
         )}

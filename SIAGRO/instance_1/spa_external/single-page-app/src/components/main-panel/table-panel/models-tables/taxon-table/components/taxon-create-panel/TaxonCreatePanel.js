@@ -25,7 +25,7 @@ import SaveIcon from '@material-ui/icons/Save';
 const TaxonAttributesPage = lazy(() => import(/* webpackChunkName: "Create-AttributesTaxon" */ './components/taxon-attributes-page/TaxonAttributesPage'));
 const TaxonAssociationsPage = lazy(() => import(/* webpackChunkName: "Create-AssociationsTaxon" */ './components/taxon-associations-page/TaxonAssociationsPage'));
 const TaxonConfirmationDialog = lazy(() => import(/* webpackChunkName: "Create-ConfirmationTaxon" */ './components/TaxonConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailEjemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailRegistro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const debounceTimeout = 700;
 
@@ -80,11 +80,11 @@ export default function TaxonCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
-  const [ejemplaresIdsToAddState, setEjemplaresIdsToAddState] = useState([]);
-  const ejemplaresIdsToAdd = useRef([]);
+  const [alimentosIdsToAddState, setAlimentosIdsToAddState] = useState([]);
+  const alimentosIdsToAdd = useRef([]);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -149,10 +149,10 @@ export default function TaxonCreatePanel(props) {
   }, []);
   
   useEffect(() => {
-    if (ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
+    if (registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
     }
-  }, [ejemplarDetailItem]);
+  }, [registroDetailItem]);
 
 
   /**
@@ -350,7 +350,7 @@ export default function TaxonCreatePanel(props) {
     //add: to_one's
     
     //add: to_many's
-    variables.addEjemplares = [...ejemplaresIdsToAdd.current];
+    variables.addAlimentos = [...alimentosIdsToAdd.current];
 
     /*
       API Request: api.taxon.createItem
@@ -560,10 +560,10 @@ export default function TaxonCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'ejemplares':
-        if(ejemplaresIdsToAdd.current.indexOf(itemId) === -1) {
-          ejemplaresIdsToAdd.current.push(itemId);
-          setEjemplaresIdsToAddState(ejemplaresIdsToAdd.current);
+      case 'alimentos':
+        if(alimentosIdsToAdd.current.indexOf(itemId) === -1) {
+          alimentosIdsToAdd.current.push(itemId);
+          setAlimentosIdsToAddState(alimentosIdsToAdd.current);
         }
         break;
 
@@ -573,28 +573,28 @@ export default function TaxonCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'ejemplares') {
-      let iof = ejemplaresIdsToAdd.current.indexOf(itemId);
+    if(associationKey === 'alimentos') {
+      let iof = alimentosIdsToAdd.current.indexOf(itemId);
       if(iof !== -1) {
-        ejemplaresIdsToAdd.current.splice(iof, 1);
+        alimentosIdsToAdd.current.splice(iof, 1);
       }
       return;
-    }//end: case 'ejemplares'
+    }//end: case 'alimentos'
   }
 
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
   };
 
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
   }
 
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
     await new Promise(resolve => {
       window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -693,10 +693,10 @@ export default function TaxonCreatePanel(props) {
                 {/* Associations Page [1] */}
                 <TaxonAssociationsPage
                   hidden={tabsValue !== 1}
-                  ejemplaresIdsToAdd={ejemplaresIdsToAddState}
+                  alimentosIdsToAdd={alimentosIdsToAddState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -717,14 +717,14 @@ export default function TaxonCreatePanel(props) {
         </Suspense>
 
         {/* Detail Panels */}
-        {/* Dialog: Ejemplar Detail Panel */}
-        {(ejemplarDetailDialogOpen) && (
+        {/* Dialog: Registro Detail Panel */}
+        {(registroDetailDialogOpen) && (
           <Suspense fallback={<div />}>
-            <EjemplarDetailPanel
+            <RegistroDetailPanel
               permissions={permissions}
-              item={ejemplarDetailItem}
+              item={registroDetailItem}
               dialog={true}
-              handleClose={handleEjemplarDetailDialogClose}
+              handleClose={handleRegistroDetailDialogClose}
             />
           </Suspense>
         )}

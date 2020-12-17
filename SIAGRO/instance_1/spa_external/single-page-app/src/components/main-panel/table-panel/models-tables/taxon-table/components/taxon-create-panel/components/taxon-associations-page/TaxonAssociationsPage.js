@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const EjemplaresTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-Ejemplares" */ './ejemplares-transfer-lists/EjemplaresTransferLists'));
+const AlimentosTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-Alimentos" */ './alimentos-transfer-lists/AlimentosTransferLists'));
 
 const debounceTimeout = 700;
 
@@ -24,12 +24,12 @@ export default function TaxonAssociationsPage(props) {
 
   const {
     hidden,
-    ejemplaresIdsToAdd,
+    alimentosIdsToAdd,
     handleTransferToAdd,
     handleUntransferFromAdd,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('ejemplares');
+  const [associationSelected, setAssociationSelected] = React.useState('alimentos');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -107,13 +107,13 @@ export default function TaxonAssociationsPage(props) {
           </Grid>
 
           {/* Transfer Lists */}
-          {/* Ejemplares Transfer Lists */}
-          {(associationSelected === 'ejemplares') && (
+          {/* Alimentos Transfer Lists */}
+          {(associationSelected === 'alimentos') && (
             <Grid item xs={12} sm={10} md={9}>
               <Suspense fallback={<div />}>
-                <EjemplaresTransferLists
-                  idsToAdd={ejemplaresIdsToAdd}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                <AlimentosTransferLists
+                  idsToAdd={alimentosIdsToAdd}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                 />
@@ -127,8 +127,8 @@ export default function TaxonAssociationsPage(props) {
 }
 TaxonAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  ejemplaresIdsToAdd: PropTypes.array.isRequired,
+  alimentosIdsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

@@ -25,7 +25,6 @@ import SaveIcon from '@material-ui/icons/Save';
 const MetodoAttributesPage = lazy(() => import(/* webpackChunkName: "Create-AttributesMetodo" */ './components/metodo-attributes-page/MetodoAttributesPage'));
 const MetodoAssociationsPage = lazy(() => import(/* webpackChunkName: "Create-AssociationsMetodo" */ './components/metodo-associations-page/MetodoAssociationsPage'));
 const MetodoConfirmationDialog = lazy(() => import(/* webpackChunkName: "Create-ConfirmationMetodo" */ './components/MetodoConfirmationDialog'));
-const CaracteristicaCualitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailCaracteristicaCualitativa" */ '../../../caracteristica_cualitativa-table/components/caracteristica_cualitativa-detail-panel/Caracteristica_cualitativaDetailPanel'));
 const CaracteristicaCuantitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailCaracteristicaCuantitativa" */ '../../../caracteristica_cuantitativa-table/components/caracteristica_cuantitativa-detail-panel/Caracteristica_cuantitativaDetailPanel'));
 
 const debounceTimeout = 700;
@@ -81,13 +80,9 @@ export default function MetodoCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
-  const [caracteristicas_cualitativasIdsToAddState, setCaracteristicas_cualitativasIdsToAddState] = useState([]);
-  const caracteristicas_cualitativasIdsToAdd = useRef([]);
   const [caracteristicas_cuantitativasIdsToAddState, setCaracteristicas_cuantitativasIdsToAddState] = useState([]);
   const caracteristicas_cuantitativasIdsToAdd = useRef([]);
 
-  const [caracteristica_cualitativaDetailDialogOpen, setCaracteristica_cualitativaDetailDialogOpen] = useState(false);
-  const [caracteristica_cualitativaDetailItem, setCaracteristica_cualitativaDetailItem] = useState(undefined);
   const [caracteristica_cuantitativaDetailDialogOpen, setCaracteristica_cuantitativaDetailDialogOpen] = useState(false);
   const [caracteristica_cuantitativaDetailItem, setCaracteristica_cuantitativaDetailItem] = useState(undefined);
 
@@ -153,12 +148,6 @@ export default function MetodoCreatePanel(props) {
     };
   }, []);
   
-  useEffect(() => {
-    if (caracteristica_cualitativaDetailItem !== undefined) {
-      setCaracteristica_cualitativaDetailDialogOpen(true);
-    }
-  }, [caracteristica_cualitativaDetailItem]);
-
   useEffect(() => {
     if (caracteristica_cuantitativaDetailItem !== undefined) {
       setCaracteristica_cuantitativaDetailDialogOpen(true);
@@ -322,7 +311,6 @@ export default function MetodoCreatePanel(props) {
     //add: to_one's
     
     //add: to_many's
-    variables.addCaracteristicas_cualitativas = [...caracteristicas_cualitativasIdsToAdd.current];
     variables.addCaracteristicas_cuantitativas = [...caracteristicas_cuantitativasIdsToAdd.current];
 
     /*
@@ -533,12 +521,6 @@ export default function MetodoCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'caracteristicas_cualitativas':
-        if(caracteristicas_cualitativasIdsToAdd.current.indexOf(itemId) === -1) {
-          caracteristicas_cualitativasIdsToAdd.current.push(itemId);
-          setCaracteristicas_cualitativasIdsToAddState(caracteristicas_cualitativasIdsToAdd.current);
-        }
-        break;
       case 'caracteristicas_cuantitativas':
         if(caracteristicas_cuantitativasIdsToAdd.current.indexOf(itemId) === -1) {
           caracteristicas_cuantitativasIdsToAdd.current.push(itemId);
@@ -552,13 +534,6 @@ export default function MetodoCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'caracteristicas_cualitativas') {
-      let iof = caracteristicas_cualitativasIdsToAdd.current.indexOf(itemId);
-      if(iof !== -1) {
-        caracteristicas_cualitativasIdsToAdd.current.splice(iof, 1);
-      }
-      return;
-    }//end: case 'caracteristicas_cualitativas'
     if(associationKey === 'caracteristicas_cuantitativas') {
       let iof = caracteristicas_cuantitativasIdsToAdd.current.indexOf(itemId);
       if(iof !== -1) {
@@ -568,23 +543,6 @@ export default function MetodoCreatePanel(props) {
     }//end: case 'caracteristicas_cuantitativas'
   }
 
-  const handleClickOnCaracteristica_cualitativaRow = (event, item) => {
-    setCaracteristica_cualitativaDetailItem(item);
-  };
-
-  const handleCaracteristica_cualitativaDetailDialogClose = (event) => {
-    delayedCloseCaracteristica_cualitativaDetailPanel(event, 500);
-  }
-
-  const delayedCloseCaracteristica_cualitativaDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setCaracteristica_cualitativaDetailDialogOpen(false);
-        setCaracteristica_cualitativaDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
   const handleClickOnCaracteristica_cuantitativaRow = (event, item) => {
     setCaracteristica_cuantitativaDetailItem(item);
   };
@@ -696,11 +654,9 @@ export default function MetodoCreatePanel(props) {
                 {/* Associations Page [1] */}
                 <MetodoAssociationsPage
                   hidden={tabsValue !== 1}
-                  caracteristicas_cualitativasIdsToAdd={caracteristicas_cualitativasIdsToAddState}
                   caracteristicas_cuantitativasIdsToAdd={caracteristicas_cuantitativasIdsToAddState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
-                  handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
                   handleClickOnCaracteristica_cuantitativaRow={handleClickOnCaracteristica_cuantitativaRow}
                 />
               </Suspense>
@@ -722,17 +678,6 @@ export default function MetodoCreatePanel(props) {
         </Suspense>
 
         {/* Detail Panels */}
-        {/* Dialog: Caracteristica_cualitativa Detail Panel */}
-        {(caracteristica_cualitativaDetailDialogOpen) && (
-          <Suspense fallback={<div />}>
-            <CaracteristicaCualitativaDetailPanel
-              permissions={permissions}
-              item={caracteristica_cualitativaDetailItem}
-              dialog={true}
-              handleClose={handleCaracteristica_cualitativaDetailDialogClose}
-            />
-          </Suspense>
-        )}
         {/* Dialog: Caracteristica_cuantitativa Detail Panel */}
         {(caracteristica_cuantitativaDetailDialogOpen) && (
           <Suspense fallback={<div />}>

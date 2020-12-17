@@ -5,7 +5,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const CaracteristicasCualitativasCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-CaracteristicasCualitativas" */ './caracteristicas_cualitativas-compact-view/Caracteristicas_cualitativasCompactView'));
 const CaracteristicasCuantitativasCompactView = lazy(() => import(/* webpackChunkName: "Detail-CompactView-CaracteristicasCuantitativas" */ './caracteristicas_cuantitativas-compact-view/Caracteristicas_cuantitativasCompactView'));
 
 const useStyles = makeStyles(theme => ({
@@ -23,10 +22,9 @@ export default function MetodoAssociationsPage(props) {
   const {
     item,
     deleted,
-    handleClickOnCaracteristica_cualitativaRow,
     handleClickOnCaracteristica_cuantitativaRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cualitativas');
+  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cuantitativas');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -51,17 +49,6 @@ export default function MetodoAssociationsPage(props) {
           />
         </Grid>
 
-        {/* Caracteristicas_cualitativas Compact View */}
-        {(associationSelected === 'caracteristicas_cualitativas') && (
-          <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
-            <Suspense fallback={<div />}>
-              <CaracteristicasCualitativasCompactView
-                item={item}
-                handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
-              />
-            </Suspense>
-          </Grid>
-        )}
         {/* Caracteristicas_cuantitativas Compact View */}
         {(associationSelected === 'caracteristicas_cuantitativas') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
@@ -81,6 +68,5 @@ export default function MetodoAssociationsPage(props) {
 MetodoAssociationsPage.propTypes = {
   item: PropTypes.object.isRequired,
   deleted: PropTypes.bool,
-  handleClickOnCaracteristica_cualitativaRow: PropTypes.func.isRequired, 
   handleClickOnCaracteristica_cuantitativaRow: PropTypes.func.isRequired, 
 };

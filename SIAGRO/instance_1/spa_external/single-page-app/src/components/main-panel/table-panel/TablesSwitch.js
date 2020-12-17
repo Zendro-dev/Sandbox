@@ -6,10 +6,9 @@ import {
 import PropTypes from 'prop-types';
 import NotFoundSection from '../pages/NotFoundSectionPage'
 import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
-const CaracteristicaCualitativaTable = lazy(() => import(/* webpackChunkName: "Table-CaracteristicaCualitativa" */ './models-tables/caracteristica_cualitativa-table/Caracteristica_cualitativaEnhancedTable'));
 const CaracteristicaCuantitativaTable = lazy(() => import(/* webpackChunkName: "Table-CaracteristicaCuantitativa" */ './models-tables/caracteristica_cuantitativa-table/Caracteristica_cuantitativaEnhancedTable'));
-const EjemplarTable = lazy(() => import(/* webpackChunkName: "Table-Ejemplar" */ './models-tables/ejemplar-table/EjemplarEnhancedTable'));
 const MetodoTable = lazy(() => import(/* webpackChunkName: "Table-Metodo" */ './models-tables/metodo-table/MetodoEnhancedTable'));
+const ReferenciaTable = lazy(() => import(/* webpackChunkName: "Table-Referencia" */ './models-tables/referencia-table/ReferenciaEnhancedTable'));
 const TaxonTable = lazy(() => import(/* webpackChunkName: "Table-Taxon" */ './models-tables/taxon-table/TaxonEnhancedTable'));
 const RoleTable = lazy(() => import(/* webpackChunkName: "Table-Role" */ './admin-tables/role-table/RoleEnhancedTable'));
 const RoleToUserTable = lazy(() => import(/* webpackChunkName: "Table-RoleToUser" */ './admin-tables/role_to_user-table/Role_to_userEnhancedTable'));
@@ -23,13 +22,6 @@ export default function TablesSwitch(props) {
     <Suspense fallback={<div />}>
       <Switch>
         {/* Models */}
-        <Route exact path="/main/model/caracteristica_cualitativa" 
-          render={
-            /* acl check */
-            (permissions&&permissions.caracteristica_cualitativa&&Array.isArray(permissions.caracteristica_cualitativa)
-            &&(permissions.caracteristica_cualitativa.includes('read') || permissions.caracteristica_cualitativa.includes('*')))
-            ? ((props) => <CaracteristicaCualitativaTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
-        } />
         <Route exact path="/main/model/caracteristica_cuantitativa" 
           render={
             /* acl check */
@@ -37,19 +29,19 @@ export default function TablesSwitch(props) {
             &&(permissions.caracteristica_cuantitativa.includes('read') || permissions.caracteristica_cuantitativa.includes('*')))
             ? ((props) => <CaracteristicaCuantitativaTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
-        <Route exact path="/main/model/ejemplar" 
-          render={
-            /* acl check */
-            (permissions&&permissions.ejemplar&&Array.isArray(permissions.ejemplar)
-            &&(permissions.ejemplar.includes('read') || permissions.ejemplar.includes('*')))
-            ? ((props) => <EjemplarTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
-        } />
         <Route exact path="/main/model/metodo" 
           render={
             /* acl check */
             (permissions&&permissions.metodo&&Array.isArray(permissions.metodo)
             &&(permissions.metodo.includes('read') || permissions.metodo.includes('*')))
             ? ((props) => <MetodoTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/referencia" 
+          render={
+            /* acl check */
+            (permissions&&permissions.referencia&&Array.isArray(permissions.referencia)
+            &&(permissions.referencia.includes('read') || permissions.referencia.includes('*')))
+            ? ((props) => <ReferenciaTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/taxon" 
           render={

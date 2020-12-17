@@ -10,7 +10,6 @@ import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
 import RegistroToAddTransferViewToolbar from './components/RegistroToAddTransferViewToolbar';
-import RegistroToAddTransferViewCursorPagination from './components/RegistroToAddTransferViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -110,7 +109,7 @@ export default function RegistroToAddTransferView(props) {
     handleReassociateItem,
     handleTransfer,
     handleUntransfer,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
 
   /*
@@ -131,12 +130,6 @@ export default function RegistroToAddTransferView(props) {
   const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
   const isCountingRef = useRef(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
-  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
-  const isForwardPagination = useRef(true);
-  const isCursorPaginating = useRef(false);
   const cancelableCountingPromises = useRef([]);
 
   /*
@@ -248,8 +241,6 @@ export default function RegistroToAddTransferView(props) {
     *  showMessageB
     *  showMessageC
     *  showMessageE
-    *  configurePagination
-    *  onEmptyPage
     *  clearRequestGetData
     *  clearRequestGetDataB
     *  getAssociatedItem
@@ -323,168 +314,15 @@ export default function RegistroToAddTransferView(props) {
     });
   },[enqueueSnackbar]);
 
-  /**
-   * configurePagination
-   * 
-   * Set the configuration needed to perform a reload of data
-   * in the given mode.
-   */
-  const configurePagination = useCallback((mode) => {
-    switch(mode) {
-      case "reset":
-        //reset page info attributes
-        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-      
-      case "reload":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: pageInfo.current.startCursor,
-          last: null,
-          before: null,
-          includeCursor: true,
-        }
-        break;
 
-      case "firstPage":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "lastPage":
-        //set direction
-        isForwardPagination.current = false;
-        //set pagination attributes
-        paginationRef.current = {
-          first: null,
-          after: null,
-          last: rowsPerPageRef.current,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "nextPage":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: pageInfo.current.endCursor,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "previousPage":
-        //set direction
-        isForwardPagination.current = false;
-        //set pagination attributes
-        paginationRef.current = {
-          first: null,
-          after: null,
-          last: rowsPerPageRef.current,
-          before: pageInfo.current.startCursor,
-          includeCursor: false,
-        }
-        break;
-
-      default: //reset
-        //reset page info attributes
-        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-    }
-  }, []);
-
-
-  const onEmptyPage = useCallback((pi) => {
-    //case: forward
-    if(isForwardPagination.current) {
-      if(pi && pi.hasPreviousPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('previousPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      }
-    } else {//case: backward
-      if(pi && pi.hasNextPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('nextPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      }
-    }
-
-    //update pageInfo
-    pageInfo.current = pi;
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-
-    //configure pagination (default)
-    configurePagination('reload');
-
-    //ok
-    setItems([]);
-
-    //ends request
-    isOnApiRequestRef.current = false;
-    isCursorPaginating.current = false;
-    setIsOnApiRequest(false);
-    return;
-
-  }, [configurePagination]);
 
 
   const clearRequestGetData = useCallback(() => {
-    //configure pagination
-    configurePagination('reset');
           
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[configurePagination]);
+  },[]);
 
   const clearRequestGetDataB = useCallback(() => {
   
@@ -602,8 +440,8 @@ export default function RegistroToAddTransferView(props) {
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         exclude: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     }    
@@ -711,15 +549,12 @@ export default function RegistroToAddTransferView(props) {
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         exclude: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     }    
 
-    let variables = {
-      pagination: {...paginationRef.current}
-    };
     /*
       API Request: api.caracteristica_cuantitativa.getNotAssociatedRegistro
     */
@@ -773,33 +608,12 @@ export default function RegistroToAddTransferView(props) {
           return;
         }
 
-          //get items
-          let its = response.value.edges.map(o => o.node);
-          let pi = response.value.pageInfo;
-          
-          /*
-            Check: empty page
-          */
-          if( its.length === 0 ) 
-          {
-            onEmptyPage(pi);
-            return;
-          }
-
-          //update pageInfo
-          pageInfo.current = pi;
-          setHasPreviousPage(pageInfo.current.hasPreviousPage);
-          setHasNextPage(pageInfo.current.hasNextPage);
-
-          //configure pagination (default)
-          configurePagination('reload');
 
           //ok
           setItems([...its]);
 
           //ends request
           isOnApiRequestRef.current = false;
-          isCursorPaginating.current = false;
           setIsOnApiRequest(false);
           return;
       },
@@ -828,7 +642,7 @@ export default function RegistroToAddTransferView(props) {
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.id, dataTrigger, search, configurePagination, onEmptyPage, getAssociatedItem]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, item.id, dataTrigger, search, getAssociatedItem]);
 
 
   /**
@@ -852,8 +666,8 @@ export default function RegistroToAddTransferView(props) {
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         only: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     } else {
@@ -862,12 +676,11 @@ export default function RegistroToAddTransferView(props) {
       return;
     }
 
-    let variables = {pagination: {first: 1}};
     /*
-      API Request: api.ejemplar.getItems
+      API Request: api.registro.getItems
     */
-    let api = await loadApi("ejemplar");
-    let cancelableApiReq = makeCancelable(api.ejemplar.getItems(
+    let api = await loadApi("registro");
+    let cancelableApiReq = makeCancelable(api.registro.getItems(
       graphqlServerUrl,
       searchB,
       null, //orderBy
@@ -891,7 +704,7 @@ export default function RegistroToAddTransferView(props) {
             let withDetails=true;
             variantB.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
             newError.path=['update', `id:${item.id}`, 'add', 'registro'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsB.current.push(newError);
@@ -905,7 +718,7 @@ export default function RegistroToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
           newError.path=['update', `id:${item.id}`, 'add', 'registro'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
@@ -916,8 +729,6 @@ export default function RegistroToAddTransferView(props) {
           return;
         }
         
-        //get items
-        let its = response.value.edges.map(o => o.node);
           
         //ok
         setItemsB([...its]);
@@ -933,7 +744,7 @@ export default function RegistroToAddTransferView(props) {
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.ejemplar.getItems
+      .catch((err) => { //error: on api.registro.getItems
         if(err.isCanceled) {
           return;
         } else {
@@ -941,7 +752,7 @@ export default function RegistroToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
           newError.path=['update', `id:${item.id}`, 'add', 'registro'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
@@ -1015,7 +826,7 @@ export default function RegistroToAddTransferView(props) {
     /*
      * Case 1: 
      * The relation 'registro' for this item was updated.
-     * That is to say that the current item was associated or dis-associated with some 'ejemplars', 
+     * That is to say that the current item was associated or dis-associated with some 'registros', 
      * from this relation (in another place).
      * 
      * Actions:
@@ -1085,32 +896,18 @@ export default function RegistroToAddTransferView(props) {
           cancelCountingPromises();
           isCountingRef.current = false;
 
-          //strict contention
-          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-            //configure A
-            configurePagination('reload');
-            //reload A
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-          } else {
-            getCount();
-          }
-          //strict contention
-          if (!isOnApiRequestRefB.current) {
-            //reload B
-            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-          }
           return;
     }//end: Case 1
 
     /*
      * Case 2: 
      * The relation 'registro' for this item was updated from the target model (in the peer relation).
-     * That is to say that this current item was associated or dis-associated with some 'Ejemplar',
+     * That is to say that this current item was associated or dis-associated with some 'registro',
      * but this action happened on the peer relation, identified by 'caracteristica_cuantitativa_registro_id'.
      * 
      * Conditions:
-     * A: the current item internalId is in the removedIds of the updated 'Ejemplar'.
-     * B: the current item internalId is in the addedIds of the updated 'Ejemplar'.
+     * A: the current item internalId is in the removedIds of the updated 'registro'.
+     * B: the current item internalId is in the addedIds of the updated 'registro'.
      * 
      * Actions:
      * if A:
@@ -1119,13 +916,13 @@ export default function RegistroToAddTransferView(props) {
      * - return
      * 
      * else if B:
-     * - remove the internalId of the 'Ejemplar' from idsToAdd[].
+     * - remove the internalId of the 'registro' from idsToAdd[].
      * - update associatedIds[].
      * - reload both transfer tables.
      * - return
      */
-    if(lastModelChanged.Ejemplar) {
-      let oens = Object.entries(lastModelChanged.Ejemplar);
+    if(lastModelChanged.registro) {
+      let oens = Object.entries(lastModelChanged.registro);
       oens.forEach( (entry) => {
         if(entry[1].changedAssociations&&
           entry[1].changedAssociations.caracteristica_cuantitativa_registro_id) {
@@ -1149,20 +946,6 @@ export default function RegistroToAddTransferView(props) {
                   cancelCountingPromises();
                   isCountingRef.current = false;
 
-                  //strict contention reload
-                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-                    //configure A
-                    configurePagination('reload');
-                    //reload A
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                  } else {
-                    getCount();
-                  }
-                  //strict contention reload
-                  if (!isOnApiRequestRefB.current) {
-                    //reload B
-                    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                  }
                   return;
                 }
               }
@@ -1175,7 +958,7 @@ export default function RegistroToAddTransferView(props) {
                 let iof = idsAdded.indexOf(item.id);
                 if(iof !== -1) {
                   //remove changed item from lidsToAdd
-                  let idAdded = entry[1].newItem.id;
+                  let idAdded = entry[1].newItem.;
                   let iofB = lidsToAdd.current.indexOf(idAdded);
                   if(iofB !== -1) {
                     lidsToAdd.current.splice(iofB, 1);
@@ -1194,20 +977,6 @@ export default function RegistroToAddTransferView(props) {
                   cancelCountingPromises();
                   isCountingRef.current = false;
 
-                  //strict contention
-                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-                    //configure A
-                    configurePagination('reload');
-                    //reload A
-                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-                  } else {
-                    getCount();
-                  }
-                  //strict contention
-                  if (!isOnApiRequestRefB.current) {
-                    //reload B
-                    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-                  }
                   return;
                 }
               }
@@ -1218,7 +987,7 @@ export default function RegistroToAddTransferView(props) {
 
     /*
      * Case 3: 
-     * The attributes of some 'Ejemplar' were modified or the item was deleted.
+     * The attributes of some 'registro' were modified or the item was deleted.
      * 
      * Conditions:
      * A: the item was modified and is currently displayed in any of the lists.
@@ -1235,17 +1004,17 @@ export default function RegistroToAddTransferView(props) {
      * - reload both transfer tables.
      * - return
      */
-    if(lastModelChanged.Ejemplar) {
+    if(lastModelChanged.registro) {
 
-      let oens = Object.entries(lastModelChanged.Ejemplar);
+      let oens = Object.entries(lastModelChanged.registro);
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.id;
+          let idUpdated = entry[1].item.;
           
           //lookup item on table A
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -1254,7 +1023,7 @@ export default function RegistroToAddTransferView(props) {
 
           //lookup item on table B
           let nitemsB = Array.from(itemsB);
-          let iofB = nitemsB.findIndex((item) => item.id===idUpdated);
+          let iofB = nitemsB.findIndex((item) => item.===idUpdated);
           if(iofB !== -1) {
             //set new item
             nitemsB[iofB] = entry[1].newItem;
@@ -1262,7 +1031,7 @@ export default function RegistroToAddTransferView(props) {
           }
 
           //lookup on associated item
-          if(associatedItem && associatedItem.id===idUpdated) {
+          if(associatedItem && associatedItem.===idUpdated) {
             //update associated item
             setAssociatedItem(entry[1].newItem);
           }
@@ -1271,10 +1040,10 @@ export default function RegistroToAddTransferView(props) {
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.id;
+          let idRemoved = entry[1].item.;
 
           //lookup item on table A
-          let iofA = items.findIndex((item) => item.id===idRemoved);
+          let iofA = items.findIndex((item) => item.===idRemoved);
           if(iofA !== -1) {
             //decrement A
             setCount(count-1);
@@ -1293,7 +1062,7 @@ export default function RegistroToAddTransferView(props) {
           handleUntransfer('registro', idRemoved);
 
           //lookup on associated item
-          if(associatedItem && associatedItem.id===idRemoved) {
+          if(associatedItem && associatedItem.===idRemoved) {
             //update associated item
             setAssociatedItem(undefined);
           }
@@ -1302,25 +1071,11 @@ export default function RegistroToAddTransferView(props) {
           cancelCountingPromises();
           isCountingRef.current = false;
 
-          //strict contention
-          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-            //configure A
-            configurePagination('reload');
-            //reload A
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-          } else {
-            getCount();
-          }
-          //strict contention
-          if (!isOnApiRequestRefB.current) {
-            //reload B
-            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-          }
           return;
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.id, handleUntransfer, getCount, count, configurePagination, associatedItem, handleDisassociateItem, handleReassociateItem]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.id, handleUntransfer, getCount, count, associatedItem, handleDisassociateItem, handleReassociateItem]);
 
   useEffect(() => {
     //return if this flag is set
@@ -1358,38 +1113,18 @@ export default function RegistroToAddTransferView(props) {
     }
   }, [pageB]);
 
-  useEffect(() => {
-    //update ref
-    rowsPerPageRef.current = rowsPerPage;
-
-    //check strict contention
-    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    
-    //configure pagination
-    configurePagination('reset');
-    //reload    
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  }, [rowsPerPage, configurePagination]);
 
 
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-      //configure
-      configurePagination('reload');
-      //reload
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
-  }, [isOnApiRequest, configurePagination]);
+  }, [isOnApiRequest]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-      //reload
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     }
     updateHeights();
   }, [isOnApiRequestB]);
@@ -1434,15 +1169,9 @@ function updateHeights() {
 
 
   function reloadDataA() {
-    //configure A
-    configurePagination('reload');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 
   function reloadDataB() {
-    //reload B
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }
 
   /**
@@ -1485,53 +1214,6 @@ function updateHeights() {
    * Pagination handlers
    */
 
-  const handleFirstPageButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('firstPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleLastPageButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('lastPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleNextButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('nextPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleBackButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('previousPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
 
 
 const handleChangeRowsPerPage = event => {
@@ -1547,35 +1229,19 @@ const handleChangeRowsPerPage = event => {
 };
 
 
-const handleReloadClick = (event) => {
-  //check strict contention
-  if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-  //set strict contention
-  isCursorPaginating.current = true;
-  //configure pagination
-  configurePagination('reset');
-  //reload
-  setDataTrigger(prevDataTrigger => !prevDataTrigger);
-};
-const handleReloadClickB = (event) => {
-  //check strict contention
-  if(isOnApiRequestRefB.current) { return; }
-  //reload
-  setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-};
 
   /*
    * Items handlers
    */
   const handleRowClicked = (event, item) => {
-    handleClickOnEjemplarRow(event, item);
+    handleClickOnRegistroRow(event, item);
   };
 
   const handleAddItem = (event, item) => {
-    if(lidsToAdd.current&&lidsToAdd.current.indexOf(item.id) === -1) {
+    if(lidsToAdd.current&&lidsToAdd.current.indexOf(item.) === -1) {
       let hasItem = (lidsToAdd.current.length > 0);
       lidsToAdd.current = [];
-      lidsToAdd.current.push(item.id);
+      lidsToAdd.current.push(item.);
       setThereAreItemsToAdd(true);
 
       if(!hasItem) {
@@ -1588,15 +1254,13 @@ const handleReloadClickB = (event) => {
 
       if(associatedItem && checked) {
         setChecked(false);
-        lidsToRemove.current = [associatedItem.id];
-        handleDisassociateItem('registro', associatedItem.id);
+        lidsToRemove.current = [associatedItem.];
+        handleDisassociateItem('registro', associatedItem.);
       }
 
       //reload A
       reloadDataA();
-      //reload B
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('registro', item.id);
+      handleTransfer('registro', item.);
     }
   };
 
@@ -1613,11 +1277,9 @@ const handleReloadClickB = (event) => {
         cancelCountingPromises();
         isCountingRef.current = false;
       }
-      //reload A
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
       //reload B
       reloadDataB();
-      handleUntransfer('registro', item.id);
+      handleUntransfer('registro', item.);
     }
   };
 
@@ -1633,7 +1295,7 @@ const handleReloadClickB = (event) => {
 
               {/* Toolbar */}
               <RegistroToAddTransferViewToolbar
-                title={'Ejemplars'}
+                title={'Registros'}
                 titleIcon={1}
                 search={search}
                 onSearchEnter={handleSearchEnter}
@@ -1673,13 +1335,13 @@ const handleReloadClickB = (event) => {
                     <List id='RegistroToAddTransferView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.id;
+                        let key = it.;
                         let label = it.nombrecomun;
                         let sublabel = undefined;
                         
                         return (
                           <ListItem 
-                            id={'RegistroToAddTransferView-listA-listItem-'+it.id}
+                            id={'RegistroToAddTransferView-listA-listItem-'+it.}
                             key={key} 
                             role="listitem" 
                             button 
@@ -1689,9 +1351,9 @@ const handleReloadClickB = (event) => {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'Ejemplar — ' + t('modelPanels.associatedRecord', 'Associated record') : 'Ejemplar '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.===it.) ? 'registro — ' + t('modelPanels.associatedRecord', 'Associated record') : 'registro '}>
                                 <Avatar>
-                                  {"ejemplar".slice(0,1)}
+                                  {"registro".slice(0,1)}
                                 </Avatar>
                               </Tooltip>
                             </ListItemAvatar>
@@ -1702,16 +1364,16 @@ const handleReloadClickB = (event) => {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ 'id' }>
+                                      <Tooltip title={ '' }>
                                         <Typography 
-                                        id={'RegistroToAddTransferView-listA-listItem-id-'+it.id}
-                                        variant="body1" display="block" noWrap={true}>{it.id}</Typography>
+                                        id={'RegistroToAddTransferView-listA-listItem-id-'+it.}
+                                        variant="body1" display="block" noWrap={true}>{it.}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.===it.) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.===it.) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -1739,7 +1401,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.transferToAdd') }>
                                 <IconButton
-                                  id={'RegistroToAddTransferView-listA-listItem-'+it.id+'-button-add'}
+                                  id={'RegistroToAddTransferView-listA-listItem-'+it.+'-button-add'}
                                   color="primary"
                                   className={classes.iconButton}
                                   onClick={(event) => {
@@ -1782,19 +1444,6 @@ const handleReloadClickB = (event) => {
               )}
 
               {/* Pagination */}
-              <RegistroToAddTransferViewCursorPagination
-                count={count}
-                rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-                rowsPerPage={(count <=10) ? '' : rowsPerPage}
-                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
-                hasNextPage={hasNextPage}
-                hasPreviousPage={hasPreviousPage}
-                handleFirstPageButtonClick={handleFirstPageButtonClick}
-                handleLastPageButtonClick={handleLastPageButtonClick}
-                handleNextButtonClick={handleNextButtonClick}
-                handleBackButtonClick={handleBackButtonClick}
-                handleChangeRowsPerPage={handleChangeRowsPerPage}
-            />
             </Card>
           )}
         </Grid>
@@ -1864,7 +1513,7 @@ const handleReloadClickB = (event) => {
 
               {/* Toolbar */}
               <RegistroToAddTransferViewToolbar 
-                title={'Ejemplar'}
+                title={'Registro'}
                 titleIcon={2}
                 search={searchB}
                 searchDisabled={true}
@@ -1926,14 +1575,14 @@ const handleReloadClickB = (event) => {
                     <List id='RegistroToAddTransferView-list-listB'
                       dense component="div" role="list">
                       {itemsB.map(it => {
-                        let key = it.id;
+                        let key = it.;
                         let label = it.nombrecomun;
                         let sublabel = undefined;
 
                         
                         return (
                           <ListItem 
-                            id={'RegistroToAddTransferView-listB-listItem-'+it.id}
+                            id={'RegistroToAddTransferView-listB-listItem-'+it.}
                             key={key} 
                             role="listitem"
                             button
@@ -1943,9 +1592,9 @@ const handleReloadClickB = (event) => {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? 'Ejemplar — ' + t('modelPanels.associatedRecord', 'Associated record') : 'Ejemplar '}>
+                              <Tooltip title={ (associatedItem&&associatedItem.===it.) ? 'registro — ' + t('modelPanels.associatedRecord', 'Associated record') : 'registro '}>
                                 <Avatar>
-                                  {"ejemplar".slice(0,1)}
+                                  {"registro".slice(0,1)}
                                 </Avatar>
                               </Tooltip>
                             </ListItemAvatar>
@@ -1956,16 +1605,16 @@ const handleReloadClickB = (event) => {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ 'id' }>
+                                      <Tooltip title={ '' }>
                                         <Typography 
-                                        id={'RegistroToAddTransferView-listB-listItem-id-'+it.id}
-                                        variant="body1" display="block" noWrap={true}>{it.id}</Typography>
+                                        id={'RegistroToAddTransferView-listB-listItem-id-'+it.}
+                                        variant="body1" display="block" noWrap={true}>{it.}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
                                     <Grid item>
-                                      <Tooltip title={ (associatedItem&&associatedItem.id===it.id) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
-                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.id===it.id) ? green[500] : grey[400]}} />
+                                      <Tooltip title={ (associatedItem&&associatedItem.===it.) ? t('modelPanels.internalId', 'Unique Identifier') + ' — ' + t('modelPanels.associatedRecord', 'Associated record') : t('modelPanels.internalId', 'Unique Identifier')}>
+                                        <Key fontSize="small" style={{ marginTop:8, color: (associatedItem&&associatedItem.===it.) ? green[500] : grey[400]}} />
                                       </Tooltip>
                                     </Grid>
                                   </Grid>
@@ -1993,7 +1642,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.untransferToAdd') }>
                                 <IconButton
-                                  id={'RegistroToAddTransferView-listB-listItem-'+it.id+'-button-remove'}
+                                  id={'RegistroToAddTransferView-listB-listItem-'+it.+'-button-remove'}
                                   color="primary"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -2048,7 +1697,7 @@ const handleReloadClickB = (event) => {
                     <Grid className={classes.associatedItemTitle} container justify='flex-start' alignItems='center' wrap='wrap' spacing={2}>
                       <Grid item>
                         <Typography variant="body2" display="inline" color="textSecondary">
-                          Ejemplar
+                          Registro
                         </Typography>
                       </Grid>
                       <Grid item>
@@ -2062,13 +1711,13 @@ const handleReloadClickB = (event) => {
                     <List id='RegistroToAddTransferView-associatedItem-list'
                       dense component="div" role="list">
                       {[associatedItem].map(associatedItem => {
-                        let key = associatedItem.id;
+                        let key = associatedItem.;
                         let label = associatedItem.nombrecomun;
                         let sublabel = undefined;
 
                         return (
                           <ListItem 
-                            id={'RegistroToAddTransferView-associatedItem-list-listItem-'+associatedItem.id}
+                            id={'RegistroToAddTransferView-associatedItem-list-listItem-'+associatedItem.}
                             key={key} 
                             role="listitem"
                             button
@@ -2078,9 +1727,9 @@ const handleReloadClickB = (event) => {
                             }}
                           >
                             <ListItemAvatar>
-                              <Tooltip title={ 'Ejemplar — ' + t('modelPanels.associatedRecord', 'Associated record') }>
+                              <Tooltip title={ 'registro — ' + t('modelPanels.associatedRecord', 'Associated record') }>
                                 <Avatar>
-                                  {"ejemplar".slice(0,1)}
+                                  {"registro".slice(0,1)}
                                 </Avatar>
                               </Tooltip>
                             </ListItemAvatar>
@@ -2090,10 +1739,10 @@ const handleReloadClickB = (event) => {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ 'id' }>
+                                      <Tooltip title={ '' }>
                                         <Typography 
-                                        id={'RegistroToAddTransferView-listB-listItem-id-'+associatedItem.id}
-                                        variant="body1" display="block" noWrap={true}>{associatedItem.id}</Typography>
+                                        id={'RegistroToAddTransferView-listB-listItem-id-'+associatedItem.}
+                                        variant="body1" display="block" noWrap={true}>{associatedItem.}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -2127,7 +1776,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ checked ? t('modelPanels.uncheckToDissasociate', 'Uncheck to disassociate') : t('modelPanels.checkToReassociate', 'Check to keep associated') }>
                                 <Checkbox
-                                  id={'RegistroToAddTransferView-associatedItem-list-listItem-'+associatedItem.id+'-checkbox'}
+                                  id={'RegistroToAddTransferView-associatedItem-list-listItem-'+associatedItem.+'-checkbox'}
                                   className={classes.checkbox}
                                   checked={checked}
                                   color="primary"
@@ -2137,14 +1786,14 @@ const handleReloadClickB = (event) => {
                                     if(event.target.checked) {
                                       if(lidsToAdd.current&&lidsToAdd.current.length>0
                                       && itemsB&&itemsB.length>0
-                                      && itemsB[0].id===lidsToAdd.current[0]) {
+                                      && itemsB[0].===lidsToAdd.current[0]) {
                                         handleRemoveItem(null, itemsB[0]);
                                       }
                                       lidsToRemove.current = [];
-                                      handleReassociateItem('registro', associatedItem.id);
+                                      handleReassociateItem('registro', associatedItem.);
                                     } else {
-                                      lidsToRemove.current = [associatedItem.id];
-                                      handleDisassociateItem('registro', associatedItem.id);
+                                      lidsToRemove.current = [associatedItem.];
+                                      handleDisassociateItem('registro', associatedItem.);
                                     }
                                   }}
                                 />  
@@ -2221,5 +1870,5 @@ RegistroToAddTransferView.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
   handleUntransfer: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

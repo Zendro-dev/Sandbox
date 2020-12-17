@@ -6,7 +6,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const CaracteristicasCualitativasTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-CaracteristicasCualitativas" */ './caracteristicas_cualitativas-transfer-lists/Caracteristicas_cualitativasTransferLists'));
 const CaracteristicasCuantitativasTransferLists = lazy(() => import(/* webpackChunkName: "Update-TransferLists-CaracteristicasCuantitativas" */ './caracteristicas_cuantitativas-transfer-lists/Caracteristicas_cuantitativasTransferLists'));
 
 const debounceTimeout = 700;
@@ -26,18 +25,15 @@ export default function MetodoAssociationsPage(props) {
   const {
     hidden,
     item,
-    caracteristicas_cualitativasIdsToAdd,
-    caracteristicas_cualitativasIdsToRemove,
     caracteristicas_cuantitativasIdsToAdd,
     caracteristicas_cuantitativasIdsToRemove,
     handleTransferToAdd,
     handleUntransferFromAdd,
     handleTransferToRemove,
     handleUntransferFromRemove,
-    handleClickOnCaracteristica_cualitativaRow,
     handleClickOnCaracteristica_cuantitativaRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cualitativas');
+  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cuantitativas');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -114,23 +110,6 @@ export default function MetodoAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Caracteristicas_cualitativas Transfer Lists */}
-          {(associationSelected === 'caracteristicas_cualitativas') && (
-            <Grid item xs={12} sm={11}>
-              <Suspense fallback={<div />}>
-                <CaracteristicasCualitativasTransferLists
-                  item={item}
-                  idsToAdd={caracteristicas_cualitativasIdsToAdd}
-                  idsToRemove={caracteristicas_cualitativasIdsToRemove}
-                  handleTransferToAdd={handleTransferToAdd}
-                  handleUntransferFromAdd={handleUntransferFromAdd}
-                  handleTransferToRemove={handleTransferToRemove}
-                  handleUntransferFromRemove={handleUntransferFromRemove}
-                  handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
-                />
-              </Suspense>
-            </Grid>
-          )}
           {/* Caracteristicas_cuantitativas Transfer Lists */}
           {(associationSelected === 'caracteristicas_cuantitativas') && (
             <Grid item xs={12} sm={11}>
@@ -157,14 +136,11 @@ export default function MetodoAssociationsPage(props) {
 MetodoAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
   item: PropTypes.object.isRequired,
-  caracteristicas_cualitativasIdsToAdd: PropTypes.array.isRequired,
-  caracteristicas_cualitativasIdsToRemove: PropTypes.array.isRequired,
   caracteristicas_cuantitativasIdsToAdd: PropTypes.array.isRequired,
   caracteristicas_cuantitativasIdsToRemove: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-  handleClickOnCaracteristica_cualitativaRow: PropTypes.func.isRequired,
   handleClickOnCaracteristica_cuantitativaRow: PropTypes.func.isRequired,
 };

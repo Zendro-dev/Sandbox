@@ -19,8 +19,6 @@ export default function MetodoAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab id='MetodoUpdatePanel-tabsA-button-caracteristicas_cualitativas' 
-          key='caracteristicas_cualitativas' label='Caracteristicas_cualitativas' value='caracteristicas_cualitativas' />
         <Tab id='MetodoUpdatePanel-tabsA-button-caracteristicas_cuantitativas' 
           key='caracteristicas_cuantitativas' label='Caracteristicas_cuantitativas' value='caracteristicas_cuantitativas' />
       </Tabs>

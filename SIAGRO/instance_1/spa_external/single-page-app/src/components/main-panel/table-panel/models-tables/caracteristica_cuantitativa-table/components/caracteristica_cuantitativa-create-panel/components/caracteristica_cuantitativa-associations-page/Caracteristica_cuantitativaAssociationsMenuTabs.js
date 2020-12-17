@@ -19,8 +19,8 @@ export default function CaracteristicaCuantitativaAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='registro' label='Registro' value='registro' />
         <Tab key='metodo' label='Metodo' value='metodo' />
+        <Tab key='registro' label='Registro' value='registro' />
       </Tabs>
     </div>
   );

@@ -34,7 +34,6 @@ const MetodoAttributesPage = lazy(() => import(/* webpackChunkName: "Detail-Attr
 const MetodoAssociationsPage = lazy(() => import(/* webpackChunkName: "Detail-Associations-Metodo" */ './components/metodo-associations-page/MetodoAssociationsPage'));
 const MetodoUpdatePanel = lazy(() => import(/* webpackChunkName: "Detail-Update-Metodo" */ '../metodo-update-panel/MetodoUpdatePanel'));
 const MetodoDeleteConfirmationDialog = lazy(() => import(/* webpackChunkName: "Detail-Delete-Metodo" */ '../MetodoDeleteConfirmationDialog'));
-const CaracteristicaCualitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-CaracteristicaCualitativa" */ '../../../caracteristica_cualitativa-table/components/caracteristica_cualitativa-detail-panel/Caracteristica_cualitativaDetailPanel'));
 const CaracteristicaCuantitativaDetailPanel = lazy(() => import(/* webpackChunkName: "Detail-Detail-CaracteristicaCuantitativa" */ '../../../caracteristica_cuantitativa-table/components/caracteristica_cuantitativa-detail-panel/Caracteristica_cuantitativaDetailPanel'));
 
 const appBarHeight = 72;
@@ -89,8 +88,6 @@ export default function MetodoDetailPanel(props) {
   const [deleteConfirmationDialogOpen, setDeleteConfirmationDialogOpen] = useState(false);
   const [deleteConfirmationItem, setDeleteConfirmationItem] = useState(undefined);
 
-  const [caracteristica_cualitativaDetailDialogOpen, setCaracteristica_cualitativaDetailDialogOpen] = useState(false);
-  const [caracteristica_cualitativaDetailItem, setCaracteristica_cualitativaDetailItem] = useState(undefined);
   const [caracteristica_cuantitativaDetailDialogOpen, setCaracteristica_cuantitativaDetailDialogOpen] = useState(false);
   const [caracteristica_cuantitativaDetailItem, setCaracteristica_cuantitativaDetailItem] = useState(undefined);
 
@@ -225,12 +222,6 @@ export default function MetodoDetailPanel(props) {
     }
   }, [deleted, updated]);
   
-  useEffect(() => {
-    if(caracteristica_cualitativaDetailItem !== undefined) {
-      setCaracteristica_cualitativaDetailDialogOpen(true);
-    }
-  }, [caracteristica_cualitativaDetailItem]);
-
   useEffect(() => {
     if(caracteristica_cuantitativaDetailItem !== undefined) {
       setCaracteristica_cuantitativaDetailDialogOpen(true);
@@ -465,23 +456,6 @@ export default function MetodoDetailPanel(props) {
     });
   };
 
-  const handleClickOnCaracteristica_cualitativaRow = (event, item) => {
-    setCaracteristica_cualitativaDetailItem(item);
-  };
-
-  const handleCaracteristica_cualitativaDetailDialogClose = (event) => {
-    delayedCloseCaracteristica_cualitativaDetailPanel(event, 500);
-  }
-
-  const delayedCloseCaracteristica_cualitativaDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setCaracteristica_cualitativaDetailDialogOpen(false);
-        setCaracteristica_cualitativaDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
   const handleClickOnCaracteristica_cuantitativaRow = (event, item) => {
     setCaracteristica_cuantitativaDetailItem(item);
   };
@@ -684,7 +658,6 @@ export default function MetodoDetailPanel(props) {
                   <MetodoAssociationsPage
                     item={itemState}
                     deleted={deleted}
-                    handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
                     handleClickOnCaracteristica_cuantitativaRow={handleClickOnCaracteristica_cuantitativaRow}
                   />
                 </Suspense>
@@ -716,7 +689,6 @@ export default function MetodoDetailPanel(props) {
                 <MetodoAssociationsPage
                   item={itemState}
                   deleted={deleted}
-                  handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
                   handleClickOnCaracteristica_cuantitativaRow={handleClickOnCaracteristica_cuantitativaRow}
                 />
               </Suspense>
@@ -749,17 +721,6 @@ export default function MetodoDetailPanel(props) {
         </Suspense>
       )}
 
-      {/* Dialog: Caracteristica_cualitativa Detail Panel */}
-      {(caracteristica_cualitativaDetailDialogOpen) && (
-        <Suspense fallback={<div />}>
-          <CaracteristicaCualitativaDetailPanel
-            permissions={permissions}
-            item={caracteristica_cualitativaDetailItem}
-            dialog={true}
-            handleClose={handleCaracteristica_cualitativaDetailDialogClose}
-          />
-        </Suspense>
-      )}
       {/* Dialog: Caracteristica_cuantitativa Detail Panel */}
       {(caracteristica_cuantitativaDetailDialogOpen) && (
         <Suspense fallback={<div />}>

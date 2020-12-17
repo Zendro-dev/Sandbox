@@ -25,8 +25,8 @@ import SaveIcon from '@material-ui/icons/Save';
 const CaracteristicaCuantitativaAttributesPage = lazy(() => import(/* webpackChunkName: "Create-AttributesCaracteristicaCuantitativa" */ './components/caracteristica_cuantitativa-attributes-page/Caracteristica_cuantitativaAttributesPage'));
 const CaracteristicaCuantitativaAssociationsPage = lazy(() => import(/* webpackChunkName: "Create-AssociationsCaracteristicaCuantitativa" */ './components/caracteristica_cuantitativa-associations-page/Caracteristica_cuantitativaAssociationsPage'));
 const CaracteristicaCuantitativaConfirmationDialog = lazy(() => import(/* webpackChunkName: "Create-ConfirmationCaracteristicaCuantitativa" */ './components/Caracteristica_cuantitativaConfirmationDialog'));
-const EjemplarDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailEjemplar" */ '../../../ejemplar-table/components/ejemplar-detail-panel/EjemplarDetailPanel'));
 const MetodoDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailMetodo" */ '../../../metodo-table/components/metodo-detail-panel/MetodoDetailPanel'));
+const RegistroDetailPanel = lazy(() => import(/* webpackChunkName: "Create-DetailRegistro" */ '../../../registro-table/components/registro-detail-panel/RegistroDetailPanel'));
 
 const debounceTimeout = 700;
 
@@ -82,15 +82,15 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
-  const [registroIdsToAddState, setRegistroIdsToAddState] = useState([]);
-  const registroIdsToAdd = useRef([]);
   const [metodoIdsToAddState, setMetodoIdsToAddState] = useState([]);
   const metodoIdsToAdd = useRef([]);
+  const [registroIdsToAddState, setRegistroIdsToAddState] = useState([]);
+  const registroIdsToAdd = useRef([]);
 
-  const [ejemplarDetailDialogOpen, setEjemplarDetailDialogOpen] = useState(false);
-  const [ejemplarDetailItem, setEjemplarDetailItem] = useState(undefined);
   const [metodoDetailDialogOpen, setMetodoDetailDialogOpen] = useState(false);
   const [metodoDetailItem, setMetodoDetailItem] = useState(undefined);
+  const [registroDetailDialogOpen, setRegistroDetailDialogOpen] = useState(false);
+  const [registroDetailItem, setRegistroDetailItem] = useState(undefined);
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -155,16 +155,16 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
   }, []);
   
   useEffect(() => {
-    if (ejemplarDetailItem !== undefined) {
-      setEjemplarDetailDialogOpen(true);
-    }
-  }, [ejemplarDetailItem]);
-
-  useEffect(() => {
     if (metodoDetailItem !== undefined) {
       setMetodoDetailDialogOpen(true);
     }
   }, [metodoDetailItem]);
+
+  useEffect(() => {
+    if (registroDetailItem !== undefined) {
+      setRegistroDetailDialogOpen(true);
+    }
+  }, [registroDetailItem]);
 
 
   /**
@@ -255,18 +255,18 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
     return false;
   }
 
-  function setAddRegistro(variables) {
-    if(registroIdsToAdd.current.length>0) {
-      //set the new id on toAdd property
-      variables.addRegistro = registroIdsToAdd.current[0];
-    } else {
-      //do nothing
-    }
-  }
   function setAddMetodo(variables) {
     if(metodoIdsToAdd.current.length>0) {
       //set the new id on toAdd property
       variables.addMetodo = metodoIdsToAdd.current[0];
+    } else {
+      //do nothing
+    }
+  }
+  function setAddRegistro(variables) {
+    if(registroIdsToAdd.current.length>0) {
+      //set the new id on toAdd property
+      variables.addRegistro = registroIdsToAdd.current[0];
     } else {
       //do nothing
     }
@@ -348,8 +348,8 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
     delete variables.registro_id;
 
     //add: to_one's
-    setAddRegistro(variables);
     setAddMetodo(variables);
+    setAddRegistro(variables);
     
     //add: to_many's
 
@@ -561,15 +561,6 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'registro':
-        if(registroIdsToAdd.current.indexOf(itemId) === -1) {
-          registroIdsToAdd.current = [];
-          registroIdsToAdd.current.push(itemId);
-          setRegistroIdsToAddState(registroIdsToAdd.current);
-          handleSetValue(itemId, -2, 'registro_id');
-          setForeignKeys({...foreignKeys, registro_id: itemId});
-        }
-        break;
       case 'metodo':
         if(metodoIdsToAdd.current.indexOf(itemId) === -1) {
           metodoIdsToAdd.current = [];
@@ -579,6 +570,15 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
           setForeignKeys({...foreignKeys, metodo_id: itemId});
         }
         break;
+      case 'registro':
+        if(registroIdsToAdd.current.indexOf(itemId) === -1) {
+          registroIdsToAdd.current = [];
+          registroIdsToAdd.current.push(itemId);
+          setRegistroIdsToAddState(registroIdsToAdd.current);
+          handleSetValue(itemId, -2, 'registro_id');
+          setForeignKeys({...foreignKeys, registro_id: itemId});
+        }
+        break;
 
       default:
         break;
@@ -586,15 +586,6 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'registro') {
-      if(registroIdsToAdd.current.length > 0) {
-        registroIdsToAdd.current = [];
-        setRegistroIdsToAddState([]);
-        handleSetValue(null, -2, 'registro_id');
-        setForeignKeys({...foreignKeys, registro_id: null});
-      }
-      return;
-    }//end: case 'registro'
     if(associationKey === 'metodo') {
       if(metodoIdsToAdd.current.length > 0) {
         metodoIdsToAdd.current = [];
@@ -604,25 +595,17 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
       }
       return;
     }//end: case 'metodo'
+    if(associationKey === 'registro') {
+      if(registroIdsToAdd.current.length > 0) {
+        registroIdsToAdd.current = [];
+        setRegistroIdsToAddState([]);
+        handleSetValue(null, -2, 'registro_id');
+        setForeignKeys({...foreignKeys, registro_id: null});
+      }
+      return;
+    }//end: case 'registro'
   }
 
-  const handleClickOnEjemplarRow = (event, item) => {
-    setEjemplarDetailItem(item);
-  };
-
-  const handleEjemplarDetailDialogClose = (event) => {
-    delayedCloseEjemplarDetailPanel(event, 500);
-  }
-
-  const delayedCloseEjemplarDetailPanel = async (event, ms) => {
-    await new Promise(resolve => {
-      window.setTimeout(function() {
-        setEjemplarDetailDialogOpen(false);
-        setEjemplarDetailItem(undefined);
-        resolve("ok");
-      }, ms);
-    });
-  };
   const handleClickOnMetodoRow = (event, item) => {
     setMetodoDetailItem(item);
   };
@@ -636,6 +619,23 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
       window.setTimeout(function() {
         setMetodoDetailDialogOpen(false);
         setMetodoDetailItem(undefined);
+        resolve("ok");
+      }, ms);
+    });
+  };
+  const handleClickOnRegistroRow = (event, item) => {
+    setRegistroDetailItem(item);
+  };
+
+  const handleRegistroDetailDialogClose = (event) => {
+    delayedCloseRegistroDetailPanel(event, 500);
+  }
+
+  const delayedCloseRegistroDetailPanel = async (event, ms) => {
+    await new Promise(resolve => {
+      window.setTimeout(function() {
+        setRegistroDetailDialogOpen(false);
+        setRegistroDetailItem(undefined);
         resolve("ok");
       }, ms);
     });
@@ -735,12 +735,12 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
                 {/* Associations Page [1] */}
                 <CaracteristicaCuantitativaAssociationsPage
                   hidden={tabsValue !== 1}
-                  registroIdsToAdd={registroIdsToAddState}
                   metodoIdsToAdd={metodoIdsToAddState}
+                  registroIdsToAdd={registroIdsToAddState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
-                  handleClickOnEjemplarRow={handleClickOnEjemplarRow}
                   handleClickOnMetodoRow={handleClickOnMetodoRow}
+                  handleClickOnRegistroRow={handleClickOnRegistroRow}
                 />
               </Suspense>
             </Grid>
@@ -761,17 +761,6 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
         </Suspense>
 
         {/* Detail Panels */}
-        {/* Dialog: Ejemplar Detail Panel */}
-        {(ejemplarDetailDialogOpen) && (
-          <Suspense fallback={<div />}>
-            <EjemplarDetailPanel
-              permissions={permissions}
-              item={ejemplarDetailItem}
-              dialog={true}
-              handleClose={handleEjemplarDetailDialogClose}
-            />
-          </Suspense>
-        )}
         {/* Dialog: Metodo Detail Panel */}
         {(metodoDetailDialogOpen) && (
           <Suspense fallback={<div />}>
@@ -780,6 +769,17 @@ export default function CaracteristicaCuantitativaCreatePanel(props) {
               item={metodoDetailItem}
               dialog={true}
               handleClose={handleMetodoDetailDialogClose}
+            />
+          </Suspense>
+        )}
+        {/* Dialog: Registro Detail Panel */}
+        {(registroDetailDialogOpen) && (
+          <Suspense fallback={<div />}>
+            <RegistroDetailPanel
+              permissions={permissions}
+              item={registroDetailItem}
+              dialog={true}
+              handleClose={handleRegistroDetailDialogClose}
             />
           </Suspense>
         )}

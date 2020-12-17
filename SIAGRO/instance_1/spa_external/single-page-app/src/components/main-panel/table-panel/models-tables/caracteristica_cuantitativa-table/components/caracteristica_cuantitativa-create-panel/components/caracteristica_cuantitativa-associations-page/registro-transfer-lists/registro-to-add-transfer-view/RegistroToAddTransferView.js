@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
 import RegistroToAddTransferViewToolbar from './components/RegistroToAddTransferViewToolbar';
-import RegistroToAddTransferViewCursorPagination from './components/RegistroToAddTransferViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -94,7 +93,7 @@ export default function RegistroToAddTransferView(props) {
     idsToAdd,
     handleTransfer,
     handleUntransfer,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
 
   /*
@@ -115,12 +114,6 @@ export default function RegistroToAddTransferView(props) {
   const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
   const isCountingRef = useRef(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
-  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
-  const isForwardPagination = useRef(true);
-  const isCursorPaginating = useRef(false);
 const cancelableCountingPromises = useRef([]);
 
   /*
@@ -209,8 +202,6 @@ const cancelableCountingPromises = useRef([]);
     *  showMessage
     *  showMessageB
     *  showMessageC
-    *  configurePagination
-    *  onEmptyPage
     *  clearRequestGetData
     *  clearRequestGetDataB
     *  getCount
@@ -267,168 +258,15 @@ const cancelableCountingPromises = useRef([]);
   },[enqueueSnackbar]);
 
 
-  /**
-   * configurePagination
-   * 
-   * Set the configuration needed to perform a reload of data
-   * in the given mode.
-   */
-  const configurePagination = useCallback((mode) => {
-    switch(mode) {
-      case "reset":
-        //reset page info attributes
-        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-      
-      case "reload":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: pageInfo.current.startCursor,
-          last: null,
-          before: null,
-          includeCursor: true,
-        }
-        break;
 
-      case "firstPage":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "lastPage":
-        //set direction
-        isForwardPagination.current = false;
-        //set pagination attributes
-        paginationRef.current = {
-          first: null,
-          after: null,
-          last: rowsPerPageRef.current,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "nextPage":
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: pageInfo.current.endCursor,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-
-      case "previousPage":
-        //set direction
-        isForwardPagination.current = false;
-        //set pagination attributes
-        paginationRef.current = {
-          first: null,
-          after: null,
-          last: rowsPerPageRef.current,
-          before: pageInfo.current.startCursor,
-          includeCursor: false,
-        }
-        break;
-
-      default: //reset
-        //reset page info attributes
-        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-        //set direction
-        isForwardPagination.current = true;
-        //set pagination attributes
-        paginationRef.current = {
-          first: rowsPerPageRef.current,
-          after: null,
-          last: null,
-          before: null,
-          includeCursor: false,
-        }
-        break;
-    }
-  }, []);
-
-
-  const onEmptyPage = useCallback((pi) => {
-    //case: forward
-    if(isForwardPagination.current) {
-      if(pi && pi.hasPreviousPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('previousPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      }
-    } else {//case: backward
-      if(pi && pi.hasNextPage) {
-        //configure
-        isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
-        setIsOnApiRequest(false);
-        configurePagination('nextPage');
-        
-        //reload
-        setDataTrigger(prevDataTrigger => !prevDataTrigger);
-        return;
-      }
-    }
-
-    //update pageInfo
-    pageInfo.current = pi;
-    setHasPreviousPage(pageInfo.current.hasPreviousPage);
-    setHasNextPage(pageInfo.current.hasNextPage);
-
-    //configure pagination (default)
-    configurePagination('reload');
-
-    //ok
-    setItems([]);
-
-    //ends request
-    isOnApiRequestRef.current = false;
-    isCursorPaginating.current = false;
-    setIsOnApiRequest(false);
-    return;
-
-  }, [configurePagination]);
 
 
   const clearRequestGetData = useCallback(() => {
-    //configure pagination
-    configurePagination('reset');
           
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[configurePagination]);
+  },[]);
 
   const clearRequestGetDataB = useCallback(() => {
   
@@ -457,17 +295,17 @@ const cancelableCountingPromises = useRef([]);
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         exclude: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     }    
 
     /*
-      API Request: api.ejemplar.getCountItems
+      API Request: api.registro.getCountItems
     */
-    let api = await loadApi("ejemplar");
-    let cancelableApiReq = makeCancelable(api.ejemplar.getCountItems(graphqlServerUrl, search, ops));
+    let api = await loadApi("registro");
+    let cancelableApiReq = makeCancelable(api.registro.getCountItems(graphqlServerUrl, search, ops));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
       .promise
@@ -484,7 +322,7 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variantC.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.ejemplar.getCountItems'}];
+            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.registro.getCountItems'}];
             newError.path=['add', 'registro'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsC.current.push(newError);
@@ -498,7 +336,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantC.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.ejemplar.getCountItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.registro.getCountItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsC.current.push(newError);
@@ -520,7 +358,7 @@ const cancelableCountingPromises = useRef([]);
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.ejemplar.getCountItems
+      .catch((err) => { //error: on api.registro.getCountItems
         if(err.isCanceled) {
           return;
         } else {
@@ -528,7 +366,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantC.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.ejemplar.getCountItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getCount()', request: 'api.registro.getCountItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsC.current.push(newError);
@@ -562,20 +400,17 @@ const cancelableCountingPromises = useRef([]);
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         exclude: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     }
     
-    let variables = {
-      pagination: {...paginationRef.current}
-    };
     /*
-      API Request: api.ejemplar.getItems
+      API Request: api.registro.getItems
     */
-    let api = await loadApi("ejemplar");
-    let cancelableApiReq = makeCancelable(api.ejemplar.getItems(
+    let api = await loadApi("registro");
+    let cancelableApiReq = makeCancelable(api.registro.getItems(
       graphqlServerUrl,
       search,
       null, //orderBy
@@ -599,7 +434,7 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.ejemplar.getItems'}];
+            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.registro.getItems'}];
             newError.path=['add', 'registro'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
@@ -613,7 +448,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.registro.getItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
@@ -624,33 +459,12 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
 
-        //get items
-        let its = response.value.edges.map(o => o.node);
-        let pi = response.value.pageInfo;
-      
-        /*
-          Check: empty page
-        */
-        if( its.length === 0 ) 
-        {
-          onEmptyPage(pi);
-          return;
-        }
-
-        //update pageInfo
-        pageInfo.current = pi;
-        setHasPreviousPage(pageInfo.current.hasPreviousPage);
-        setHasNextPage(pageInfo.current.hasNextPage);
-
-        //configure pagination (default)
-        configurePagination('reload');
 
         //ok
         setItems([...its]);
 
         //ends request
         isOnApiRequestRef.current = false;
-        isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         return;
       },
@@ -660,7 +474,7 @@ const cancelableCountingPromises = useRef([]);
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.ejemplar.getItems
+      .catch((err) => { //error: on api.registro.getItems
         if(err.isCanceled) {
           return;
         } else {
@@ -668,7 +482,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'A', method: 'getData()', request: 'api.registro.getItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
@@ -679,7 +493,7 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, dataTrigger, search, configurePagination, onEmptyPage]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, getCount, t, dataTrigger, search]);
 
 
   /**
@@ -703,8 +517,8 @@ const cancelableCountingPromises = useRef([]);
     if(lidsToAdd.current && lidsToAdd.current.length > 0) {
       ops = {
         only: [{
-          type: 'String',
-          values: {"id": lidsToAdd.current}
+          type: '',
+          values: {"": lidsToAdd.current}
         }]
       };
     } else {
@@ -713,12 +527,11 @@ const cancelableCountingPromises = useRef([]);
       return;
     }
 
-    let variables = {pagination: {first: 1}};
     /*
-      API Request: api.ejemplar.getItems
+      API Request: api.registro.getItems
     */
-    let api = await loadApi("ejemplar");
-    let cancelableApiReq = makeCancelable(api.ejemplar.getItems(
+    let api = await loadApi("registro");
+    let cancelableApiReq = makeCancelable(api.registro.getItems(
       graphqlServerUrl,
       searchB,
       null, //orderBy
@@ -742,7 +555,7 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variantB.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+            newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
             newError.path=['add', 'registro'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsB.current.push(newError);
@@ -756,7 +569,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantB.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
@@ -767,8 +580,6 @@ const cancelableCountingPromises = useRef([]);
           return;
         }
 
-        //get items
-        let its = response.value.edges.map(o => o.node);
           
         //ok
         setItemsB([...its]);
@@ -784,7 +595,7 @@ const cancelableCountingPromises = useRef([]);
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.ejemplar.getItems
+      .catch((err) => { //error: on api.registro.getItems
         if(err.isCanceled) {
           return;
         } else {
@@ -792,7 +603,7 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.ejemplar.getItems'}];
+          newError.locations=[{model: 'caracteristica_cuantitativa', association: 'registro', table:'B', method: 'getDataB()', request: 'api.registro.getItems'}];
           newError.path=['add', 'registro'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
@@ -865,7 +676,7 @@ const cancelableCountingPromises = useRef([]);
 
     /*
      * Case 1: 
-     * The attributes of some 'Ejemplar' were modified or the item was deleted.
+     * The attributes of some 'registro' were modified or the item was deleted.
      * 
      * Conditions:
      * A: the item was modified and is currently displayed in any of the lists.
@@ -881,17 +692,17 @@ const cancelableCountingPromises = useRef([]);
      * - reload both transfer tables.
      * - return
      */
-    if(lastModelChanged.Ejemplar) {
+    if(lastModelChanged.registro) {
 
-      let oens = Object.entries(lastModelChanged.Ejemplar);
+      let oens = Object.entries(lastModelChanged.registro);
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.id;
+          let idUpdated = entry[1].item.;
           
           //lookup item on table A
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.id===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -900,7 +711,7 @@ const cancelableCountingPromises = useRef([]);
 
           //lookup item on table B
           let nitemsB = Array.from(itemsB);
-          let iofB = nitemsB.findIndex((item) => item.id===idUpdated);
+          let iofB = nitemsB.findIndex((item) => item.===idUpdated);
           if(iofB !== -1) {
             //set new item
             nitemsB[iofB] = entry[1].newItem;
@@ -910,10 +721,10 @@ const cancelableCountingPromises = useRef([]);
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.id;
+          let idRemoved = entry[1].item.;
 
           //lookup item on table A
-          let iofA = items.findIndex((item) => item.id===idRemoved);
+          let iofA = items.findIndex((item) => item.===idRemoved);
           if(iofA !== -1) {
             //decrement A
             setCount(count-1);
@@ -935,25 +746,11 @@ const cancelableCountingPromises = useRef([]);
           cancelCountingPromises();
           isCountingRef.current = false;
 
-          //strict contention
-          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
-            //configure A
-            configurePagination('reload');
-            //reload A
-            setDataTrigger(prevDataTrigger => !prevDataTrigger);
-          } else {
-            getCount();
-          }
-          //strict contention
-          if (!isOnApiRequestRefB.current) {
-            //reload B
-            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-          }
           return;
         }
       });
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount, count, configurePagination]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, handleUntransfer, getCount, count]);
   
   useEffect(() => {
     //return if this flag is set
@@ -991,38 +788,18 @@ const cancelableCountingPromises = useRef([]);
     }
   }, [pageB]);
 
-  useEffect(() => {
-    //update ref
-    rowsPerPageRef.current = rowsPerPage;
-
-    //check strict contention
-    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    
-    //configure pagination
-    configurePagination('reset');
-    //reload    
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  }, [rowsPerPage, configurePagination]);
 
 
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
-      //configure
-      configurePagination('reload');
-      //reload
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
-  }, [isOnApiRequest, configurePagination]);
+  }, [isOnApiRequest]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
-      //reload
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     }
     updateHeights();
   }, [isOnApiRequestB]);
@@ -1066,15 +843,9 @@ const cancelableCountingPromises = useRef([]);
 
 
   function reloadDataA() {
-    //configure A
-    configurePagination('reload');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 
   function reloadDataB() {
-    //reload B
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }
 
   /**
@@ -1117,53 +888,6 @@ const cancelableCountingPromises = useRef([]);
    * Pagination handlers
    */
 
-  const handleFirstPageButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('firstPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleLastPageButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('lastPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleNextButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('nextPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
-
-  const handleBackButtonClick = (event) => {
-    //strict contention
-    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure A
-    configurePagination('previousPage');
-    //reload A
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
@@ -1178,35 +902,19 @@ const cancelableCountingPromises = useRef([]);
   };
 
 
-  const handleReloadClick = (event) => {
-    //check strict contention
-    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
-    //set strict contention
-    isCursorPaginating.current = true;
-    //configure pagination
-    configurePagination('reset');
-    //reload
-    setDataTrigger(prevDataTrigger => !prevDataTrigger);
-  };
-  const handleReloadClickB = (event) => {
-    //check strict contention
-    if(isOnApiRequestRefB.current) { return; }
-    //reload
-    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-  };
   
   /*
    * Items handlers
    */
   const handleRowClicked = (event, item) => {
-    handleClickOnEjemplarRow(event, item);
+    handleClickOnRegistroRow(event, item);
   };
 
   const handleAddItem = (event, item) => {
-    if(lidsToAdd.current.indexOf(item.id) === -1) {
+    if(lidsToAdd.current.indexOf(item.) === -1) {
       let hasItem = (lidsToAdd.current&&lidsToAdd.current.length > 0);
       lidsToAdd.current = [];
-      lidsToAdd.current.push(item.id);
+      lidsToAdd.current.push(item.);
       setThereAreItemsToAdd(true);
 
       if(!hasItem) {
@@ -1218,9 +926,7 @@ const cancelableCountingPromises = useRef([]);
       }
       //reload A
       reloadDataA();
-      //reload B
-      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('registro', item.id);
+      handleTransfer('registro', item.);
     }
   };
 
@@ -1237,11 +943,9 @@ const cancelableCountingPromises = useRef([]);
         cancelCountingPromises();
         isCountingRef.current = false;
       }
-      //reload A
-      setDataTrigger(prevDataTrigger => !prevDataTrigger);
       //reload B
       reloadDataB();
-      handleUntransfer('registro', item.id);
+      handleUntransfer('registro', item.);
     }
   };
 
@@ -1256,7 +960,7 @@ const cancelableCountingPromises = useRef([]);
 
             {/* Toolbar */}
             <RegistroToAddTransferViewToolbar 
-              title={'Ejemplars'}
+              title={'Registros'}
               titleIcon={1}
               search={search}
               onSearchEnter={handleSearchEnter}
@@ -1296,13 +1000,13 @@ const cancelableCountingPromises = useRef([]);
                   <List id='RegistroToAddTransferView-list-listA'
                   dense component="div" role="list" >
                     {items.map(it => {
-                      let key = it.id;
+                      let key = it.;
                       let label = it.nombrecomun;
                       let sublabel = undefined;
 
                       return (
                         <ListItem 
-                          id={'RegistroToAddTransferView-listA-listItem-'+it.id}
+                          id={'RegistroToAddTransferView-listA-listItem-'+it.}
                           key={key} 
                           role="listitem" 
                           button 
@@ -1312,8 +1016,8 @@ const cancelableCountingPromises = useRef([]);
                           }}
                         >
                           <ListItemAvatar>
-                            <Tooltip title={ 'Ejemplar' }>
-                              <Avatar>{"ejemplar".slice(0,1)}</Avatar>
+                            <Tooltip title={ 'registro' }>
+                              <Avatar>{"registro".slice(0,1)}</Avatar>
                             </Tooltip>
                           </ListItemAvatar>
 
@@ -1323,8 +1027,8 @@ const cancelableCountingPromises = useRef([]);
                                 {/* id*/}
                                 <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                   <Grid item>
-                                    <Tooltip title={ 'id' }>
-                                      <Typography variant="body1" display="block" noWrap={true}>{it.id}</Typography>
+                                    <Tooltip title={ '' }>
+                                      <Typography variant="body1" display="block" noWrap={true}>{it.}</Typography>
                                     </Tooltip>
                                   </Grid>
                                   {/*Key icon*/}
@@ -1358,7 +1062,7 @@ const cancelableCountingPromises = useRef([]);
                           <ListItemSecondaryAction>
                             <Tooltip title={ t('modelPanels.transferToAdd') }>
                               <IconButton
-                                id={'RegistroToAddTransferView-listA-listItem-'+it.id+'-button-add'}
+                                id={'RegistroToAddTransferView-listA-listItem-'+it.+'-button-add'}
                                 color="primary"
                                 className={classes.iconButton}
                                 onClick={(event) => {
@@ -1401,19 +1105,6 @@ const cancelableCountingPromises = useRef([]);
             )}
 
             {/* Pagination */}
-            <RegistroToAddTransferViewCursorPagination
-              count={count}
-              rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
-              rowsPerPage={(count <=10) ? '' : rowsPerPage}
-              labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
-              hasNextPage={hasNextPage}
-              hasPreviousPage={hasPreviousPage}
-              handleFirstPageButtonClick={handleFirstPageButtonClick}
-              handleLastPageButtonClick={handleLastPageButtonClick}
-              handleNextButtonClick={handleNextButtonClick}
-              handleBackButtonClick={handleBackButtonClick}
-              handleChangeRowsPerPage={handleChangeRowsPerPage}
-            />
           </Card>
         </Grid>
         {/*
@@ -1479,7 +1170,7 @@ const cancelableCountingPromises = useRef([]);
 
             {/* Toolbar */}
             <RegistroToAddTransferViewToolbar 
-              title={'Ejemplar'}
+              title={'Registro'}
               titleIcon={2}
               search={searchB}
               searchDisabled={true}
@@ -1541,13 +1232,13 @@ const cancelableCountingPromises = useRef([]);
                   <List id='RegistroToAddTransferView-list-listB'
                   dense component="div" role="list">
                     {itemsB.map(it => {
-                      let key = it.id;
+                      let key = it.;
                       let label = it.nombrecomun;
                       let sublabel = undefined;
 
                       return (
                         <ListItem 
-                          id={'RegistroToAddTransferView-listB-listItem-'+it.id}
+                          id={'RegistroToAddTransferView-listB-listItem-'+it.}
                           key={key} 
                           role="listitem" 
                           button 
@@ -1557,8 +1248,8 @@ const cancelableCountingPromises = useRef([]);
                           }}
                         >
                           <ListItemAvatar>
-                            <Tooltip title={ 'Ejemplar' }>
-                              <Avatar>{"ejemplar".slice(0,1)}</Avatar>
+                            <Tooltip title={ 'registro' }>
+                              <Avatar>{"registro".slice(0,1)}</Avatar>
                             </Tooltip>
                           </ListItemAvatar>
 
@@ -1568,8 +1259,8 @@ const cancelableCountingPromises = useRef([]);
                                 {/* id*/}
                                 <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                   <Grid item>
-                                    <Tooltip title={ 'id' }>
-                                      <Typography variant="body1" display="block" noWrap={true}>{it.id}</Typography>
+                                    <Tooltip title={ '' }>
+                                      <Typography variant="body1" display="block" noWrap={true}>{it.}</Typography>
                                     </Tooltip>
                                   </Grid>
                                   {/*Key icon*/}
@@ -1603,7 +1294,7 @@ const cancelableCountingPromises = useRef([]);
                           <ListItemSecondaryAction>
                             <Tooltip title={ t('modelPanels.untransferToAdd') }>
                               <IconButton
-                                id={'RegistroToAddTransferView-listB-listItem-'+it.id+'-button-remove'}
+                                id={'RegistroToAddTransferView-listB-listItem-'+it.+'-button-remove'}
                                 color="primary"
                                 onClick={(event) => {
                                   event.stopPropagation();
@@ -1654,5 +1345,5 @@ RegistroToAddTransferView.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
   handleUntransfer: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,
+  handleClickOnRegistroRow: PropTypes.func.isRequired,
 };

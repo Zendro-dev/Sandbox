@@ -6,7 +6,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const CaracteristicasCualitativasTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-CaracteristicasCualitativas" */ './caracteristicas_cualitativas-transfer-lists/Caracteristicas_cualitativasTransferLists'));
 const CaracteristicasCuantitativasTransferLists = lazy(() => import(/* webpackChunkName: "Create-TransferLists-CaracteristicasCuantitativas" */ './caracteristicas_cuantitativas-transfer-lists/Caracteristicas_cuantitativasTransferLists'));
 
 const debounceTimeout = 700;
@@ -25,14 +24,12 @@ export default function MetodoAssociationsPage(props) {
 
   const {
     hidden,
-    caracteristicas_cualitativasIdsToAdd,
     caracteristicas_cuantitativasIdsToAdd,
     handleTransferToAdd,
     handleUntransferFromAdd,
-    handleClickOnCaracteristica_cualitativaRow,
     handleClickOnCaracteristica_cuantitativaRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cualitativas');
+  const [associationSelected, setAssociationSelected] = React.useState('caracteristicas_cuantitativas');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -110,19 +107,6 @@ export default function MetodoAssociationsPage(props) {
           </Grid>
 
           {/* Transfer Lists */}
-          {/* Caracteristicas_cualitativas Transfer Lists */}
-          {(associationSelected === 'caracteristicas_cualitativas') && (
-            <Grid item xs={12} sm={10} md={9}>
-              <Suspense fallback={<div />}>
-                <CaracteristicasCualitativasTransferLists
-                  idsToAdd={caracteristicas_cualitativasIdsToAdd}
-                  handleClickOnCaracteristica_cualitativaRow={handleClickOnCaracteristica_cualitativaRow}
-                  handleTransferToAdd={handleTransferToAdd}
-                  handleUntransferFromAdd={handleUntransferFromAdd}
-                />
-              </Suspense>
-            </Grid>
-          )}
           {/* Caracteristicas_cuantitativas Transfer Lists */}
           {(associationSelected === 'caracteristicas_cuantitativas') && (
             <Grid item xs={12} sm={10} md={9}>
@@ -143,10 +127,8 @@ export default function MetodoAssociationsPage(props) {
 }
 MetodoAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  caracteristicas_cualitativasIdsToAdd: PropTypes.array.isRequired,
   caracteristicas_cuantitativasIdsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
-  handleClickOnCaracteristica_cualitativaRow: PropTypes.func.isRequired,
   handleClickOnCaracteristica_cuantitativaRow: PropTypes.func.isRequired,
 };

@@ -35,7 +35,7 @@ export default function RegistroTransferLists(props) {
     handleUntransferFromAdd,
     handleTransferToRemove,
     handleUntransferFromRemove,
-    handleClickOnEjemplarRow,
+    handleClickOnRegistroRow,
   } = props;
   
   return (
@@ -74,7 +74,7 @@ export default function RegistroTransferLists(props) {
                 handleReassociateItem={handleUntransferFromRemove}
                 handleTransfer={handleTransferToAdd}
                 handleUntransfer={handleUntransferFromAdd}
-                handleClickOnEjemplarRow={handleClickOnEjemplarRow}
+                handleClickOnRegistroRow={handleClickOnRegistroRow}
               />
             </Suspense>
           </Grid>
@@ -93,5 +93,5 @@ RegistroTransferLists.propTypes = {
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleTransferToRemove: PropTypes.func.isRequired,
   handleUntransferFromRemove: PropTypes.func.isRequired,
-  handleClickOnEjemplarRow: PropTypes.func.isRequired,    
+  handleClickOnRegistroRow: PropTypes.func.isRequired,    
 };
