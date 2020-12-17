@@ -14,12 +14,11 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('caracteristica_cualitativas', {
+        return queryInterface.createTable('registros', {
 
-            id: {
-                type: Sequelize[dict['Int']],
-                primaryKey: true,
-                autoIncrement: true
+            conabio_id: {
+                type: Sequelize.STRING,
+                primaryKey: true
             },
 
             createdAt: {
@@ -30,23 +29,30 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            nombre: {
+            clave_original: {
                 type: Sequelize[dict['String']]
             },
-            valor: {
+            tipo_alimento: {
                 type: Sequelize[dict['String']]
             },
-            nombre_corto: {
+            food_type: {
                 type: Sequelize[dict['String']]
             },
-            comentarios: {
+            descripcion_alimento: {
                 type: Sequelize[dict['String']]
             },
-            metodo_id: {
+            food_description: {
                 type: Sequelize[dict['String']]
             },
-            registro_id: {
+            procedencia: {
                 type: Sequelize[dict['String']]
+            },
+            taxon_id: {
+                type: Sequelize[dict['String']]
+            },
+            referencias_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             }
 
         });
@@ -60,7 +66,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('caracteristica_cualitativas');
+        return queryInterface.dropTable('registros');
     }
 
 };

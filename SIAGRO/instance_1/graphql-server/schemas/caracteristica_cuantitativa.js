@@ -46,7 +46,7 @@ module.exports = `
     """
     registro_id: String
 
-    registro(search: searchEjemplarInput): Ejemplar
+    registro(search: searchRegistroInput): registro
   metodo(search: searchMetodoInput): metodo
     
     }

@@ -14,8 +14,7 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addCaracteristicas_cuantitativas': 'caracteristica_cuantitativa',
-    'addCaracteristicas_cualitativas': 'caracteristica_cualitativa'
+    'addCaracteristicas_cuantitativas': 'caracteristica_cuantitativa'
 }
 
 
@@ -108,93 +107,6 @@ metodo.prototype.caracteristicas_cuantitativasConnection = function({
         pagination: pagination
     }, context);
 }
-/**
- * metodo.prototype.caracteristicas_cualitativasFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-metodo.prototype.caracteristicas_cualitativasFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "metodo_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.caracteristica_cualitativas({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * metodo.prototype.countFilteredCaracteristicas_cualitativas - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-metodo.prototype.countFilteredCaracteristicas_cualitativas = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "metodo_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countCaracteristica_cualitativas({
-        search: nsearch
-    }, context);
-}
-
-/**
- * metodo.prototype.caracteristicas_cualitativasConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-metodo.prototype.caracteristicas_cualitativasConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "metodo_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.caracteristica_cualitativasConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -211,17 +123,11 @@ metodo.prototype.handleAssociations = async function(input, benignErrorReporter)
     if (helper.isNonEmptyArray(input.addCaracteristicas_cuantitativas)) {
         promises_add.push(this.add_caracteristicas_cuantitativas(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addCaracteristicas_cualitativas)) {
-        promises_add.push(this.add_caracteristicas_cualitativas(input, benignErrorReporter));
-    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
     if (helper.isNonEmptyArray(input.removeCaracteristicas_cuantitativas)) {
         promises_remove.push(this.remove_caracteristicas_cuantitativas(input, benignErrorReporter));
-    }
-    if (helper.isNonEmptyArray(input.removeCaracteristicas_cualitativas)) {
-        promises_remove.push(this.remove_caracteristicas_cualitativas(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -246,24 +152,6 @@ metodo.prototype.add_caracteristicas_cuantitativas = async function(input, benig
 }
 
 /**
- * add_caracteristicas_cualitativas - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-metodo.prototype.add_caracteristicas_cualitativas = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addCaracteristicas_cualitativas.map(associatedRecordId => {
-        return {
-            metodo_id: this.getIdValue(),
-            [models.caracteristica_cualitativa.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.caracteristica_cualitativa.bulkAssociateCaracteristica_cualitativaWithMetodo_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
  * remove_caracteristicas_cuantitativas - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
@@ -279,24 +167,6 @@ metodo.prototype.remove_caracteristicas_cuantitativas = async function(input, be
         }
     });
     await models.caracteristica_cuantitativa.bulkDisAssociateCaracteristica_cuantitativaWithMetodo_id(bulkAssociationInput, benignErrorReporter);
-}
-
-/**
- * remove_caracteristicas_cualitativas - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-metodo.prototype.remove_caracteristicas_cualitativas = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removeCaracteristicas_cualitativas.map(associatedRecordId => {
-        return {
-            metodo_id: this.getIdValue(),
-            [models.caracteristica_cualitativa.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.caracteristica_cualitativa.bulkDisAssociateCaracteristica_cualitativaWithMetodo_id(bulkAssociationInput, benignErrorReporter);
 }
 
 
@@ -319,7 +189,6 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(metodo.countFilteredCaracteristicas_cuantitativas({}, context));
-    promises_to_many.push(metodo.countFilteredCaracteristicas_cualitativas({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

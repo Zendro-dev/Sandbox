@@ -101,23 +101,23 @@ module.exports = `
     bibliografia: [String]
 
       
-    
     """
     @search-request
     """
-    ejemplaresFilter(search: searchEjemplarInput, order: [ orderEjemplarInput ], pagination: paginationInput!): [Ejemplar]
+    alimentosFilter(search: searchRegistroInput, order: [ orderRegistroInput ], pagination: paginationInput!): [registro]
 
 
     """
     @search-request
     """
-    ejemplaresConnection(search: searchEjemplarInput, order: [ orderEjemplarInput ], pagination: paginationCursorInput!): EjemplarConnection
+    alimentosConnection(search: searchRegistroInput, order: [ orderRegistroInput ], pagination: paginationCursorInput!): RegistroConnection
 
     """
     @count-request
     """
-    countFilteredEjemplares(search: searchEjemplarInput) : Int
-  }
+    countFilteredAlimentos(search: searchRegistroInput) : Int
+  
+    }
 type TaxonConnection{
   edges: [TaxonEdge]
   pageInfo: pageInfo!
@@ -182,8 +182,8 @@ type TaxonEdge{
   }
 
   type Mutation {
-    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String, categoriaSorter: String, bibliografia: [String]    , addEjemplares:[ID], skipAssociationsExistenceChecks:Boolean = false): Taxon!
-    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String, categoriaSorter: String, bibliografia: [String]    , addEjemplares:[ID], removeEjemplares:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    addTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String, categoriaSorter: String, bibliografia: [String]   , addAlimentos:[ID] , skipAssociationsExistenceChecks:Boolean = false): Taxon!
+    updateTaxon(id: ID!, taxon: String, categoria: String, estatus: String, nombreAutoridad: String, citaNomenclatural: String, fuente: String, ambiente: String, grupoSNIB: String, categoriaResidencia: String, nom: String, cites: String, iucn: String, prioritarias: String, endemismo: String, categoriaSorter: String, bibliografia: [String]   , addAlimentos:[ID], removeAlimentos:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Taxon!
     deleteTaxon(id: ID!): String!
     bulkAddTaxonCsv: String!
       }

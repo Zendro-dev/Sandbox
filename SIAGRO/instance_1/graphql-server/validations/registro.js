@@ -6,52 +6,61 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(caracteristica_cualitativa) {
+module.exports.validator_patch = function(registro) {
 
-    caracteristica_cualitativa.prototype.validationControl = {
+    registro.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    caracteristica_cualitativa.prototype.validatorSchema = {
+    registro.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "nombre": {
+            "conabio_id": {
                 "type": ["string", "null"]
             },
-            "valor": {
+            "clave_original": {
                 "type": ["string", "null"]
             },
-            "nombre_corto": {
+            "tipo_alimento": {
                 "type": ["string", "null"]
             },
-            "comentarios": {
+            "food_type": {
                 "type": ["string", "null"]
             },
-            "metodo_id": {
+            "descripcion_alimento": {
                 "type": ["string", "null"]
             },
-            "registro_id": {
+            "food_description": {
                 "type": ["string", "null"]
+            },
+            "procedencia": {
+                "type": ["string", "null"]
+            },
+            "taxon_id": {
+                "type": ["string", "null"]
+            },
+            "referencias_ids": {
+                "type": ["array", "string" ,"null"]
             }
         }
     }
 
-    caracteristica_cualitativa.prototype.asyncValidate = ajv.compile(
-        caracteristica_cualitativa.prototype.validatorSchema
+    registro.prototype.asyncValidate = ajv.compile(
+        registro.prototype.validatorSchema
     )
 
-    caracteristica_cualitativa.prototype.validateForCreate = async function(record) {
-        return await caracteristica_cualitativa.prototype.asyncValidate(record)
+    registro.prototype.validateForCreate = async function(record) {
+        return await registro.prototype.asyncValidate(record)
     }
 
-    caracteristica_cualitativa.prototype.validateForUpdate = async function(record) {
-        return await caracteristica_cualitativa.prototype.asyncValidate(record)
+    registro.prototype.validateForUpdate = async function(record) {
+        return await registro.prototype.asyncValidate(record)
     }
 
-    caracteristica_cualitativa.prototype.validateForDelete = async function(id) {
+    registro.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -62,9 +71,9 @@ module.exports.validator_patch = function(caracteristica_cualitativa) {
         }
     }
 
-    caracteristica_cualitativa.prototype.validateAfterRead = async function(record) {
-        return await caracteristica_cualitativa.prototype.asyncValidate(record)
+    registro.prototype.validateAfterRead = async function(record) {
+        return await registro.prototype.asyncValidate(record)
     }
 
-    return caracteristica_cualitativa
+    return registro
 }

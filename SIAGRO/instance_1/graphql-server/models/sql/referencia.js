@@ -19,36 +19,29 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'caracteristica_cualitativa',
+    model: 'referencia',
     storageType: 'sql',
     attributes: {
-        nombre: 'String',
-        valor: 'String',
-        nombre_corto: 'String',
-        comentarios: 'String',
-        metodo_id: 'String',
-        registro_id: 'String'
+        referencia_id: 'String',
+        referencia: 'String',
+        registros_ids: '[ String ]'
     },
     associations: {
-        registro: {
-            type: 'to_one',
-            targetStorageType: 'generic',
-            target: 'Ejemplar',
-            targetKey: 'registro_id',
-            keyIn: 'caracteristica_cualitativa',
-            label: 'nombrecomun'
-        },
-        metodo: {
-            type: 'to_one',
+        alimentos: {
+            type: 'to_many',
+            target: 'registro',
+            targetKey: 'referencias_ids',
+            keyIn: 'registro',
             targetStorageType: 'sql',
-            target: 'metodo',
-            targetKey: 'metodo_id',
-            keyIn: 'caracteristica_cualitativa'
+            label: 'descripcion_alimento',
+            sourceKey: 'registros_ids',
+            reverseAssociationType: 'to_many'
         }
     },
+    internalId: 'referencia_id',
     id: {
-        name: 'id',
-        type: 'Int'
+        name: 'referencia_id',
+        type: 'String'
     }
 };
 
@@ -60,34 +53,27 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class caracteristica_cualitativa extends Sequelize.Model {
+module.exports = class referencia extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            nombre: {
+            referencia_id: {
+                type: Sequelize[dict['String']],
+                primaryKey: true
+            },
+            referencia: {
                 type: Sequelize[dict['String']]
             },
-            valor: {
-                type: Sequelize[dict['String']]
-            },
-            nombre_corto: {
-                type: Sequelize[dict['String']]
-            },
-            comentarios: {
-                type: Sequelize[dict['String']]
-            },
-            metodo_id: {
-                type: Sequelize[dict['String']]
-            },
-            registro_id: {
-                type: Sequelize[dict['String']]
+            registros_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             }
 
 
         }, {
-            modelName: "caracteristica_cualitativa",
-            tableName: "caracteristica_cualitativas",
+            modelName: "referencia",
+            tableName: "referencia",
             sequelize
         });
     }
@@ -130,25 +116,20 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
         return record;
     }
 
-    static associate(models) {
-        caracteristica_cualitativa.belongsTo(models.metodo, {
-            as: 'metodo',
-            foreignKey: 'metodo_id'
-        });
-    }
+    static associate(models) {}
 
     static async readById(id) {
-        let item = await caracteristica_cualitativa.findByPk(id);
+        let item = await referencia.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        item = caracteristica_cualitativa.postReadCast(item)
+        item = referencia.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, caracteristica_cualitativa.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, referencia.definition.attributes);
         return super.count(options);
     }
 
@@ -156,9 +137,9 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), caracteristica_cualitativa.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), referencia.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => caracteristica_cualitativa.postReadCast(x))
+        records = records.map(x => referencia.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -168,10 +149,10 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), caracteristica_cualitativa.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), referencia.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => caracteristica_cualitativa.postReadCast(x))
+        records = records.map(x => referencia.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -182,7 +163,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), caracteristica_cualitativa.definition.attributes);
+            }, this.idAttribute(), referencia.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -197,7 +178,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = caracteristica_cualitativa.preWriteCast(input)
+        input = referencia.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -205,8 +186,8 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
                 });
                 return item;
             });
-            caracteristica_cualitativa.postReadCast(result.dataValues)
-            caracteristica_cualitativa.postReadCast(result._previousDataValues)
+            referencia.postReadCast(result.dataValues)
+            referencia.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -232,7 +213,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = caracteristica_cualitativa.preWriteCast(input)
+        input = referencia.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -245,8 +226,8 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
                 });
                 return updated;
             });
-            caracteristica_cualitativa.postReadCast(result.dataValues)
-            caracteristica_cualitativa.postReadCast(result._previousDataValues)
+            referencia.postReadCast(result.dataValues)
+            referencia.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -304,7 +285,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of caracteristica_cualitativa records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of referencia records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -323,180 +304,62 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
 
 
     /**
-     * add_registro_id - field Mutation (model-layer) for to_one associationsArguments to add
+     * add_registros_ids - field Mutation (model-layer) for to_many associationsArguments to add
      *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   registro_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   referencia_id   IdAttribute of the root model to be updated
+     * @param {Array}   registros_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async add_registro_id(id, registro_id) {
-        let updated = await caracteristica_cualitativa.update({
-            registro_id: registro_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
-    }
-    /**
-     * add_metodo_id - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   metodo_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async add_metodo_id(id, metodo_id) {
-        let updated = await caracteristica_cualitativa.update({
-            metodo_id: metodo_id
-        }, {
-            where: {
-                id: id
-            }
-        });
-        return updated;
+    static async add_registros_ids(referencia_id, registros_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            registros_ids.forEach(idx => {
+                promises.push(models.registro.add_referencias_ids(idx, [`${referencia_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(referencia_id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.registros_ids), registros_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                registros_ids: updated_ids
+            });
+        }
     }
 
     /**
-     * remove_registro_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     * remove_registros_ids - field Mutation (model-layer) for to_many associationsArguments to remove
      *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   registro_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {Id}   referencia_id   IdAttribute of the root model to be updated
+     * @param {Array}   registros_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
-    static async remove_registro_id(id, registro_id) {
-        let updated = await caracteristica_cualitativa.update({
-            registro_id: null
-        }, {
-            where: {
-                id: id,
-                registro_id: registro_id
-            }
-        });
-        return updated;
-    }
-    /**
-     * remove_metodo_id - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   id   IdAttribute of the root model to be updated
-     * @param {Id}   metodo_id Foreign Key (stored in "Me") of the Association to be updated.
-     */
-    static async remove_metodo_id(id, metodo_id) {
-        let updated = await caracteristica_cualitativa.update({
-            metodo_id: null
-        }, {
-            where: {
-                id: id,
-                metodo_id: metodo_id
-            }
-        });
-        return updated;
+    static async remove_registros_ids(referencia_id, registros_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            registros_ids.forEach(idx => {
+                promises.push(models.registro.remove_referencias_ids(idx, [`${referencia_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(referencia_id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.registros_ids), registros_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                registros_ids: updated_ids
+            });
+        }
     }
 
 
 
 
 
-    /**
-     * bulkAssociateCaracteristica_cualitativaWithRegistro_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateCaracteristica_cualitativaWithRegistro_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "registro_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            registro_id,
-            id
-        }) => {
-            promises.push(super.update({
-                registro_id: registro_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-    /**
-     * bulkAssociateCaracteristica_cualitativaWithMetodo_id - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateCaracteristica_cualitativaWithMetodo_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "metodo_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            metodo_id,
-            id
-        }) => {
-            promises.push(super.update({
-                metodo_id: metodo_id
-            }, {
-                where: {
-                    id: id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-    /**
-     * bulkDisAssociateCaracteristica_cualitativaWithRegistro_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateCaracteristica_cualitativaWithRegistro_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "registro_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            registro_id,
-            id
-        }) => {
-            promises.push(super.update({
-                registro_id: null
-            }, {
-                where: {
-                    id: id,
-                    registro_id: registro_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-    /**
-     * bulkDisAssociateCaracteristica_cualitativaWithMetodo_id - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateCaracteristica_cualitativaWithMetodo_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "id", "metodo_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            metodo_id,
-            id
-        }) => {
-            promises.push(super.update({
-                metodo_id: null
-            }, {
-                where: {
-                    id: id,
-                    metodo_id: metodo_id
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
     /**
@@ -505,7 +368,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return caracteristica_cualitativa.definition.id.name;
+        return referencia.definition.id.name;
     }
 
     /**
@@ -514,16 +377,16 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return caracteristica_cualitativa.definition.id.type;
+        return referencia.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of caracteristica_cualitativa.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of referencia.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[caracteristica_cualitativa.idAttribute()]
+        return this[referencia.idAttribute()]
     }
 
     static get definition() {
@@ -539,8 +402,7 @@ module.exports = class caracteristica_cualitativa extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(caracteristica_cualitativa.definition.attributes);
-        attributes.push('id');
+        let attributes = Object.keys(referencia.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

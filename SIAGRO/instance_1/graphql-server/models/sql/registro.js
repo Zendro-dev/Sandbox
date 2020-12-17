@@ -19,28 +19,50 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'metodo',
+    model: 'registro',
     storageType: 'sql',
     attributes: {
-        id: 'String',
-        descripcion: 'String',
-        referencias: '[String]',
-        link_referencias: '[String]'
+        conabio_id: 'String',
+        clave_original: 'String',
+        tipo_alimento: 'String',
+        food_type: 'String',
+        descripcion_alimento: 'String',
+        food_description: 'String',
+        procedencia: 'String',
+        taxon_id: 'String',
+        referencias_ids: '[ String ]'
     },
     associations: {
+        informacion_taxonomica: {
+            type: 'to_one',
+            target: 'Taxon',
+            targetKey: 'taxon_id',
+            keyIn: 'registro',
+            targetStorageType: 'generic',
+            label: 'taxon'
+        },
         caracteristicas_cuantitativas: {
             type: 'to_many',
-            targetStorageType: 'sql',
             target: 'caracteristica_cuantitativa',
-            targetKey: 'metodo_id',
+            targetKey: 'registro_id',
             keyIn: 'caracteristica_cuantitativa',
-            label: 'nombre_corto',
-            sublabel: 'valor'
+            targetStorageType: 'sql',
+            label: 'nombre_corto'
+        },
+        referencias: {
+            type: 'to_many',
+            target: 'referencia',
+            targetKey: 'registros_ids',
+            keyIn: 'referencia',
+            targetStorageType: 'sql',
+            label: 'referencia',
+            sourceKey: 'referencias_ids',
+            reverseAssociationType: 'to_many'
         }
     },
-    internalId: 'id',
+    internalId: 'conabio_id',
     id: {
-        name: 'id',
+        name: 'conabio_id',
         type: 'String'
     }
 };
@@ -53,31 +75,45 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class metodo extends Sequelize.Model {
+module.exports = class registro extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            id: {
+            conabio_id: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            descripcion: {
+            clave_original: {
                 type: Sequelize[dict['String']]
             },
-            referencias: {
-                type: Sequelize[dict['[String]']],
-                defaultValue: '[]'
+            tipo_alimento: {
+                type: Sequelize[dict['String']]
             },
-            link_referencias: {
+            food_type: {
+                type: Sequelize[dict['String']]
+            },
+            descripcion_alimento: {
+                type: Sequelize[dict['String']]
+            },
+            food_description: {
+                type: Sequelize[dict['String']]
+            },
+            procedencia: {
+                type: Sequelize[dict['String']]
+            },
+            taxon_id: {
+                type: Sequelize[dict['String']]
+            },
+            referencias_ids: {
                 type: Sequelize[dict['[String]']],
                 defaultValue: '[]'
             }
 
 
         }, {
-            modelName: "metodo",
-            tableName: "metodos",
+            modelName: "registro",
+            tableName: "registros",
             sequelize
         });
     }
@@ -121,24 +157,24 @@ module.exports = class metodo extends Sequelize.Model {
     }
 
     static associate(models) {
-        metodo.hasMany(models.caracteristica_cuantitativa, {
+        registro.hasMany(models.caracteristica_cuantitativa, {
             as: 'caracteristicas_cuantitativas',
-            foreignKey: 'metodo_id'
+            foreignKey: 'registro_id'
         });
     }
 
     static async readById(id) {
-        let item = await metodo.findByPk(id);
+        let item = await registro.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        item = metodo.postReadCast(item)
+        item = registro.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, metodo.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, registro.definition.attributes);
         return super.count(options);
     }
 
@@ -146,9 +182,9 @@ module.exports = class metodo extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), metodo.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), registro.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => metodo.postReadCast(x))
+        records = records.map(x => registro.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -158,10 +194,10 @@ module.exports = class metodo extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), metodo.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), registro.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => metodo.postReadCast(x))
+        records = records.map(x => registro.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -172,7 +208,7 @@ module.exports = class metodo extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), metodo.definition.attributes);
+            }, this.idAttribute(), registro.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -187,7 +223,7 @@ module.exports = class metodo extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = metodo.preWriteCast(input)
+        input = registro.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -195,8 +231,8 @@ module.exports = class metodo extends Sequelize.Model {
                 });
                 return item;
             });
-            metodo.postReadCast(result.dataValues)
-            metodo.postReadCast(result._previousDataValues)
+            registro.postReadCast(result.dataValues)
+            registro.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -222,7 +258,7 @@ module.exports = class metodo extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = metodo.preWriteCast(input)
+        input = registro.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -235,8 +271,8 @@ module.exports = class metodo extends Sequelize.Model {
                 });
                 return updated;
             });
-            metodo.postReadCast(result.dataValues)
-            metodo.postReadCast(result._previousDataValues)
+            registro.postReadCast(result.dataValues)
+            registro.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -294,7 +330,7 @@ module.exports = class metodo extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of metodo records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of registro records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -312,13 +348,147 @@ module.exports = class metodo extends Sequelize.Model {
 
 
 
+    /**
+     * add_taxon_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   conabio_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_taxon_id(conabio_id, taxon_id) {
+        let updated = await registro.update({
+            taxon_id: taxon_id
+        }, {
+            where: {
+                conabio_id: conabio_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * add_referencias_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   conabio_id   IdAttribute of the root model to be updated
+     * @param {Array}   referencias_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_referencias_ids(conabio_id, referencias_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            referencias_ids.forEach(idx => {
+                promises.push(models.referencia.add_registros_ids(idx, [`${conabio_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(conabio_id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.referencias_ids), referencias_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                referencias_ids: updated_ids
+            });
+        }
+    }
+
+    /**
+     * remove_taxon_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   conabio_id   IdAttribute of the root model to be updated
+     * @param {Id}   taxon_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_taxon_id(conabio_id, taxon_id) {
+        let updated = await registro.update({
+            taxon_id: null
+        }, {
+            where: {
+                conabio_id: conabio_id,
+                taxon_id: taxon_id
+            }
+        });
+        return updated;
+    }
+    /**
+     * remove_referencias_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   conabio_id   IdAttribute of the root model to be updated
+     * @param {Array}   referencias_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_referencias_ids(conabio_id, referencias_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            referencias_ids.forEach(idx => {
+                promises.push(models.referencia.remove_registros_ids(idx, [`${conabio_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(conabio_id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.referencias_ids), referencias_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                referencias_ids: updated_ids
+            });
+        }
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateRegistroWithTaxon_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateRegistroWithTaxon_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "conabio_id", "taxon_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            taxon_id,
+            conabio_id
+        }) => {
+            promises.push(super.update({
+                taxon_id: taxon_id
+            }, {
+                where: {
+                    conabio_id: conabio_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
-
+    /**
+     * bulkDisAssociateRegistroWithTaxon_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateRegistroWithTaxon_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "conabio_id", "taxon_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            taxon_id,
+            conabio_id
+        }) => {
+            promises.push(super.update({
+                taxon_id: null
+            }, {
+                where: {
+                    conabio_id: conabio_id,
+                    taxon_id: taxon_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
     /**
@@ -327,7 +497,7 @@ module.exports = class metodo extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return metodo.definition.id.name;
+        return registro.definition.id.name;
     }
 
     /**
@@ -336,16 +506,16 @@ module.exports = class metodo extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return metodo.definition.id.type;
+        return registro.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of metodo.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of registro.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[metodo.idAttribute()]
+        return this[registro.idAttribute()]
     }
 
     static get definition() {
@@ -361,7 +531,7 @@ module.exports = class metodo extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(metodo.definition.attributes);
+        let attributes = Object.keys(registro.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

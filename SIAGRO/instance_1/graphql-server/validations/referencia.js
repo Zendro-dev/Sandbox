@@ -6,46 +6,43 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(metodo) {
+module.exports.validator_patch = function(referencia) {
 
-    metodo.prototype.validationControl = {
+    referencia.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    metodo.prototype.validatorSchema = {
+    referencia.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "id": {
+            "referencia_id": {
                 "type": ["string", "null"]
             },
-            "descripcion": {
+            "referencia": {
                 "type": ["string", "null"]
             },
-            "referencias": {
-                "type": ["array", "string" ,"null"]
-            },
-            "link_referencias": {
+            "registros_ids": {
                 "type": ["array", "string" ,"null"]
             }
         }
     }
 
-    metodo.prototype.asyncValidate = ajv.compile(
-        metodo.prototype.validatorSchema
+    referencia.prototype.asyncValidate = ajv.compile(
+        referencia.prototype.validatorSchema
     )
 
-    metodo.prototype.validateForCreate = async function(record) {
-        return await metodo.prototype.asyncValidate(record)
+    referencia.prototype.validateForCreate = async function(record) {
+        return await referencia.prototype.asyncValidate(record)
     }
 
-    metodo.prototype.validateForUpdate = async function(record) {
-        return await metodo.prototype.asyncValidate(record)
+    referencia.prototype.validateForUpdate = async function(record) {
+        return await referencia.prototype.asyncValidate(record)
     }
 
-    metodo.prototype.validateForDelete = async function(id) {
+    referencia.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -56,9 +53,9 @@ module.exports.validator_patch = function(metodo) {
         }
     }
 
-    metodo.prototype.validateAfterRead = async function(record) {
-        return await metodo.prototype.asyncValidate(record)
+    referencia.prototype.validateAfterRead = async function(record) {
+        return await referencia.prototype.asyncValidate(record)
     }
 
-    return metodo
+    return referencia
 }

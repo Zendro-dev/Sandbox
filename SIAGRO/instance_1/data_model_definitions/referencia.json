@@ -1,0 +1,24 @@
+{
+	"model": "referencia",
+	"storageType": "sql",
+	"attributes": {
+		"referencia_id": "String",
+		"referencia": "String",
+		"registros_ids": "[ String ]"
+	},
+
+	"associations": {
+		"alimentos": {
+			"type": "to_many",
+			"target": "registro",
+			"targetKey": "referencias_ids",
+			"keyIn": "registro",
+			"targetStorageType": "sql",
+			"label": "descripcion_alimento",
+			"sourceKey": "registros_ids",
+			"reverseAssociationType": "to_many"
+		}
+	},
+
+	"internalId": "referencia_id"
+}

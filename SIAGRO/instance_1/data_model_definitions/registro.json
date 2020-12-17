@@ -1,0 +1,48 @@
+{
+	"model": "registro",
+	"storageType": "sql",
+	"attributes": {
+		"conabio_id": "String",
+		"clave_original": "String",
+		"tipo_alimento": "String",
+		"food_type": "String",
+		"descripcion_alimento": "String",
+		"food_description": "String",
+		"procedencia": "String",
+		"taxon_id": "String",
+		"referencias_ids": "[ String ]"
+	},
+
+	"associations": {
+		"informacion_taxonomica": {
+			"type": "to_one",
+			"target": "Taxon",
+			"targetKey": "taxon_id",
+			"keyIn": "registro",
+			"targetStorageType": "generic",
+			"label": "taxon"
+		},
+
+		"caracteristicas_cuantitativas": { 
+			"type": "to_many",
+			"target": "caracteristica_cuantitativa",
+			"targetKey": "registro_id",
+			"keyIn": "caracteristica_cuantitativa",
+			"targetStorageType": "sql",
+			"label": "nombre_corto"
+		},
+
+		"referencias": {
+			"type": "to_many",
+			"target": "referencia",
+			"targetKey": "registros_ids",
+			"keyIn": "referencia",
+			"targetStorageType": "sql",
+			"label": "referencia",
+			"sourceKey": "referencias_ids",
+			"reverseAssociationType": "to_many"
+			}
+	},
+
+	"internalId": "conabio_id"
+}

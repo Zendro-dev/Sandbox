@@ -39,22 +39,6 @@ module.exports = `
     """
     countFilteredCaracteristicas_cuantitativas(search: searchCaracteristica_cuantitativaInput) : Int
   
-    """
-    @search-request
-    """
-    caracteristicas_cualitativasFilter(search: searchCaracteristica_cualitativaInput, order: [ orderCaracteristica_cualitativaInput ], pagination: paginationInput!): [caracteristica_cualitativa]
-
-
-    """
-    @search-request
-    """
-    caracteristicas_cualitativasConnection(search: searchCaracteristica_cualitativaInput, order: [ orderCaracteristica_cualitativaInput ], pagination: paginationCursorInput!): Caracteristica_cualitativaConnection
-
-    """
-    @count-request
-    """
-    countFilteredCaracteristicas_cualitativas(search: searchCaracteristica_cualitativaInput) : Int
-  
     }
 type MetodoConnection{
   edges: [MetodoEdge]
@@ -107,8 +91,8 @@ type MetodoEdge{
   }
 
   type Mutation {
-    addMetodo(id: ID!, descripcion: String, referencias: [String], link_referencias: [String]   , addCaracteristicas_cuantitativas:[ID], addCaracteristicas_cualitativas:[ID] , skipAssociationsExistenceChecks:Boolean = false): metodo!
-    updateMetodo(id: ID!, descripcion: String, referencias: [String], link_referencias: [String]   , addCaracteristicas_cuantitativas:[ID], removeCaracteristicas_cuantitativas:[ID] , addCaracteristicas_cualitativas:[ID], removeCaracteristicas_cualitativas:[ID]  , skipAssociationsExistenceChecks:Boolean = false): metodo!
+    addMetodo(id: ID!, descripcion: String, referencias: [String], link_referencias: [String]   , addCaracteristicas_cuantitativas:[ID] , skipAssociationsExistenceChecks:Boolean = false): metodo!
+    updateMetodo(id: ID!, descripcion: String, referencias: [String], link_referencias: [String]   , addCaracteristicas_cuantitativas:[ID], removeCaracteristicas_cuantitativas:[ID]  , skipAssociationsExistenceChecks:Boolean = false): metodo!
     deleteMetodo(id: ID!): String!
     bulkAddMetodoCsv: String!
       }

@@ -26,9 +26,13 @@ const definition = {
         bibliografia: '[String]'
     },
     associations: {
-        ejemplares: {
-            type: 'generic_to_many',
-            target: 'Ejemplar'
+        alimentos: {
+            type: 'to_many',
+            target: 'registro',
+            targetKey: 'taxon_id',
+            keyIn: 'registro',
+            targetStorageType: 'sql',
+            label: 'descripcion_alimento'
         }
     },
     internalId: 'id',
@@ -365,123 +369,11 @@ module.exports = class Taxon {
     }
 
 
-    /**
-     * ejemplaresFilterImpl - Return certain number, specified in pagination argument, 
-     * of records associated with the current instance, this records should also holds the condition of search
-     * argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search      Search argument for filtering associated records.
-     * @param  {array} order        Type of sorting (ASC, DESC) for each field.
-     * @param  {object} pagination  Offset and limit to get the records from and to respectively.
-     * @param  {object} context     Provided to every resolver holds contextual information like the
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {array}    Array of associated records holding conditions specified by search, order and 
-     * pagination argument.
-     */
-    async ejemplaresFilterImpl({
-        search,
-        order,
-        pagination
-    }, context, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('ejemplaresFilterImpl() is not implemented');
-    }
-
-    /**
-     * ejemplaresConnectionImpl - Return certain number, specified in pagination argument, 
-     * of records associated with the current instance, this records should also holds the condition of search 
-     * argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search      Search argument for filtering associated records.
-     * @param  {array} order        Type of sorting (ASC, DESC) for each field.
-     * @param  {object} pagination  Cursor and first (indicatig the number of records to retrieve) 
-     * arguments to apply cursor-based pagination.
-     * @param  {object} context     Provided to every resolver holds contextual information like the 
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {array}    Array of records as grapqhql connections holding conditions specified by search, 
-     * order and pagination argument.
-     */
-    async ejemplaresConnectionImpl({
-        search,
-        order,
-        pagination
-    }, context, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('ejemplaresConnectionImpl() is not implemented');
-    }
-
-    /**
-     * countFilteredEjemplaresImpl - Count number of associated records that
-     * holds the conditions specified in the search argument.
-     *
-     * @param  {object} {search}    Search argument for filtering associated records.
-     * @param  {object} context     Provided to every resolver holds contextual information like the 
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {type}   Number of associated records that holds the conditions specified in the search
-     * argument.
-     */
-    async countFilteredEjemplaresImpl({
-        search
-    }, context, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('countFilteredEjemplaresImpl() is not implemented');
-    }
 
 
 
 
-    /**
-     * add_ejemplaresImpl - field Mutation (model-layer) for add new ejemplares associations (generic_to_many). 
-     *
-     * @param {Object}  taxon_input Object with all the current attributes of the Taxon model record to be updated,
-     *                  including info of input ids to add as association.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     */
-    static async add_ejemplaresImpl(taxon_input, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('add_ejemplaresImpl() is not implemented for model Taxon');
-    }
 
-
-    /**
-     * remove_ejemplaresImpl - field Mutation (model-layer) for remove new ejemplares associations (generic_to_many). 
-     *
-     * @param {Object}  taxon_input Object with all the current attributes of the Taxon model record to be updated,
-     *                  including info of input ids to remove as association.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     */
-    static async remove_ejemplaresImpl(taxon_input, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('remove_ejemplaresImpl() is not implemented for model Taxon');
-    }
 
 
 

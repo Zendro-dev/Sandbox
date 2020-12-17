@@ -22,9 +22,13 @@
   },
 
   "associations": {
-    "ejemplares" : {
-      "type": "generic_to_many",
-      "target": "Ejemplar"
+    "alimentos" : {
+      "type": "to_many",
+      "target": "registro",
+      "targetKey": "taxon_id",
+      "keyIn": "registro",
+      "targetStorageType": "sql",
+      "label": "descripcion_alimento"
     }
   },
   

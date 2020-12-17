@@ -6,6 +6,7 @@ const errorHelper = require('../../utils/errors');
 const path = require('path');
 const models = require(path.join(__dirname, '..', 'index.js'));
 
+
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'Taxon',
@@ -30,9 +31,13 @@ const definition = {
         bibliografia: '[String]'
     },
     associations: {
-        ejemplares: {
-            type: 'generic_to_many',
-            target: 'Ejemplar'
+        alimentos: {
+            type: 'to_many',
+            target: 'registro',
+            targetKey: 'taxon_id',
+            keyIn: 'registro',
+            targetStorageType: 'sql',
+            label: 'descripcion_alimento'
         }
     },
     internalId: 'id',
@@ -399,242 +404,11 @@ module.exports = class Taxon {
     }
 
 
-    /**
-     * ejemplaresFilterImpl - Return certain number, specified in pagination argument, 
-     * of records associated with the current instance, this records should also holds the condition of search
-     * argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search      Search argument for filtering associated records.
-     * @param  {array} order        Type of sorting (ASC, DESC) for each field.
-     * @param  {object} pagination  Offset and limit to get the records from and to respectively.
-     * @param  {object} context     Provided to every resolver holds contextual information like the
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {array}    Array of associated records holding conditions specified by search, order and 
-     * pagination argument.
-     */
-    async ejemplaresFilterImpl({
-        search,
-        order,
-        pagination
-    }, context, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('ejemplaresFilterImpl() is not implemented');
-    }
-
-    /**
-     * ejemplaresConnectionImpl - Return certain number, specified in pagination argument, 
-     * of records associated with the current instance, this records should also holds the condition of search 
-     * argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search      Search argument for filtering associated records.
-     * @param  {array} order        Type of sorting (ASC, DESC) for each field.
-     * @param  {object} pagination  Cursor and first (indicatig the number of records to retrieve) 
-     * arguments to apply cursor-based pagination.
-     * @param  {object} context     Provided to every resolver holds contextual information like the 
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {array}    Array of records as grapqhql connections holding conditions specified by search, 
-     * order and pagination argument.
-     */
-    async ejemplaresConnectionImpl({
-        search,
-        order,
-        pagination
-    }, context, benignErrorReporter) {
-        let first = pagination.first;
-        let after = pagination.after ? `after: ${pagination.after}`: "";
-
-        let taxon_id = this.getIdValue();
-        let query = ` query taxon { taxon(id:"${taxon_id}" ){
-                ejemplares(first: ${first} ${after}){
-                    edges{
-                        node{
-                            id,
-                            region,
-                            localidad,
-                            longitud,
-                            latitud,
-                            datum,
-                            validacionambiente,
-                            geovalidacion,
-                            paismapa,
-                            estadomapa,
-                            claveestadomapa,
-                            mt24nombreestadomapa,
-                            mt24claveestadomapa,
-                            municipiomapa,
-                            clavemunicipiomapa,
-                            mt24nombremunicipiomapa,
-                            mt24clavemunicipiomapa,
-                            incertidumbrexy,
-                            altitudmapa,
-                            usvserieI,
-                            usvserieII,
-                            usvserieIII,
-                            usvserieIV,
-                            usvserieV,
-                            usvserieVI,
-                            anp,
-                            grupobio,
-                            subgrupobio,
-                            taxon,
-                            autor,
-                            estatustax,
-                            reftax,
-                            taxonvalido,
-                            autorvalido,
-                            reftaxvalido,
-                            taxonvalidado,
-                            endemismo,
-                            taxonextinto,
-                            ambiente,
-                            nombrecomun,
-                            formadecrecimiento,
-                            prioritaria,
-                            nivelprioridad,
-                            exoticainvasora,
-                            nom059,
-                            cites,
-                            iucn,
-                            categoriaresidenciaaves,
-                            probablelocnodecampo,
-                            obsusoinfo,
-                            coleccion,
-                            institucion,
-                            paiscoleccion,
-                            numcatalogo,
-                            numcolecta,
-                            procedenciaejemplar,
-                            determinador,
-                            aniodeterminacion,
-                            mesdeterminacion,
-                            diadeterminacion,
-                            fechadeterminacion,
-                            calificadordeterminacion,
-                            colector,
-                            aniocolecta,
-                            mescolecta,
-                            diacolecta,
-                            fechacolecta,
-                            tipo,
-                            ejemplarfosil,
-                            proyecto,
-                            fuente,
-                            formadecitar,
-                            licenciauso,
-                            urlproyecto,
-                            urlorigen,
-                            urlejemplar,
-                            ultimafechaactualizacion,
-                            cuarentena,
-                            version,
-                            especie,
-                            especievalida,
-                            especievalidabusqueda
-                        }
-                        cursor
-                    }
-                    pageInfo{
-                        hasNextPage
-                        endCursor
-                    }
-                }
-
-            } 
-        } `
-
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post("http://172.16.1.169:4003/graphql/", { query: query });
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                let response_connection = response.data.data.taxon.ejemplares;
-                response_connection.edges.forEach(element => {
-                    element.node = new models.ejemplar(element.node);
-                });
-	    	response_connection.pageInfo["hasPreviousPage"] = false;
-            return response_connection;
-            } else {
-            throw new Error(`Invalid response from remote cenz-server: Zacatuche`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, "http://zacatuche.conabio.gob.mx:4000/graphql");
-        }
-    }
-
-    /**
-     * countFilteredEjemplaresImpl - Count number of associated records that
-     * holds the conditions specified in the search argument.
-     *
-     * @param  {object} {search}    Search argument for filtering associated records.
-     * @param  {object} context     Provided to every resolver holds contextual information like the 
-     * resquest query and user info.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     * @return {type}   Number of associated records that holds the conditions specified in the search
-     * argument.
-     */
-    async countFilteredEjemplaresImpl({
-        search
-    }, context, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('countFilteredEjemplaresImpl() is not implemented');
-    }
 
 
 
 
-    /**
-     * add_ejemplaresImpl - field Mutation (model-layer) for add new ejemplares associations (generic_to_many). 
-     *
-     * @param {Object}  taxon_input Object with all the current attributes of the Taxon model record to be updated,
-     *                  including info of input ids to add as association.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     */
-    static async add_ejemplaresImpl(taxon_input, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('add_ejemplaresImpl() is not implemented for model Taxon');
-    }
 
-
-    /**
-     * remove_ejemplaresImpl - field Mutation (model-layer) for remove new ejemplares associations (generic_to_many). 
-     *
-     * @param {Object}  taxon_input Object with all the current attributes of the Taxon model record to be updated,
-     *                  including info of input ids to remove as association.
-     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard 
-     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
-     * is invoked, the server will include any so reported errors in the final response, i.e. the 
-     * GraphQL response will have a non empty errors property.
-     */
-    static async remove_ejemplaresImpl(taxon_input, benignErrorReporter) {
-        /*
-        YOUR CODE GOES HERE
-        */
-        throw new Error('remove_ejemplaresImpl() is not implemented for model Taxon');
-    }
 
 
 

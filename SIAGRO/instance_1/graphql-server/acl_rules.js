@@ -15,37 +15,6 @@ module.exports = {
 
         //models
         /**
-         * Model: caracteristica_cualitativa
-         */
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'caracteristica_cualitativa',
-                permissions: 'create'
-            }]
-        },
-        {
-            roles: 'reader',
-            allows: [{
-                resources: 'caracteristica_cualitativa',
-                permissions: 'read'
-            }]
-        },
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'caracteristica_cualitativa',
-                permissions: 'update'
-            }]
-        },
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'caracteristica_cualitativa',
-                permissions: 'delete'
-            }]
-        },
-        /**
          * Model: caracteristica_cuantitativa
          */
         {
@@ -77,37 +46,6 @@ module.exports = {
             }]
         },
         /**
-         * Model: Ejemplar
-         */
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'Ejemplar',
-                permissions: 'create'
-            }]
-        },
-        {
-            roles: 'reader',
-            allows: [{
-                resources: 'Ejemplar',
-                permissions: 'read'
-            }]
-        },
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'Ejemplar',
-                permissions: 'update'
-            }]
-        },
-        {
-            roles: 'editor',
-            allows: [{
-                resources: 'Ejemplar',
-                permissions: 'delete'
-            }]
-        },
-        /**
          * Model: metodo
          */
         {
@@ -135,6 +73,68 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: 'metodo',
+                permissions: 'delete'
+            }]
+        },
+        /**
+         * Model: referencia
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'referencia',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'referencia',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'referencia',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'referencia',
+                permissions: 'delete'
+            }]
+        },
+        /**
+         * Model: registro
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'registro',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'registro',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'registro',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'registro',
                 permissions: 'delete'
             }]
         },

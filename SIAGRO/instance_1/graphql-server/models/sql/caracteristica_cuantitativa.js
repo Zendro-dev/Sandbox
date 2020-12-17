@@ -21,6 +21,7 @@ const errorHelper = require('../../utils/errors');
 const definition = {
     model: 'caracteristica_cuantitativa',
     storageType: 'sql',
+    database: 'default-sql',
     attributes: {
         nombre: 'String',
         valor: 'Float',
@@ -33,8 +34,8 @@ const definition = {
     associations: {
         registro: {
             type: 'to_one',
-            targetStorageType: 'generic',
-            target: 'Ejemplar',
+            targetStorageType: 'sql',
+            target: 'registro',
             targetKey: 'registro_id',
             keyIn: 'caracteristica_cuantitativa',
             label: 'nombrecomun'
@@ -135,6 +136,10 @@ module.exports = class caracteristica_cuantitativa extends Sequelize.Model {
     }
 
     static associate(models) {
+        caracteristica_cuantitativa.belongsTo(models.registro, {
+            as: 'registro',
+            foreignKey: 'registro_id'
+        });
         caracteristica_cuantitativa.belongsTo(models.metodo, {
             as: 'metodo',
             foreignKey: 'metodo_id'

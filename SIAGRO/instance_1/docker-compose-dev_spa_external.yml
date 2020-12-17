@@ -1,23 +1,23 @@
 version: "3.7"
 
 services:
- sdb_science_db_app_server_external_pgmn:
+ sdb_science_db_app_server_external_nutri:
    stdin_open: true # needed for react-scripts@3.4.1 https://github.com/facebook/create-react-app/issues/8688
    build:
      context: ./spa_external/single-page-app
      dockerfile: Dockerfile.app
    ports:
-     - 3005:3005
+     - 3003:3003
    environment:
-     - PORT=3005
-     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://siagro01.conabio.gob.mx:3004/graphql
-     - REACT_APP_ZENDRO_LOGIN_URL=http://siagro01.conabio.gob.mx:3004/login
-     - REACT_APP_ZENDRO_EXPORT_URL=http://siagro01.conabio.gob.mx:3004/export
+     - PORT=3003
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://siagro01.conabio.gob.mx:3002/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://siagro01.conabio.gob.mx:3002/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://siagro01.conabio.gob.mx:3002/export
      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
    volumes:
      - ./spa_external:/usr/Sandbox
    networks:
-     - SIAGRO_PGMN
+     - SIAGRO_NUTRI
    # Install dependencies and start single-page-app-server in development
    # mode.
    command:
@@ -28,5 +28,5 @@ services:
        npm start
 
 networks:
-  SIAGRO_PGMN:
+  SIAGRO_NUTRI:
     external: true

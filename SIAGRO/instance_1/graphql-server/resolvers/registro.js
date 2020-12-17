@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const ejemplar = require(path.join(__dirname, '..', 'models', 'index.js')).ejemplar;
+const registro = require(path.join(__dirname, '..', 'models', 'index.js')).registro;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,16 +14,53 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
+    'addInformacion_taxonomica': 'taxon',
     'addCaracteristicas_cuantitativas': 'caracteristica_cuantitativa',
-    'addCaracteristicas_cualitativas': 'caracteristica_cualitativa',
-    'addTaxon': 'taxon'
+    'addReferencias': 'referencia'
 }
 
 
 
+/**
+ * registro.prototype.informacion_taxonomica - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+registro.prototype.informacion_taxonomica = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.taxon_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneTaxon({
+                [models.taxon.idAttribute()]: this.taxon_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.taxon.idAttribute(),
+                "value": this.taxon_id,
+                "operator": "eq"
+            });
+            let found = await resolvers.taxons({
+                search: nsearch,
+                pagination: {
+                    limit: 1
+                }
+            }, context);
+            if (found) {
+                return found[0]
+            }
+            return found;
+        }
+    }
+}
 
 /**
- * ejemplar.prototype.caracteristicas_cuantitativasFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * registro.prototype.caracteristicas_cuantitativasFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -33,7 +70,7 @@ const associationArgsDef = {
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-ejemplar.prototype.caracteristicas_cuantitativasFilter = function({
+registro.prototype.caracteristicas_cuantitativasFilter = function({
     search,
     order,
     pagination
@@ -56,13 +93,13 @@ ejemplar.prototype.caracteristicas_cuantitativasFilter = function({
 }
 
 /**
- * ejemplar.prototype.countFilteredCaracteristicas_cuantitativas - Count number of associated records that holds the conditions specified in the search argument
+ * registro.prototype.countFilteredCaracteristicas_cuantitativas - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-ejemplar.prototype.countFilteredCaracteristicas_cuantitativas = function({
+registro.prototype.countFilteredCaracteristicas_cuantitativas = function({
     search
 }, context) {
 
@@ -79,7 +116,7 @@ ejemplar.prototype.countFilteredCaracteristicas_cuantitativas = function({
 }
 
 /**
- * ejemplar.prototype.caracteristicas_cuantitativasConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * registro.prototype.caracteristicas_cuantitativasConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -89,7 +126,7 @@ ejemplar.prototype.countFilteredCaracteristicas_cuantitativas = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-ejemplar.prototype.caracteristicas_cuantitativasConnection = function({
+registro.prototype.caracteristicas_cuantitativasConnection = function({
     search,
     order,
     pagination
@@ -110,7 +147,7 @@ ejemplar.prototype.caracteristicas_cuantitativasConnection = function({
     }, context);
 }
 /**
- * ejemplar.prototype.caracteristicas_cualitativasFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * registro.prototype.referenciasFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -120,22 +157,21 @@ ejemplar.prototype.caracteristicas_cuantitativasConnection = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-ejemplar.prototype.caracteristicas_cualitativasFilter = function({
+registro.prototype.referenciasFilter = function({
     search,
     order,
     pagination
 }, context) {
 
 
-    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "registro_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.referencia.idAttribute(),
+        "value": this.referencias_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-
-    return resolvers.caracteristica_cualitativas({
+    return resolvers.referencia({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -143,30 +179,31 @@ ejemplar.prototype.caracteristicas_cualitativasFilter = function({
 }
 
 /**
- * ejemplar.prototype.countFilteredCaracteristicas_cualitativas - Count number of associated records that holds the conditions specified in the search argument
+ * registro.prototype.countFilteredReferencias - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-ejemplar.prototype.countFilteredCaracteristicas_cualitativas = function({
+registro.prototype.countFilteredReferencias = function({
     search
 }, context) {
 
-    //build new search filter
+
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "registro_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.referencia.idAttribute(),
+        "value": this.referencias_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-    return resolvers.countCaracteristica_cualitativas({
+    return resolvers.countReferencia({
         search: nsearch
     }, context);
 }
 
 /**
- * ejemplar.prototype.caracteristicas_cualitativasConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * registro.prototype.referenciasConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -176,47 +213,27 @@ ejemplar.prototype.countFilteredCaracteristicas_cualitativas = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-ejemplar.prototype.caracteristicas_cualitativasConnection = function({
+registro.prototype.referenciasConnection = function({
     search,
     order,
     pagination
 }, context) {
 
 
-    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "registro_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
+        "field": models.referencia.idAttribute(),
+        "value": this.referencias_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
     });
-    return resolvers.caracteristica_cualitativasConnection({
+    return resolvers.referenciaConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
 }
 
-/**
- * ejemplar.prototype.Taxon - Return associated record
- *
- * @param  {object} search    Search argument to match the associated record.
- * @param  {object} context   Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}             Associated record.
- */
-ejemplar.prototype.Taxon = async function({
-    search
-}, context) {
-    if (await checkAuthorization(context, 'Taxon', 'read') === true) {
-        helper.checkCountAndReduceRecordsLimit(1, context, "Taxon");
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        return await this.TaxonImpl({
-            search
-        }, context, benignErrorReporter);
-    } else {
-        throw new Error("You don't have authorization to perform this action");
-    }
-}
 
 
 
@@ -226,17 +243,17 @@ ejemplar.prototype.Taxon = async function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.handleAssociations = async function(input, benignErrorReporter) {
+registro.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
     if (helper.isNonEmptyArray(input.addCaracteristicas_cuantitativas)) {
         promises_add.push(this.add_caracteristicas_cuantitativas(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addCaracteristicas_cualitativas)) {
-        promises_add.push(this.add_caracteristicas_cualitativas(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addReferencias)) {
+        promises_add.push(this.add_referencias(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addTaxon)) {
-        promises_add.push(this.add_taxon(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addInformacion_taxonomica)) {
+        promises_add.push(this.add_informacion_taxonomica(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
@@ -244,11 +261,11 @@ ejemplar.prototype.handleAssociations = async function(input, benignErrorReporte
     if (helper.isNonEmptyArray(input.removeCaracteristicas_cuantitativas)) {
         promises_remove.push(this.remove_caracteristicas_cuantitativas(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeCaracteristicas_cualitativas)) {
-        promises_remove.push(this.remove_caracteristicas_cualitativas(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeReferencias)) {
+        promises_remove.push(this.remove_referencias(input, benignErrorReporter));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeTaxon)) {
-        promises_remove.push(this.remove_taxon(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeInformacion_taxonomica)) {
+        promises_remove.push(this.remove_informacion_taxonomica(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -261,7 +278,7 @@ ejemplar.prototype.handleAssociations = async function(input, benignErrorReporte
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.add_caracteristicas_cuantitativas = async function(input, benignErrorReporter) {
+registro.prototype.add_caracteristicas_cuantitativas = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.addCaracteristicas_cuantitativas.map(associatedRecordId => {
         return {
@@ -273,32 +290,27 @@ ejemplar.prototype.add_caracteristicas_cuantitativas = async function(input, ben
 }
 
 /**
- * add_caracteristicas_cualitativas - field Mutation for to_many associations to add
+ * add_referencias - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.add_caracteristicas_cualitativas = async function(input, benignErrorReporter) {
+registro.prototype.add_referencias = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.addCaracteristicas_cualitativas.map(associatedRecordId => {
-        return {
-            registro_id: this.getIdValue(),
-            [models.caracteristica_cualitativa.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.caracteristica_cualitativa.bulkAssociateCaracteristica_cualitativaWithRegistro_id(bulkAssociationInput, benignErrorReporter);
+    await registro.add_referencias_ids(this.getIdValue(), input.addReferencias, benignErrorReporter);
+    this.referencias_ids = helper.unionIds(this.referencias_ids, input.addReferencias);
 }
 
 /**
- * add_taxon - field Mutation for generic_to_one associations to add
+ * add_informacion_taxonomica - field Mutation for to_one associations to add
  *
- * @param {object} input   Object with all the current attributes of the Ejemplar model record to be updated,
- *                         including info of input id to add as association.
+ * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.add_taxon = async function(input, benignErrorReporter) {
-    await ejemplar.add_taxonImpl(input, benignErrorReporter);
+registro.prototype.add_informacion_taxonomica = async function(input, benignErrorReporter) {
+    await registro.add_taxon_id(this.getIdValue(), input.addInformacion_taxonomica, benignErrorReporter);
+    this.taxon_id = input.addInformacion_taxonomica;
 }
 
 /**
@@ -308,7 +320,7 @@ ejemplar.prototype.add_taxon = async function(input, benignErrorReporter) {
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.remove_caracteristicas_cuantitativas = async function(input, benignErrorReporter) {
+registro.prototype.remove_caracteristicas_cuantitativas = async function(input, benignErrorReporter) {
 
     let bulkAssociationInput = input.removeCaracteristicas_cuantitativas.map(associatedRecordId => {
         return {
@@ -320,32 +332,29 @@ ejemplar.prototype.remove_caracteristicas_cuantitativas = async function(input, 
 }
 
 /**
- * remove_caracteristicas_cualitativas - field Mutation for to_many associations to remove
+ * remove_referencias - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.remove_caracteristicas_cualitativas = async function(input, benignErrorReporter) {
+registro.prototype.remove_referencias = async function(input, benignErrorReporter) {
 
-    let bulkAssociationInput = input.removeCaracteristicas_cualitativas.map(associatedRecordId => {
-        return {
-            registro_id: this.getIdValue(),
-            [models.caracteristica_cualitativa.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.caracteristica_cualitativa.bulkDisAssociateCaracteristica_cualitativaWithRegistro_id(bulkAssociationInput, benignErrorReporter);
+    await registro.remove_referencias_ids(this.getIdValue(), input.removeReferencias, benignErrorReporter);
+    this.referencias_ids = helper.differenceIds(this.referencias_ids, input.removeReferencias);
 }
 
 /**
- * remove_taxon - field Mutation for generic_to_one associations to remove
+ * remove_informacion_taxonomica - field Mutation for to_one associations to remove
  *
- * @param {object} input   Object with all the current attributes of the Ejemplar model record to be updated,
- *                         including info of input id to remove as association.
+ * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-ejemplar.prototype.remove_taxon = async function(input, benignErrorReporter) {
-    await ejemplar.remove_taxonImpl(input, benignErrorReporter);
+registro.prototype.remove_informacion_taxonomica = async function(input, benignErrorReporter) {
+    if (input.removeInformacion_taxonomica == this.taxon_id) {
+        await registro.remove_taxon_id(this.getIdValue(), input.removeInformacion_taxonomica, benignErrorReporter);
+        this.taxon_id = null;
+    }
 }
 
 
@@ -359,28 +368,25 @@ ejemplar.prototype.remove_taxon = async function(input, benignErrorReporter) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let ejemplar = await resolvers.readOneEjemplar({
-        id: id
+    let registro = await resolvers.readOneRegistro({
+        conabio_id: id
     }, context);
     //check that record actually exists
-    if (ejemplar === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (registro === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
-    let promises_generic_to_one = [];
 
-    promises_to_many.push(ejemplar.countFilteredCaracteristicas_cuantitativas({}, context));
-    promises_to_many.push(ejemplar.countFilteredCaracteristicas_cualitativas({}, context));
-    promises_generic_to_one.push(ejemplar.Taxon({}, context));
+    promises_to_many.push(registro.countFilteredCaracteristicas_cuantitativas({}, context));
+    promises_to_many.push(registro.countFilteredReferencias({}, context));
+    promises_to_one.push(registro.informacion_taxonomica({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
-    let result_generic_to_one = await Promise.all(promises_generic_to_one);
 
     let get_to_many_associated = result_to_many.reduce((accumulator, current_val) => accumulator + current_val, 0);
     let get_to_one_associated = result_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
-    let get_generic_to_one_associated = result_generic_to_one.filter((r, index) => helper.isNotUndefinedAndNotNull(r)).length;
 
-    return get_to_one_associated + get_to_many_associated + get_generic_to_one_associated;
+    return get_to_one_associated + get_to_many_associated;
 }
 
 /**
@@ -392,14 +398,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`Ejemplar with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`registro with conabio_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * ejemplars - Check user authorization and return certain number, specified in pagination argument, of records that
+     * registros - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -408,22 +414,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    ejemplars: async function({
+    registros: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "ejemplars");
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "registros");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ejemplar.readAll(search, order, pagination, benignErrorReporter);
+            return await registro.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * ejemplarsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * registrosConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -432,76 +438,76 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    ejemplarsConnection: async function({
+    registrosConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "ejemplarsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "registrosConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ejemplar.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await registro.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneEjemplar - Check user authorization and return one record with the specified id in the id argument.
+     * readOneRegistro - Check user authorization and return one record with the specified conabio_id in the conabio_id argument.
      *
-     * @param  {number} {id}    id of the record to retrieve
+     * @param  {number} {conabio_id}    conabio_id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with id requested
+     * @return {object}         Record with conabio_id requested
      */
-    readOneEjemplar: async function({
-        id
+    readOneRegistro: async function({
+        conabio_id
     }, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneEjemplar");
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneRegistro");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ejemplar.readById(id, benignErrorReporter);
+            return await registro.readById(conabio_id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countEjemplars - Counts number of records that holds the conditions specified in the search argument
+     * countRegistros - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countEjemplars: async function({
+    countRegistros: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await ejemplar.countRecords(search, benignErrorReporter);
+            return await registro.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableEjemplar - Return table of records as needed for displaying a vuejs table
+     * vueTableRegistro - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableEjemplar: async function(_, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
-            return helper.vueTable(context.request, ejemplar, ["id", "id", "region", "localidad", "datum", "validacionambiente", "geovalidacion", "paismapa", "estadomapa", "claveestadomapa", "mt24nombreestadomapa", "mt24claveestadomapa", "municipiomapa", "clavemunicipiomapa", "mt24nombremunicipiomapa", "mt24clavemunicipiomapa", "incertidumbrexy", "altitudmapa", "usvserieI", "usvserieII", "usvserieIII", "usvserieIV", "usvserieV", "usvserieVI", "anp", "grupobio", "subgrupobio", "taxon", "autor", "estatustax", "reftax", "taxonvalido", "autorvalido", "reftaxvalido", "taxonvalidado", "endemismo", "taxonextinto", "ambiente", "nombrecomun", "formadecrecimiento", "prioritaria", "nivelprioridad", "exoticainvasora", "nom059", "cites", "iucn", "categoriaresidenciaaves", "probablelocnodecampo", "obsusoinfo", "coleccion", "institucion", "paiscoleccion", "numcatalogo", "numcolecta", "procedenciaejemplar", "determinador", "aniodeterminacion", "mesdeterminacion", "diadeterminacion", "fechadeterminacion", "calificadordeterminacion", "colector", "aniocolecta", "mescolecta", "diacolecta", "fechacolecta", "tipo", "ejemplarfosil", "proyecto", "fuente", "formadecitar", "licenciauso", "urlproyecto", "urlorigen", "urlejemplar", "ultimafechaactualizacion", "cuarentena", "version", "especie", "especievalida", "especievalidabusqueda"]);
+    vueTableRegistro: async function(_, context) {
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
+            return helper.vueTable(context.request, registro, ["id", "conabio_id", "clave_original", "tipo_alimento", "food_type", "descripcion_alimento", "food_description", "procedencia", "taxon_id"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addEjemplar - Check user authorization and creates a new record with data specified in the input argument.
+     * addRegistro - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -509,8 +515,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addEjemplar: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'Ejemplar', 'create');
+    addRegistro: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'registro', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -519,43 +525,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdEjemplar = await ejemplar.addOne(inputSanitized, benignErrorReporter);
-            await createdEjemplar.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdEjemplar;
+            let createdRegistro = await registro.addOne(inputSanitized, benignErrorReporter);
+            await createdRegistro.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdRegistro;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddEjemplarCsv - Load csv file of records
+     * bulkAddRegistroCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddEjemplarCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'create') === true) {
+    bulkAddRegistroCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'registro', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ejemplar.bulkAddCsv(context, benignErrorReporter);
+            return registro.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteEjemplar - Check user authorization and delete a record with the specified id in the id argument.
+     * deleteRegistro - Check user authorization and delete a record with the specified conabio_id in the conabio_id argument.
      *
-     * @param  {number} {id}    id of the record to delete
+     * @param  {number} {conabio_id}    conabio_id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteEjemplar: async function({
-        id
+    deleteRegistro: async function({
+        conabio_id
     }, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'delete') === true) {
-            if (await validForDeletion(id, context)) {
+        if (await checkAuthorization(context, 'registro', 'delete') === true) {
+            if (await validForDeletion(conabio_id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return ejemplar.deleteOne(id, benignErrorReporter);
+                return registro.deleteOne(conabio_id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -563,7 +569,7 @@ module.exports = {
     },
 
     /**
-     * updateEjemplar - Check user authorization and update the record specified in the input argument
+     * updateRegistro - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -571,8 +577,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateEjemplar: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'Ejemplar', 'update');
+    updateRegistro: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'registro', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -581,26 +587,66 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedEjemplar = await ejemplar.updateOne(inputSanitized, benignErrorReporter);
-            await updatedEjemplar.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedEjemplar;
+            let updatedRegistro = await registro.updateOne(inputSanitized, benignErrorReporter);
+            await updatedRegistro.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedRegistro;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
+    /**
+     * bulkAssociateRegistroWithTaxon_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateRegistroWithTaxon_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                taxon_id
+            }) => taxon_id)), models.taxon);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                conabio_id
+            }) => conabio_id)), registro);
+        }
+        return await registro.bulkAssociateRegistroWithTaxon_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateRegistroWithTaxon_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateRegistroWithTaxon_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                taxon_id
+            }) => taxon_id)), models.taxon);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                conabio_id
+            }) => conabio_id)), registro);
+        }
+        return await registro.bulkDisAssociateRegistroWithTaxon_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
-     * csvTableTemplateEjemplar - Returns table's template
+     * csvTableTemplateRegistro - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateEjemplar: async function(_, context) {
-        if (await checkAuthorization(context, 'Ejemplar', 'read') === true) {
+    csvTableTemplateRegistro: async function(_, context) {
+        if (await checkAuthorization(context, 'registro', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return ejemplar.csvTableTemplate(benignErrorReporter);
+            return registro.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

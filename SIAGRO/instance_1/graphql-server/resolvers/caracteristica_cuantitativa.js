@@ -14,7 +14,7 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addRegistro': 'ejemplar',
+    'addRegistro': 'registro',
     'addMetodo': 'metodo'
 }
 
@@ -33,18 +33,18 @@ caracteristica_cuantitativa.prototype.registro = async function({
 
     if (helper.isNotUndefinedAndNotNull(this.registro_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneEjemplar({
-                [models.ejemplar.idAttribute()]: this.registro_id
+            return resolvers.readOneRegistro({
+                [models.registro.idAttribute()]: this.registro_id
             }, context)
         } else {
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.ejemplar.idAttribute(),
+                "field": models.registro.idAttribute(),
                 "value": this.registro_id,
                 "operator": "eq"
             });
-            let found = await resolvers.ejemplars({
+            let found = await resolvers.registros({
                 search: nsearch,
                 pagination: {
                     limit: 1
@@ -427,7 +427,7 @@ module.exports = {
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 registro_id
-            }) => registro_id)), models.ejemplar);
+            }) => registro_id)), models.registro);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
             }) => id)), caracteristica_cuantitativa);
@@ -467,7 +467,7 @@ module.exports = {
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 registro_id
-            }) => registro_id)), models.ejemplar);
+            }) => registro_id)), models.registro);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 id
             }) => id)), caracteristica_cuantitativa);

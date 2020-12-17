@@ -1,6 +1,7 @@
 {
   "model": "caracteristica_cuantitativa",
   "storageType": "sql",
+  "database": "default-sql",
   "attributes":{
       "nombre": "String",
       "valor": "Float",
@@ -14,8 +15,8 @@
   "associations":{
     "registro" :{
       "type": "to_one",
-      "targetStorageType": "generic",
-      "target": "Ejemplar",
+      "targetStorageType": "sql",
+      "target": "registro",
       "targetKey": "registro_id",
       "keyIn": "caracteristica_cuantitativa",
       "label": "nombrecomun"
