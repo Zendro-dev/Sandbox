@@ -3,7 +3,7 @@ module.exports = `
     """
     @original-field
     """
-    spa_refactor: ID
+    int: ID
     """
     @original-field
     
@@ -15,12 +15,6 @@ module.exports = `
     
     """
     string: String
-
-    """
-    @original-field
-    
-    """
-    int: Int
 
     """
     @original-field
@@ -70,10 +64,9 @@ type SPARefactorEdge{
     to: Int
   }
   enum SPARefactorField {
-    spa_refactor
+    int
     array
     string
-    int
     float
     date
     time
@@ -96,16 +89,16 @@ type SPARefactorEdge{
 
   type Query {
     sPARefactors(search: searchSPARefactorInput, order: [ orderSPARefactorInput ], pagination: paginationInput! ): [SPARefactor]
-    readOneSPARefactor(spa_refactor: ID!): SPARefactor
+    readOneSPARefactor(int: ID!): SPARefactor
     countSPARefactors(search: searchSPARefactorInput ): Int
     vueTableSPARefactor : VueTableSPARefactor    csvTableTemplateSPARefactor: [String]
     sPARefactorsConnection(search:searchSPARefactorInput, order: [ orderSPARefactorInput ], pagination: paginationCursorInput! ): SPARefactorConnection
   }
 
   type Mutation {
-    addSPARefactor(spa_refactor: ID!, array: [Boolean], string: String, int: Int, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
-    updateSPARefactor(spa_refactor: ID!, array: [Boolean], string: String, int: Int, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
-    deleteSPARefactor(spa_refactor: ID!): String!
+    addSPARefactor(int: ID!, array: [Boolean], string: String, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
+    updateSPARefactor(int: ID!, array: [Boolean], string: String, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
+    deleteSPARefactor(int: ID!): String!
     bulkAddSPARefactorCsv: String!
       }
 `;

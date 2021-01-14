@@ -30,10 +30,10 @@ const definition = {
         time: 'Time',
         datetime: 'DateTime'
     },
-    internalId: 'spa_refactor',
+    internalId: 'int',
     id: {
-        name: 'spa_refactor',
-        type: undefined
+        name: 'int',
+        type: 'Int'
     }
 };
 
@@ -50,8 +50,8 @@ module.exports = class SPARefactor extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            spa_refactor: {
-                type: Sequelize[dict['']],
+            int: {
+                type: Sequelize[dict['Int']],
                 primaryKey: true
             },
             array: {
@@ -60,9 +60,6 @@ module.exports = class SPARefactor extends Sequelize.Model {
             },
             string: {
                 type: Sequelize[dict['String']]
-            },
-            int: {
-                type: Sequelize[dict['Int']]
             },
             float: {
                 type: Sequelize[dict['Float']]

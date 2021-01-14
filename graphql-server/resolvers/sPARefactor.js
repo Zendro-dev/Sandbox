@@ -52,7 +52,7 @@ sPARefactor.prototype.handleAssociations = async function(input, benignErrorRepo
 async function countAllAssociatedRecords(id, context) {
 
     let sPARefactor = await resolvers.readOneSPARefactor({
-        spa_refactor: id
+        int: id
     }, context);
     //check that record actually exists
     if (sPARefactor === null) throw new Error(`Record with ID = ${id} does not exist`);
@@ -78,7 +78,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`SPARefactor with spa_refactor ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`SPARefactor with int ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -135,19 +135,19 @@ module.exports = {
     },
 
     /**
-     * readOneSPARefactor - Check user authorization and return one record with the specified spa_refactor in the spa_refactor argument.
+     * readOneSPARefactor - Check user authorization and return one record with the specified int in the int argument.
      *
-     * @param  {number} {spa_refactor}    spa_refactor of the record to retrieve
+     * @param  {number} {int}    int of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with spa_refactor requested
+     * @return {object}         Record with int requested
      */
     readOneSPARefactor: async function({
-        spa_refactor
+        int
     }, context) {
         if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneSPARefactor");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sPARefactor.readById(spa_refactor, benignErrorReporter);
+            return await sPARefactor.readById(int, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -229,19 +229,19 @@ module.exports = {
     },
 
     /**
-     * deleteSPARefactor - Check user authorization and delete a record with the specified spa_refactor in the spa_refactor argument.
+     * deleteSPARefactor - Check user authorization and delete a record with the specified int in the int argument.
      *
-     * @param  {number} {spa_refactor}    spa_refactor of the record to delete
+     * @param  {number} {int}    int of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
     deleteSPARefactor: async function({
-        spa_refactor
+        int
     }, context) {
         if (await checkAuthorization(context, 'SPARefactor', 'delete') === true) {
-            if (await validForDeletion(spa_refactor, context)) {
+            if (await validForDeletion(int, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return sPARefactor.deleteOne(spa_refactor, benignErrorReporter);
+                return sPARefactor.deleteOne(int, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
