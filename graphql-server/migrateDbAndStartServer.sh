@@ -61,7 +61,7 @@ psql \
   -d zendro_development \
   -P pager=off \
   --single-transaction \
-  -f ../seedUserDb.sql
+  -f ../spa_refactor/seedUserDb.sql
 
 # Start GraphQL-server
 npm start # acl
