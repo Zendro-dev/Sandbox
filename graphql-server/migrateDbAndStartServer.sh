@@ -55,6 +55,13 @@ for object in ${DB_KEYS[@]}; do
 
 done
 
+psql \
+  -h db_postgres \
+  -U zendro -w \
+  -d zendro_development \
+  -P pager=off \
+  --single-transaction \
+  -f ../seedUserDb.sql
 
 # Start GraphQL-server
 npm start # acl
