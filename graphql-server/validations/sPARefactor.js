@@ -25,7 +25,7 @@ module.exports.validator_patch = function(sPARefactor) {
                 "type": ["string", "null"]
             },
             "int": {
-                "type": ["integer", "null"]
+                "type": ["integer", "string"]
             },
             "float": {
                 "type": ["number", "null"]
