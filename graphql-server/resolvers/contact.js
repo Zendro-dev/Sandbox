@@ -41,6 +41,10 @@ contact.prototype.studiesFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -67,6 +71,10 @@ contact.prototype.countFilteredStudies = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -97,6 +105,18 @@ contact.prototype.studiesConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -128,6 +148,10 @@ contact.prototype.investigationsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -154,6 +178,10 @@ contact.prototype.countFilteredInvestigations = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -184,6 +212,18 @@ contact.prototype.investigationsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -215,6 +255,10 @@ contact.prototype.fileAttachmentsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -241,6 +285,10 @@ contact.prototype.countFilteredFileAttachments = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -271,6 +319,18 @@ contact.prototype.fileAttachmentsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -302,6 +362,10 @@ contact.prototype.ontologyAnnotationsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -328,6 +392,10 @@ contact.prototype.countFilteredOntologyAnnotations = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -358,6 +426,18 @@ contact.prototype.ontologyAnnotationsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),

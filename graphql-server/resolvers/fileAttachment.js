@@ -44,6 +44,10 @@ fileAttachment.prototype.investigationsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -70,6 +74,10 @@ fileAttachment.prototype.countFilteredInvestigations = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -100,6 +108,18 @@ fileAttachment.prototype.investigationsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.investigation_ids) || this.investigation_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.investigation.idAttribute(),
@@ -131,6 +151,10 @@ fileAttachment.prototype.studiesFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -157,6 +181,10 @@ fileAttachment.prototype.countFilteredStudies = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -187,6 +215,18 @@ fileAttachment.prototype.studiesConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.study_ids) || this.study_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.study.idAttribute(),
@@ -218,6 +258,10 @@ fileAttachment.prototype.assaysFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assay_ids) || this.assay_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assay.idAttribute(),
@@ -244,6 +288,10 @@ fileAttachment.prototype.countFilteredAssays = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assay_ids) || this.assay_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assay.idAttribute(),
@@ -274,6 +322,18 @@ fileAttachment.prototype.assaysConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assay_ids) || this.assay_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assay.idAttribute(),
@@ -305,6 +365,10 @@ fileAttachment.prototype.assayResultsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assayResult_ids) || this.assayResult_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assayResult.idAttribute(),
@@ -331,6 +395,10 @@ fileAttachment.prototype.countFilteredAssayResults = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assayResult_ids) || this.assayResult_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assayResult.idAttribute(),
@@ -361,6 +429,18 @@ fileAttachment.prototype.assayResultsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.assayResult_ids) || this.assayResult_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.assayResult.idAttribute(),
@@ -392,6 +472,10 @@ fileAttachment.prototype.factorsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -418,6 +502,10 @@ fileAttachment.prototype.countFilteredFactors = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -448,6 +536,18 @@ fileAttachment.prototype.factorsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -479,6 +579,10 @@ fileAttachment.prototype.materialsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -505,6 +609,10 @@ fileAttachment.prototype.countFilteredMaterials = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -535,6 +643,18 @@ fileAttachment.prototype.materialsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -566,6 +686,10 @@ fileAttachment.prototype.protocolsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.protocol_ids) || this.protocol_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.protocol.idAttribute(),
@@ -592,6 +716,10 @@ fileAttachment.prototype.countFilteredProtocols = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.protocol_ids) || this.protocol_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.protocol.idAttribute(),
@@ -622,6 +750,18 @@ fileAttachment.prototype.protocolsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.protocol_ids) || this.protocol_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.protocol.idAttribute(),

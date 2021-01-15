@@ -53,63 +53,63 @@ services:
         npm install
         ./migrateDbAndStartServer.sh
 
-  sdb_science_db_app_server:
-    container_name: zendroStarterPack_spa
-    # Workaround. See https://github.com/facebook/create-react-app/issues/8688
-    stdin_open: true
-    depends_on:
-      - sdb_postgres
-      - sdb_science_db_graphql_server
-    build:
-      context: ./single-page-app
-      dockerfile: Dockerfile.app
-    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 8080:8080
-    environment:
-      - PORT=8080
-      - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
-      - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
-      - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3000/export
-      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
-    volumes:
-      - .:/usr/ScienceDbStarterPack
-    # Install dependencies and start single-page-app-server in development
-    # mode.
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npm install
-        npm run serve
+  # sdb_science_db_app_server:
+  #   container_name: zendroStarterPack_spa
+  #   # Workaround. See https://github.com/facebook/create-react-app/issues/8688
+  #   stdin_open: true
+  #   depends_on:
+  #     - sdb_postgres
+  #     - sdb_science_db_graphql_server
+  #   build:
+  #     context: ./single-page-app
+  #     dockerfile: Dockerfile.app
+  #   # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
+  #   ports:
+  #     - 8080:8080
+  #   environment:
+  #     - PORT=8080
+  #     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://localhost:3000/graphql
+  #     - REACT_APP_ZENDRO_LOGIN_URL=http://localhost:3000/login
+  #     - REACT_APP_ZENDRO_EXPORT_URL=http://localhost:3000/export
+  #     - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
+  #   volumes:
+  #     - .:/usr/ScienceDbStarterPack
+  #   # Install dependencies and start single-page-app-server in development
+  #   # mode.
+  #   command:
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       npm install
+  #       npm run serve
 
-  sdb_graphiql:
-    container_name: zendroStarterPack_graphiql-auth
-    depends_on:
-      - sdb_postgres
-      - sdb_science_db_graphql_server
-    build:
-      context: ./graphiql-auth
-      dockerfile: Dockerfile
-    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 7000:7000
-    environment:
-      - REACT_APP_SERVER_URL=http://localhost:3000/graphql
-      - REACT_APP_LOGIN_URL=http://localhost:3000/login
-      - PORT=7000
-    volumes:
-      - .:/usr/ScienceDbStarterPack
-    # Install dependencies and start single-page-app-server in development
-    # mode.
-    networks:
-      - backend
-    command:
-      - /bin/sh
-      - -c
-      - |
-        npm install
-        npm start
+  # sdb_graphiql:
+  #   container_name: zendroStarterPack_graphiql-auth
+  #   depends_on:
+  #     - sdb_postgres
+  #     - sdb_science_db_graphql_server
+  #   build:
+  #     context: ./graphiql-auth
+  #     dockerfile: Dockerfile
+  #   # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
+  #   ports:
+  #     - 7000:7000
+  #   environment:
+  #     - REACT_APP_SERVER_URL=http://localhost:3000/graphql
+  #     - REACT_APP_LOGIN_URL=http://localhost:3000/login
+  #     - PORT=7000
+  #   volumes:
+  #     - .:/usr/ScienceDbStarterPack
+  #   # Install dependencies and start single-page-app-server in development
+  #   # mode.
+  #   networks:
+  #     - backend
+  #   command:
+  #     - /bin/sh
+  #     - -c
+  #     - |
+  #       npm install
+  #       npm start
    
 
 volumes:

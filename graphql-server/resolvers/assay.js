@@ -19,7 +19,9 @@ const associationArgsDef = {
     'addFactors': 'factor',
     'addMaterials': 'material',
     'addOntologyAnnotations': 'ontologyAnnotation',
-    'addFileAttachments': 'fileAttachment'
+    'addFileAttachments': 'fileAttachment',
+    'addMeasurements': 'plant_measurement',
+    'addExpressions': 'geneExpression'
 }
 
 
@@ -48,14 +50,14 @@ assay.prototype.study = async function({
                 "value": this.study_id,
                 "operator": "eq"
             });
-            let found = await resolvers.studies({
+            let found = (await resolvers.studiesConnection({
                 search: nsearch,
                 pagination: {
-                    limit: 1
+                    first: 1
                 }
-            }, context);
-            if (found) {
-                return found[0]
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
             }
             return found;
         }
@@ -167,6 +169,10 @@ assay.prototype.factorsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -193,6 +199,10 @@ assay.prototype.countFilteredFactors = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -223,6 +233,18 @@ assay.prototype.factorsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -254,6 +276,10 @@ assay.prototype.materialsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -280,6 +306,10 @@ assay.prototype.countFilteredMaterials = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -310,6 +340,18 @@ assay.prototype.materialsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.material_ids) || this.material_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.material.idAttribute(),
@@ -341,6 +383,10 @@ assay.prototype.ontologyAnnotationsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -367,6 +413,10 @@ assay.prototype.countFilteredOntologyAnnotations = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -397,6 +447,18 @@ assay.prototype.ontologyAnnotationsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -428,6 +490,10 @@ assay.prototype.fileAttachmentsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -454,6 +520,10 @@ assay.prototype.countFilteredFileAttachments = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -484,6 +554,18 @@ assay.prototype.fileAttachmentsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -492,6 +574,214 @@ assay.prototype.fileAttachmentsConnection = function({
         "operator": "in"
     });
     return resolvers.fileAttachmentsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * assay.prototype.measurementsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+assay.prototype.measurementsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "plant_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.plant_measurements({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * assay.prototype.countFilteredMeasurements - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+assay.prototype.countFilteredMeasurements = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "plant_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countPlant_measurements({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * assay.prototype.measurementsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+assay.prototype.measurementsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "plant_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.plant_measurementsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * assay.prototype.expressionsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+assay.prototype.expressionsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "assay_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    return resolvers.geneExpressions({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+assay.prototype.results = async function({pagination, search},context){
+    
+    let nsearch_measurement = helper.addSearchField({
+        "search": search,
+        "field": "plant_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+    let plant_measurements = await resolvers.plant_measurements({search: nsearch_measurement, pagination:pagination},context);
+
+    let nsearch_expression = helper.addSearchField({
+        "search": search,
+        "field": "assay_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+
+     
+
+    let gene_expressions = await resolvers.geneExpressions({
+        search: nsearch_expression,
+        pagination: pagination
+    }, context);
+
+    console.log( "RESULTS M: ", plant_measurements );
+    console.log( "RESULTS G: ", gene_expressions);
+    let results_ = [... plant_measurements, ... gene_expressions]
+    console.log("RESULT R: ", results_)
+    
+    return results_;
+}
+
+
+/**
+ * assay.prototype.countFilteredExpressions - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+assay.prototype.countFilteredExpressions = function({
+    search
+}, context) {
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "assay_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countGeneExpressions({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * assay.prototype.expressionsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+assay.prototype.expressionsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "assay_id",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.geneExpressionsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -525,6 +815,12 @@ assay.prototype.handleAssociations = async function(input, benignErrorReporter) 
     if (helper.isNonEmptyArray(input.addFileAttachments)) {
         promises_add.push(this.add_fileAttachments(input, benignErrorReporter));
     }
+    if (helper.isNonEmptyArray(input.addMeasurements)) {
+        promises_add.push(this.add_measurements(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.addExpressions)) {
+        promises_add.push(this.add_expressions(input, benignErrorReporter));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addStudy)) {
         promises_add.push(this.add_study(input, benignErrorReporter));
     }
@@ -545,6 +841,12 @@ assay.prototype.handleAssociations = async function(input, benignErrorReporter) 
     }
     if (helper.isNonEmptyArray(input.removeFileAttachments)) {
         promises_remove.push(this.remove_fileAttachments(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeMeasurements)) {
+        promises_remove.push(this.remove_measurements(input, benignErrorReporter));
+    }
+    if (helper.isNonEmptyArray(input.removeExpressions)) {
+        promises_remove.push(this.remove_expressions(input, benignErrorReporter));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeStudy)) {
         promises_remove.push(this.remove_study(input, benignErrorReporter));
@@ -621,6 +923,42 @@ assay.prototype.add_fileAttachments = async function(input, benignErrorReporter)
 
     await assay.add_fileAttachment_ids(this.getIdValue(), input.addFileAttachments, benignErrorReporter);
     this.fileAttachment_ids = helper.unionIds(this.fileAttachment_ids, input.addFileAttachments);
+}
+
+/**
+ * add_measurements - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+assay.prototype.add_measurements = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addMeasurements.map(associatedRecordId => {
+        return {
+            plant_id: this.getIdValue(),
+            [models.plant_measurement.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.plant_measurement.bulkAssociatePlant_measurementWithPlant_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * add_expressions - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+assay.prototype.add_expressions = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.addExpressions.map(associatedRecordId => {
+        return {
+            assay_id: this.getIdValue(),
+            [models.geneExpression.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.geneExpression.bulkAssociateGeneExpressionWithAssay_id(bulkAssociationInput, benignErrorReporter);
 }
 
 /**
@@ -705,6 +1043,42 @@ assay.prototype.remove_fileAttachments = async function(input, benignErrorReport
 }
 
 /**
+ * remove_measurements - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+assay.prototype.remove_measurements = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeMeasurements.map(associatedRecordId => {
+        return {
+            plant_id: this.getIdValue(),
+            [models.plant_measurement.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.plant_measurement.bulkDisAssociatePlant_measurementWithPlant_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
+ * remove_expressions - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+assay.prototype.remove_expressions = async function(input, benignErrorReporter) {
+
+    let bulkAssociationInput = input.removeExpressions.map(associatedRecordId => {
+        return {
+            assay_id: this.getIdValue(),
+            [models.geneExpression.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.geneExpression.bulkDisAssociateGeneExpressionWithAssay_id(bulkAssociationInput, benignErrorReporter);
+}
+
+/**
  * remove_study - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
@@ -741,6 +1115,8 @@ async function countAllAssociatedRecords(id, context) {
     promises_to_many.push(assay.countFilteredMaterials({}, context));
     promises_to_many.push(assay.countFilteredOntologyAnnotations({}, context));
     promises_to_many.push(assay.countFilteredFileAttachments({}, context));
+    promises_to_many.push(assay.countFilteredMeasurements({}, context));
+    promises_to_many.push(assay.countFilteredExpressions({}, context));
     promises_to_one.push(assay.study({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);

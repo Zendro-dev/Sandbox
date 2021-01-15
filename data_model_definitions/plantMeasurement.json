@@ -1,0 +1,25 @@
+{
+    "model": "plant_measurement",
+    "storageType": "sql",
+    "attributes": {
+      "measurement_id": "String",
+      "plant_id": "String",
+      "measurement": "String",
+      "value": "String",
+      "unit": "String"
+    },
+
+    "associations": {
+        "assay": {
+          "type": "to_one",
+          "targetStorageType": "sql",
+          "target": "assay",
+          "targetKey": "plant_id",
+          "keyIn": "plant_measurement"
+        }
+    },
+
+    "internalId": "measurement_id"
+
+
+  }

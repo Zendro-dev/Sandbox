@@ -170,6 +170,37 @@ module.exports = {
             }]
         },
         /**
+         * Model: geneExpression
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'geneExpression',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'geneExpression',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'geneExpression',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'geneExpression',
+                permissions: 'delete'
+            }]
+        },
+        /**
          * Model: investigation
          */
         {
@@ -259,6 +290,37 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: 'ontologyAnnotation',
+                permissions: 'delete'
+            }]
+        },
+        /**
+         * Model: plant_measurement
+         */
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'plant_measurement',
+                permissions: 'create'
+            }]
+        },
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'plant_measurement',
+                permissions: 'read'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'plant_measurement',
+                permissions: 'update'
+            }]
+        },
+        {
+            roles: 'editor',
+            allows: [{
+                resources: 'plant_measurement',
                 permissions: 'delete'
             }]
         },

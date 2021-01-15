@@ -1,0 +1,23 @@
+{
+    "model": "geneExpression",
+    "storageType": "sql",
+    "attributes": {
+      "gene_id": "String",
+      "assay_id": "String",
+      "geneCount": "String"
+    },
+
+    "associations": {
+        "assay": {
+          "type": "to_one",
+          "targetStorageType": "sql",
+          "target": "assay",
+          "targetKey": "assay_id",
+          "keyIn": "geneExpression"
+        }
+    },
+
+    "internalId": "gene_id"
+
+
+  }

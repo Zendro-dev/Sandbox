@@ -46,14 +46,14 @@ assayResult.prototype.assay = async function({
                 "value": this.assay_id,
                 "operator": "eq"
             });
-            let found = await resolvers.assays({
+            let found = (await resolvers.assaysConnection({
                 search: nsearch,
                 pagination: {
-                    limit: 1
+                    first: 1
                 }
-            }, context);
-            if (found) {
-                return found[0]
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
             }
             return found;
         }
@@ -83,14 +83,14 @@ assayResult.prototype.observedMaterial = async function({
                 "value": this.material_id,
                 "operator": "eq"
             });
-            let found = await resolvers.materials({
+            let found = (await resolvers.materialsConnection({
                 search: nsearch,
                 pagination: {
-                    limit: 1
+                    first: 1
                 }
-            }, context);
-            if (found) {
-                return found[0]
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
             }
             return found;
         }
@@ -115,6 +115,10 @@ assayResult.prototype.fileAttachmentsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -141,6 +145,10 @@ assayResult.prototype.countFilteredFileAttachments = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -171,6 +179,18 @@ assayResult.prototype.fileAttachmentsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.fileAttachment_ids) || this.fileAttachment_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.fileAttachment.idAttribute(),
@@ -202,6 +222,10 @@ assayResult.prototype.ontologyAnnotationsFilter = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return [];
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -228,6 +252,10 @@ assayResult.prototype.countFilteredOntologyAnnotations = function({
 }, context) {
 
 
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return 0;
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),
@@ -258,6 +286,18 @@ assayResult.prototype.ontologyAnnotationsConnection = function({
 }, context) {
 
 
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.ontologyAnnotation_ids) || this.ontologyAnnotation_ids.length === 0) {
+        return {
+            edges: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.ontologyAnnotation.idAttribute(),

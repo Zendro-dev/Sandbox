@@ -89,6 +89,20 @@ const definition = {
             keyIn: 'assay',
             reverseAssociationType: 'to_many',
             label: 'fileName'
+        },
+        measurements: {
+            type: 'to_many',
+            targetStorageType: 'sql',
+            target: 'plant_measurement',
+            targetKey: 'plant_id',
+            keyIn: 'plant_measurement'
+        },
+        expressions: {
+            type: 'to_many',
+            targetStorageType: 'sql',
+            target: 'geneExpression',
+            targetKey: 'assay_id',
+            keyIn: 'geneExpression'
         }
     },
     internalId: 'assay_id',
@@ -200,6 +214,14 @@ module.exports = class assay extends Sequelize.Model {
         });
         assay.hasMany(models.assayResult, {
             as: 'assayResults',
+            foreignKey: 'assay_id'
+        });
+        assay.hasMany(models.plant_measurement, {
+            as: 'measurements',
+            foreignKey: 'plant_id'
+        });
+        assay.hasMany(models.geneExpression, {
+            as: 'expressions',
             foreignKey: 'assay_id'
         });
     }

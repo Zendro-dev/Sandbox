@@ -140,7 +140,42 @@ module.exports = `
     """
     countFilteredFileAttachments(search: searchFileAttachmentInput) : Int
   
-    }
+    """
+    @search-request
+    """
+    measurementsFilter(search: searchPlant_measurementInput, order: [ orderPlant_measurementInput ], pagination: paginationInput!): [plant_measurement]
+
+
+    """
+    @search-request
+    """
+    measurementsConnection(search: searchPlant_measurementInput, order: [ orderPlant_measurementInput ], pagination: paginationCursorInput!): Plant_measurementConnection
+
+    """
+    @count-request
+    """
+    countFilteredMeasurements(search: searchPlant_measurementInput) : Int
+  
+    """
+    @search-request
+    """
+    expressionsFilter(search: searchGeneExpressionInput, order: [ orderGeneExpressionInput ], pagination: paginationInput!): [geneExpression]
+
+
+    """
+    @search-request
+    """
+    expressionsConnection(search: searchGeneExpressionInput, order: [ orderGeneExpressionInput ], pagination: paginationCursorInput!): GeneExpressionConnection
+
+    """
+    @count-request
+    """
+    results(pagination: paginationInput!) : [ result ]
+  
+  }
+
+union result =  plant_measurement | geneExpression   
+
 type AssayConnection{
   edges: [AssayEdge]
   pageInfo: pageInfo!
@@ -201,8 +236,8 @@ type AssayEdge{
   }
 
   type Mutation {
-    addAssay(assay_id: ID!, measurement: String, technology: String, platform: String, method: String , addStudy:ID  , addAssayResults:[ID], addFactors:[ID], addMaterials:[ID], addOntologyAnnotations:[ID], addFileAttachments:[ID] , skipAssociationsExistenceChecks:Boolean = false): assay!
-    updateAssay(assay_id: ID!, measurement: String, technology: String, platform: String, method: String , addStudy:ID, removeStudy:ID   , addAssayResults:[ID], removeAssayResults:[ID] , addFactors:[ID], removeFactors:[ID] , addMaterials:[ID], removeMaterials:[ID] , addOntologyAnnotations:[ID], removeOntologyAnnotations:[ID] , addFileAttachments:[ID], removeFileAttachments:[ID]  , skipAssociationsExistenceChecks:Boolean = false): assay!
+    addAssay(assay_id: ID!, measurement: String, technology: String, platform: String, method: String , addStudy:ID  , addAssayResults:[ID], addFactors:[ID], addMaterials:[ID], addOntologyAnnotations:[ID], addFileAttachments:[ID], addMeasurements:[ID], addExpressions:[ID] , skipAssociationsExistenceChecks:Boolean = false): assay!
+    updateAssay(assay_id: ID!, measurement: String, technology: String, platform: String, method: String , addStudy:ID, removeStudy:ID   , addAssayResults:[ID], removeAssayResults:[ID] , addFactors:[ID], removeFactors:[ID] , addMaterials:[ID], removeMaterials:[ID] , addOntologyAnnotations:[ID], removeOntologyAnnotations:[ID] , addFileAttachments:[ID], removeFileAttachments:[ID] , addMeasurements:[ID], removeMeasurements:[ID] , addExpressions:[ID], removeExpressions:[ID]  , skipAssociationsExistenceChecks:Boolean = false): assay!
     deleteAssay(assay_id: ID!): String!
     bulkAddAssayCsv: String!
     bulkAssociateAssayWithStudy_id(bulkAssociationInput: [bulkAssociationAssayWithStudy_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
