@@ -210,22 +210,22 @@ export default function SPARefactorUpdatePanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.SPARefactor&&
-      lastModelChanged.SPARefactor[String(item.int)]) {
+      lastModelChanged.SPARefactor[String(item.string)]) {
 
         //updated item
-        if(lastModelChanged.SPARefactor[String(item.int)].op === "update"&&
-            lastModelChanged.SPARefactor[String(item.int)].newItem) {
+        if(lastModelChanged.SPARefactor[String(item.string)].op === "update"&&
+            lastModelChanged.SPARefactor[String(item.string)].newItem) {
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged.SPARefactor[String(item.int)].op === "delete") {
+          if(lastModelChanged.SPARefactor[String(item.string)].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, item.int]);
+  }, [lastModelChanged, lastChangeTimestamp, item.string]);
 
   useEffect(() => {
     if(deleted&&updated) {
@@ -254,6 +254,7 @@ export default function SPARefactorUpdatePanel(props) {
     initialValues.date = item.date;
     initialValues.time = item.time;
     initialValues.datetime = item.datetime;
+    initialValues.boolean = item.boolean;
 
     return initialValues;
   }
@@ -277,6 +278,7 @@ export default function SPARefactorUpdatePanel(props) {
   initialValueOkStates.date = (item.date!==null ? 1 : 0);
   initialValueOkStates.time = (item.time!==null ? 1 : 0);
   initialValueOkStates.datetime = (item.datetime!==null ? 1 : 0);
+  initialValueOkStates.boolean = (item.boolean!==null ? 1 : 0);
 
     return initialValueOkStates;
   }
@@ -291,6 +293,7 @@ export default function SPARefactorUpdatePanel(props) {
     _initialValueAjvStates.date = {errors: []};
     _initialValueAjvStates.time = {errors: []};
     _initialValueAjvStates.datetime = {errors: []};
+    _initialValueAjvStates.boolean = {errors: []};
 
     return _initialValueAjvStates;
   }
@@ -325,6 +328,7 @@ export default function SPARefactorUpdatePanel(props) {
     if(values.current.time !== null && item.time !== null && moment(values.current.time, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ") !== moment(item.time, "HH:mm:ss.SSSZ").format("HH:mm:ss.SSSZ")) { return true; }
         if((values.current.datetime === null || item.datetime === null) && item.datetime !== values.current.datetime) { return true; }
     if(values.current.datetime !== null && item.datetime !== null && !moment(values.current.datetime).isSame(item.datetime)) { return true; }
+    if(values.current.boolean !== item.boolean) { return true;}
     return false;
   }
 
@@ -444,7 +448,7 @@ function setAjvErrors(err) {
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
             newError.locations=[{model: 'SPARefactor', method: 'doSave()', request: 'api.sPARefactor.updateItem'}];
-            newError.path=['SPARefactors', `int:${item.int}`, 'update'];
+            newError.path=['SPARefactors', `string:${item.string}`, 'update'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -458,7 +462,7 @@ function setAjvErrors(err) {
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
           newError.locations=[{model: 'SPARefactor', method: 'doSave()', request: 'api.sPARefactor.updateItem'}];
-          newError.path=['SPARefactors', `int:${item.int}`, 'update'];
+          newError.path=['SPARefactors', `string:${item.string}`, 'update'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -499,7 +503,7 @@ function setAjvErrors(err) {
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
           newError.locations=[{model: 'SPARefactor', method: 'doSave()', request: 'api.sPARefactor.updateItem'}];
-          newError.path=['SPARefactors', `int:${item.int}`, 'update'];
+          newError.path=['SPARefactors', `string:${item.string}`, 'update'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -687,7 +691,7 @@ function setAjvErrors(err) {
             </IconButton>
           </Tooltip>
           <Typography variant="h6" className={classes.title}>
-            { t('modelPanels.editing') +  ": SPARefactor | int: " + item.int}
+            { t('modelPanels.editing') +  ": SPARefactor | string: " + item.string}
           </Typography>
           
           {(!deleted)&&(

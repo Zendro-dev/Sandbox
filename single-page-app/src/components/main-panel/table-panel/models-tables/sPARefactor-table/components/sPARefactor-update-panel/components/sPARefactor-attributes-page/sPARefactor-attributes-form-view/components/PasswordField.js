@@ -138,13 +138,13 @@ export default function PasswordField(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged['SPARefactor']&&
-      lastModelChanged['SPARefactor'][String(itemId['int'])]) {
+      lastModelChanged['SPARefactor'][String(itemId['string'])]) {
 
         //updated password
-        if(lastModelChanged['SPARefactor'][String(itemId['int'])].op === "updatePassword"&&
-            lastModelChanged['SPARefactor'][String(itemId['int'])].newItem) {
+        if(lastModelChanged['SPARefactor'][String(itemId['string'])].op === "updatePassword"&&
+            lastModelChanged['SPARefactor'][String(itemId['string'])].newItem) {
               //update password value
-              setValue(lastModelChanged['SPARefactor'][String(itemId['int'])].newItem[itemKey]);
+              setValue(lastModelChanged['SPARefactor'][String(itemId['string'])].newItem[itemKey]);
         }
     }//end: Case 1
   }, [lastModelChanged, lastChangeTimestamp, itemId, itemKey]);

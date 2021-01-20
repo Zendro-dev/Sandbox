@@ -163,6 +163,7 @@ export default function SPARefactorCreatePanel(props) {
     initialValues.date = null;
     initialValues.time = null;
     initialValues.datetime = null;
+    initialValues.boolean = null;
 
     return initialValues;
   }
@@ -184,6 +185,7 @@ export default function SPARefactorCreatePanel(props) {
     initialValueOkStates.date = 0;
     initialValueOkStates.time = 0;
     initialValueOkStates.datetime = 0;
+    initialValueOkStates.boolean = 0;
 
     return initialValueOkStates;
   }
@@ -198,6 +200,7 @@ export default function SPARefactorCreatePanel(props) {
     _initialValueAjvStates.date = {errors: []};
     _initialValueAjvStates.time = {errors: []};
     _initialValueAjvStates.datetime = {errors: []};
+    _initialValueAjvStates.boolean = {errors: []};
 
     return _initialValueAjvStates;
   }

@@ -24,7 +24,6 @@ import ButtonBase from '@material-ui/core/ButtonBase';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
-import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
 import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -120,11 +119,6 @@ export default function RoleEnhancedTableToolbar(props) {
                       <Tooltip title={ t('modelPanels.table', "Table") }>
                         <ToggleButton value="table">
                           <TableIcon fontSize="small" />
-                        </ToggleButton>
-                      </Tooltip>
-                      <Tooltip title={ t('modelPanels.plot', "Plot") }>
-                        <ToggleButton value="plot">
-                          <ChartIcon fontSize="small" />
                         </ToggleButton>
                       </Tooltip>
                     </ToggleButtonGroup>

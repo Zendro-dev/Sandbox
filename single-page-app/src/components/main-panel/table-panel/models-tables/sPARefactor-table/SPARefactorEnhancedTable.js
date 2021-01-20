@@ -36,8 +36,6 @@ const SPARefactorCreatePanel = lazy(() => retry(() => import(/* webpackChunkName
 const SPARefactorUpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Update-SPARefactor" */ './components/sPARefactor-update-panel/SPARefactorUpdatePanel')));
 const SPARefactorDetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-SPARefactor" */ './components/sPARefactor-detail-panel/SPARefactorDetailPanel')));
 const SPARefactorDeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Delete-SPARefactor" */ './components/SPARefactorDeleteConfirmationDialog')));
-//Plotly
-const SPARefactorPlotly = lazy(() => retry(() => import(/* webpackChunkName: "Plotly-SPARefactor" */ '../../../../plots/SPARefactorPlotly')));
 
 // const drawerWidth = 280;
 // const appBarHeight = 72;
@@ -107,7 +105,7 @@ export default function SPARefactorEnhancedTable(props) {
   const [count, setCount] = useState(-1);
   const [search, setSearch] = useState('');
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('int');
+  const [orderBy, setOrderBy] = useState('string');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [isOnApiRequest, setIsOnApiRequest] = useState(false);
@@ -794,8 +792,8 @@ export default function SPARefactorEnhancedTable(props) {
     errors.current = [];
 
     let variables = {};
-    //set int (internalId)
-    variables.int = item.int;
+    //set string (internalId)
+    variables.string = item.string;
 
     /*
       API Request: api.sPARefactor.deleteItem
@@ -831,7 +829,7 @@ export default function SPARefactorEnhancedTable(props) {
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
             newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-            newError.path=['SPARefactors', `int:${item.int}`, 'delete'];
+            newError.path=['SPARefactors', `string:${item.string}`, 'delete'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -845,7 +843,7 @@ export default function SPARefactorEnhancedTable(props) {
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
           newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-          newError.path=['SPARefactors', `int:${item.int}`, 'delete'];
+          newError.path=['SPARefactors', `string:${item.string}`, 'delete'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -888,7 +886,7 @@ export default function SPARefactorEnhancedTable(props) {
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
           newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-          newError.path=['SPARefactors', `int:${item.int}` ,'delete'];
+          newError.path=['SPARefactors', `string:${item.string}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -1065,8 +1063,6 @@ export default function SPARefactorEnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      case 'plot':
-        return 1;
       default:
         return 0;
     }
@@ -1355,7 +1351,7 @@ export default function SPARefactorEnhancedTable(props) {
                 <SPARefactorEnhancedTableToolbar
                   permissions={permissions}
                   search={search}
-                  showToggleButtons={true}
+                  showToggleButtons={false}
                   toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
@@ -1463,19 +1459,19 @@ export default function SPARefactorEnhancedTable(props) {
                                     Table Row
                                   */
                                   <TableRow
-                                    id={'SPARefactorEnhancedTable-row-'+item.int}
+                                    id={'SPARefactorEnhancedTable-row-'+item.string}
                                     hover
                                     onClick={event => handleClickOnRow(event, item)}
                                     role="checkbox"
                                     tabIndex={-1}
-                                    key={item.int}
+                                    key={item.string}
                                   >
 
                                     {/* SeeInfo icon */}
                                     <TableCell padding="checkbox">
                                       <Tooltip title={ t('modelPanels.viewDetails') }>
                                         <IconButton
-                                          id={'SPARefactorEnhancedTable-row-iconButton-detail-'+item.int}
+                                          id={'SPARefactorEnhancedTable-row-iconButton-detail-'+item.string}
                                           color="default"
                                           onClick={event => {
                                             event.stopPropagation();
@@ -1500,7 +1496,7 @@ export default function SPARefactorEnhancedTable(props) {
                                         <TableCell padding='checkbox' align='center'>
                                           <Tooltip title={ t('modelPanels.edit') }>
                                             <IconButton
-                                              id={'SPARefactorEnhancedTable-row-iconButton-edit-'+item.int}
+                                              id={'SPARefactorEnhancedTable-row-iconButton-edit-'+item.string}
                                               color="default"
                                               onClick={(event) => {
                                                 event.stopPropagation();
@@ -1522,7 +1518,7 @@ export default function SPARefactorEnhancedTable(props) {
                                         <TableCell padding='checkbox' align='center'>
                                           <Tooltip title={ t('modelPanels.delete') }>
                                             <IconButton
-                                              id={'SPARefactorEnhancedTable-row-iconButton-delete-'+item.int}
+                                              id={'SPARefactorEnhancedTable-row-iconButton-delete-'+item.string}
                                               color="default"
                                               onClick={(event) => {
                                                 event.stopPropagation();
@@ -1537,14 +1533,14 @@ export default function SPARefactorEnhancedTable(props) {
                                     }
 
                                     {/* Item fields */}
-                                    {/* int*/}
+                                    {/* string*/}
                                     <TableCell
-                                      key='int'
+                                      key='string'
                                       align='left'
                                       padding="checkbox"
                                     >
-                                      <Tooltip title={ 'int: ' + item.int}>
-                                        <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.int}</Typography>
+                                      <Tooltip title={ 'string: ' + item.string}>
+                                        <Typography variant='body2' color='textSecondary' display='block' noWrap={true}>{item.string}</Typography>
                                       </Tooltip>
                                     </TableCell>
 
@@ -1557,13 +1553,13 @@ export default function SPARefactorEnhancedTable(props) {
                                       {String((item.array!==null)?item.array:'')}
                                     </TableCell>
 
-                                    {/* string */}
+                                    {/* int */}
                                     <TableCell
-                                      key='string'
-                                      align='left'
+                                      key='int'
+                                      align='right'
                                       padding="default"
                                     >
-                                      {String((item.string!==null)?item.string:'')}
+                                      {String((item.int!==null)?item.int:'')}
                                     </TableCell>
 
                                     {/* float */}
@@ -1602,6 +1598,15 @@ export default function SPARefactorEnhancedTable(props) {
                                       {String((item.datetime!==null)?moment(item.datetime, "YYYY-MM-DDTHH:mm:ss.SSSZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ"):'')}
                                     </TableCell>
 
+                                    {/* boolean */}
+                                    <TableCell
+                                      key='boolean'
+                                      align='left'
+                                      padding="default"
+                                    >
+                                      {String((item.boolean!==null)?item.boolean:'')}
+                                    </TableCell>
+
                                   </TableRow>,
                                 ]);
                               })
@@ -1629,17 +1634,6 @@ export default function SPARefactorEnhancedTable(props) {
                     />
                   </div>
 
-                  {/*
-                    Swipe page 2: Plot
-                    Conditional rendered
-                  */}
-                  <div>
-                    {(Boolean(SPARefactorPlotly)) && (
-                      <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
-                        <SPARefactorPlotly />
-                      </ErrorBoundary></Suspense>
-                    )}
-                  </div>
 
                 </SwipeableViews>
               </Paper>

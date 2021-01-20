@@ -126,13 +126,14 @@ export default {
 
     //set attributes
     let qattributes = 
-      `int,
+      `string,
        array,
-       string,
+       int,
        float,
        date,
        time,
        datetime,
+       boolean,
 `;
 
     //query
@@ -191,35 +192,38 @@ export default {
 
     //set variables declarations
     let qvariables = `
-          $int:ID!,
-          $array:[Boolean],
-          $string:String,
+          $string:ID!,
+          $array:[String],
+          $int:Int,
           $float:Float,
           $date:Date,
           $time:Time,
           $datetime:DateTime,
+          $boolean:Boolean,
 `;
 
     //set parameters assignation
     let qparameters = `
-            int:$int,
-            array:$array,
             string:$string,
+            array:$array,
+            int:$int,
             float:$float,
             date:$date,
             time:$time,
             datetime:$datetime,
+            boolean:$boolean,
 `;
 
     //set attributes to fetch
     let qattributes = 
-      `int,
+      `string,
        array,
-       string,
+       int,
        float,
        date,
        time,
        datetime,
+       boolean,
 `;
 
     //query
@@ -277,35 +281,38 @@ export default {
 
     //set variables declarations
     let qvariables = `
-          $int:ID!,
-          $array:[Boolean],
-          $string:String,
+          $string:ID!,
+          $array:[String],
+          $int:Int,
           $float:Float,
           $date:Date,
           $time:Time,
           $datetime:DateTime,
+          $boolean:Boolean,
 `;
 
     //set parameters assignation
     let qparameters = `
-            int:$int,
+            string:$string,
             array: $array,
-            string: $string,
+            int: $int,
             float: $float,
             date: $date,
             time: $time,
             datetime: $datetime,
+            boolean: $boolean,
 `;
 
     //set attributes to fetch
     let qattributes = 
-      `int,
+      `string,
        array,
-       string,
+       int,
        float,
        date,
        time,
        datetime,
+       boolean,
 `;
 
     //query
@@ -364,9 +371,9 @@ export default {
     let query =
       `mutation 
             deleteSPARefactor(
-              $int:ID!
+              $string:ID!
         ) { deleteSPARefactor(
-              int:$int        ) }`;
+              string:$string        ) }`;
 
     /**
      * Debug
