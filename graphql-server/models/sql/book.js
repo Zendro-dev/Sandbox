@@ -19,21 +19,26 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'SPARefactor',
+    model: 'book',
     storageType: 'sql',
     attributes: {
-        array: '[String]',
-        string: 'String',
-        int: 'Int',
-        float: 'Float',
-        date: 'Date',
-        time: 'Time',
-        datetime: 'DateTime',
-        boolean: 'Boolean'
+        book_id: 'String',
+        name: 'String',
+        fk_books_authors: 'String'
     },
-    internalId: 'string',
+    associations: {
+        books: {
+            type: 'to_one',
+            target: 'author',
+            targetKey: 'fk_books_authors',
+            keyIn: 'book',
+            targetStorageType: 'sql',
+            label: 'name'
+        }
+    },
+    internalId: 'book_id',
     id: {
-        name: 'string',
+        name: 'book_id',
         type: 'String'
     }
 };
@@ -46,51 +51,26 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class SPARefactor extends Sequelize.Model {
+module.exports = class book extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            string: {
+            book_id: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            array: {
-                type: Sequelize[dict['[String]']],
-                defaultValue: '[]'
+            name: {
+                type: Sequelize[dict['String']]
             },
-            int: {
-                type: Sequelize[dict['Int']]
-            },
-            float: {
-                type: Sequelize[dict['Float']]
-            },
-            date: {
-                type: Sequelize[dict['Date']]
-            },
-            time: {
-                type: Sequelize[dict['Time']],
-                get() {
-                    let time = this.getDataValue('time');
-                    if (time !== null) {
-                        let m = moment(time, "HH:mm:ss.SSS[Z]");
-                        if (m.isValid()) {
-                            return m.format("HH:mm:ss.SSS[Z]");
-                        }
-                    }
-                }
-            },
-            datetime: {
-                type: Sequelize[dict['DateTime']]
-            },
-            boolean: {
-                type: Sequelize[dict['Boolean']]
+            fk_books_authors: {
+                type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "sPARefactor",
-            tableName: "sPARefactors",
+            modelName: "book",
+            tableName: "books",
             sequelize
         });
     }
@@ -133,20 +113,25 @@ module.exports = class SPARefactor extends Sequelize.Model {
         return record;
     }
 
-    static associate(models) {}
+    static associate(models) {
+        book.belongsTo(models.author, {
+            as: 'books',
+            foreignKey: 'fk_books_authors'
+        });
+    }
 
     static async readById(id) {
-        let item = await SPARefactor.findByPk(id);
+        let item = await book.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        item = SPARefactor.postReadCast(item)
+        item = book.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, SPARefactor.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, book.definition.attributes);
         return super.count(options);
     }
 
@@ -154,9 +139,9 @@ module.exports = class SPARefactor extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), SPARefactor.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), book.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => SPARefactor.postReadCast(x))
+        records = records.map(x => book.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -166,10 +151,10 @@ module.exports = class SPARefactor extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), SPARefactor.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), book.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => SPARefactor.postReadCast(x))
+        records = records.map(x => book.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -180,7 +165,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), SPARefactor.definition.attributes);
+            }, this.idAttribute(), book.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -195,7 +180,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = SPARefactor.preWriteCast(input)
+        input = book.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -203,8 +188,8 @@ module.exports = class SPARefactor extends Sequelize.Model {
                 });
                 return item;
             });
-            SPARefactor.postReadCast(result.dataValues)
-            SPARefactor.postReadCast(result._previousDataValues)
+            book.postReadCast(result.dataValues)
+            book.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -230,7 +215,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = SPARefactor.preWriteCast(input)
+        input = book.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -243,8 +228,8 @@ module.exports = class SPARefactor extends Sequelize.Model {
                 });
                 return updated;
             });
-            SPARefactor.postReadCast(result.dataValues)
-            SPARefactor.postReadCast(result._previousDataValues)
+            book.postReadCast(result.dataValues)
+            book.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -302,7 +287,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of SPARefactor records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of book records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -320,13 +305,97 @@ module.exports = class SPARefactor extends Sequelize.Model {
 
 
 
+    /**
+     * add_fk_books_authors - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   fk_books_authors Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_fk_books_authors(book_id, fk_books_authors) {
+        let updated = await book.update({
+            fk_books_authors: fk_books_authors
+        }, {
+            where: {
+                book_id: book_id
+            }
+        });
+        return updated;
+    }
+
+    /**
+     * remove_fk_books_authors - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   fk_books_authors Foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_fk_books_authors(book_id, fk_books_authors) {
+        let updated = await book.update({
+            fk_books_authors: null
+        }, {
+            where: {
+                book_id: book_id,
+                fk_books_authors: fk_books_authors
+            }
+        });
+        return updated;
+    }
 
 
 
 
 
+    /**
+     * bulkAssociateBookWithFk_books_authors - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateBookWithFk_books_authors(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "fk_books_authors");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            fk_books_authors,
+            book_id
+        }) => {
+            promises.push(super.update({
+                fk_books_authors: fk_books_authors
+            }, {
+                where: {
+                    book_id: book_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
-
+    /**
+     * bulkDisAssociateBookWithFk_books_authors - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateBookWithFk_books_authors(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "fk_books_authors");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            fk_books_authors,
+            book_id
+        }) => {
+            promises.push(super.update({
+                fk_books_authors: null
+            }, {
+                where: {
+                    book_id: book_id,
+                    fk_books_authors: fk_books_authors
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
     /**
@@ -335,7 +404,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return SPARefactor.definition.id.name;
+        return book.definition.id.name;
     }
 
     /**
@@ -344,16 +413,16 @@ module.exports = class SPARefactor extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return SPARefactor.definition.id.type;
+        return book.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of SPARefactor.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of book.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[SPARefactor.idAttribute()]
+        return this[book.idAttribute()]
     }
 
     static get definition() {
@@ -369,7 +438,7 @@ module.exports = class SPARefactor extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(SPARefactor.definition.attributes);
+        let attributes = Object.keys(book.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

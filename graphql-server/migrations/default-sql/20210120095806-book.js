@@ -14,10 +14,10 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('sPARefactors', {
+        return queryInterface.createTable('books', {
 
-            int: {
-                type: Sequelize[dict['Int']],
+            book_id: {
+                type: Sequelize.STRING,
                 primaryKey: true
             },
 
@@ -29,24 +29,11 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            array: {
-                type: Sequelize[dict['[Boolean]']],
-                defaultValue: '[]'
-            },
-            string: {
+            name: {
                 type: Sequelize[dict['String']]
             },
-            float: {
-                type: Sequelize[dict['Float']]
-            },
-            date: {
-                type: Sequelize[dict['Date']]
-            },
-            time: {
-                type: Sequelize[dict['Time']]
-            },
-            datetime: {
-                type: Sequelize[dict['DateTime']]
+            fk_books_authors: {
+                type: Sequelize[dict['String']]
             }
 
         });
@@ -60,7 +47,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('sPARefactors');
+        return queryInterface.dropTable('books');
     }
 
 };

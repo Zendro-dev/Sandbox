@@ -3,18 +3,18 @@ module.exports = `
     """
     @original-field
     """
-    int: ID
+    string: ID
     """
     @original-field
     
     """
-    array: [Boolean]
+    array: [String]
 
     """
     @original-field
     
     """
-    string: String
+    int: Int
 
     """
     @original-field
@@ -40,6 +40,12 @@ module.exports = `
     """
     datetime: DateTime
 
+    """
+    @original-field
+    
+    """
+    boolean: Boolean
+
       
     }
 type SPARefactorConnection{
@@ -64,13 +70,14 @@ type SPARefactorEdge{
     to: Int
   }
   enum SPARefactorField {
-    int
-    array
     string
+    array
+    int
     float
     date
     time
     datetime
+    boolean
   }
   input searchSPARefactorInput {
     field: SPARefactorField
@@ -89,16 +96,16 @@ type SPARefactorEdge{
 
   type Query {
     sPARefactors(search: searchSPARefactorInput, order: [ orderSPARefactorInput ], pagination: paginationInput! ): [SPARefactor]
-    readOneSPARefactor(int: ID!): SPARefactor
+    readOneSPARefactor(string: ID!): SPARefactor
     countSPARefactors(search: searchSPARefactorInput ): Int
     vueTableSPARefactor : VueTableSPARefactor    csvTableTemplateSPARefactor: [String]
     sPARefactorsConnection(search:searchSPARefactorInput, order: [ orderSPARefactorInput ], pagination: paginationCursorInput! ): SPARefactorConnection
   }
 
   type Mutation {
-    addSPARefactor(int: ID!, array: [Boolean], string: String, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
-    updateSPARefactor(int: ID!, array: [Boolean], string: String, float: Float, date: Date, time: Time, datetime: DateTime    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
-    deleteSPARefactor(int: ID!): String!
+    addSPARefactor(string: ID!, array: [String], int: Int, float: Float, date: Date, time: Time, datetime: DateTime, boolean: Boolean    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
+    updateSPARefactor(string: ID!, array: [String], int: Int, float: Float, date: Date, time: Time, datetime: DateTime, boolean: Boolean    , skipAssociationsExistenceChecks:Boolean = false): SPARefactor!
+    deleteSPARefactor(string: ID!): String!
     bulkAddSPARefactorCsv: String!
       }
 `;

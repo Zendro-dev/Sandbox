@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const sPARefactor = require(path.join(__dirname, '..', 'models', 'index.js')).sPARefactor;
+const book = require(path.join(__dirname, '..', 'models', 'index.js')).book;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -13,10 +13,49 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
-const associationArgsDef = {}
+const associationArgsDef = {
+    'addBooks': 'author'
+}
 
 
 
+/**
+ * book.prototype.books - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+book.prototype.books = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.fk_books_authors)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneAuthor({
+                [models.author.idAttribute()]: this.fk_books_authors
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.author.idAttribute(),
+                "value": this.fk_books_authors,
+                "operator": "eq"
+            });
+            let found = (await resolvers.authorsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 
@@ -28,18 +67,48 @@ const associationArgsDef = {}
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-sPARefactor.prototype.handleAssociations = async function(input, benignErrorReporter) {
+book.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
 
+    if (helper.isNotUndefinedAndNotNull(input.addBooks)) {
+        promises_add.push(this.add_books(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
+    if (helper.isNotUndefinedAndNotNull(input.removeBooks)) {
+        promises_remove.push(this.remove_books(input, benignErrorReporter));
+    }
 
     await Promise.all(promises_remove);
 
 }
+/**
+ * add_books - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+book.prototype.add_books = async function(input, benignErrorReporter) {
+    await book.add_fk_books_authors(this.getIdValue(), input.addBooks, benignErrorReporter);
+    this.fk_books_authors = input.addBooks;
+}
+
+/**
+ * remove_books - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ */
+book.prototype.remove_books = async function(input, benignErrorReporter) {
+    if (input.removeBooks == this.fk_books_authors) {
+        await book.remove_fk_books_authors(this.getIdValue(), input.removeBooks, benignErrorReporter);
+        this.fk_books_authors = null;
+    }
+}
+
 
 
 /**
@@ -51,14 +120,15 @@ sPARefactor.prototype.handleAssociations = async function(input, benignErrorRepo
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let sPARefactor = await resolvers.readOneSPARefactor({
-        string: id
+    let book = await resolvers.readOneBook({
+        book_id: id
     }, context);
     //check that record actually exists
-    if (sPARefactor === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (book === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
+    promises_to_one.push(book.books({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -78,14 +148,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`SPARefactor with string ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`book with book_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * sPARefactors - Check user authorization and return certain number, specified in pagination argument, of records that
+     * books - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -94,22 +164,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    sPARefactors: async function({
+    books: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "sPARefactors");
+        if (await checkAuthorization(context, 'book', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "books");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sPARefactor.readAll(search, order, pagination, benignErrorReporter);
+            return await book.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * sPARefactorsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * booksConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -118,76 +188,76 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    sPARefactorsConnection: async function({
+    booksConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
+        if (await checkAuthorization(context, 'book', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "sPARefactorsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "booksConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sPARefactor.readAllCursor(search, order, pagination, benignErrorReporter);
+            return await book.readAllCursor(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneSPARefactor - Check user authorization and return one record with the specified string in the string argument.
+     * readOneBook - Check user authorization and return one record with the specified book_id in the book_id argument.
      *
-     * @param  {number} {string}    string of the record to retrieve
+     * @param  {number} {book_id}    book_id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with string requested
+     * @return {object}         Record with book_id requested
      */
-    readOneSPARefactor: async function({
-        string
+    readOneBook: async function({
+        book_id
     }, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneSPARefactor");
+        if (await checkAuthorization(context, 'book', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneBook");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sPARefactor.readById(string, benignErrorReporter);
+            return await book.readById(book_id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countSPARefactors - Counts number of records that holds the conditions specified in the search argument
+     * countBooks - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countSPARefactors: async function({
+    countBooks: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
+        if (await checkAuthorization(context, 'book', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await sPARefactor.countRecords(search, benignErrorReporter);
+            return await book.countRecords(search, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableSPARefactor - Return table of records as needed for displaying a vuejs table
+     * vueTableBook - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableSPARefactor: async function(_, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
-            return helper.vueTable(context.request, sPARefactor, ["id", "string"]);
+    vueTableBook: async function(_, context) {
+        if (await checkAuthorization(context, 'book', 'read') === true) {
+            return helper.vueTable(context.request, book, ["id", "book_id", "name", "fk_books_authors"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addSPARefactor - Check user authorization and creates a new record with data specified in the input argument.
+     * addBook - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -195,8 +265,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addSPARefactor: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'SPARefactor', 'create');
+    addBook: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'book', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -205,43 +275,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdSPARefactor = await sPARefactor.addOne(inputSanitized, benignErrorReporter);
-            await createdSPARefactor.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdSPARefactor;
+            let createdBook = await book.addOne(inputSanitized, benignErrorReporter);
+            await createdBook.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdBook;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddSPARefactorCsv - Load csv file of records
+     * bulkAddBookCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddSPARefactorCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'create') === true) {
+    bulkAddBookCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'book', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return sPARefactor.bulkAddCsv(context, benignErrorReporter);
+            return book.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteSPARefactor - Check user authorization and delete a record with the specified string in the string argument.
+     * deleteBook - Check user authorization and delete a record with the specified book_id in the book_id argument.
      *
-     * @param  {number} {string}    string of the record to delete
+     * @param  {number} {book_id}    book_id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteSPARefactor: async function({
-        string
+    deleteBook: async function({
+        book_id
     }, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'delete') === true) {
-            if (await validForDeletion(string, context)) {
+        if (await checkAuthorization(context, 'book', 'delete') === true) {
+            if (await validForDeletion(book_id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return sPARefactor.deleteOne(string, benignErrorReporter);
+                return book.deleteOne(book_id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -249,7 +319,7 @@ module.exports = {
     },
 
     /**
-     * updateSPARefactor - Check user authorization and update the record specified in the input argument
+     * updateBook - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -257,8 +327,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateSPARefactor: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'SPARefactor', 'update');
+    updateBook: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'book', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -267,26 +337,66 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedSPARefactor = await sPARefactor.updateOne(inputSanitized, benignErrorReporter);
-            await updatedSPARefactor.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedSPARefactor;
+            let updatedBook = await book.updateOne(inputSanitized, benignErrorReporter);
+            await updatedBook.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedBook;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
+    /**
+     * bulkAssociateBookWithFk_books_authors - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateBookWithFk_books_authors: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                fk_books_authors
+            }) => fk_books_authors)), models.author);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkAssociateBookWithFk_books_authors(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateBookWithFk_books_authors - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateBookWithFk_books_authors: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                fk_books_authors
+            }) => fk_books_authors)), models.author);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkDisAssociateBookWithFk_books_authors(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
-     * csvTableTemplateSPARefactor - Returns table's template
+     * csvTableTemplateBook - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateSPARefactor: async function(_, context) {
-        if (await checkAuthorization(context, 'SPARefactor', 'read') === true) {
+    csvTableTemplateBook: async function(_, context) {
+        if (await checkAuthorization(context, 'book', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return sPARefactor.csvTableTemplate(benignErrorReporter);
+            return book.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
