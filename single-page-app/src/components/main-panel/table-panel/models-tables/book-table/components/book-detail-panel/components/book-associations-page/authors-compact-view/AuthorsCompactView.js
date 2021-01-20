@@ -8,7 +8,7 @@ import Snackbar from '../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
-import BooksCompactViewToolbar from './components/BooksCompactViewToolbar';
+import AuthorsCompactViewToolbar from './components/AuthorsCompactViewToolbar';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
@@ -59,7 +59,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BooksCompactView(props) {
+export default function AuthorsCompactView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -157,11 +157,11 @@ export default function BooksCompactView(props) {
 
 
     /*
-      API Request: api.book.getBooks
+      API Request: api.book.getAuthors
     */
     let variables = null;
     /*
-      API Request: api.book.getBooks
+      API Request: api.book.getAuthors
     */
     let api = await loadApi("book");
     if(!api) {
@@ -176,7 +176,7 @@ export default function BooksCompactView(props) {
       return;
     }
     
-    let cancelableApiReq = makeCancelable(api.book.getBooks(
+    let cancelableApiReq = makeCancelable(api.book.getAuthors(
       graphqlServerUrl, 
       item.book_id,
       search,
@@ -198,8 +198,8 @@ export default function BooksCompactView(props) {
             let withDetails=true;
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{association: 'books', method: 'getData()', request: 'api.book.getBooks'}];
-            newError.path=['detail', `book_id:${item.book_id}`, 'books'];
+            newError.locations=[{association: 'authors', method: 'getData()', request: 'api.book.getAuthors'}];
+            newError.path=['detail', `book_id:${item.book_id}`, 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -212,8 +212,8 @@ export default function BooksCompactView(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{association: 'books', method: 'getData()', request: 'api.book.getBooks'}];
-          newError.path=['detail', `book_id:${item.book_id}`, 'books'];
+          newError.locations=[{association: 'authors', method: 'getData()', request: 'api.book.getAuthors'}];
+          newError.path=['detail', `book_id:${item.book_id}`, 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -239,7 +239,7 @@ export default function BooksCompactView(props) {
         throw err;
       })
       //error
-      .catch((err) => { //error: on api.book.getBooks
+      .catch((err) => { //error: on api.book.getAuthors
         if(err.isCanceled) {
           return;
         } else {
@@ -247,8 +247,8 @@ export default function BooksCompactView(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{association: 'books', method: 'getData()', request: 'api.book.getBooks'}];
-          newError.path=['detail', `book_id:${item.book_id}`, 'books'];
+          newError.locations=[{association: 'authors', method: 'getData()', request: 'api.book.getAuthors'}];
+          newError.path=['detail', `book_id:${item.book_id}`, 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -305,7 +305,7 @@ export default function BooksCompactView(props) {
 
     /*
      * Case 1:
-     * The relation 'books' for this item was updated from the target model (in the peer relation).
+     * The relation 'authors' for this item was updated from the target model (in the peer relation).
      * That is to say that this current item was associated or dis-associated with some 'author',
      * but this action happened on the peer relation, identified by 'book_fk_books_authors'.
      * 
@@ -513,7 +513,7 @@ export default function BooksCompactView(props) {
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <BooksCompactViewToolbar 
+              <AuthorsCompactViewToolbar 
                 title={'Author'}
                 search={search}
                 onSearchEnter={handleSearchEnter}
@@ -527,7 +527,7 @@ export default function BooksCompactView(props) {
                   in={true}
                   unmountOnExit
                 >
-                  <div id='BooksCompactView-div-noDataA'>
+                  <div id='AuthorsCompactView-div-noDataA'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -550,7 +550,7 @@ export default function BooksCompactView(props) {
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lref}>
-                    <List id='BooksCompactView-list-listA'
+                    <List id='AuthorsCompactView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.author_id;
@@ -559,7 +559,7 @@ export default function BooksCompactView(props) {
        
                         return (
                           <ListItem 
-                            id={'BooksCompactView-listA-listItem-'+it.author_id}
+                            id={'AuthorsCompactView-listA-listItem-'+it.author_id}
                             key={key} 
                             role="listitem" 
                             button 
@@ -582,7 +582,7 @@ export default function BooksCompactView(props) {
                                     <Grid item>
                                       <Tooltip title={ 'author_id' }>
                                         <Typography
-                                        id={'BooksCompactView-listA-listItem-id-'+it.author_id}
+                                        id={'AuthorsCompactView-listA-listItem-id-'+it.author_id}
                                         variant="body1" display="block" noWrap={true}>{it.author_id}</Typography>
                                       </Tooltip>
                                     </Grid>
@@ -601,7 +601,7 @@ export default function BooksCompactView(props) {
                                   {(label) && (
                                     <Tooltip title={ 'name' }>
                                       <Typography
-                                      id={'BooksCompactView-listA-listItem-label-'+it.author_id}
+                                      id={'AuthorsCompactView-listA-listItem-label-'+it.author_id}
                                       component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
                                   )}
@@ -610,7 +610,7 @@ export default function BooksCompactView(props) {
                                   {(sublabel) && (
                                     <Tooltip title={ '' }>
                                       <Typography
-                                      id={'BooksCompactView-listA-listItem-sublabel-'+it.author_id}
+                                      id={'AuthorsCompactView-listA-listItem-sublabel-'+it.author_id}
                                       component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
@@ -654,7 +654,7 @@ export default function BooksCompactView(props) {
     </div>
   );
 }
-BooksCompactView.propTypes = {
+AuthorsCompactView.propTypes = {
   item: PropTypes.object.isRequired,
-  handleClickOnBooksRow: PropTypes.func,
+  handleClickOnAuthorsRow: PropTypes.func,
 };

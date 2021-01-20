@@ -101,10 +101,10 @@ export default function BookUpdatePanel(props) {
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
   const changedAssociations = useRef({});
   
-  const [booksIdsToAddState, setBooksIdsToAddState] = useState([]);
-  const booksIdsToAdd = useRef([]);
-  const [booksIdsToRemoveState, setBooksIdsToRemoveState] = useState([]);
-  const booksIdsToRemove = useRef([]);
+  const [authorsIdsToAddState, setAuthorsIdsToAddState] = useState([]);
+  const authorsIdsToAdd = useRef([]);
+  const [authorsIdsToRemoveState, setAuthorsIdsToRemoveState] = useState([]);
+  const authorsIdsToRemove = useRef([]);
 
   const [authorDetailDialogOpen, setAuthorDetailDialogOpen] = useState(false);
   const [authorDetailItem, setAuthorDetailItem] = useState(undefined);
@@ -330,29 +330,29 @@ export default function BookUpdatePanel(props) {
     return false;
   }
 
-  function setAddRemoveOneBooks(variables) {
+  function setAddRemoveOneAuthors(variables) {
     //data to notify changes
     if(!changedAssociations.current.book_fk_books_authors) changedAssociations.current.book_fk_books_authors = {};
     
     /**
      * Case: The toAdd list isn't empty.
      */
-    if(booksIdsToAdd.current.length>0) {
+    if(authorsIdsToAdd.current.length>0) {
       //set id to add
-      variables.addBooks = booksIdsToAdd.current[0];      
+      variables.addAuthors = authorsIdsToAdd.current[0];      
       //changes to nofity
       changedAssociations.current.book_fk_books_authors.added = true;
-      changedAssociations.current.book_fk_books_authors.idsAdded = [booksIdsToAdd.current[0]];
+      changedAssociations.current.book_fk_books_authors.idsAdded = [authorsIdsToAdd.current[0]];
     }
     /**
      * Case: The toRemove list isn't empty.
      */
-    if(booksIdsToRemove.current.length>0) {
+    if(authorsIdsToRemove.current.length>0) {
       //set id to remove
-      variables.removeBooks = booksIdsToRemove.current[0];
+      variables.removeAuthors = authorsIdsToRemove.current[0];
       //changes to nofity
       changedAssociations.current.book_fk_books_authors.removed = true;
-      changedAssociations.current.book_fk_books_authors.idsRemoved = [booksIdsToRemove.current[0]];
+      changedAssociations.current.book_fk_books_authors.idsRemoved = [authorsIdsToRemove.current[0]];
     }
 
     return;
@@ -437,7 +437,7 @@ function setAjvErrors(err) {
     delete variables.fk_books_authors; //FK
 
     //add & remove: to_one's
-    setAddRemoveOneBooks(variables);
+    setAddRemoveOneAuthors(variables);
 
     //add & remove: to_many's
 
@@ -661,10 +661,10 @@ function setAjvErrors(err) {
 
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'books':
-        booksIdsToAdd.current = [];
-        booksIdsToAdd.current.push(itemId);
-        setBooksIdsToAddState([itemId]);
+      case 'authors':
+        authorsIdsToAdd.current = [];
+        authorsIdsToAdd.current.push(itemId);
+        setAuthorsIdsToAddState([itemId]);
         handleSetValue(itemId, -2, 'fk_books_authors');
         setForeignKeys({...foreignKeys, fk_books_authors: itemId});
         break;
@@ -675,24 +675,24 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'books') {
-      if(booksIdsToAdd.current.length > 0
-      && booksIdsToAdd.current[0] === itemId) {
-        booksIdsToAdd.current = [];
-        setBooksIdsToAddState([]);
+    if(associationKey === 'authors') {
+      if(authorsIdsToAdd.current.length > 0
+      && authorsIdsToAdd.current[0] === itemId) {
+        authorsIdsToAdd.current = [];
+        setAuthorsIdsToAddState([]);
         handleSetValue(null, -2, 'fk_books_authors');
         setForeignKeys({...foreignKeys, fk_books_authors: null});
       }
       return;
-    }//end: case 'books'
+    }//end: case 'authors'
   }
 
   const handleTransferToRemove = (associationKey, itemId) => {
     switch(associationKey) {
-        case 'books':
-          booksIdsToRemove.current = [];
-          booksIdsToRemove.current.push(itemId);
-          setBooksIdsToRemoveState([itemId]);
+        case 'authors':
+          authorsIdsToRemove.current = [];
+          authorsIdsToRemove.current.push(itemId);
+          setAuthorsIdsToRemoveState([itemId]);
           handleSetValue(null, -2, 'fk_books_authors');
           setForeignKeys({...foreignKeys, fk_books_authors: null});
         break;
@@ -703,16 +703,16 @@ function setAjvErrors(err) {
   }
 
   const handleUntransferFromRemove =(associationKey, itemId) => {
-    if(associationKey === 'books') {
-      if(booksIdsToRemove.current.length > 0
-      && booksIdsToRemove.current[0] === itemId) {
-        booksIdsToRemove.current = [];
-        setBooksIdsToRemoveState([]);
+    if(associationKey === 'authors') {
+      if(authorsIdsToRemove.current.length > 0
+      && authorsIdsToRemove.current[0] === itemId) {
+        authorsIdsToRemove.current = [];
+        setAuthorsIdsToRemoveState([]);
         handleSetValue(itemId, -2, 'fk_books_authors');
         setForeignKeys({...foreignKeys, fk_books_authors: itemId});
       }
       return;
-    }//end: case 'books'
+    }//end: case 'authors'
   }
 
   const handleClickOnAuthorRow = (event, item) => {
@@ -886,8 +886,8 @@ function setAjvErrors(err) {
                 <BookAssociationsPage
                   hidden={tabsValue !== 1 || deleted}
                   item={item}
-                  booksIdsToAdd={booksIdsToAddState}
-                  booksIdsToRemove={booksIdsToRemoveState}
+                  authorsIdsToAdd={authorsIdsToAddState}
+                  authorsIdsToRemove={authorsIdsToRemoveState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}

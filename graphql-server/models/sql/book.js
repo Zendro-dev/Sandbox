@@ -27,7 +27,7 @@ const definition = {
         fk_books_authors: 'String'
     },
     associations: {
-        books: {
+        authors: {
             type: 'to_one',
             target: 'author',
             targetKey: 'fk_books_authors',
@@ -115,7 +115,7 @@ module.exports = class book extends Sequelize.Model {
 
     static associate(models) {
         book.belongsTo(models.author, {
-            as: 'books',
+            as: 'authors',
             foreignKey: 'fk_books_authors'
         });
     }

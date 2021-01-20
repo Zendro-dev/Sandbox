@@ -9,7 +9,7 @@
     "fk_books_authors": "String"
   },
   "associations":{
-    "books":{
+    "authors":{
       "type": "to_one",
       "target": "author",
       "targetKey": "fk_books_authors",

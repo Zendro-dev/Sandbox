@@ -32,7 +32,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BooksCompactViewToolbar(props) {
+export default function AuthorsCompactViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -219,7 +219,7 @@ export default function BooksCompactViewToolbar(props) {
     </div>
   );
 };
-BooksCompactViewToolbar.propTypes = {
+AuthorsCompactViewToolbar.propTypes = {
   search: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   titleIcon: PropTypes.bool,

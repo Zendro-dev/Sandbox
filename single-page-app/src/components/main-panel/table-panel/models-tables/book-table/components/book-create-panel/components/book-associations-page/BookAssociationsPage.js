@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const BooksTransferLists = lazy(() => retry(() => import(/* webpackChunkName: "Create-TransferLists-Books" */ './books-transfer-lists/BooksTransferLists')));
+const AuthorsTransferLists = lazy(() => retry(() => import(/* webpackChunkName: "Create-TransferLists-Authors" */ './authors-transfer-lists/AuthorsTransferLists')));
 
 const debounceTimeout = 700;
 
@@ -25,12 +25,12 @@ export default function BookAssociationsPage(props) {
 
   const {
     hidden,
-    booksIdsToAdd,
+    authorsIdsToAdd,
     handleTransferToAdd,
     handleUntransferFromAdd,
     handleClickOnAuthorRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('books');
+  const [associationSelected, setAssociationSelected] = React.useState('authors');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -108,12 +108,12 @@ export default function BookAssociationsPage(props) {
           </Grid>
 
           {/* Transfer Lists */}
-          {/* Books Transfer Lists */}
-          {(associationSelected === 'books') && (
+          {/* Authors Transfer Lists */}
+          {(associationSelected === 'authors') && (
             <Grid item xs={12} sm={10} md={9}>
               <Suspense fallback={<div />}><ErrorBoundary belowToolbar={true} showMessage={true}>
-                <BooksTransferLists
-                  idsToAdd={booksIdsToAdd}
+                <AuthorsTransferLists
+                  idsToAdd={authorsIdsToAdd}
                   handleClickOnAuthorRow={handleClickOnAuthorRow}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
@@ -128,7 +128,7 @@ export default function BookAssociationsPage(props) {
 }
 BookAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
-  booksIdsToAdd: PropTypes.array.isRequired,
+  authorsIdsToAdd: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleClickOnAuthorRow: PropTypes.func.isRequired,

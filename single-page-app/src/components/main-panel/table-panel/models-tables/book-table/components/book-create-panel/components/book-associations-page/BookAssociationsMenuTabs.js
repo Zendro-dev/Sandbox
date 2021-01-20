@@ -19,7 +19,7 @@ export default function BookAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab key='books' label='Books' value='books' />
+        <Tab key='authors' label='Authors' value='authors' />
       </Tabs>
     </div>
   );

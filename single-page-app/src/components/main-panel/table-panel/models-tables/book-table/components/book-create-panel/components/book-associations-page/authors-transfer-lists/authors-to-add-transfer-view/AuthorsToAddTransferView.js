@@ -8,8 +8,8 @@ import Snackbar from '../../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
-import BooksToAddTransferViewToolbar from './components/BooksToAddTransferViewToolbar';
-import BooksToAddTransferViewCursorPagination from './components/BooksToAddTransferViewCursorPagination';
+import AuthorsToAddTransferViewToolbar from './components/AuthorsToAddTransferViewToolbar';
+import AuthorsToAddTransferViewCursorPagination from './components/AuthorsToAddTransferViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -86,7 +86,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BooksToAddTransferView(props) {
+export default function AuthorsToAddTransferView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -495,8 +495,8 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variantC.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
-            newError.path=['add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
+            newError.path=['add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsC.current.push(newError);
             console.log("Error: ", newError);
@@ -509,8 +509,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantC.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsC.current.push(newError);
           console.log("Error: ", newError);
@@ -539,8 +539,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantC.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.author.getCountItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsC.current.push(newError);
           console.log("Error: ", newError);
@@ -622,8 +622,8 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.author.getItems'}];
-            newError.path=['add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.author.getItems'}];
+            newError.path=['add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -636,8 +636,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.author.getItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.author.getItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -691,8 +691,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.author.getItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.author.getItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -777,8 +777,8 @@ const cancelableCountingPromises = useRef([]);
             let withDetails=true;
             variantB.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-            newError.path=['add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+            newError.path=['add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsB.current.push(newError);
             console.log("Error: ", newError);
@@ -791,8 +791,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantB.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -827,8 +827,8 @@ const cancelableCountingPromises = useRef([]);
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-          newError.path=['add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+          newError.path=['add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -964,7 +964,7 @@ const cancelableCountingPromises = useRef([]);
               setThereAreItemsToAdd(false);
             }
           }
-          handleUntransfer('books', idRemoved);
+          handleUntransfer('authors', idRemoved);
 
           //will count A
           cancelCountingPromises();
@@ -1255,7 +1255,7 @@ const cancelableCountingPromises = useRef([]);
       reloadDataA();
       //reload B
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('books', item.author_id);
+      handleTransfer('authors', item.author_id);
     }
   };
 
@@ -1276,7 +1276,7 @@ const cancelableCountingPromises = useRef([]);
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       //reload B
       reloadDataB();
-      handleUntransfer('books', item.author_id);
+      handleUntransfer('authors', item.author_id);
     }
   };
 
@@ -1290,7 +1290,7 @@ const cancelableCountingPromises = useRef([]);
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <BooksToAddTransferViewToolbar 
+            <AuthorsToAddTransferViewToolbar 
               title={'Authors'}
               titleIcon={1}
               search={search}
@@ -1305,7 +1305,7 @@ const cancelableCountingPromises = useRef([]);
                 in={true}
                 unmountOnExit
               >
-                <div id='BooksToAddTransferView-div-noDataA'>
+                <div id='AuthorsToAddTransferView-div-noDataA'>
                   <Grid container>
                     <Grid item xs={12}>
                       <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1328,7 +1328,7 @@ const cancelableCountingPromises = useRef([]);
                 unmountOnExit
               >
                 <Box className={classes.listBox} ref={lref}>
-                  <List id='BooksToAddTransferView-list-listA'
+                  <List id='AuthorsToAddTransferView-list-listA'
                   dense component="div" role="list" >
                     {items.map(it => {
                       let key = it.author_id;
@@ -1337,7 +1337,7 @@ const cancelableCountingPromises = useRef([]);
 
                       return (
                         <ListItem 
-                          id={'BooksToAddTransferView-listA-listItem-'+it.author_id}
+                          id={'AuthorsToAddTransferView-listA-listItem-'+it.author_id}
                           key={key} 
                           role="listitem" 
                           button 
@@ -1393,7 +1393,7 @@ const cancelableCountingPromises = useRef([]);
                           <ListItemSecondaryAction>
                             <Tooltip title={ t('modelPanels.transferToAdd') }>
                               <IconButton
-                                id={'BooksToAddTransferView-listA-listItem-'+it.author_id+'-button-add'}
+                                id={'AuthorsToAddTransferView-listA-listItem-'+it.author_id+'-button-add'}
                                 color="primary"
                                 className={classes.iconButton}
                                 onClick={(event) => {
@@ -1436,7 +1436,7 @@ const cancelableCountingPromises = useRef([]);
             )}
 
             {/* Pagination */}
-            <BooksToAddTransferViewCursorPagination
+            <AuthorsToAddTransferViewCursorPagination
               count={count}
               rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
               rowsPerPage={(count <=10) ? '' : rowsPerPage}
@@ -1513,7 +1513,7 @@ const cancelableCountingPromises = useRef([]);
           <Card className={classes.card}>
 
             {/* Toolbar */}
-            <BooksToAddTransferViewToolbar 
+            <AuthorsToAddTransferViewToolbar 
               title={'Author'}
               titleIcon={2}
               search={searchB}
@@ -1529,7 +1529,7 @@ const cancelableCountingPromises = useRef([]);
                 in={true}
                 unmountOnExit
               >
-                <div id='BooksToAddTransferView-div-noItemsB'>
+                <div id='AuthorsToAddTransferView-div-noItemsB'>
                   <Grid container>
                     <Grid item xs={12}>
                       <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1550,7 +1550,7 @@ const cancelableCountingPromises = useRef([]);
                 in={true}
                 unmountOnExit
               >
-                <div id='BooksToAddTransferView-div-noDataB'>
+                <div id='AuthorsToAddTransferView-div-noDataB'>
                   <Grid container>
                     <Grid item xs={12}>
                       <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1573,7 +1573,7 @@ const cancelableCountingPromises = useRef([]);
                 unmountOnExit
               >
                 <Box className={classes.listBox} ref={lrefB}>
-                  <List id='BooksToAddTransferView-list-listB'
+                  <List id='AuthorsToAddTransferView-list-listB'
                   dense component="div" role="list">
                     {itemsB.map(it => {
                       let key = it.author_id;
@@ -1582,7 +1582,7 @@ const cancelableCountingPromises = useRef([]);
 
                       return (
                         <ListItem 
-                          id={'BooksToAddTransferView-listB-listItem-'+it.author_id}
+                          id={'AuthorsToAddTransferView-listB-listItem-'+it.author_id}
                           key={key} 
                           role="listitem" 
                           button 
@@ -1638,7 +1638,7 @@ const cancelableCountingPromises = useRef([]);
                           <ListItemSecondaryAction>
                             <Tooltip title={ t('modelPanels.untransferToAdd') }>
                               <IconButton
-                                id={'BooksToAddTransferView-listB-listItem-'+it.author_id+'-button-remove'}
+                                id={'AuthorsToAddTransferView-listB-listItem-'+it.author_id+'-button-remove'}
                                 color="primary"
                                 onClick={(event) => {
                                   event.stopPropagation();
@@ -1685,7 +1685,7 @@ const cancelableCountingPromises = useRef([]);
     </div>
   );
 }
-BooksToAddTransferView.propTypes = {
+AuthorsToAddTransferView.propTypes = {
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
   handleUntransfer: PropTypes.func.isRequired,

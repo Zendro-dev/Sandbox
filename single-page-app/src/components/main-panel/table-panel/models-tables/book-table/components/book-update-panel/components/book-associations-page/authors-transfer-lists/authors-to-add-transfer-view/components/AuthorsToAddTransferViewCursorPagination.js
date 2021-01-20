@@ -40,7 +40,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export default function BooksCompactViewCursorPagination(props) {
+export default function AuthorsToAddTransferViewCursorPagination(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const {
@@ -159,7 +159,7 @@ export default function BooksCompactViewCursorPagination(props) {
   );
 };
 
-BooksCompactViewCursorPagination.propTypes = {
+AuthorsToAddTransferViewCursorPagination.propTypes = {
   count: PropTypes.number.isRequired,
   rowsPerPageOptions: PropTypes.array.isRequired,
   labelRowsPerPage: PropTypes.string.isRequired,

@@ -16,7 +16,7 @@ module.exports = `
     """
     fk_books_authors: String
 
-    books(search: searchAuthorInput): author
+    authors(search: searchAuthorInput): author
     
     }
 type BookConnection{
@@ -72,8 +72,8 @@ type BookEdge{
   }
 
   type Mutation {
-    addBook(book_id: ID!, name: String , addBooks:ID   , skipAssociationsExistenceChecks:Boolean = false): book!
-    updateBook(book_id: ID!, name: String , addBooks:ID, removeBooks:ID    , skipAssociationsExistenceChecks:Boolean = false): book!
+    addBook(book_id: ID!, name: String , addAuthors:ID   , skipAssociationsExistenceChecks:Boolean = false): book!
+    updateBook(book_id: ID!, name: String , addAuthors:ID, removeAuthors:ID    , skipAssociationsExistenceChecks:Boolean = false): book!
     deleteBook(book_id: ID!): String!
     bulkAddBookCsv: String!
     bulkAssociateBookWithFk_books_authors(bulkAssociationInput: [bulkAssociationBookWithFk_books_authorsInput], skipAssociationsExistenceChecks:Boolean = false): String!

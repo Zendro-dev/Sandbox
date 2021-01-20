@@ -82,8 +82,8 @@ export default function BookCreatePanel(props) {
   const valuesOkRefs = useRef(getInitialValueOkStates());
   const valuesAjvRefs = useRef(getInitialValueAjvStates());
 
-  const [booksIdsToAddState, setBooksIdsToAddState] = useState([]);
-  const booksIdsToAdd = useRef([]);
+  const [authorsIdsToAddState, setAuthorsIdsToAddState] = useState([]);
+  const authorsIdsToAdd = useRef([]);
 
   const [authorDetailDialogOpen, setAuthorDetailDialogOpen] = useState(false);
   const [authorDetailItem, setAuthorDetailItem] = useState(undefined);
@@ -233,10 +233,10 @@ export default function BookCreatePanel(props) {
     return false;
   }
 
-  function setAddBooks(variables) {
-    if(booksIdsToAdd.current.length>0) {
+  function setAddAuthors(variables) {
+    if(authorsIdsToAdd.current.length>0) {
       //set the new id on toAdd property
-      variables.addBooks = booksIdsToAdd.current[0];
+      variables.addAuthors = authorsIdsToAdd.current[0];
     } else {
       //do nothing
     }
@@ -317,7 +317,7 @@ export default function BookCreatePanel(props) {
     delete variables.fk_books_authors;
 
     //add: to_one's
-    setAddBooks(variables);
+    setAddAuthors(variables);
     
     //add: to_many's
 
@@ -541,11 +541,11 @@ export default function BookCreatePanel(props) {
   
   const handleTransferToAdd = (associationKey, itemId) => {
     switch(associationKey) {
-      case 'books':
-        if(booksIdsToAdd.current.indexOf(itemId) === -1) {
-          booksIdsToAdd.current = [];
-          booksIdsToAdd.current.push(itemId);
-          setBooksIdsToAddState(booksIdsToAdd.current);
+      case 'authors':
+        if(authorsIdsToAdd.current.indexOf(itemId) === -1) {
+          authorsIdsToAdd.current = [];
+          authorsIdsToAdd.current.push(itemId);
+          setAuthorsIdsToAddState(authorsIdsToAdd.current);
           handleSetValue(itemId, -2, 'fk_books_authors');
           setForeignKeys({...foreignKeys, fk_books_authors: itemId});
         }
@@ -557,15 +557,15 @@ export default function BookCreatePanel(props) {
   }
 
   const handleUntransferFromAdd =(associationKey, itemId) => {
-    if(associationKey === 'books') {
-      if(booksIdsToAdd.current.length > 0) {
-        booksIdsToAdd.current = [];
-        setBooksIdsToAddState([]);
+    if(associationKey === 'authors') {
+      if(authorsIdsToAdd.current.length > 0) {
+        authorsIdsToAdd.current = [];
+        setAuthorsIdsToAddState([]);
         handleSetValue(null, -2, 'fk_books_authors');
         setForeignKeys({...foreignKeys, fk_books_authors: null});
       }
       return;
-    }//end: case 'books'
+    }//end: case 'authors'
   }
 
   const handleClickOnAuthorRow = (event, item) => {
@@ -680,7 +680,7 @@ export default function BookCreatePanel(props) {
                 {/* Associations Page [1] */}
                 <BookAssociationsPage
                   hidden={tabsValue !== 1}
-                  booksIdsToAdd={booksIdsToAddState}
+                  authorsIdsToAdd={authorsIdsToAddState}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleClickOnAuthorRow={handleClickOnAuthorRow}

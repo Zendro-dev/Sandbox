@@ -14,19 +14,19 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addBooks': 'author'
+    'addAuthors': 'author'
 }
 
 
 
 /**
- * book.prototype.books - Return associated record
+ * book.prototype.authors - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-book.prototype.books = async function({
+book.prototype.authors = async function({
     search
 }, context) {
 
@@ -71,40 +71,40 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.addBooks)) {
-        promises_add.push(this.add_books(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addAuthors)) {
+        promises_add.push(this.add_authors(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.removeBooks)) {
-        promises_remove.push(this.remove_books(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeAuthors)) {
+        promises_remove.push(this.remove_authors(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_books - field Mutation for to_one associations to add
+ * add_authors - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-book.prototype.add_books = async function(input, benignErrorReporter) {
-    await book.add_fk_books_authors(this.getIdValue(), input.addBooks, benignErrorReporter);
-    this.fk_books_authors = input.addBooks;
+book.prototype.add_authors = async function(input, benignErrorReporter) {
+    await book.add_fk_books_authors(this.getIdValue(), input.addAuthors, benignErrorReporter);
+    this.fk_books_authors = input.addAuthors;
 }
 
 /**
- * remove_books - field Mutation for to_one associations to remove
+ * remove_authors - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-book.prototype.remove_books = async function(input, benignErrorReporter) {
-    if (input.removeBooks == this.fk_books_authors) {
-        await book.remove_fk_books_authors(this.getIdValue(), input.removeBooks, benignErrorReporter);
+book.prototype.remove_authors = async function(input, benignErrorReporter) {
+    if (input.removeAuthors == this.fk_books_authors) {
+        await book.remove_fk_books_authors(this.getIdValue(), input.removeAuthors, benignErrorReporter);
         this.fk_books_authors = null;
     }
 }
@@ -128,7 +128,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(book.books({}, context));
+    promises_to_one.push(book.authors({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);

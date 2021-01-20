@@ -19,8 +19,8 @@ export default function BookAssociationsMenuTabs(props) {
         variant="scrollable"
         scrollButtons="auto"
       >
-        <Tab id='BookUpdatePanel-tabsA-button-books' 
-          key='books' label='Books' value='books' />
+        <Tab id='BookUpdatePanel-tabsA-button-authors' 
+          key='authors' label='Authors' value='authors' />
       </Tabs>
     </div>
   );

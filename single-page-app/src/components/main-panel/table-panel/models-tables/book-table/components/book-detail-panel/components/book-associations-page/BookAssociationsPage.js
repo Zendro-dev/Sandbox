@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const BooksCompactView = lazy(() => retry(() => import(/* webpackChunkName: "Detail-CompactView-Books" */ './books-compact-view/BooksCompactView')));
+const AuthorsCompactView = lazy(() => retry(() => import(/* webpackChunkName: "Detail-CompactView-Authors" */ './authors-compact-view/AuthorsCompactView')));
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -26,7 +26,7 @@ export default function BookAssociationsPage(props) {
     deleted,
     handleClickOnAuthorRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('books');
+  const [associationSelected, setAssociationSelected] = React.useState('authors');
 
   const handleAssociationClick = (event, newValue) => {
     setAssociationSelected(newValue);
@@ -51,11 +51,11 @@ export default function BookAssociationsPage(props) {
           />
         </Grid>
 
-        {/* Books Compact View */}
-        {(associationSelected === 'books') && (
+        {/* Authors Compact View */}
+        {(associationSelected === 'authors') && (
           <Grid item xs={12} sm={10} md={9} lg={8} xl={7}>
             <Suspense fallback={<div />}><ErrorBoundary belowToolbar={true} showMessage={true}>
-              <BooksCompactView
+              <AuthorsCompactView
                 item={item}
                 handleClickOnAuthorRow={handleClickOnAuthorRow}
               />

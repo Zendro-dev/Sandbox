@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Fade from '@material-ui/core/Fade';
 //lazy loading
-const BooksTransferLists = lazy(() => retry(() => import(/* webpackChunkName: "Update-TransferLists-Books" */ './books-transfer-lists/BooksTransferLists')));
+const AuthorsTransferLists = lazy(() => retry(() => import(/* webpackChunkName: "Update-TransferLists-Authors" */ './authors-transfer-lists/AuthorsTransferLists')));
 
 const debounceTimeout = 700;
 
@@ -26,15 +26,15 @@ export default function BookAssociationsPage(props) {
   const {
     hidden,
     item,
-    booksIdsToAdd,
-    booksIdsToRemove,
+    authorsIdsToAdd,
+    authorsIdsToRemove,
     handleTransferToAdd,
     handleUntransferFromAdd,
     handleTransferToRemove,
     handleUntransferFromRemove,
     handleClickOnAuthorRow,
   } = props;
-  const [associationSelected, setAssociationSelected] = React.useState('books');
+  const [associationSelected, setAssociationSelected] = React.useState('authors');
 
   //debouncing & event contention
   const cancelablePromises = useRef([]);
@@ -111,14 +111,14 @@ export default function BookAssociationsPage(props) {
             />
           </Grid>
 
-          {/* Books Transfer Lists */}
-          {(associationSelected === 'books') && (
+          {/* Authors Transfer Lists */}
+          {(associationSelected === 'authors') && (
             <Grid item xs={12} sm={11}>
               <Suspense fallback={<div />}><ErrorBoundary belowToolbar={true} showMessage={true}>
-                <BooksTransferLists
+                <AuthorsTransferLists
                   item={item}
-                  idsToAdd={booksIdsToAdd}
-                  idsToRemove={booksIdsToRemove}
+                  idsToAdd={authorsIdsToAdd}
+                  idsToRemove={authorsIdsToRemove}
                   handleTransferToAdd={handleTransferToAdd}
                   handleUntransferFromAdd={handleUntransferFromAdd}
                   handleTransferToRemove={handleTransferToRemove}
@@ -137,8 +137,8 @@ export default function BookAssociationsPage(props) {
 BookAssociationsPage.propTypes = {
   hidden: PropTypes.bool.isRequired,
   item: PropTypes.object.isRequired,
-  booksIdsToAdd: PropTypes.array.isRequired,
-  booksIdsToRemove: PropTypes.array.isRequired,
+  authorsIdsToAdd: PropTypes.array.isRequired,
+  authorsIdsToRemove: PropTypes.array.isRequired,
   handleTransferToAdd: PropTypes.func.isRequired,
   handleUntransferFromAdd: PropTypes.func.isRequired,
   handleTransferToRemove: PropTypes.func.isRequired,

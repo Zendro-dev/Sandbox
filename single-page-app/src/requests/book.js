@@ -189,14 +189,14 @@ export default {
     let qvariables = `
           $book_id:ID!,
           $name:String,
-          $addBooks: ID,
+          $addAuthors: ID,
 `;
 
     //set parameters assignation
     let qparameters = `
             book_id:$book_id,
             name:$name,
-            addBooks: $addBooks,
+            addAuthors: $addAuthors,
 `;
 
     //set attributes to fetch
@@ -263,16 +263,16 @@ export default {
     let qvariables = `
           $book_id:ID!,
           $name:String,
-          $addBooks: ID,
-          $removeBooks: ID,
+          $addAuthors: ID,
+          $removeAuthors: ID,
 `;
 
     //set parameters assignation
     let qparameters = `
             book_id:$book_id,
             name: $name,
-            addBooks: $addBooks,
-            removeBooks: $removeBooks,
+            addAuthors: $addAuthors,
+            removeAuthors: $removeAuthors,
 `;
 
     //set attributes to fetch
@@ -372,9 +372,9 @@ export default {
  */
 
   /**
-   * getBooks   *
+   * getAuthors   *
    * Get authors records associated to the given book record
-   * through association 'Books', from GraphQL Server.
+   * through association 'Authors', from GraphQL Server.
    *
    *
    * @param {String} url GraphQL Server url
@@ -383,7 +383,7 @@ export default {
    * @param {Object} variables Object with cursor-based-pagination variables.
    * @param {String} ops Object with adittional query options.
    */
-  async getBooks(url, itemId, searchText, variables, ops) {
+  async getAuthors(url, itemId, searchText, variables, ops) {
     let graphqlErrors = [];
 
     //set attributes
@@ -397,14 +397,14 @@ export default {
     let query = 
       `query readOneBook($book_id:ID!) {
              readOneBook(book_id:$book_id) {
-                books{
+                authors{
                   ${qattributes}
                 }
              }}`;
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getBooks', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getAuthors', query, variables);
     
     //request
     let response = await requestGraphql({ url, query, variables });
@@ -415,11 +415,11 @@ export default {
       //check types
       if(!response.data.data["readOneBook"]
       || typeof response.data.data["readOneBook"] !== 'object'
-      || typeof response.data.data["readOneBook"]["books"] !== 'object' //can be null
+      || typeof response.data.data["readOneBook"]["authors"] !== 'object' //can be null
       ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
       
       //get value
-      associatedItem = response.data.data["readOneBook"]["books"];
+      associatedItem = response.data.data["readOneBook"]["authors"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     //return value
@@ -434,16 +434,16 @@ export default {
  */
 
   /**
-   * getNotAssociatedBooksCount
+   * getNotAssociatedAuthorsCount
    *
-   * Get count of not associated Books from GraphQL Server.
+   * Get count of not associated Authors from GraphQL Server.
    *
    * @param {String} url GraphQL Server url.
    * @param {String} itemId Model item internalId.
    * @param {String} searchText Text string currently on search bar.
    * @param {String} ops Object with adittional query options.
    */
-  async getNotAssociatedBooksCount(url, itemId, searchText, ops) {
+  async getNotAssociatedAuthorsCount(url, itemId, searchText, ops) {
     let graphqlErrors = [];
     /**
      * Algorithm:
@@ -470,13 +470,13 @@ export default {
     let query = 
       `query readOneBook($book_id:ID!) {
              readOneBook(book_id:$book_id) {
-                books{
+                authors{
                   author_id                }
              }}`;
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedBooksCount.query1', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAuthorsCount.query1', query, variables);
     //request
     let response = await requestGraphql({ url, query, variables });
     let associatedItem = null;
@@ -486,11 +486,11 @@ export default {
       //check types
       if(!response.data.data["readOneBook"]
       || typeof response.data.data["readOneBook"] !== 'object'
-      || typeof response.data.data["readOneBook"]["books"] !== 'object' //can be null
+      || typeof response.data.data["readOneBook"]["authors"] !== 'object' //can be null
       ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
       
       //get value
-      associatedItem = response.data.data["readOneBook"]["books"];
+      associatedItem = response.data.data["readOneBook"]["authors"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
    /**
@@ -528,7 +528,7 @@ export default {
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedBooksCount.query2', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAuthorsCount.query2', query, variables);
     //request
     response = await requestGraphql({ url, query, variables });
     let count = null;
@@ -555,9 +555,9 @@ export default {
  */
 
 /**
- * getNotAssociatedBooks
+ * getNotAssociatedAuthors
  *
- * Get not associated Books items from GraphQL Server.
+ * Get not associated Authors items from GraphQL Server.
  *
  * @param {String} url GraphQL Server url.
  * @param {String} itemId Model item internalId.
@@ -566,7 +566,7 @@ export default {
  * @param {String} ops Object with additional query options.
  * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
  */
-async getNotAssociatedBooks(url, itemId, searchText, variables, ops, batchSize) {
+async getNotAssociatedAuthors(url, itemId, searchText, variables, ops, batchSize) {
    //internal checks
    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
@@ -592,14 +592,14 @@ async getNotAssociatedBooks(url, itemId, searchText, variables, ops, batchSize) 
      */
     let query = 
       `{  readOneBook(book_id: "${itemId}") {
-            books{
+            authors{
               author_id            }
           }
         }`;
      /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedBooks.query1', query);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAuthors.query1', query);
     //request
     let response = await requestGraphql({ url, query });
     let associatedItem = null;
@@ -609,11 +609,11 @@ async getNotAssociatedBooks(url, itemId, searchText, variables, ops, batchSize) 
       //check types
       if(!response.data.data["readOneBook"]
       || typeof response.data.data["readOneBook"] !== 'object'
-      || typeof response.data.data["readOneBook"]["books"] !== 'object' //can be null
+      || typeof response.data.data["readOneBook"]["authors"] !== 'object' //can be null
       ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
       
       //get value
-      associatedItem = response.data.data["readOneBook"]["books"];
+      associatedItem = response.data.data["readOneBook"]["authors"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     /**
@@ -656,7 +656,7 @@ async getNotAssociatedBooks(url, itemId, searchText, variables, ops, batchSize) 
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedBooks.query2', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAuthors.query2', query, variables);
 
     //request
     response = await requestGraphql({ url, query, variables });

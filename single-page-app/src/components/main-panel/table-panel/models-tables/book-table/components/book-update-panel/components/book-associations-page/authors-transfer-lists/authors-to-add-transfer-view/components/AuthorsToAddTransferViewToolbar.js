@@ -31,7 +31,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BooksToAddTransferViewToolbar(props) {
+export default function AuthorsToAddTransferViewToolbar(props) {
   const classes = useToolbarStyles();
   const { t } = useTranslation();
   const {
@@ -101,7 +101,7 @@ export default function BooksToAddTransferViewToolbar(props) {
             {/* SearchField */}
             <Grid item xs={12}>
               <Grid container justify='flex-end' alignItems='center' wrap='nowrap'>
-                
+
                 {/* Search Inactive */}
                 <Fade 
                   in={!searchActive} 
@@ -127,7 +127,6 @@ export default function BooksToAddTransferViewToolbar(props) {
                     </Tooltip>
                   </Grid>
                 </Fade>
-               
                 {/* Search Active */}
                 <Grow 
                   in={searchActiveB}
@@ -199,7 +198,7 @@ export default function BooksToAddTransferViewToolbar(props) {
                       onChange={event => setDisplayedSearch(event.target.value)}
                     />
                   </Grid>
-                </Grow>  
+                </Grow>
 
                 {/* Reload Icon */}
                 <Grid item>
@@ -223,10 +222,10 @@ export default function BooksToAddTransferViewToolbar(props) {
     </div>
   );
 };
-BooksToAddTransferViewToolbar.propTypes = {
-  search: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  titleIcon: PropTypes.number,
-  onSearchEnter: PropTypes.func.isRequired,
-  onReloadClick: PropTypes.func.isRequired,
+AuthorsToAddTransferViewToolbar.propTypes = {
+    search: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    titleIcon: PropTypes.number,
+    onSearchEnter: PropTypes.func.isRequired,
+    onReloadClick: PropTypes.func.isRequired,
 };

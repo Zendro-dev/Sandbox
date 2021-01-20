@@ -9,8 +9,8 @@ import Snackbar from '../../../../../../../../../../snackbar/Snackbar';
 import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils'
-import BooksToAddTransferViewToolbar from './components/BooksToAddTransferViewToolbar';
-import BooksToAddTransferViewCursorPagination from './components/BooksToAddTransferViewCursorPagination';
+import AuthorsToAddTransferViewToolbar from './components/AuthorsToAddTransferViewToolbar';
+import AuthorsToAddTransferViewCursorPagination from './components/AuthorsToAddTransferViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -98,7 +98,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function BooksToAddTransferView(props) {
+export default function AuthorsToAddTransferView(props) {
   const classes = useStyles();
   const { t } = useTranslation();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -506,7 +506,7 @@ export default function BooksToAddTransferView(props) {
     let currentId = item.book_id;
 
     /*
-      API Request: api.book.getBooks
+      API Request: api.book.getAuthors
     */
     let api = await loadApi("book");
     if(!api) {
@@ -520,7 +520,7 @@ export default function BooksToAddTransferView(props) {
       return;
     }
 
-    let cancelableApiReq = makeCancelable(api.book.getBooks(graphqlServerUrl, item.book_id));
+    let cancelableApiReq = makeCancelable(api.book.getAuthors(graphqlServerUrl, item.book_id));
     cancelablePromises.current.push(cancelableApiReq);
     await cancelableApiReq
       .promise
@@ -536,8 +536,8 @@ export default function BooksToAddTransferView(props) {
             let withDetails=true;
             variantE.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getBooks'}];
-            newError.path=['update', `book_id:${currentId}`, 'add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getAuthors'}];
+            newError.path=['update', `book_id:${currentId}`, 'add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsE.current.push(newError);
             console.log("Error: ", newError);
@@ -550,8 +550,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantE.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getBooks'}];
-          newError.path=['update', `book_id:${currentId}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getAuthors'}];
+          newError.path=['update', `book_id:${currentId}`, 'add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsE.current.push(newError);
           console.log("Error: ", newError);
@@ -573,7 +573,7 @@ export default function BooksToAddTransferView(props) {
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.book.getBooks
+      .catch((err) => { //error: on api.book.getAuthors
         if(err.isCanceled) {
           return
         } else {
@@ -581,8 +581,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantE.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getBooks'}];
-          newError.path=['update', `book_id:${currentId}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'Associated Item', method: 'getAssociatedItem()', request: 'api.book.getAuthors'}];
+          newError.path=['update', `book_id:${currentId}`, 'add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsE.current.push(newError);
           console.log("Error: ", newError);
@@ -620,7 +620,7 @@ export default function BooksToAddTransferView(props) {
     }    
 
     /*
-      API Request: api.book.getNotAssociatedBooksCount
+      API Request: api.book.getNotAssociatedAuthorsCount
     */
     let api = await loadApi("book");
     if(!api) {
@@ -634,7 +634,7 @@ export default function BooksToAddTransferView(props) {
       return;
     }
 
-    let cancelableApiReq = makeCancelable(api.book.getNotAssociatedBooksCount(graphqlServerUrl, item.book_id, search, ops));
+    let cancelableApiReq = makeCancelable(api.book.getNotAssociatedAuthorsCount(graphqlServerUrl, item.book_id, search, ops));
     cancelableCountingPromises.current.push(cancelableApiReq);
     await cancelableApiReq
       .promise
@@ -652,8 +652,8 @@ export default function BooksToAddTransferView(props) {
             let withDetails=true;
             variantC.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedBooksCount'}];
-            newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedAuthorsCount'}];
+            newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsC.current.push(newError);
             console.log("Error: ", newError);
@@ -666,8 +666,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantC.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedBooksCount'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedAuthorsCount'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsC.current.push(newError);
           console.log("Error: ", newError);
@@ -688,7 +688,7 @@ export default function BooksToAddTransferView(props) {
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.book.getNotAssociatedBooksCount
+      .catch((err) => { //error: on api.book.getNotAssociatedAuthorsCount
         if(err.isCanceled) {
           return;
         } else {
@@ -697,8 +697,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantC.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedBooksCount'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getCount()', request: 'api.book.getNotAssociatedAuthorsCount'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsC.current.push(newError);
           console.log("Error: ", newError);
@@ -743,7 +743,7 @@ export default function BooksToAddTransferView(props) {
       pagination: {...paginationRef.current}
     };
     /*
-      API Request: api.book.getNotAssociatedBooks
+      API Request: api.book.getNotAssociatedAuthors
     */
     let api = await loadApi("book");
     if(!api) {
@@ -758,7 +758,7 @@ export default function BooksToAddTransferView(props) {
       return;
     }
 
-    let cancelableApiReq = makeCancelable(api.book.getNotAssociatedBooks(
+    let cancelableApiReq = makeCancelable(api.book.getNotAssociatedAuthors(
       graphqlServerUrl,
       item.book_id,
       search,
@@ -782,8 +782,8 @@ export default function BooksToAddTransferView(props) {
             let withDetails=true;
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedBooks'}];
-            newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedAuthors'}];
+            newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -796,8 +796,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedBooks'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedAuthors'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -843,7 +843,7 @@ export default function BooksToAddTransferView(props) {
         else throw err;
       })
       //error
-      .catch((err) => { //error: on api.book.getNotAssociatedBooks
+      .catch((err) => { //error: on api.book.getNotAssociatedAuthors
         if(err.isCanceled) {
           return;
         } else {
@@ -851,8 +851,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedBooks'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'A', method: 'getData()', request: 'api.book.getNotAssociatedAuthors'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -937,8 +937,8 @@ export default function BooksToAddTransferView(props) {
             let withDetails=true;
             variantB.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
-            newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-            newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+            newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+            newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errorsB.current.push(newError);
             console.log("Error: ", newError);
@@ -951,8 +951,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
-          newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -987,8 +987,8 @@ export default function BooksToAddTransferView(props) {
           let withDetails=true;
           variantB.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
-          newError.locations=[{model: 'book', association: 'books', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
-          newError.path=['update', `book_id:${item.book_id}`, 'add', 'books'];
+          newError.locations=[{model: 'book', association: 'authors', table:'B', method: 'getDataB()', request: 'api.author.getItems'}];
+          newError.path=['update', `book_id:${item.book_id}`, 'add', 'authors'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errorsB.current.push(newError);
           console.log("Error: ", newError);
@@ -1060,7 +1060,7 @@ export default function BooksToAddTransferView(props) {
 
     /*
      * Case 1: 
-     * The relation 'books' for this item was updated.
+     * The relation 'authors' for this item was updated.
      * That is to say that the current item was associated or dis-associated with some 'authors', 
      * from this relation (in another place).
      * 
@@ -1088,7 +1088,7 @@ export default function BooksToAddTransferView(props) {
                 if(lidsToAdd.current.length === 0) {
                   setThereAreItemsToAdd(false);
                 }
-                handleUntransfer('books', idAdded);
+                handleUntransfer('authors', idAdded);
               }
             });
             /**
@@ -1102,7 +1102,7 @@ export default function BooksToAddTransferView(props) {
             //update idsToRemove
             if(lidsToRemove.current && lidsToRemove.current.length>0) {
               lidsToRemove.current = [idsAdded[0]];
-              handleDisassociateItem('books', idsAdded[0]);
+              handleDisassociateItem('authors', idsAdded[0]);
             }
           }
 
@@ -1122,7 +1122,7 @@ export default function BooksToAddTransferView(props) {
              */
             //update idsToRemove
             if(!idsAdded && lidsToRemove.current && lidsToRemove.current.length>0) {
-              handleReassociateItem('books', lidsToRemove.current[0]);
+              handleReassociateItem('authors', lidsToRemove.current[0]);
               lidsToRemove.current = [];
             } 
           }
@@ -1150,7 +1150,7 @@ export default function BooksToAddTransferView(props) {
 
     /*
      * Case 2: 
-     * The relation 'books' for this item was updated from the target model (in the peer relation).
+     * The relation 'authors' for this item was updated from the target model (in the peer relation).
      * That is to say that this current item was associated or dis-associated with some 'author',
      * but this action happened on the peer relation, identified by 'book_fk_books_authors'.
      * 
@@ -1184,7 +1184,7 @@ export default function BooksToAddTransferView(props) {
                 if(iof !== -1) {
                   //update idsToRemove
                   if(lidsToRemove.current && lidsToRemove.current.length>0) {
-                    handleReassociateItem('books', lidsToRemove.current[0]);
+                    handleReassociateItem('authors', lidsToRemove.current[0]);
                     lidsToRemove.current = [];
                   } 
 
@@ -1229,11 +1229,11 @@ export default function BooksToAddTransferView(props) {
                       setThereAreItemsToAdd(false);
                     }
                   }
-                  handleUntransfer('books', idAdded);
+                  handleUntransfer('authors', idAdded);
                   //update idsToRemove
                   if(lidsToRemove.current && lidsToRemove.current.length>0) {
                     lidsToRemove.current = [idAdded];
-                    handleDisassociateItem('books', idAdded);
+                    handleDisassociateItem('authors', idAdded);
                   } 
 
                   //will count A
@@ -1336,7 +1336,7 @@ export default function BooksToAddTransferView(props) {
               setThereAreItemsToAdd(false);
             }
           }
-          handleUntransfer('books', idRemoved);
+          handleUntransfer('authors', idRemoved);
 
           //lookup on associated item
           if(associatedItem && associatedItem.author_id===idRemoved) {
@@ -1635,14 +1635,14 @@ const handleReloadClickB = (event) => {
       if(associatedItem && checked) {
         setChecked(false);
         lidsToRemove.current = [associatedItem.author_id];
-        handleDisassociateItem('books', associatedItem.author_id);
+        handleDisassociateItem('authors', associatedItem.author_id);
       }
 
       //reload A
       reloadDataA();
       //reload B
       setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
-      handleTransfer('books', item.author_id);
+      handleTransfer('authors', item.author_id);
     }
   };
 
@@ -1663,7 +1663,7 @@ const handleReloadClickB = (event) => {
       setDataTrigger(prevDataTrigger => !prevDataTrigger);
       //reload B
       reloadDataB();
-      handleUntransfer('books', item.author_id);
+      handleUntransfer('authors', item.author_id);
     }
   };
 
@@ -1678,7 +1678,7 @@ const handleReloadClickB = (event) => {
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <BooksToAddTransferViewToolbar
+              <AuthorsToAddTransferViewToolbar
                 title={'Authors'}
                 titleIcon={1}
                 search={search}
@@ -1693,7 +1693,7 @@ const handleReloadClickB = (event) => {
                   in={true}
                   unmountOnExit
                 >
-                  <div id='BooksToAddTransferView-div-noDataA'>
+                  <div id='AuthorsToAddTransferView-div-noDataA'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1716,7 +1716,7 @@ const handleReloadClickB = (event) => {
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lref}>
-                    <List id='BooksToAddTransferView-list-listA'
+                    <List id='AuthorsToAddTransferView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
                         let key = it.author_id;
@@ -1725,7 +1725,7 @@ const handleReloadClickB = (event) => {
                         
                         return (
                           <ListItem 
-                            id={'BooksToAddTransferView-listA-listItem-'+it.author_id}
+                            id={'AuthorsToAddTransferView-listA-listItem-'+it.author_id}
                             key={key} 
                             role="listitem" 
                             button 
@@ -1750,7 +1750,7 @@ const handleReloadClickB = (event) => {
                                     <Grid item>
                                       <Tooltip title={ 'author_id' }>
                                         <Typography 
-                                        id={'BooksToAddTransferView-listA-listItem-id-'+it.author_id}
+                                        id={'AuthorsToAddTransferView-listA-listItem-id-'+it.author_id}
                                         variant="body1" display="block" noWrap={true}>{it.author_id}</Typography>
                                       </Tooltip>
                                     </Grid>
@@ -1785,7 +1785,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.transferToAdd') }>
                                 <IconButton
-                                  id={'BooksToAddTransferView-listA-listItem-'+it.author_id+'-button-add'}
+                                  id={'AuthorsToAddTransferView-listA-listItem-'+it.author_id+'-button-add'}
                                   color="primary"
                                   className={classes.iconButton}
                                   onClick={(event) => {
@@ -1828,7 +1828,7 @@ const handleReloadClickB = (event) => {
               )}
 
               {/* Pagination */}
-              <BooksToAddTransferViewCursorPagination
+              <AuthorsToAddTransferViewCursorPagination
                 count={count}
                 rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
                 rowsPerPage={(count <=10) ? '' : rowsPerPage}
@@ -1909,7 +1909,7 @@ const handleReloadClickB = (event) => {
             <Card className={classes.card}>
 
               {/* Toolbar */}
-              <BooksToAddTransferViewToolbar 
+              <AuthorsToAddTransferViewToolbar 
                 title={'Author'}
                 titleIcon={2}
                 search={searchB}
@@ -1925,7 +1925,7 @@ const handleReloadClickB = (event) => {
                   in={true}
                   unmountOnExit
                 >
-                  <div id='BooksToAddTransferView-div-noItemsB'>
+                  <div id='AuthorsToAddTransferView-div-noItemsB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1946,7 +1946,7 @@ const handleReloadClickB = (event) => {
                   in={true}
                   unmountOnExit
                 >
-                  <div id='BooksToAddTransferView-div-noDataB'>
+                  <div id='AuthorsToAddTransferView-div-noDataB'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center">
@@ -1969,7 +1969,7 @@ const handleReloadClickB = (event) => {
                   unmountOnExit
                 >
                   <Box className={classes.listBox} ref={lrefB}>
-                    <List id='BooksToAddTransferView-list-listB'
+                    <List id='AuthorsToAddTransferView-list-listB'
                       dense component="div" role="list">
                       {itemsB.map(it => {
                         let key = it.author_id;
@@ -1979,7 +1979,7 @@ const handleReloadClickB = (event) => {
                         
                         return (
                           <ListItem 
-                            id={'BooksToAddTransferView-listB-listItem-'+it.author_id}
+                            id={'AuthorsToAddTransferView-listB-listItem-'+it.author_id}
                             key={key} 
                             role="listitem"
                             button
@@ -2004,7 +2004,7 @@ const handleReloadClickB = (event) => {
                                     <Grid item>
                                       <Tooltip title={ 'author_id' }>
                                         <Typography 
-                                        id={'BooksToAddTransferView-listB-listItem-id-'+it.author_id}
+                                        id={'AuthorsToAddTransferView-listB-listItem-id-'+it.author_id}
                                         variant="body1" display="block" noWrap={true}>{it.author_id}</Typography>
                                       </Tooltip>
                                     </Grid>
@@ -2039,7 +2039,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.untransferToAdd') }>
                                 <IconButton
-                                  id={'BooksToAddTransferView-listB-listItem-'+it.author_id+'-button-remove'}
+                                  id={'AuthorsToAddTransferView-listB-listItem-'+it.author_id+'-button-remove'}
                                   color="primary"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -2105,7 +2105,7 @@ const handleReloadClickB = (event) => {
                     </Grid>
 
                     {/* List */}
-                    <List id='BooksToAddTransferView-associatedItem-list'
+                    <List id='AuthorsToAddTransferView-associatedItem-list'
                       dense component="div" role="list">
                       {[associatedItem].map(associatedItem => {
                         let key = associatedItem.author_id;
@@ -2114,7 +2114,7 @@ const handleReloadClickB = (event) => {
 
                         return (
                           <ListItem 
-                            id={'BooksToAddTransferView-associatedItem-list-listItem-'+associatedItem.author_id}
+                            id={'AuthorsToAddTransferView-associatedItem-list-listItem-'+associatedItem.author_id}
                             key={key} 
                             role="listitem"
                             button
@@ -2138,7 +2138,7 @@ const handleReloadClickB = (event) => {
                                     <Grid item>
                                       <Tooltip title={ 'author_id' }>
                                         <Typography 
-                                        id={'BooksToAddTransferView-listB-listItem-id-'+associatedItem.author_id}
+                                        id={'AuthorsToAddTransferView-listB-listItem-id-'+associatedItem.author_id}
                                         variant="body1" display="block" noWrap={true}>{associatedItem.author_id}</Typography>
                                       </Tooltip>
                                     </Grid>
@@ -2173,7 +2173,7 @@ const handleReloadClickB = (event) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ checked ? t('modelPanels.uncheckToDissasociate', 'Uncheck to disassociate') : t('modelPanels.checkToReassociate', 'Check to keep associated') }>
                                 <Checkbox
-                                  id={'BooksToAddTransferView-associatedItem-list-listItem-'+associatedItem.author_id+'-checkbox'}
+                                  id={'AuthorsToAddTransferView-associatedItem-list-listItem-'+associatedItem.author_id+'-checkbox'}
                                   className={classes.checkbox}
                                   checked={checked}
                                   color="primary"
@@ -2187,10 +2187,10 @@ const handleReloadClickB = (event) => {
                                         handleRemoveItem(null, itemsB[0]);
                                       }
                                       lidsToRemove.current = [];
-                                      handleReassociateItem('books', associatedItem.author_id);
+                                      handleReassociateItem('authors', associatedItem.author_id);
                                     } else {
                                       lidsToRemove.current = [associatedItem.author_id];
-                                      handleDisassociateItem('books', associatedItem.author_id);
+                                      handleDisassociateItem('authors', associatedItem.author_id);
                                     }
                                   }}
                                 />  
@@ -2232,7 +2232,7 @@ const handleReloadClickB = (event) => {
                   in={true}
                   unmountOnExit
                 >
-                  <div id='BooksToAddTransferView-div-noAssociatedItem'>
+                  <div id='AuthorsToAddTransferView-div-noAssociatedItem'>
                     <Grid container>
                       <Grid item xs={12}>
                         <Grid className={classes.noDataBox} container justify="center" alignItems="center" wrap='nowrap' spacing={1}>
@@ -2262,7 +2262,7 @@ const handleReloadClickB = (event) => {
     </div>
   );
 }
-BooksToAddTransferView.propTypes = {
+AuthorsToAddTransferView.propTypes = {
   item: PropTypes.object.isRequired,
   idsToAdd: PropTypes.array.isRequired,
   handleTransfer: PropTypes.func.isRequired,
