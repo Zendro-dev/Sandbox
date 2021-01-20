@@ -24,6 +24,8 @@ import TimeField from './components/TimeField'
 
 import DateTimeField from './components/DateTimeField'
 
+import BoolField from './components/BoolField'
+
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -79,7 +81,7 @@ export default function SPARefactorAttributesFormView(props) {
                     { t('modelPanels.model') + ': SPARefactor' }
                 </Typography>
               }
-              subheader={getItemsOk()+' / 7 ' + t('modelPanels.completed')}
+              subheader={getItemsOk()+' / 8 ' + t('modelPanels.completed')}
             >
             </CardHeader>
           </Card>
@@ -91,21 +93,21 @@ export default function SPARefactorAttributesFormView(props) {
             {/*
               Internal ID
             */}
-            {/* int */}
-            <CardContent key='int' className={classes.cardContent} >
+            {/* string */}
+            <CardContent key='string' className={classes.cardContent} >
               <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                 <Grid item>
 
-
-                  <IntField
-                    itemKey='int'
-                    name='int'
-                    label='int'
-                    valueOk={valueOkStates.int}
-                    valueAjv={valueAjvStates.int}
+                  <StringField
+                    itemKey='string'
+                    name='string'
+                    label='string'
+                    valueOk={valueOkStates.string}
+                    valueAjv={valueAjvStates.string}
                     autoFocus={true}
                     handleSetValue={handleSetValue}
                   />
+
                 </Grid>
 
                 {/*Key icon*/}
@@ -127,18 +129,18 @@ export default function SPARefactorAttributesFormView(props) {
                 valueOk={valueOkStates.array}
                 valueAjv={valueAjvStates.array}
                 handleSetValue={handleSetValue}
-                arrayType='Boolean'
+                arrayType='String'
               />
             </CardContent>
 
-            {/* string */}
-            <CardContent key='string' className={classes.cardContent} >
-              <StringField
-                itemKey='string'
-                name='string'
-                label='string'
-                valueOk={valueOkStates.string}
-                valueAjv={valueAjvStates.string}
+            {/* int */}
+            <CardContent key='int' className={classes.cardContent} >
+              <IntField
+                itemKey='int'
+                name='int'
+                label='int'
+                valueOk={valueOkStates.int}
+                valueAjv={valueAjvStates.int}
                 handleSetValue={handleSetValue}
               />
             </CardContent>
@@ -187,6 +189,18 @@ export default function SPARefactorAttributesFormView(props) {
                 label='datetime'
                 valueOk={valueOkStates.datetime}
                 valueAjv={valueAjvStates.datetime}
+                handleSetValue={handleSetValue}
+              />
+            </CardContent>
+
+            {/* boolean */}
+            <CardContent key='boolean' className={classes.cardContent} >
+              <BoolField
+                itemKey='boolean'
+                name='boolean'
+                label='boolean'
+                valueOk={valueOkStates.boolean}
+                valueAjv={valueAjvStates.boolean}
                 handleSetValue={handleSetValue}
               />
             </CardContent>

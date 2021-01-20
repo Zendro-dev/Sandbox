@@ -195,18 +195,18 @@ export default function SPARefactorDetailPanel(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged['SPARefactor']&&
-      lastModelChanged['SPARefactor'][String(item['int'])]) {
+      lastModelChanged['SPARefactor'][String(item['string'])]) {
           
         //updated item
-        if(lastModelChanged['SPARefactor'][String(item['int'])].op === "update"&&
-            lastModelChanged['SPARefactor'][String(item['int'])].newItem) {
+        if(lastModelChanged['SPARefactor'][String(item['string'])].op === "update"&&
+            lastModelChanged['SPARefactor'][String(item['string'])].newItem) {
               //replace item
-              setItemState(lastModelChanged['SPARefactor'][String(item['int'])].newItem);
+              setItemState(lastModelChanged['SPARefactor'][String(item['string'])].newItem);
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged['SPARefactor'][String(item['int'])].op === "delete") {
+          if(lastModelChanged['SPARefactor'][String(item['string'])].op === "delete") {
               //show alert
               setDeleted(true);
           }
@@ -261,8 +261,8 @@ export default function SPARefactorDetailPanel(props) {
     
     //variables
     let variables = {};
-    //int
-    variables.int = item.int;
+    //string
+    variables.string = item.string;
 
     /*
       API Request: api.sPARefactor.deleteItem
@@ -298,7 +298,7 @@ export default function SPARefactorDetailPanel(props) {
             variant.current='info';
             newError.message = t('modelPanels.errors.data.e3', 'fetched with errors.');
             newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-            newError.path=['SPARefactors', `int:${item.int}`, 'delete'];
+            newError.path=['SPARefactors', `string:${item.string}`, 'delete'];
             newError.extensions = {graphQL:{data:response.data, errors:response.graphqlErrors}};
             errors.current.push(newError);
             console.log("Error: ", newError);
@@ -312,7 +312,7 @@ export default function SPARefactorDetailPanel(props) {
           variant.current='error';
           newError.message = t(`modelPanels.errors.data.${response.message}`, 'Error: '+response.message);
           newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-          newError.path=['SPARefactors', `int:${item.int}`, 'delete'];
+          newError.path=['SPARefactors', `string:${item.string}`, 'delete'];
           newError.extensions = {graphqlResponse:{data:response.data, errors:response.graphqlErrors}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -349,7 +349,7 @@ export default function SPARefactorDetailPanel(props) {
           variant.current='error';
           newError.message = t('modelPanels.errors.request.e1', 'Error in request made to server.');
           newError.locations=[{model: 'SPARefactor', method: 'doDelete()', request: 'api.sPARefactor.deleteItem'}];
-          newError.path=['SPARefactors', `int:${item.int}` ,'delete'];
+          newError.path=['SPARefactors', `string:${item.string}` ,'delete'];
           newError.extensions = {error:{message:err.message, name:err.name, response:err.response}};
           errors.current.push(newError);
           console.log("Error: ", newError);
@@ -379,6 +379,7 @@ export default function SPARefactorDetailPanel(props) {
     initialValueOkStates.date = (item.date!==null ? 1 : 0);
     initialValueOkStates.time = (item.time!==null ? 1 : 0);
     initialValueOkStates.datetime = (item.datetime!==null ? 1 : 0);
+    initialValueOkStates.boolean = (item.boolean!==null ? 1 : 0);
 
     return initialValueOkStates;
   }
@@ -495,7 +496,7 @@ export default function SPARefactorDetailPanel(props) {
                 </IconButton>
               </Tooltip>
               <Typography variant="h6" className={classes.title}>
-                { t('modelPanels.detailOf') +  ": SPARefactor | int: " + itemState['int'] }
+                { t('modelPanels.detailOf') +  ": SPARefactor | string: " + itemState['string'] }
               </Typography>
               {/*
                 Actions:

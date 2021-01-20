@@ -18,14 +18,24 @@ const modelsAttributes = {
       "email": "String",
       "password": "String",
   },
+  'author': {
+      "author_id": "String",
+      "name": "String",
+  },
+  'book': {
+      "book_id": "String",
+      "name": "String",
+      "fk_books_authors": "String",
+  },
   'sPARefactor': {
-      "array": "[Boolean]",
+      "array": "[String]",
       "string": "String",
       "int": "Int",
       "float": "Float",
       "date": "Date",
       "time": "Time",
       "datetime": "DateTime",
+      "boolean": "Boolean",
   },
 }
 

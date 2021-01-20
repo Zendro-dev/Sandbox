@@ -100,22 +100,22 @@ export default function SPARefactorDeleteConfirmationDialog(props) {
     //check if this.item changed
     if(lastModelChanged&&
       lastModelChanged.SPARefactor&&
-      lastModelChanged.SPARefactor[String(item.int)]) {
+      lastModelChanged.SPARefactor[String(item.string)]) {
 
         //updated item
-        if(lastModelChanged.SPARefactor[String(item.int)].op === "update"&&
-            lastModelChanged.SPARefactor[String(item.int)].newItem) {
+        if(lastModelChanged.SPARefactor[String(item.string)].op === "update"&&
+            lastModelChanged.SPARefactor[String(item.string)].newItem) {
               //show alert
               setUpdated(true);
         } else {
           //deleted item
-          if(lastModelChanged.SPARefactor[String(item.int)].op === "delete") {
+          if(lastModelChanged.SPARefactor[String(item.string)].op === "delete") {
               //show alert
               setDeleted(true);
           }
         }
     }//end: Case 1
-  }, [lastModelChanged, lastChangeTimestamp, item.int]);
+  }, [lastModelChanged, lastChangeTimestamp, item.string]);
 
   useEffect(() => {
     if(deleted&&updated) {

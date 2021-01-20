@@ -35,8 +35,6 @@ const RoleToUserCreatePanel = lazy(() => retry(() => import(/* webpackChunkName:
 const RoleToUserUpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Update-RoleToUser" */ './components/role_to_user-update-panel/Role_to_userUpdatePanel')));
 const RoleToUserDetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-RoleToUser" */ './components/role_to_user-detail-panel/Role_to_userDetailPanel')));
 const RoleToUserDeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Delete-RoleToUser" */ './components/Role_to_userDeleteConfirmationDialog')));
-//Plotly
-const RoleToUserPlotly = lazy(() => retry(() => import(/* webpackChunkName: "Plotly-RoleToUser" */ '../../../../plots/Role_to_userPlotly')));
 
 // const drawerWidth = 280;
 // const appBarHeight = 72;
@@ -1064,8 +1062,6 @@ export default function RoleToUserEnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      case 'plot':
-        return 1;
       default:
         return 0;
     }
@@ -1354,7 +1350,7 @@ export default function RoleToUserEnhancedTable(props) {
                 <RoleToUserEnhancedTableToolbar
                   permissions={permissions}
                   search={search}
-                  showToggleButtons={true}
+                  showToggleButtons={false}
                   toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
@@ -1592,17 +1588,6 @@ export default function RoleToUserEnhancedTable(props) {
                     />
                   </div>
 
-                  {/*
-                    Swipe page 2: Plot
-                    Conditional rendered
-                  */}
-                  <div>
-                    {(Boolean(RoleToUserPlotly)) && (
-                      <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
-                        <RoleToUserPlotly />
-                      </ErrorBoundary></Suspense>
-                    )}
-                  </div>
 
                 </SwipeableViews>
               </Paper>

@@ -22,18 +22,19 @@ const definition = {
     model: 'SPARefactor',
     storageType: 'sql',
     attributes: {
-        array: '[Boolean]',
+        array: '[String]',
         string: 'String',
         int: 'Int',
         float: 'Float',
         date: 'Date',
         time: 'Time',
-        datetime: 'DateTime'
+        datetime: 'DateTime',
+        boolean: 'Boolean'
     },
-    internalId: 'int',
+    internalId: 'string',
     id: {
-        name: 'int',
-        type: 'Int'
+        name: 'string',
+        type: 'String'
     }
 };
 
@@ -50,16 +51,16 @@ module.exports = class SPARefactor extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            int: {
-                type: Sequelize[dict['Int']],
+            string: {
+                type: Sequelize[dict['String']],
                 primaryKey: true
             },
             array: {
-                type: Sequelize[dict['[Boolean]']],
+                type: Sequelize[dict['[String]']],
                 defaultValue: '[]'
             },
-            string: {
-                type: Sequelize[dict['String']]
+            int: {
+                type: Sequelize[dict['Int']]
             },
             float: {
                 type: Sequelize[dict['Float']]
@@ -81,6 +82,9 @@ module.exports = class SPARefactor extends Sequelize.Model {
             },
             datetime: {
                 type: Sequelize[dict['DateTime']]
+            },
+            boolean: {
+                type: Sequelize[dict['Boolean']]
             }
 
 

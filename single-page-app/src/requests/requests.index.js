@@ -5,6 +5,8 @@
 import { retry } from '../utils';
 
 const modelNamesIndex = [
+  "author",
+  "book",
   "sPARefactor",
   "role",
   "role_to_user",
@@ -41,6 +43,16 @@ export async function loadApi(target) {
 
     let module = null;
     switch(modelName) {
+      case 'author': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Author" */ './author')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['author'] = module.default;
+        break;
+      case 'book': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Book" */ './book')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['book'] = module.default;
+        break;
       case 'sPARefactor': 
         module =  await retry(() => import(/* webpackChunkName: "Request-SPARefactor" */ './sPARefactor')).catch((e) => {console.log(e); return null});
         if(!module) return null;  

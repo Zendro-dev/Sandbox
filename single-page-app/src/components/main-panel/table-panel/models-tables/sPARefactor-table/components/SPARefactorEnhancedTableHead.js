@@ -54,17 +54,17 @@ export default function SPARefactorEnhancedTableHead(props) {
           Headers 
         */}
 
-        {/* int*/}
+        {/* string*/}
         <TableCell
-          key='int'
+          key='string'
           align='left'
           padding="checkbox"
-          sortDirection={orderBy === 'int' ? order : false}
+          sortDirection={orderBy === 'string' ? order : false}
         >
           <TableSortLabel
-            active={orderBy === 'int'}
+            active={orderBy === 'string'}
             direction={order}
-            onClick={(event) => { onRequestSort(event, 'int') }}
+            onClick={(event) => { onRequestSort(event, 'string') }}
           >
           <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
             <Grid item>
@@ -74,7 +74,7 @@ export default function SPARefactorEnhancedTableHead(props) {
             </Grid>
             <Grid item>
               <Typography color="inherit" variant="caption" display='inline' noWrap={true}>
-                int              </Typography>
+                string              </Typography>
             </Grid>
           </Grid>
           </TableSortLabel>
@@ -99,19 +99,19 @@ export default function SPARefactorEnhancedTableHead(props) {
         </TableCell>
 
         <TableCell
-          key='string'
-          align='left'
+          key='int'
+          align='right'
           padding="default"
-          sortDirection={orderBy === 'string' ? order : false}
+          sortDirection={orderBy === 'int' ? order : false}
         >
-          {/* string */}
+          {/* int */}
           <TableSortLabel
-              active={orderBy === 'string'}
+              active={orderBy === 'int'}
               direction={order}
-              onClick={(event) => {onRequestSort(event, 'string')}}
+              onClick={(event) => {onRequestSort(event, 'int')}}
           >
             <Typography color="inherit" variant="caption">
-              string
+              int
             </Typography>
           </TableSortLabel>
         </TableCell>
@@ -184,6 +184,24 @@ export default function SPARefactorEnhancedTableHead(props) {
           >
             <Typography color="inherit" variant="caption">
               datetime
+            </Typography>
+          </TableSortLabel>
+        </TableCell>
+
+        <TableCell
+          key='boolean'
+          align='left'
+          padding="default"
+          sortDirection={orderBy === 'boolean' ? order : false}
+        >
+          {/* boolean */}
+          <TableSortLabel
+              active={orderBy === 'boolean'}
+              direction={order}
+              onClick={(event) => {onRequestSort(event, 'boolean')}}
+          >
+            <Typography color="inherit" variant="caption">
+              boolean
             </Typography>
           </TableSortLabel>
         </TableCell>

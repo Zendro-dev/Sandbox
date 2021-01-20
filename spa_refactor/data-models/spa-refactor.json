@@ -2,13 +2,14 @@
   "model": "SPARefactor",
   "storageType": "sql",
   "attributes": {
-    "array": "[Boolean]",
+    "array": "[String]",
     "string": "String",
     "int": "Int",
     "float": "Float",
     "date": "Date",
     "time": "Time",
-    "datetime": "DateTime"
+    "datetime": "DateTime",
+    "boolean": "Boolean"
   },
-  "internalId" : "int"
+  "internalId" : "string"
 }
