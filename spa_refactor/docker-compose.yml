@@ -48,7 +48,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ../single-page-app:/usr/src/app
+      - ../../single-page-app:/usr/src/app
     ports:
      - 8080:3000
     environment:
