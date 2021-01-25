@@ -19,25 +19,24 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'author',
+    model: 'no_assoc',
     storageType: 'sql',
     attributes: {
-        author_id: 'String',
-        name: 'String'
+        idField: 'String',
+        stringField: 'String',
+        intField: 'Int',
+        floatField: 'Float',
+        datetimeField: 'DateTime',
+        booleanField: 'Boolean',
+        stringArrayField: '[String]',
+        intArrayField: '[Int]',
+        floatArrayField: '[Float]',
+        datetimeArrayField: '[DateTime]',
+        booleanArrayField: '[Boolean]'
     },
-    associations: {
-        books: {
-            type: 'to_many',
-            target: 'book',
-            targetKey: 'fk_books_authors',
-            keyIn: 'book',
-            targetStorageType: 'sql',
-            label: 'name'
-        }
-    },
-    internalId: 'author_id',
+    internalId: 'idField',
     id: {
-        name: 'author_id',
+        name: 'idField',
         type: 'String'
     }
 };
@@ -50,23 +49,55 @@ const definition = {
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class author extends Sequelize.Model {
+module.exports = class no_assoc extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            author_id: {
+            idField: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            name: {
+            stringField: {
                 type: Sequelize[dict['String']]
+            },
+            intField: {
+                type: Sequelize[dict['Int']]
+            },
+            floatField: {
+                type: Sequelize[dict['Float']]
+            },
+            datetimeField: {
+                type: Sequelize[dict['DateTime']]
+            },
+            booleanField: {
+                type: Sequelize[dict['Boolean']]
+            },
+            stringArrayField: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            intArrayField: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
+            },
+            floatArrayField: {
+                type: Sequelize[dict['[Float]']],
+                defaultValue: '[]'
+            },
+            datetimeArrayField: {
+                type: Sequelize[dict['[DateTime]']],
+                defaultValue: '[]'
+            },
+            booleanArrayField: {
+                type: Sequelize[dict['[Boolean]']],
+                defaultValue: '[]'
             }
 
 
         }, {
-            modelName: "author",
-            tableName: "authors",
+            modelName: "no_assoc",
+            tableName: "no_assocs",
             sequelize
         });
     }
@@ -109,25 +140,20 @@ module.exports = class author extends Sequelize.Model {
         return record;
     }
 
-    static associate(models) {
-        author.hasMany(models.book, {
-            as: 'books',
-            foreignKey: 'fk_books_authors'
-        });
-    }
+    static associate(models) {}
 
     static async readById(id) {
-        let item = await author.findByPk(id);
+        let item = await no_assoc.findByPk(id);
         if (item === null) {
             throw new Error(`Record with ID = "${id}" does not exist`);
         }
-        item = author.postReadCast(item)
+        item = no_assoc.postReadCast(item)
         return validatorUtil.validateData('validateAfterRead', this, item);
     }
 
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, author.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, no_assoc.definition.attributes);
         return super.count(options);
     }
 
@@ -135,9 +161,9 @@ module.exports = class author extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), no_assoc.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => author.postReadCast(x))
+        records = records.map(x => no_assoc.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -147,10 +173,10 @@ module.exports = class author extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), no_assoc.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => author.postReadCast(x))
+        records = records.map(x => no_assoc.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -161,7 +187,7 @@ module.exports = class author extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), author.definition.attributes);
+            }, this.idAttribute(), no_assoc.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -176,7 +202,7 @@ module.exports = class author extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = author.preWriteCast(input)
+        input = no_assoc.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -184,8 +210,8 @@ module.exports = class author extends Sequelize.Model {
                 });
                 return item;
             });
-            author.postReadCast(result.dataValues)
-            author.postReadCast(result._previousDataValues)
+            no_assoc.postReadCast(result.dataValues)
+            no_assoc.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -211,7 +237,7 @@ module.exports = class author extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = author.preWriteCast(input)
+        input = no_assoc.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -224,8 +250,8 @@ module.exports = class author extends Sequelize.Model {
                 });
                 return updated;
             });
-            author.postReadCast(result.dataValues)
-            author.postReadCast(result._previousDataValues)
+            no_assoc.postReadCast(result.dataValues)
+            no_assoc.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -283,7 +309,7 @@ module.exports = class author extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of author records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of no_assoc records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -316,7 +342,7 @@ module.exports = class author extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return author.definition.id.name;
+        return no_assoc.definition.id.name;
     }
 
     /**
@@ -325,16 +351,16 @@ module.exports = class author extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return author.definition.id.type;
+        return no_assoc.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of author.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of no_assoc.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[author.idAttribute()]
+        return this[no_assoc.idAttribute()]
     }
 
     static get definition() {
@@ -350,7 +376,7 @@ module.exports = class author extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(author.definition.attributes);
+        let attributes = Object.keys(no_assoc.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }

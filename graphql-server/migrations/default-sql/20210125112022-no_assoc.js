@@ -14,9 +14,9 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('books', {
+        return queryInterface.createTable('no_assocs', {
 
-            book_id: {
+            idField: {
                 type: Sequelize.STRING,
                 primaryKey: true
             },
@@ -29,11 +29,40 @@ module.exports = {
                 type: Sequelize.DATE
             },
 
-            name: {
+            stringField: {
                 type: Sequelize[dict['String']]
             },
-            fk_books_authors: {
-                type: Sequelize[dict['String']]
+            intField: {
+                type: Sequelize[dict['Int']]
+            },
+            floatField: {
+                type: Sequelize[dict['Float']]
+            },
+            datetimeField: {
+                type: Sequelize[dict['DateTime']]
+            },
+            booleanField: {
+                type: Sequelize[dict['Boolean']]
+            },
+            stringArrayField: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            intArrayField: {
+                type: Sequelize[dict['[Int]']],
+                defaultValue: '[]'
+            },
+            floatArrayField: {
+                type: Sequelize[dict['[Float]']],
+                defaultValue: '[]'
+            },
+            datetimeArrayField: {
+                type: Sequelize[dict['[DateTime]']],
+                defaultValue: '[]'
+            },
+            booleanArrayField: {
+                type: Sequelize[dict['[Boolean]']],
+                defaultValue: '[]'
             }
 
         });
@@ -47,7 +76,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('books');
+        return queryInterface.dropTable('no_assocs');
     }
 
 };
