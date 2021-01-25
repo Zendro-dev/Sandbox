@@ -1,4 +1,4 @@
-<mxfile host="65bd71144e" modified="2021-01-20T09:13:35.375Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.52.1 Chrome/83.0.4103.122 Electron/9.3.5 Safari/537.36" etag="Gn66w5ZBIpYOYFDzm2Mc" version="13.10.0" type="embed">
+<mxfile host="65bd71144e" modified="2021-01-20T15:34:36.253Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.52.1 Chrome/83.0.4103.122 Electron/9.3.5 Safari/537.36" etag="rbFyqHNVqKe5Z3hJUml1" version="13.10.0" type="embed">
     <diagram id="Gx7H8yklB4KYkf9UyLXm" name="Routes">
         <mxGraphModel dx="1083" dy="676" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
@@ -95,7 +95,7 @@
                 <mxCell id="3Tlv0c5szmk25SIOtOdw-24" value="DetailPanel" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="503" y="1610" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="3Tlv0c5szmk25SIOtOdw-25" value="ModelTable&lt;br&gt;(EnhancedTable)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="3Tlv0c5szmk25SIOtOdw-25" value="MasterTable&lt;br&gt;(EnhancedTable)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="389" y="1434" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="3Tlv0c5szmk25SIOtOdw-26" value="ModelPlots&lt;br&gt;(ModelPlotly)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
