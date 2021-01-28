@@ -12,16 +12,20 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 import ArrayField from './components/ArrayField'
 
-import StringField from './components/StringField'
+// import StringField from './components/StringField'
+import StringField from '_src/components/input/StringField.jsx'
 
-import IntField from './components/IntField'
+// import IntField from './components/IntField'
+import IntField from '_src/components/input/IntField.jsx'
 
-import FloatField from './components/FloatField'
+// import FloatField from './components/FloatField'
+import FloatField from '_src/components/input/FloatField.jsx'
 
-import DateTimeField from './components/DateTimeField'
+// import DateTimeField from './components/DateTimeField'
+import DateTimeField from '_src/components/input/DateTimeField.jsx'
 
-import BoolField from './components/BoolField'
-
+// import BoolField from './components/BoolField'
+import BoolField from '_src/components/input/BoolField.jsx'
 const useStyles = makeStyles(theme => ({
   root: {
     margin: theme.spacing(0),
@@ -114,6 +118,11 @@ export default function NoAssocAttributesFormView(props) {
                 valueOk={valueOkStates.stringField}
                 valueAjv={valueAjvStates.stringField}
                 handleSetValue={handleSetValue}
+                errorFlag={true}
+                valueType="default"
+                onChangeFlag={true}
+                onBlurFlag={true}
+                onKeyDownFlag={true}
               />
             </CardContent>
 
@@ -127,6 +136,11 @@ export default function NoAssocAttributesFormView(props) {
                 valueOk={valueOkStates.intField}
                 valueAjv={valueAjvStates.intField}
                 handleSetValue={handleSetValue}
+                placeholder="integer"
+                variant='filled'
+                onChangeFlag={true}
+                onBlurFlag={true}
+                onKeyDownFlag={true}
               />
             </CardContent>
 
@@ -140,6 +154,11 @@ export default function NoAssocAttributesFormView(props) {
                 valueOk={valueOkStates.floatField}
                 valueAjv={valueAjvStates.floatField}
                 handleSetValue={handleSetValue}
+                variant='filled'
+                placeholder='number'
+                onChangeFlag={true}
+                onBlurFlag={true}
+                onKeyDownFlag={true}
               />
             </CardContent>
 
@@ -153,6 +172,10 @@ export default function NoAssocAttributesFormView(props) {
                 valueOk={valueOkStates.datetimeField}
                 valueAjv={valueAjvStates.datetimeField}
                 handleSetValue={handleSetValue}
+                inputVariant='filled'
+                onChangeFlag={true}
+                onBlurFlag={true}
+                onKeyDownFlag={true}
               />
             </CardContent>
 
@@ -166,6 +189,9 @@ export default function NoAssocAttributesFormView(props) {
                 valueOk={valueOkStates.booleanField}
                 valueAjv={valueAjvStates.booleanField}
                 handleSetValue={handleSetValue}
+                color="unknown"
+                onChangeFlag={true}
+                onKeyDownFlag={true}
               />
             </CardContent>
 
@@ -251,4 +277,3 @@ NoAssocAttributesFormView.propTypes = {
   valueAjvStates: PropTypes.object.isRequired,
   handleSetValue: PropTypes.func.isRequired,
 };
-
