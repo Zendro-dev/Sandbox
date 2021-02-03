@@ -10,7 +10,8 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
-import ArrayField from './components/ArrayField'
+//import ArrayField from './components/ArrayField'
+import ArrayField from '_src/components/input/ArrayField.jsx'
 
 // import StringField from './components/StringField'
 import StringField from '_src/components/input/StringField.jsx'
@@ -201,11 +202,13 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='stringArrayField'
                 name='stringArrayField'
                 label='stringArrayField'
-                text={item.stringArrayField}
+                //text={item.stringArrayField}
                 valueOk={valueOkStates.stringArrayField}
                 valueAjv={valueAjvStates.stringArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='String'
+                text={(item.stringArrayField !== undefined && Array.isArray(item.stringArrayField) ) ? item.stringArrayField.join(",") : '' }
+                readOnly={false}
               />
             </CardContent>
 
@@ -215,11 +218,13 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='intArrayField'
                 name='intArrayField'
                 label='intArrayField'
-                text={item.intArrayField}
+                //text={item.intArrayField}
                 valueOk={valueOkStates.intArrayField}
                 valueAjv={valueAjvStates.intArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Int'
+                text={(item.intArrayField !== undefined && Array.isArray(item.intArrayField) ) ? item.intArrayField.join(",") : '' }
+                readOnly={false}
               />
             </CardContent>
 
@@ -229,11 +234,13 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='floatArrayField'
                 name='floatArrayField'
                 label='floatArrayField'
-                text={item.floatArrayField}
+                //text={item.floatArrayField}
                 valueOk={valueOkStates.floatArrayField}
                 valueAjv={valueAjvStates.floatArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Float'
+                text={(item.floatArrayField !== undefined && Array.isArray(item.floatArrayField) ) ? item.floatArrayField.join(",") : '' }
+                readOnly={false}
               />
             </CardContent>
 
@@ -243,11 +250,13 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='datetimeArrayField'
                 name='datetimeArrayField'
                 label='datetimeArrayField'
-                text={item.datetimeArrayField}
+                //text={item.datetimeArrayField}
                 valueOk={valueOkStates.datetimeArrayField}
                 valueAjv={valueAjvStates.datetimeArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='DateTime'
+                text={(item.datetimeArrayField !== undefined && Array.isArray(item.datetimeArrayField) ) ? item.datetimeArrayField.join(",") : '' }
+                readOnly={false}
               />
             </CardContent>
 
@@ -257,11 +266,13 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='booleanArrayField'
                 name='booleanArrayField'
                 label='booleanArrayField'
-                text={item.booleanArrayField}
+                //text={item.booleanArrayField}
                 valueOk={valueOkStates.booleanArrayField}
                 valueAjv={valueAjvStates.booleanArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Boolean'
+                text={ (item.booleanArrayField !== undefined && item.booleanArrayField !== null && Array.isArray(item.booleanArrayField) ) ? item.booleanArrayField.join(",") : ''   }
+                readOnly={false}
               />
             </CardContent>
 

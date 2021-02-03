@@ -4,9 +4,9 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -27,7 +27,7 @@ export default function ArrayField(props) {
     autoFocus,
     handleSetValue,
     arrayType,
-    readOnlyFlag,
+    readOnly,
   } = props;
 
   const defaultValue = useRef(
@@ -38,7 +38,7 @@ export default function ArrayField(props) {
   );
 
   let parseValue = (input, arrayType) => {
-    if (!input) {
+    if (!input || input === "") {
       return null;
     } else {
       let array = input.split(",");
@@ -59,17 +59,50 @@ export default function ArrayField(props) {
     }
   };
 
+  let handleOnChange = (event) => {
+    if (!readOnly) {
+      textValue.current = parseValue(event.target.value, arrayType);
+
+      if (!textValue.current || !Array.isArray(textValue.current)) {
+        handleSetValue(null, 0, itemKey);
+      } else {
+        //status is set to 1 only on blur or ctrl+Enter
+        handleSetValue(textValue.current, 0, itemKey);
+      }
+    }
+  };
+
+  let handleOnBlur = (event) => {
+    if (!readOnly) {
+      if (!textValue.current || !Array.isArray(textValue.current)) {
+        handleSetValue(null, 0, itemKey);
+      } else {
+        handleSetValue(textValue.current, 1, itemKey);
+      }
+    }
+  };
+
+  let handleonKeyDown = (event) => {
+    if (!readOnly) {
+      if (event.ctrlKey && event.key === "Enter") {
+        if (!textValue.current || !Array.isArray(textValue.current)) {
+          handleSetValue(null, 0, itemKey);
+        } else {
+          handleSetValue(textValue.current, 1, itemKey);
+        }
+      }
+    }
+  };
   return (
-    <Grid container justify="flex-start" alignItems="center" spacing={0}>
+    <Grid container justify="flex-start" alignItems="center" spacing={2}>
       <Grid item xs={12}>
         <TextField
           id={"ArrayField-NoAssoc-" + name}
-          error={valueAjv !== undefined && valueAjv.errors.length > 0}
           label={label}
           multiline
           rowsMax="4"
           defaultValue={defaultValue.current}
-          value={textValue}
+          value={readOnly ? text : undefined}
           className={classes.textField}
           margin="normal"
           variant="outlined"
@@ -110,7 +143,7 @@ export default function ArrayField(props) {
                 )}
               </InputAdornment>
             ),
-            readOnly: readOnlyFlag ? true : false,
+            readOnly: readOnly ? true : false,
           }}
           InputLabelProps={{
             shrink: true,
@@ -118,32 +151,9 @@ export default function ArrayField(props) {
           inputProps={{
             spellCheck: "false",
           }}
-          onChange={(event) => {
-            textValue.current = parseValue(event.target.value, arrayType);
-
-            if (!textValue.current || !Array.isArray(textValue.current)) {
-              handleSetValue(null, 0, itemKey);
-            } else {
-              //status is set to 1 only on blur or ctrl+Enter
-              handleSetValue(textValue.current, 0, itemKey);
-            }
-          }}
-          onBlur={(event) => {
-            if (!textValue.current || !Array.isArray(textValue.current)) {
-              handleSetValue(null, 0, itemKey);
-            } else {
-              handleSetValue(textValue.current, 1, itemKey);
-            }
-          }}
-          onKeyDown={(event) => {
-            if (event.ctrlKey && event.key === "Enter") {
-              if (!textValue.current || !Array.isArray(textValue.current)) {
-                handleSetValue(null, 0, itemKey);
-              } else {
-                handleSetValue(textValue.current, 1, itemKey);
-              }
-            }
-          }}
+          onChange={handleOnChange}
+          onBlur={handleOnBlur}
+          onKeyDown={handleonKeyDown}
         />
       </Grid>
       {valueAjv !== undefined && valueAjv.errors.length > 0 && (
@@ -156,7 +166,6 @@ export default function ArrayField(props) {
     </Grid>
   );
 }
-
 ArrayField.propTypes = {
   itemKey: PropTypes.string.isRequired,
   name: PropTypes.string,

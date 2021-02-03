@@ -10,8 +10,8 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
-import ArrayField from './components/ArrayField'
-
+//import ArrayField from './components/ArrayField'
+import ArrayField from '_src/components/input/ArrayField.jsx'
 // import StringField from './components/StringField'
 import StringField from '_src/components/input/StringField.jsx'
 
@@ -185,8 +185,9 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='stringArrayField'
                 name='stringArrayField'
                 label='stringArrayField'
-                text={item.stringArrayField}
+                text={(item.stringArrayField !== undefined && Array.isArray(item.stringArrayField) ) ? item.stringArrayField.join(",") : '' }
                 valueOk={valueOkStates.stringArrayField}
+                readOnly={true}
               />
             </CardContent>
 
@@ -196,8 +197,9 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='intArrayField'
                 name='intArrayField'
                 label='intArrayField'
-                text={item.intArrayField}
+                text={(item.intArrayField !== undefined && Array.isArray(item.intArrayField) ) ? item.intArrayField.join(",") : '' }
                 valueOk={valueOkStates.intArrayField}
+                readOnly={true}
               />
             </CardContent>
 
@@ -207,8 +209,9 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='floatArrayField'
                 name='floatArrayField'
                 label='floatArrayField'
-                text={item.floatArrayField}
+                text={(item.floatArrayField !== undefined && Array.isArray(item.floatArrayField) ) ? item.floatArrayField.join(",") : '' }
                 valueOk={valueOkStates.floatArrayField}
+                readOnly={true}
               />
             </CardContent>
 
@@ -218,8 +221,9 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='datetimeArrayField'
                 name='datetimeArrayField'
                 label='datetimeArrayField'
-                text={item.datetimeArrayField}
+                text={(item.datetimeArrayField !== undefined && Array.isArray(item.datetimeArrayField) ) ? item.datetimeArrayField.join(",") : '' }
                 valueOk={valueOkStates.datetimeArrayField}
+                readOnly={true}
               />
             </CardContent>
 
@@ -229,8 +233,10 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='booleanArrayField'
                 name='booleanArrayField'
                 label='booleanArrayField'
-                text={item.booleanArrayField}
+                text={ (item.booleanArrayField !== undefined && item.booleanArrayField !== null && Array.isArray(item.booleanArrayField) ) ? item.booleanArrayField.join(",") : ''   }
+                //text={ item.booleanArrayField }
                 valueOk={valueOkStates.booleanArrayField}
+                readOnly={true}
               />
             </CardContent>
 

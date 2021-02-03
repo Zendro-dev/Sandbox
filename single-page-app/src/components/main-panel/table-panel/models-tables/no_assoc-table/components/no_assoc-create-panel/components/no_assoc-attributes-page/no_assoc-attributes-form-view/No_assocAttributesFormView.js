@@ -11,6 +11,7 @@ import Attributes from '@material-ui/icons/HdrWeakTwoTone';
 import Key from '@material-ui/icons/VpnKey';
 import Tooltip from '@material-ui/core/Tooltip';
 import ArrayField from './components/ArrayField'
+//import ArrayField from '_src/components/input/ArrayField.jsx'
 
 // import StringField from './components/StringField'
 import StringField from '_src/components/input/StringField.jsx'
@@ -218,6 +219,7 @@ export default function NoAssocAttributesFormView(props) {
                 valueAjv={valueAjvStates.stringArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='String'
+                readOnly={false}
               />
             </CardContent>
 
@@ -231,6 +233,7 @@ export default function NoAssocAttributesFormView(props) {
                 valueAjv={valueAjvStates.intArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Int'
+                readOnly={false}
               />
             </CardContent>
 
@@ -244,6 +247,7 @@ export default function NoAssocAttributesFormView(props) {
                 valueAjv={valueAjvStates.floatArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Float'
+                readOnly={false}
               />
             </CardContent>
 
@@ -257,6 +261,7 @@ export default function NoAssocAttributesFormView(props) {
                 valueAjv={valueAjvStates.datetimeArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='DateTime'
+                readOnly={false}                
               />
             </CardContent>
 
@@ -270,6 +275,7 @@ export default function NoAssocAttributesFormView(props) {
                 valueAjv={valueAjvStates.booleanArrayField}
                 handleSetValue={handleSetValue}
                 arrayType='Boolean'
+                readOnly={false}
               />
             </CardContent>
                         
