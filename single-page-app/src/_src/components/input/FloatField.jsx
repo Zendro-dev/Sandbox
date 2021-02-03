@@ -3,9 +3,6 @@ import { useTranslation } from "react-i18next";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Typography from "@material-ui/core/Typography";
-import Tooltip from "@material-ui/core/Tooltip";
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -24,25 +21,22 @@ export default function FloatField(props) {
     name,
     label,
     text,
-    valueOk,
-    valueAjv,
     autoFocus,
     handleSetValue,
-    variant,
-    placeholder,
-    readOnlyFlag,
-    onChangeFlag,
-    onBlurFlag,
-    onKeyDownFlag,
+    readOnly,
+    errMsg,
   } = props;
 
-  const [value, setValue] = useState(getInitialValue());
-  const [errorText, setErrorText] = useState(null);
+  const [value, setValue] = useState(
+    text !== undefined && text !== null ? text.toString() : ""
+  );
+  const [errorText, setErrorText] = useState(errMsg ? errMsg : null);
   const [helperText, setHelperText] = useState(null);
   const [refresh, setRefresh] = useState(false);
-  const floatValue = useRef(getInitialFloatValue());
-  const textValue = useRef(getInitialTextValue());
-  const rvalueOk = useRef(valueOk);
+  const floatValue = useRef(text !== undefined && text !== null ? text : null);
+  const textValue = useRef(
+    text !== undefined && text !== null ? text.toString() : null
+  );
   const error = useRef(false);
 
   useEffect(() => {
@@ -51,99 +45,8 @@ export default function FloatField(props) {
     }
   }, [refresh]);
 
-  function getInitialValue() {
-    if (text !== undefined && text !== null) {
-      if (typeof text === "string" && text.trim() !== "") {
-        return text;
-      } else if (typeof text === "number") {
-        return text.toString();
-      } else {
-        return "";
-      }
-    } else {
-      return "";
-    }
-  }
-
-  function getInitialFloatValue() {
-    if (text !== undefined && text !== null) {
-      if (typeof text === "string" && text.trim() !== "") {
-        return parseFloat(text);
-      } else if (typeof text === "number") {
-        return text;
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  function getInitialTextValue() {
-    if (text !== undefined && text !== null) {
-      if (typeof text === "string" && text.trim() !== "") {
-        return text;
-      } else if (typeof text === "number") {
-        return text.toString();
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  let textParameters = {
-    id: "FloatField-" + name,
-    value: value,
-    label: label,
-    type: "number",
-    className: classes.textField,
-    margin: "normal",
-    variant: variant,
-    placeholder: placeholder === "" ? "" : t("modelPanels.number"),
-    helperText:
-      errorText !== null ? errorText : helperText !== null ? helperText : "",
-    error:
-      errorText !== null ||
-      (valueAjv !== undefined && valueAjv.errors.length > 0),
-    autoFocus: autoFocus !== undefined && autoFocus === true ? true : false,
-    InputProps: {
-      endAdornment: (
-        <InputAdornment position="end">
-          {valueOk !== undefined && valueOk === 1 ? (
-            <Tooltip title={t("modelPanels.valueEntered", "Value entered")}>
-              <Typography
-                id={"FloatField-exists-" + name}
-                variant="caption"
-                color="primary"
-              >
-                &#8707;
-              </Typography>
-            </Tooltip>
-          ) : (
-            <Tooltip
-              title={t("modelPanels.valueNotEntered", "Value not entered")}
-            >
-              <Typography
-                id={"FloatField-notExists-" + name}
-                variant="caption"
-                color="textSecondary"
-              >
-                &#8708;
-              </Typography>
-            </Tooltip>
-          )}
-        </InputAdornment>
-      ),
-      readOnly: readOnlyFlag ? true : false,
-    },
-    InputLabelProps: { shrink: true },
-    inputProps: { spellCheck: "false" },
-  };
-
-  if (onChangeFlag) {
-    textParameters.onChange = (event) => {
+  const handleOnChange = (event) => {
+    if (!readOnly) {
       setValue(event.target.value);
       textValue.current = event.target.value;
       floatValue.current = parseFloat(event.target.value);
@@ -157,7 +60,6 @@ export default function FloatField(props) {
         error.current = false;
         setErrorText(null);
         handleSetValue(floatValue.current, 0, itemKey);
-        rvalueOk.current = 0;
 
         //check max float number
         if (floatValue.current > 1.79769313486231e308) {
@@ -170,7 +72,6 @@ export default function FloatField(props) {
           );
           setHelperText(null);
           handleSetValue(null, -1, itemKey);
-          rvalueOk.current = -1;
           return;
         }
 
@@ -185,7 +86,6 @@ export default function FloatField(props) {
           );
           setHelperText(null);
           handleSetValue(null, -1, itemKey);
-          rvalueOk.current = -1;
           return;
         }
 
@@ -209,18 +109,16 @@ export default function FloatField(props) {
             )
           );
           handleSetValue(null, 0, itemKey);
-          rvalueOk.current = 0;
         } else {
           setErrorText(t("modelPanels.invalidNumber", "Invalid number"));
           handleSetValue(null, -1, itemKey);
-          rvalueOk.current = -1;
         }
       }
-    };
-  }
+    }
+  };
 
-  if (onBlurFlag) {
-    textParameters.onBlur = (event) => {
+  const handleOnBlur = (event) => {
+    if (!readOnly) {
       if (!error.current) {
         setErrorText(null);
         if (
@@ -231,7 +129,6 @@ export default function FloatField(props) {
         ) {
           //set completed ok
           handleSetValue(floatValue.current, 1, itemKey);
-          rvalueOk.current = 1;
         } else {
           //refresh
           setErrorText(null);
@@ -240,20 +137,18 @@ export default function FloatField(props) {
           setRefresh(true);
         }
       } else {
-        if (rvalueOk.current === 0) {
-          //refresh
-          error.current = false;
-          setErrorText(null);
-          setHelperText(null);
-          setValue("");
-          setRefresh(true);
-        }
+        //refresh
+        error.current = false;
+        setErrorText(null);
+        setHelperText(null);
+        setValue("");
+        setRefresh(true);
       }
-    };
-  }
+    }
+  };
 
-  if (onKeyDownFlag) {
-    textParameters.onKeyDown = (event) => {
+  const handleOnKeyDown = (event) => {
+    if (!readOnly) {
       if (event.key === "Enter") {
         if (!error.current) {
           if (
@@ -263,7 +158,6 @@ export default function FloatField(props) {
             !isNaN(floatValue.current)
           ) {
             handleSetValue(floatValue.current, 1, itemKey);
-            rvalueOk.current = 1;
           } else {
             error.current = true;
             setHelperText(null);
@@ -275,11 +169,9 @@ export default function FloatField(props) {
                 )
               );
               handleSetValue(null, 0, itemKey);
-              rvalueOk.current = 0;
             } else {
               setErrorText(t("modelPanels.invalidNumber", "Invalid number"));
               handleSetValue(null, -1, itemKey);
-              rvalueOk.current = -1;
             }
           }
         }
@@ -298,18 +190,42 @@ export default function FloatField(props) {
         event.preventDefault();
         return;
       }
-    };
-  }
+    }
+  };
+
   return (
     <Grid container justify="flex-start" alignItems="center">
-      <Grid item>{!refresh && <TextField {...textParameters} />}</Grid>
-      {valueAjv !== undefined && valueAjv.errors.length > 0 && (
-        <Grid item id={"FloatField-ajvError-" + name} xs={12}>
-          <Typography variant="caption" color="error">
-            {valueAjv.errors.join(" & ")}
-          </Typography>
-        </Grid>
-      )}
+      <Grid item>
+        {!refresh && (
+          <TextField
+            id={"FloatField-" + name}
+            value={value}
+            label={label}
+            type={"number"}
+            className={classes.textField}
+            margin={"normal"}
+            variant={readOnly ? "outlined" : "filled"}
+            placeholder={readOnly ? "" : t("modelPanels.number")}
+            helperText={
+              errorText !== null
+                ? errorText
+                : helperText !== null
+                ? helperText
+                : ""
+            }
+            error={errorText !== null ? true : undefined}
+            autoFocus={
+              autoFocus !== undefined && autoFocus === true ? true : false
+            }
+            InputProps={{ readOnly: readOnly ? true : false }}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ spellCheck: "false" }}
+            onChange={handleOnChange}
+            onBlur={handleOnBlur}
+            onKeyDown={handleOnKeyDown}
+          />
+        )}
+      </Grid>
     </Grid>
   );
 }

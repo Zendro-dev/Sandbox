@@ -117,11 +117,7 @@ export default function NoAssocAttributesFormView(props) {
                 name='stringField'
                 label='stringField'
                 text={item.stringField}
-                valueOk={valueOkStates.stringField}
-                valueType="nonDefault"
-                readOnlyFlag={true}
-                shrinkLabelFlag={true}
-                spellCheckFlag={false}
+                readOnly={true}
               />
             </CardContent>
 
@@ -133,9 +129,7 @@ export default function NoAssocAttributesFormView(props) {
                 label='intField'
                 text={item.intField}
                 valueOk={valueOkStates.intField}
-                placeholder=""
-                readOnlyFlag={true}
-                variant='outlined'
+                readOnly={true}
               />
             </CardContent>
 
@@ -146,10 +140,7 @@ export default function NoAssocAttributesFormView(props) {
                 name='floatField'
                 label='floatField'
                 text={item.floatField}
-                valueOk={valueOkStates.floatField}
-                variant='outlined'
-                placeholder=''
-                readOnlyFlag={true}
+                readOnly={true}
               />
             </CardContent>
 
@@ -160,10 +151,7 @@ export default function NoAssocAttributesFormView(props) {
                 name='datetimeField'
                 label='datetimeField'
                 text={item.datetimeField}
-                valueOk={valueOkStates.datetimeField}
-                variant='inline'
-                inputVariant='outlined'
-                readOnlyFlag={true}
+                readOnly={true}
               />
             </CardContent>
 
@@ -174,8 +162,7 @@ export default function NoAssocAttributesFormView(props) {
                 name='booleanField'
                 label='booleanField'
                 text={item.booleanField}
-                valueOk={valueOkStates.booleanField}
-                color='primary'
+                readOnly={true}
               />
             </CardContent>
 

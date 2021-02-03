@@ -103,15 +103,9 @@ export default function NoAssocAttributesFormView(props) {
                     itemKey='idField'
                     name='idField'
                     label='idField'
-                    valueOk={valueOkStates.idField}
-                    valueAjv={valueAjvStates.idField}
                     autoFocus={true}
                     handleSetValue={handleSetValue}
-                    errorFlag={true}
-                    valueType="default"
-                    onChangeFlag={true}
-                    onBlurFlag={true}
-                    onKeyDownFlag={true}
+                    readOnly={false}
                   />
 
                 </Grid>
@@ -132,14 +126,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='stringField'
                 name='stringField'
                 label='stringField'
-                valueOk={valueOkStates.stringField}
-                valueAjv={valueAjvStates.stringField}
                 handleSetValue={handleSetValue}
-                errorFlag={true}
-                valueType="default"
-                onChangeFlag={true}
-                onBlurFlag={true}
-                onKeyDownFlag={true}
+                readOnly={false}
               />
             </CardContent>
 
@@ -150,13 +138,8 @@ export default function NoAssocAttributesFormView(props) {
                 name='intField'
                 label='intField'
                 valueOk={valueOkStates.intField}
-                valueAjv={valueAjvStates.intField}
                 handleSetValue={handleSetValue}
-                placeholder="integer"
-                variant='filled'
-                onChangeFlag={true}
-                onBlurFlag={true}
-                onKeyDownFlag={true}
+                readOnly={false}
               />
             </CardContent>
 
@@ -166,14 +149,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='floatField'
                 name='floatField'
                 label='floatField'
-                valueOk={valueOkStates.floatField}
-                valueAjv={valueAjvStates.floatField}
                 handleSetValue={handleSetValue}
-                variant='filled'
-                placeholder='number'
-                onChangeFlag={true}
-                onBlurFlag={true}
-                onKeyDownFlag={true}
+                readOnly={false}
               />
             </CardContent>
 
@@ -183,13 +160,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='datetimeField'
                 name='datetimeField'
                 label='datetimeField'
-                valueOk={valueOkStates.datetimeField}
-                valueAjv={valueAjvStates.datetimeField}
                 handleSetValue={handleSetValue}
-                inputVariant='filled'
-                onChangeFlag={true}
-                onBlurFlag={true}
-                onKeyDownFlag={true}
+                readOnly={false}
               />
             </CardContent>
 
@@ -199,12 +171,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='booleanField'
                 name='booleanField'
                 label='booleanField'
-                valueOk={valueOkStates.booleanField}
-                valueAjv={valueAjvStates.booleanField}
                 handleSetValue={handleSetValue}
-                color="unknown"
-                onChangeFlag={true}
-                onKeyDownFlag={true}
+                readOnly={false}
               />
             </CardContent>
 

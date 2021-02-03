@@ -8,9 +8,7 @@ import {
   KeyboardDateTimePicker,
 } from "@material-ui/pickers";
 import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
-import Tooltip from "@material-ui/core/Tooltip";
 import FormControl from "@material-ui/core/FormControl";
 import "moment/locale/es.js";
 import "moment/locale/de.js";
@@ -35,16 +33,10 @@ export default function DateTimeField(props) {
     name,
     label,
     text,
-    valueOk,
-    valueAjv,
     autoFocus,
     handleSetValue,
-    variant,
-    inputVariant,
-    readOnlyFlag,
-    onChangeFlag,
-    onBlurFlag,
-    onKeyDownFlag,
+    readOnly,
+    errMsg,
   } = props;
 
   const [selectedDate, setSelectedDate] = useState(getInitialSelectedDate());
@@ -94,34 +86,8 @@ export default function DateTimeField(props) {
     moment.locale(i18n.language);
   }, [i18n.language]);
 
-  let pickerParameters = {
-    id: "DateTimeField-" + name,
-    className: classes.input,
-    label: label,
-    format: "YYYY-MM-DD HH:mm:ss.SSS",
-    value: selectedDate,
-    margin: "normal",
-    autoFocus: autoFocus === true ? true : false,
-    autoOk: readOnlyFlag ? true : false,
-    inputVariant: inputVariant,
-    invalidDateMessage: t("modelPanels.invalidDate", "Invalid date format"),
-    InputAdornmentProps: { id: "DateTimeField-input-inputAdornment-" + name },
-    KeyboardButtonProps: {
-      id: "DateTimeField-input-inputAdornment-button-" + name,
-    },
-    InputProps: {
-      className: classnames({
-        [classes.ajvError]:
-          valueAjv !== undefined && valueAjv.errors.length > 0,
-      }),
-      readOnly: readOnlyFlag ? true : false,
-    },
-  };
-  if (variant) {
-    pickerParameters.variant = variant;
-  }
-  if (onChangeFlag) {
-    pickerParameters.onChange = (date, value) => {
+  const handleOnChange = (date, value) => {
+    if (!readOnly) {
       setSelectedDate(date);
 
       if (date !== null) {
@@ -140,12 +106,11 @@ export default function DateTimeField(props) {
         mdate.current = moment.invalid();
         handleSetValue(null, 0, itemKey);
       }
-    };
-  } else {
-    pickerParameters.onChange = () => {};
-  }
-  if (onBlurFlag) {
-    pickerParameters.onBlur = (event) => {
+    }
+  };
+
+  const handleOnBlur = (event) => {
+    if (!readOnly) {
       if (mdate.current.isValid()) {
         handleSetValue(
           mdate.current.format("YYYY-MM-DDTHH:mm:ss.SSSZ"),
@@ -153,11 +118,11 @@ export default function DateTimeField(props) {
           itemKey
         );
       }
-    };
-  }
+    }
+  };
 
-  if (onKeyDownFlag) {
-    pickerParameters.onKeyDown = (event) => {
+  const handleOnKeyDown = (event) => {
+    if (!readOnly) {
       if (event.key === "Enter") {
         if (mdate.current.isValid()) {
           handleSetValue(
@@ -167,8 +132,8 @@ export default function DateTimeField(props) {
           );
         }
       }
-    };
-  }
+    }
+  };
 
   return (
     <Grid container justify="flex-start" alignItems="center" spacing={0}>
@@ -179,42 +144,42 @@ export default function DateTimeField(props) {
           locale={i18n.language}
         >
           <FormControl className={classes.formControl}>
-            <KeyboardDateTimePicker {...pickerParameters} />
+            <KeyboardDateTimePicker
+              id={"DateTimeField-" + name}
+              className={classes.input}
+              label={label}
+              format={"YYYY-MM-DD HH:mm:ss.SSS"}
+              value={selectedDate}
+              margin={"normal"}
+              autoFocus={autoFocus === true ? true : false}
+              autoOk={readOnly ? true : false}
+              error={errMsg !== undefined && errMsg !== "" ? true : undefined}
+              helpertext={errMsg}
+              variant={readOnly ? "inline" : undefined}
+              inputVariant={readOnly ? "outlined" : "filled"}
+              invalidDateMessage={t(
+                "modelPanels.invalidDate",
+                "Invalid date format"
+              )}
+              InputAdornmentProps={{
+                id: "DateTimeField-input-inputAdornment-" + name,
+              }}
+              KeyboardButtonProps={{
+                id: "DateTimeField-input-inputAdornment-button-" + name,
+              }}
+              InputProps={{
+                className: classnames({
+                  [classes.ajvError]: errMsg !== undefined && errMsg !== "",
+                }),
+                readOnly: readOnly ? true : false,
+              }}
+              onChange={handleOnChange}
+              onBlur={handleOnBlur}
+              onKeyDown={handleOnKeyDown}
+            />
           </FormControl>
         </MuiPickersUtilsProvider>
       </Grid>
-      <Grid item>
-        {valueOk !== undefined && valueOk === 1 ? (
-          <Tooltip title={t("modelPanels.valueEntered", "Value entered")}>
-            <Typography
-              id={"DateTimeField-exists-" + name}
-              variant="caption"
-              color="primary"
-            >
-              &#8707;
-            </Typography>
-          </Tooltip>
-        ) : (
-          <Tooltip
-            title={t("modelPanels.valueNotEntered", "Value not entered")}
-          >
-            <Typography
-              id={"DateTimeField-notExists-" + name}
-              variant="caption"
-              color="textSecondary"
-            >
-              &#8708;
-            </Typography>
-          </Tooltip>
-        )}
-      </Grid>
-      {valueAjv !== undefined && valueAjv.errors.length > 0 && (
-        <Grid item id={"DateTimeField-ajvError-" + name} xs={12}>
-          <Typography variant="caption" color="error">
-            {valueAjv.errors.join(" & ")}
-          </Typography>
-        </Grid>
-      )}
     </Grid>
   );
 }

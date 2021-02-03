@@ -23,8 +23,8 @@ export default function IntField(props) {
     text,
     autoFocus,
     handleSetValue,
-    readOnly,
     errMsg,
+    readOnly,
   } = props;
 
   const [value, setValue] = useState(
@@ -72,6 +72,9 @@ export default function IntField(props) {
           );
           setHelperText(null);
           handleSetValue(null, -1, itemKey);
+          console.log(error);
+          console.log(errorText);
+          console.log(helperText);
           return;
         }
 
@@ -97,6 +100,7 @@ export default function IntField(props) {
               "This is an Int field, the decimals will be rounded. Value taken: "
             ) + `${intValue.current}`
           );
+          console.log("rounding:" + helperText);
         } else {
           //check e-notation
           if (event.target.value.includes("e")) {
@@ -126,6 +130,7 @@ export default function IntField(props) {
       }
     }
   };
+
   const handleOnBlur = (event) => {
     if (!readOnly) {
       if (!error.current) {
@@ -201,12 +206,13 @@ export default function IntField(props) {
       }
     }
   };
+
   return (
-    <Grid container justify="flex-start" alignItems="center" spacing={0}>
+    <Grid container justify="flex-start" alignItems="center">
       <Grid item>
         {!refresh && (
           <TextField
-            id={"IntField-NoAssoc-" + name}
+            id={"IntField-" + name}
             value={value}
             label={label}
             type="number"
@@ -214,7 +220,7 @@ export default function IntField(props) {
             margin="normal"
             variant={readOnly ? "outlined" : "filled"}
             placeholder={readOnly ? "" : t("modelPanels.integer")}
-            helperText={
+            helpertext={
               errorText !== null
                 ? errorText
                 : helperText !== null
@@ -222,9 +228,7 @@ export default function IntField(props) {
                 : ""
             }
             error={errorText !== null ? true : undefined}
-            autoFocus={
-              autoFocus !== undefined && autoFocus === true ? true : false
-            }
+            autoFocus={autoFocus === true ? true : false}
             InputProps={{ readOnly: readOnly ? true : false }}
             InputLabelProps={{ shrink: true }}
             inputProps={{ spellCheck: "false" }}
