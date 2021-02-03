@@ -206,7 +206,7 @@ export default function IntField(props) {
       <Grid item>
         {!refresh && (
           <TextField
-            id={"IntField-NoAssoc-" + name}
+            id={"IntField-" + name}
             value={value}
             label={label}
             type="number"
