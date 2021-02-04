@@ -27,6 +27,8 @@ import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
 import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
 import { grey } from '@material-ui/core/colors';
 
+import ClickableIcon from './clickableIcon'
+
 const useToolbarStyles = makeStyles(theme => ({
   root: {
     paddingLeft: theme.spacing(2),
@@ -143,7 +145,7 @@ export default function NoAssocEnhancedTableToolbar(props) {
                     <Grid container justify="flex-end" alignItems='center' wrap='wrap'>
 
                       {/* Reload Icon */}
-                      <Grid item>
+                      {/*<Grid item>
                         <Tooltip title={ t('modelPanels.reloadList', "Reload list") }>
                           <IconButton
                             id='NoAssocEnhancedTableToolbar-iconButton-reloadTable'
@@ -155,8 +157,10 @@ export default function NoAssocEnhancedTableToolbar(props) {
                             <Reload color="inherit" fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                      </Grid>
-
+                          </Grid>*/}
+                      <ClickableIcon tooltip="Reload list" handleOnClick={onReloadClick} >
+                        <Reload color="inherit" fontSize="small" />
+                      </ClickableIcon>
                       <Grid item>
 
                         {/* Search field */}
@@ -228,6 +232,7 @@ export default function NoAssocEnhancedTableToolbar(props) {
                               {/* Add */}
                               {
                                 /* acl check */
+                                /*
                                 (permissions&&permissions.no_assoc&&Array.isArray(permissions.no_assoc)
                                 &&(permissions.no_assoc.includes('create') || permissions.no_assoc.includes('*')))
                                 &&(
@@ -243,10 +248,18 @@ export default function NoAssocEnhancedTableToolbar(props) {
                                     </Tooltip>
                                   </Grid>
                                 )
+                                */
+                               
+                               <ClickableIcon tooltip="Add new no_assoc" handleOnClick={handleAddClicked} >
+                                <Add color="primary"/>
+                               </ClickableIcon> 
+                               
+                               
                               }
                               {/* Upload */}
                               {
                                 /* acl check */
+                                /*
                                 (permissions&&permissions.no_assoc&&Array.isArray(permissions.no_assoc)
                                 &&(permissions.no_assoc.includes('update') || permissions.no_assoc.includes('*')))
                                 &&(
@@ -262,6 +275,10 @@ export default function NoAssocEnhancedTableToolbar(props) {
                                     </Tooltip>
                                   </Grid>
                                 )
+                                */
+                               <ClickableIcon tooltip="Import from csv" handleOnClick={handleBulkImportClicked} >
+                                <Import color="primary"/>
+                               </ClickableIcon> 
                               }
                               {/* Download.menu */}
                               {
@@ -271,7 +288,7 @@ export default function NoAssocEnhancedTableToolbar(props) {
                                 &&(
                                   <div>
                                     {/* Downloads.icon */}
-                                    <Grid item>
+                                    {/*<Grid item>
                                       <Tooltip title={ t('modelPanels.downloadsOptions', 'Download options') }>
                                         <IconButton
                                           id='NoAssocEnhancedTableToolbar-button-downloadOptions'
@@ -282,6 +299,13 @@ export default function NoAssocEnhancedTableToolbar(props) {
                                         </IconButton>
                                       </Tooltip>
                                     </Grid>
+                                    */
+                                   
+                                   <ClickableIcon tooltip="Download options" handleOnClick={handleDownloadsIconClick} >
+                                    <Export color="primary"/>
+                                   </ClickableIcon> 
+                                    
+                                    }
                                     {/* Downloads.menu */}
                                     <Menu
                                       className={classes.downloadsMenu}
