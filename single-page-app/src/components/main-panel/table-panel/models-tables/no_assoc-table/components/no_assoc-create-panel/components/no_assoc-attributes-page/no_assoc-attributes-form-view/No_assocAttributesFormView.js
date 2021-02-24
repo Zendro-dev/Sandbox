@@ -12,15 +12,20 @@ import Key from '@material-ui/icons/VpnKey';
 import Tooltip from '@material-ui/core/Tooltip';
 import ArrayField from './components/ArrayField'
 
-import StringField from './components/StringField'
+// import StringField from './components/StringField'
+import StringField from '_src/components/input/StringField.jsx'
 
-import IntField from './components/IntField'
+// import IntField from './components/IntField'
+import IntField from '_src/components/input/IntField.jsx'
 
-import FloatField from './components/FloatField'
+// import FloatField from './components/FloatField'
+import FloatField from '_src/components/input/FloatField.jsx'
 
-import DateTimeField from './components/DateTimeField'
+// import DateTimeField from './components/DateTimeField'
+import DateTimeField from '_src/components/input/DateTimeField.jsx'
 
-import BoolField from './components/BoolField'
+// import BoolField from './components/BoolField'
+import BoolField from '_src/components/input/BoolField.jsx'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -98,10 +103,9 @@ export default function NoAssocAttributesFormView(props) {
                     itemKey='idField'
                     name='idField'
                     label='idField'
-                    valueOk={valueOkStates.idField}
-                    valueAjv={valueAjvStates.idField}
                     autoFocus={true}
                     handleSetValue={handleSetValue}
+                    readOnly={false}
                   />
 
                 </Grid>
@@ -122,9 +126,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='stringField'
                 name='stringField'
                 label='stringField'
-                valueOk={valueOkStates.stringField}
-                valueAjv={valueAjvStates.stringField}
                 handleSetValue={handleSetValue}
+                readOnly={false}
               />
             </CardContent>
 
@@ -135,8 +138,8 @@ export default function NoAssocAttributesFormView(props) {
                 name='intField'
                 label='intField'
                 valueOk={valueOkStates.intField}
-                valueAjv={valueAjvStates.intField}
                 handleSetValue={handleSetValue}
+                readOnly={false}
               />
             </CardContent>
 
@@ -146,9 +149,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='floatField'
                 name='floatField'
                 label='floatField'
-                valueOk={valueOkStates.floatField}
-                valueAjv={valueAjvStates.floatField}
                 handleSetValue={handleSetValue}
+                readOnly={false}
               />
             </CardContent>
 
@@ -158,9 +160,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='datetimeField'
                 name='datetimeField'
                 label='datetimeField'
-                valueOk={valueOkStates.datetimeField}
-                valueAjv={valueAjvStates.datetimeField}
                 handleSetValue={handleSetValue}
+                readOnly={false}
               />
             </CardContent>
 
@@ -170,9 +171,8 @@ export default function NoAssocAttributesFormView(props) {
                 itemKey='booleanField'
                 name='booleanField'
                 label='booleanField'
-                valueOk={valueOkStates.booleanField}
-                valueAjv={valueAjvStates.booleanField}
                 handleSetValue={handleSetValue}
+                readOnly={false}
               />
             </CardContent>
 
