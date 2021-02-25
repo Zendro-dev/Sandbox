@@ -50,7 +50,7 @@ services:
     volumes:
       - ../single-page-app:/usr/src/app
     ports:
-     - 8080:3000
+     - 8081:3000
     environment:
       JQ_PATH: /usr/bin/jq
       REACT_APP_ZENDRO_MAX_RECORD_LIMIT: 100
