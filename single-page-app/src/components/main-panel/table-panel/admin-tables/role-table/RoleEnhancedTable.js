@@ -35,8 +35,6 @@ const RoleCreatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Crea
 const RoleUpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Update-Role" */ './components/role-update-panel/RoleUpdatePanel')));
 const RoleDetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-Role" */ './components/role-detail-panel/RoleDetailPanel')));
 const RoleDeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Delete-Role" */ './components/RoleDeleteConfirmationDialog')));
-//Plotly
-const RolePlotly = lazy(() => retry(() => import(/* webpackChunkName: "Plotly-Role" */ '../../../../plots/RolePlotly')));
 
 // const drawerWidth = 280;
 // const appBarHeight = 72;
@@ -979,7 +977,7 @@ export default function RoleEnhancedTable(props) {
           },
         });
         //download
-        let file = response.data.data.csvTableTemplateRole.join("\n");
+        let file = response.value.join("\n");
         const url = window.URL.createObjectURL(new Blob([file]));
         const link = document.createElement("a");
         link.href = url;
@@ -1064,8 +1062,6 @@ export default function RoleEnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      case 'plot':
-        return 1;
       default:
         return 0;
     }
@@ -1354,7 +1350,7 @@ export default function RoleEnhancedTable(props) {
                 <RoleEnhancedTableToolbar
                   permissions={permissions}
                   search={search}
-                  showToggleButtons={true}
+                  showToggleButtons={false}
                   toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
@@ -1592,17 +1588,6 @@ export default function RoleEnhancedTable(props) {
                     />
                   </div>
 
-                  {/*
-                    Swipe page 2: Plot
-                    Conditional rendered
-                  */}
-                  <div>
-                    {(Boolean(RolePlotly)) && (
-                      <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
-                        <RolePlotly />
-                      </ErrorBoundary></Suspense>
-                    )}
-                  </div>
 
                 </SwipeableViews>
               </Paper>

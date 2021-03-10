@@ -35,8 +35,6 @@ const UserCreatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Crea
 const UserUpdatePanel = lazy(() => retry(() => import(/* webpackChunkName: "Update-User" */ './components/user-update-panel/UserUpdatePanel')));
 const UserDetailPanel = lazy(() => retry(() => import(/* webpackChunkName: "Detail-User" */ './components/user-detail-panel/UserDetailPanel')));
 const UserDeleteConfirmationDialog = lazy(() => retry(() => import(/* webpackChunkName: "Delete-User" */ './components/UserDeleteConfirmationDialog')));
-//Plotly
-const UserPlotly = lazy(() => retry(() => import(/* webpackChunkName: "Plotly-User" */ '../../../../plots/UserPlotly')));
 
 // const drawerWidth = 280;
 // const appBarHeight = 72;
@@ -979,7 +977,7 @@ export default function UserEnhancedTable(props) {
           },
         });
         //download
-        let file = response.data.data.csvTableTemplateUser.join("\n");
+        let file = response.value.join("\n");
         const url = window.URL.createObjectURL(new Blob([file]));
         const link = document.createElement("a");
         link.href = url;
@@ -1064,8 +1062,6 @@ export default function UserEnhancedTable(props) {
     switch(toggleButtonValue) {
       case 'table':
         return 0;
-      case 'plot':
-        return 1;
       default:
         return 0;
     }
@@ -1354,7 +1350,7 @@ export default function UserEnhancedTable(props) {
                 <UserEnhancedTableToolbar
                   permissions={permissions}
                   search={search}
-                  showToggleButtons={true}
+                  showToggleButtons={false}
                   toggleButtonValue={toggleButtonValue}
                   onSearchEnter={handleSearchEnter}
                   onReloadClick={handleReloadClick}
@@ -1583,17 +1579,6 @@ export default function UserEnhancedTable(props) {
                     />
                   </div>
 
-                  {/*
-                    Swipe page 2: Plot
-                    Conditional rendered
-                  */}
-                  <div>
-                    {(Boolean(UserPlotly)) && (
-                      <Suspense fallback={<div />}><ErrorBoundary showMessage={true} belowToolbar={true}>
-                        <UserPlotly />
-                      </ErrorBoundary></Suspense>
-                    )}
-                  </div>
 
                 </SwipeableViews>
               </Paper>

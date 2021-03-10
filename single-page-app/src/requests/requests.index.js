@@ -5,7 +5,11 @@
 import { retry } from '../utils';
 
 const modelNamesIndex = [
-  "no_assoc",
+  "alien",
+  "capital",
+  "continent",
+  "country",
+  "river",
   "role",
   "role_to_user",
   "user",
@@ -41,10 +45,30 @@ export async function loadApi(target) {
 
     let module = null;
     switch(modelName) {
-      case 'no_assoc': 
-        module =  await retry(() => import(/* webpackChunkName: "Request-NoAssoc" */ './no_assoc')).catch((e) => {console.log(e); return null});
+      case 'alien': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Alien" */ './alien')).catch((e) => {console.log(e); return null});
         if(!module) return null;  
-        else api['no_assoc'] = module.default;
+        else api['alien'] = module.default;
+        break;
+      case 'capital': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Capital" */ './capital')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['capital'] = module.default;
+        break;
+      case 'continent': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Continent" */ './continent')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['continent'] = module.default;
+        break;
+      case 'country': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-Country" */ './country')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['country'] = module.default;
+        break;
+      case 'river': 
+        module =  await retry(() => import(/* webpackChunkName: "Request-River" */ './river')).catch((e) => {console.log(e); return null});
+        if(!module) return null;  
+        else api['river'] = module.default;
         break;
       case 'role':
         module = await retry(() => import(/* webpackChunkName: "Request-Role" */ './role')).catch((e) => {console.log(e); return null});

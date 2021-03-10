@@ -18,7 +18,7 @@ const modelsAttributes = {
       "email": "String",
       "password": "String",
   },
-  'no_assoc': {
+  'alien': {
       "idField": "String",
       "stringField": "String",
       "intField": "Int",
@@ -30,6 +30,27 @@ const modelsAttributes = {
       "floatArrayField": "[Float]",
       "datetimeArrayField": "[DateTime]",
       "booleanArrayField": "[Boolean]",
+  },
+  'capital': {
+      "name": "String",
+      "capital_id": "String",
+      "country_id": "String",
+  },
+  'continent': {
+      "continent_id": "String",
+      "name": "String",
+  },
+  'country': {
+      "name": "String",
+      "country_id": "String",
+      "continent_id": "String",
+      "river_ids": "[String]",
+  },
+  'river': {
+      "name": "String",
+      "length": "Int",
+      "river_id": "String",
+      "country_ids": "[String]",
   },
 }
 

@@ -7,7 +7,11 @@ import NoPermissionSectionPage from '../pages/NoPermissionSectionPage';
 import ErrorBoundary from '../../pages/ErrorBoundary';
 
 //lazy loading
-const NoAssocTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-NoAssoc" */ './models-tables/no_assoc-table/No_assocEnhancedTable')));
+const AlienTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-Alien" */ './models-tables/alien-table/AlienEnhancedTable')));
+const CapitalTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-Capital" */ './models-tables/capital-table/CapitalEnhancedTable')));
+const ContinentTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-Continent" */ './models-tables/continent-table/ContinentEnhancedTable')));
+const CountryTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-Country" */ './models-tables/country-table/CountryEnhancedTable')));
+const RiverTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-River" */ './models-tables/river-table/RiverEnhancedTable')));
 const RoleTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-Role" */ './admin-tables/role-table/RoleEnhancedTable')));
 const RoleToUserTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-RoleToUser" */ './admin-tables/role_to_user-table/Role_to_userEnhancedTable')));
 const UserTable = lazy(() => retry(() => import(/* webpackChunkName: "Table-User" */ './admin-tables/user-table/UserEnhancedTable')));
@@ -20,12 +24,40 @@ export default function TablesSwitch(props) {
     <Suspense fallback={<div />}>
       <Switch>
         {/* Models */}
-        <Route exact path="/main/model/no_assoc" 
+        <Route exact path="/main/model/alien" 
           render={
             /* acl check */
-            (permissions&&permissions.no_assoc&&Array.isArray(permissions.no_assoc)
-            &&(permissions.no_assoc.includes('read') || permissions.no_assoc.includes('*')))
-            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><NoAssocTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
+            (permissions&&permissions.alien&&Array.isArray(permissions.alien)
+            &&(permissions.alien.includes('read') || permissions.alien.includes('*')))
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><AlienTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/capital" 
+          render={
+            /* acl check */
+            (permissions&&permissions.capital&&Array.isArray(permissions.capital)
+            &&(permissions.capital.includes('read') || permissions.capital.includes('*')))
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><CapitalTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/continent" 
+          render={
+            /* acl check */
+            (permissions&&permissions.continent&&Array.isArray(permissions.continent)
+            &&(permissions.continent.includes('read') || permissions.continent.includes('*')))
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><ContinentTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/country" 
+          render={
+            /* acl check */
+            (permissions&&permissions.country&&Array.isArray(permissions.country)
+            &&(permissions.country.includes('read') || permissions.country.includes('*')))
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><CountryTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/river" 
+          render={
+            /* acl check */
+            (permissions&&permissions.river&&Array.isArray(permissions.river)
+            &&(permissions.river.includes('read') || permissions.river.includes('*')))
+            ? ((props) => <ErrorBoundary showMessage={true} belowToolbar={true}><RiverTable {...props} permissions={permissions}/></ErrorBoundary>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
 
         {/* Admin models */}

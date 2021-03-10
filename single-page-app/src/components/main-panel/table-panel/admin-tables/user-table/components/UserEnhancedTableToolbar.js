@@ -24,7 +24,6 @@ import ButtonBase from '@material-ui/core/ButtonBase';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import TableIcon from '@material-ui/icons/ViewComfyTwoTone';
-import ChartIcon from '@material-ui/icons/InsertChartTwoTone';
 import { grey } from '@material-ui/core/colors';
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -120,11 +119,6 @@ export default function UserEnhancedTableToolbar(props) {
                       <Tooltip title={ t('modelPanels.table', "Table") }>
                         <ToggleButton value="table">
                           <TableIcon fontSize="small" />
-                        </ToggleButton>
-                      </Tooltip>
-                      <Tooltip title={ t('modelPanels.plot', "Plot") }>
-                        <ToggleButton value="plot">
-                          <ChartIcon fontSize="small" />
                         </ToggleButton>
                       </Tooltip>
                     </ToggleButtonGroup>
@@ -336,7 +330,7 @@ export default function UserEnhancedTableToolbar(props) {
                                           >
                                             <span>
                                               <Typography component="span" variant="subtitle1" display='block' noWrap={true}>
-                                                {t('modelPanels.downloadsOp2', 'Download table template to CSV file')}
+                                                {t('modelPanels.downloadsOp2', 'CSV bulk upload template')}
                                               </Typography>
                                             </span>
                                           </ButtonBase>
