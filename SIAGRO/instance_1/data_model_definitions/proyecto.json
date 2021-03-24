@@ -1,0 +1,24 @@
+{
+	"model": "proyecto",
+	"storageType": "sql",
+	
+	"attributes": {
+		"proyecto_id": "String",
+		"NombreProyecto": "String",
+		"InstitucionProyecto": "String"
+  	},
+
+	"associations": {
+		"registro": { 
+			"type": "to_many",
+			"target": "registro",
+			"targetKey": "proyecto_id",
+			"keyIn": "registro",
+			"targetStorageType": "sql",
+			"label": "uuid",
+			"sublabel": "NombreComun"
+  		}
+  	},
+
+	"internalId": "proyecto_id"
+}

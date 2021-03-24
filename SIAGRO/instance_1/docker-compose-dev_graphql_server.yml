@@ -1,33 +1,33 @@
 version: "3.7"
 
 services:
-  sdb_postgres_pgmn:
+  sdb_postgres_colectas:
     build:
       context: .
       dockerfile: Dockerfile.postgres
     volumes:
-      - sdb_db_data_pgmn:/var/lib/postgresql/data
+      - sdb_db_data_colectas:/var/lib/postgresql/data
     networks:
-      - backend_pgmn
+      - backend_colectas
 
-  sdb_science_db_graphql_server_pgmn:
+  sdb_science_db_graphql_server_colectas:
     depends_on:
-      - sdb_postgres_pgmn
+      - sdb_postgres_colectas
     build:
       context: ./graphql-server
       dockerfile: Dockerfile.graphql_server
     ports:
-      - 3004:3004
+      - 443:443
     environment:
-      - PORT=3004
+      - PORT=443
       - REQUIRE_SIGN_IN=false
     volumes:
       - .:/usr/Sandbox
       # Use the Sequelize config adjusted for the Docker setup of Sandbox:
       - ./graphql-server/config/config_postgres_docker.json:/usr/Sandbox/graphql-server/config/config.json
     networks:
-      - backend_pgmn
-      - SIAGRO_PGMN
+      - backend_colectas
+      - SIAGRO_colectas
     # Await POSTGRES role and DB creation, migrate schema, then start web
     # server:
     command:
@@ -38,10 +38,10 @@ services:
         ./migrateDbAndStartServer.sh
 
 volumes:
-  sdb_db_data_pgmn:
+  sdb_db_data_colectas:
 
 networks:
-  backend_pgmn:
-  SIAGRO_PGMN:
+  backend_colectas:
+  SIAGRO_colectas:
     external: true
 

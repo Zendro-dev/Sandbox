@@ -1,0 +1,95 @@
+{
+	"model": "registro",
+	"storageType": "sql",
+	
+	"attributes": {
+		"uuid": "String",
+		"ProcedenciaDatos": "String",
+		"FechaColectaObservacion": "Date",
+		"NumeroColectaObservacion": "String",
+		"IndividuosCopias": "Int",
+		"TipoPreparacion": "String",
+		"FuenteColectaObservacion": "String",
+		"Habitat": "String",
+		"AmbienteEjemplar": "String",
+		"EstatusEcologico": "String",
+		"PlantaManejada": "String",
+		"MaterialColectado": "String",
+		"FormaVida": "String",
+		"FormaCrecimiento": "String",
+		"Sexo": "String",
+		"Fenologia": "String",
+		"AlturaEjemplar": "Float",
+		"Abundancia": "String",
+		"OtrasObservacionesEjemplar": "String",
+		"Uso": "String",
+		"ParteUtilizada": "String",
+		"LenguaNombreComun": "String",
+		"NombreComun": "String",
+		"AutorizacionInformacion": "String",
+		"ColectorObservador": "String",
+		"ColeccionGermoplasma": "String",
+		"NumeroCatalogoGermoplasma": "String",
+		"ColeccionEjemplar": "String",
+		"NumeroCatalogoEjemplar": "String",
+		"InstitucionRespaldaObservacion": "String",
+		"DonanteInformante": "String",
+		"TipoVegetacion": "String",
+		"taxon_id": "Int",
+		"donante_id": "Int",
+		"proyecto_id": "String"
+  	},
+
+	"associations": {
+		"proyecto": { 
+			"type": "to_one",
+			"target": "proyecto",
+			"targetKey": "proyecto_id",
+			"keyIn": "registro", 
+			"targetStorageType": "sql",
+			"label": "proyecto_id",
+			"sublabel": "NombreProyecto"
+    	},
+
+		"manejo": { 
+			"type": "to_one",
+			"target": "manejo", 
+			"targetKey": "registro_id", 
+			"keyIn": "manejo", 
+			"targetStorageType": "sql",
+			"label": "TipoManejo", 
+			"sublabel": "TipoAgroecosistema" 
+    	},
+
+		"sitio": {
+			"type": "to_one", 
+			"target": "sitio", 
+			"targetKey": "registro_id", 
+			"keyIn": "sitio", 
+			"targetStorageType": "sql", 
+			"label": "Municipio", 
+			"sublabel": "Localidad"
+    	},
+
+		"taxon": { 
+			"type": "to_one", 
+			"target": "taxon", 
+			"targetKey": "taxon_id", 
+			"keyIn": "registro", 
+			"targetStorageType": "sql", 
+			"label": "Genero", 
+			"sublabel": "EpitetoEspecifico" 
+    	},
+
+		"donante": { 
+			"type": "to_one", 
+			"target": "donante", 
+			"targetKey": "donante_id", 
+			"keyIn": "registro", 
+			"targetStorageType": "sql", 
+			"label": "NombreDonanteInformante"
+    	}
+	},
+
+	"internalId": "uuid"
+}

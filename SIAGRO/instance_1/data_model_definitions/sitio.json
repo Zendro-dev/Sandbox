@@ -1,0 +1,35 @@
+{
+	"model": "sitio",
+	"storageType": "sql",
+	
+	"attributes": {
+		"sitio_id": "Int",
+		"Estado": "String",
+		"Municipio": "String",
+		"Localidad": "String",
+		"ObtencionCoordenada": "String",
+		"TipoSitio": "String",
+		"Latitud": "Float",
+		"Longitud": "Float",
+		"Altitud": "Float",
+		"PrecisionEscala": "String",
+		"Radio": "String",
+		"FuenteGeorreferencia": "String",
+		"Datum": "String",
+		"registro_id": "String"
+	},
+
+	"associations": {
+		"registro": {
+			"type": "to_one",
+			"target": "registro",
+			"targetKey": "registro_id",
+			"keyIn": "sitio",
+			"targetStorageType": "sql",
+			"label": "uuid",
+			"sublabel": "NombreComun"
+    	}
+  	},
+
+	"internalId": "sitio_id"
+}

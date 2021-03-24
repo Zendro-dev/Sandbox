@@ -1,0 +1,28 @@
+{
+	"model": "donante",
+	"storageType": "sql",
+	
+	"attributes": {
+		"donante_id": "Int",
+		"NombreDonanteInformante": "String",
+		"GeneroDonanteInformante": "String",
+		"EdadDonanteInformante": "Int",
+		"ActividadDonanteInformante": "String",
+		"GrupoEtnicoDonanteInformante": "String",
+		"LenguaDonanteInformante": "String"
+	},
+
+	"associations": {
+		"registro": {
+			"type": "to_many",
+			"target": "registro",
+			"targetKey": "donante_id",
+			"keyIn": "registro",
+			"targetStorageType": "sql",
+			"label": "uuid",
+			"sublabel": "NombreComun"
+    	}
+  	},
+
+	"internalId": "donante_id"
+}
