@@ -7,6 +7,7 @@ const modelNamesIndex = [
   "caracteristica_cuantitativa",
   "metodo",
   "referencia",
+  "registro",
   "taxon",
   "role",
   "role_to_user",
@@ -54,6 +55,10 @@ export async function loadApi(target) {
       case 'referencia': 
         module =  await import(/* webpackChunkName: "Request-Referencia" */ './referencia');
         api['referencia'] = module.default;
+        break;
+      case 'registro': 
+        module =  await import(/* webpackChunkName: "Request-Registro" */ './registro');
+        api['registro'] = module.default;
         break;
       case 'taxon': 
         module =  await import(/* webpackChunkName: "Request-Taxon" */ './taxon');

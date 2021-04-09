@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../../utils';
 import AlimentosToRemoveTransferViewToolbar from './components/AlimentosToRemoveTransferViewToolbar';
+import AlimentosToRemoveTransferViewCursorPagination from './components/AlimentosToRemoveTransferViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -114,6 +115,12 @@ export default function AlimentosToRemoveTransferView(props) {
   const rowsPerPageRef = useRef(10);
   const lastFetchTime = useRef(null);
   const isCountingRef = useRef(false);
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
+  const isForwardPagination = useRef(true);
+  const isCursorPaginating = useRef(false);
   const cancelableCountingPromises = useRef([]);
 
   /*
@@ -134,6 +141,12 @@ export default function AlimentosToRemoveTransferView(props) {
   const rowsPerPageRefB = useRef(10);
   const lastFetchTimeB = useRef(null);
   const isCountingRefB = useRef(false);
+  const [hasPreviousPageB, setHasPreviousPageB] = useState(false);
+  const [hasNextPageB, setHasNextPageB] = useState(false);
+  const pageInfoB = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRefB = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
+  const isForwardPaginationB = useRef(true);
+  const isCursorPaginatingB = useRef(false);
   const cancelableCountingPromisesB = useRef([]);
 
   const [thereAreItemsToAdd, setThereAreItemsToAdd] = useState((idsToRemove && Array.isArray(idsToRemove) && idsToRemove.length > 0));
@@ -225,6 +238,10 @@ const actionB = useRef((key) => (
   *  showMessageB
   *  showMessageC
   *  showMessageD
+  *  configurePagination
+  *  configurePaginationB
+  *  onEmptyPage
+  *  onEmptyPageB
   *  clearRequestGetData
   *  clearRequestGetDataB
   *  getCount
@@ -297,22 +314,327 @@ const showMessageB = useCallback((message, withDetail) => {
     });
   },[enqueueSnackbar]);
 
+  /**
+   * configurePagination
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePagination = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
 
+      case "firstPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
 
+      case "lastPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: pageInfo.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+
+  /**
+   * configurePaginationB
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePaginationB = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: pageInfoB.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPaginationB.current = false;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRefB.current,
+          before: pageInfoB.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfoB.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPaginationB.current = true;
+        //set pagination attributes
+        paginationRefB.current = {
+          first: rowsPerPageRefB.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
+
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+
+  }, [configurePagination]);
+
+  const onEmptyPageB = useCallback((pi) => {
+    //case: forward
+    if(isForwardPaginationB.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('previousPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      } 
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRefB.current = false;
+        isCursorPaginatingB.current = false;
+        setIsOnApiRequestB(false);
+        configurePaginationB('nextPage');
+        
+        //reload
+        setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfoB.current = pi;
+    setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+    setHasNextPageB(pageInfoB.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePaginationB('reload');
+
+    //ok
+    setItemsB([]);
+
+    //ends request
+    isOnApiRequestRefB.current = false;
+    isCursorPaginatingB.current = false;
+    setIsOnApiRequestB(false);
+    return;
+
+  }, [configurePaginationB]);
 
   const clearRequestGetData = useCallback(() => {
+    //configure pagination
+    configurePagination('reset');
           
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[]);
+  },[configurePagination]);
 
   const clearRequestGetDataB = useCallback(() => {
+    //configure pagination
+    configurePaginationB('reset');
   
     setItemsB([]);
     isOnApiRequestRefB.current = false;
     setIsOnApiRequestB(false);
-  },[]);
+  },[configurePaginationB]);
 
   /**
    * getCount
@@ -379,6 +701,9 @@ const showMessageB = useCallback((message, withDetail) => {
           return;
         }
 
+        //ok
+        setCount(response.value);
+        isCountingRef.current = false;
         return;
       },
       //rejected
@@ -434,8 +759,8 @@ const showMessageB = useCallback((message, withDetail) => {
     // if(lidsToRemove.current && lidsToRemove.current.length > 0) {
     //   ops = {
     //     exclude: [{
-    //       type: '',
-    //       values: {: lidsToRemove.current}
+    //       type: 'String',
+    //       values: {conabio_id: lidsToRemove.current}
     //     }]
     //   };
     // }
@@ -443,6 +768,9 @@ const showMessageB = useCallback((message, withDetail) => {
     /*
       API Request: api.referencia.getAlimentos
     */
+    let variables = {
+      pagination: {...paginationRef.current}
+    };
     let api = await loadApi("referencia");
     let cancelableApiReq = makeCancelable(api.referencia.getAlimentos(
       graphqlServerUrl, 
@@ -492,12 +820,33 @@ const showMessageB = useCallback((message, withDetail) => {
           return;
         }
         
+        //get items
+        let its = response.value.edges.map(o => o.node);
+        let pi = response.value.pageInfo;
+
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 ) 
+        {
+          onEmptyPage(pi);
+          return;
+        }//else
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
           
           //ok
           setItems([...its]);
 
           //ends request
           isOnApiRequestRef.current = false;
+          isCursorPaginating.current = false;
           setIsOnApiRequest(false);
           return;
       },
@@ -526,7 +875,7 @@ const showMessageB = useCallback((message, withDetail) => {
           return;
         }
       });
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, t, dataTrigger, item.referencia_id, search, getCount]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, t, dataTrigger, item.referencia_id, search, getCount, configurePagination, onEmptyPage]);
 
   /**
    * getDataB
@@ -549,8 +898,8 @@ const showMessageB = useCallback((message, withDetail) => {
     if(lidsToRemove.current && lidsToRemove.current.length > 0) {
       ops = {
         only: [{
-          type: '',
-          values: {"": lidsToRemove.current}
+          type: 'String',
+          values: {"conabio_id": lidsToRemove.current}
         }]
       };
     } else {
@@ -657,8 +1006,8 @@ const showMessageB = useCallback((message, withDetail) => {
     if(lidsToRemove.current && lidsToRemove.current.length > 0) {
       ops = {
         only: [{
-          type: '',
-          values: {"": lidsToRemove.current}
+          type: 'String',
+          values: {"conabio_id": lidsToRemove.current}
         }]
       };
     } else {
@@ -667,6 +1016,9 @@ const showMessageB = useCallback((message, withDetail) => {
       return;
     }
 
+    let variables = {
+      pagination: {...paginationRefB.current}
+    };
     /*
       API Request: api.registro.getItems
     */
@@ -720,12 +1072,33 @@ const showMessageB = useCallback((message, withDetail) => {
             return;
           }
           
+          //get items
+          let its = response.value.edges.map(o => o.node);
+          let pi = response.value.pageInfo;
+
+           /*
+            Check: empty page
+          */
+          if( its.length === 0 ) 
+          {
+            onEmptyPageB(pi);
+            return;
+          }
+
+          //update pageInfo
+          pageInfoB.current = pi;
+          setHasPreviousPageB(pageInfoB.current.hasPreviousPage);
+          setHasNextPageB(pageInfoB.current.hasNextPage);
+
+          //configure pagination (default)
+          configurePaginationB('reload');
 
           //ok
           setItemsB([...its]);
 
           //ends request
           isOnApiRequestRefB.current = false;
+          isCursorPaginatingB.current = false;
           setIsOnApiRequestB(false);
           return;
       },
@@ -753,7 +1126,7 @@ const showMessageB = useCallback((message, withDetail) => {
           return;
         }
       });
-  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.referencia_id, dataTriggerB, searchB, getCountB]);
+  }, [graphqlServerUrl, showMessageB, clearRequestGetDataB, t, item.referencia_id, dataTriggerB, searchB, getCountB, configurePaginationB, onEmptyPageB]);
 
   useEffect(() => {
 
@@ -865,6 +1238,24 @@ const showMessageB = useCallback((message, withDetail) => {
           cancelCountingPromisesB();
           isCountingRefB.current = false;
 
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
+          }
+          //strict contention
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
           return;
     }//end: Case 1
 
@@ -901,7 +1292,7 @@ const showMessageB = useCallback((message, withDetail) => {
                 let iof = idsRemoved.indexOf(item.referencia_id);
                 if(iof !== -1) {
                   //remove changed item from lidsToRemove
-                  let idRemoved = entry[1].newItem.;
+                  let idRemoved = entry[1].newItem.conabio_id;
                   let iofB = lidsToRemove.current.indexOf(idRemoved);
                   if(iofB !== -1) {
                     lidsToRemove.current.splice(iofB, 1);
@@ -920,6 +1311,24 @@ const showMessageB = useCallback((message, withDetail) => {
                   cancelCountingPromisesB();
                   isCountingRefB.current = false;
 
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure A
+                    configurePagination('reload');
+                    //reload A
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
+                  //strict contention
+                  if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+                    //configure B
+                    configurePaginationB('reload');
+                    //reload B
+                    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
+                  }
                   return;
                 }
               }
@@ -942,6 +1351,24 @@ const showMessageB = useCallback((message, withDetail) => {
                   cancelCountingPromisesB();
                   isCountingRefB.current = false;
 
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure A
+                    configurePagination('reload');
+                    //reload A
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
+                  //strict contention
+                  if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+                    //configure B
+                    configurePaginationB('reload');
+                    //reload B
+                    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+                  } else {
+                    getCountB();
+                  }
                   return;
                 }
               }
@@ -974,11 +1401,11 @@ const showMessageB = useCallback((message, withDetail) => {
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.;
+          let idUpdated = entry[1].item.conabio_id;
           
           //lookup item on table A
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.conabio_id===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -987,7 +1414,7 @@ const showMessageB = useCallback((message, withDetail) => {
 
           //lookup item on table B
           let nitemsB = Array.from(itemsB);
-          let iofB = nitemsB.findIndex((item) => item.===idUpdated);
+          let iofB = nitemsB.findIndex((item) => item.conabio_id===idUpdated);
           if(iofB !== -1) {
             //set new item
             nitemsB[iofB] = entry[1].newItem;
@@ -997,17 +1424,17 @@ const showMessageB = useCallback((message, withDetail) => {
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.;
+          let idRemoved = entry[1].item.conabio_id;
 
           //lookup item on table A
-          let iofA = items.findIndex((item) => item.===idRemoved);
+          let iofA = items.findIndex((item) => item.conabio_id===idRemoved);
           if(iofA !== -1) {
             //decrement A
             setCount(count-1);
           }
 
           //lookup item on table B
-          let iofB = itemsB.findIndex((item) => item.===idRemoved);
+          let iofB = itemsB.findIndex((item) => item.conabio_id===idRemoved);
           if(iofB !== -1) {
             //decrement B
             setCountB(countB-1);
@@ -1035,11 +1462,29 @@ const showMessageB = useCallback((message, withDetail) => {
           cancelCountingPromisesB();
           isCountingRefB.current = false;
 
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure A
+            configurePagination('reload');
+            //reload A
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
+          }
+          //strict contention
+          if (!isOnApiRequestRefB.current && !isCursorPaginatingB.current) {
+            //configure B
+            configurePaginationB('reload');
+            //reload B
+            setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+          } else {
+            getCountB();
+          }
           return;
         }
       });
     }//end: Case 3
-  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.referencia_id, handleUntransfer, getCount, count, getCountB, countB]);
+  }, [lastModelChanged, lastChangeTimestamp, items, itemsB, item.referencia_id, handleUntransfer, getCount, count, getCountB, countB, configurePagination, configurePaginationB]);
 
   useEffect(() => {
     //return if this flag is set
@@ -1077,21 +1522,57 @@ const showMessageB = useCallback((message, withDetail) => {
     }
   }, [pageB]);
 
+  useEffect(() => {
+    //update ref
+    rowsPerPageRef.current = rowsPerPage;
 
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    
+    //configure pagination
+    configurePagination('reset');
+    //reload    
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }, [rowsPerPage, configurePagination]);
+
+  useEffect(() => {
+    //update ref
+    rowsPerPageRefB.current = rowsPerPageB;
+
+    //check strict contention
+    if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    
+    //configure pagination
+    configurePaginationB('reset');
+    //reload    
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  }, [rowsPerPageB, configurePaginationB]);
 
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
+      //configure
+      configurePagination('reload');
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
-  }, [isOnApiRequest]);
+  }, [isOnApiRequest, configurePagination]);
 
   useEffect(() => {
     if (!isOnApiRequestB && isPendingApiRequestRefB.current) {
       isPendingApiRequestRefB.current = false;
+      //configure
+      configurePaginationB('reload');
+      //reload
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
     }
     updateHeights();
-  }, [isOnApiRequestB]);
+  }, [isOnApiRequestB, configurePaginationB]);
 
   useEffect(() => {
     if(Array.isArray(items) && items.length > 0) { 
@@ -1136,9 +1617,17 @@ const showMessageB = useCallback((message, withDetail) => {
 
 
   function reloadDataA() {
+    //configure A
+    configurePagination('reload');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
   }
 
   function reloadDataB() {
+    //configure B
+    configurePaginationB('reload');    
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
   }
 
   /**
@@ -1186,6 +1675,94 @@ const showMessageB = useCallback((message, withDetail) => {
    * Pagination handlers
    */
   
+  const handleFirstPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('firstPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+  
+  const handleFirstPageButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('firstPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('lastPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleLastPageButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('lastPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleNextButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('nextPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleNextButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('nextPage');
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
+
+  const handleBackButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('previousPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleBackButtonClickB = (event) => {
+    //strict contention
+    if (isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure B
+    configurePaginationB('previousPage');
+
+    //reload B
+    setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+  };
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
@@ -1210,6 +1787,26 @@ const showMessageB = useCallback((message, withDetail) => {
     }
   };
 
+  const handleReloadClick = (event) => {
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure pagination
+    configurePagination('reset');
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+  const handleReloadClickB = (event) => {
+    //check strict contention
+    if(isOnApiRequestRefB.current || isCursorPaginatingB.current) { return; }
+    //set strict contention
+    isCursorPaginatingB.current = true;
+    //configure pagination
+    configurePaginationB('reset');
+    //reload
+    setDataTriggerB(prevDataTrigger => !prevDataTrigger);
+  };
 
   /*
    * Items handlers
@@ -1219,8 +1816,8 @@ const showMessageB = useCallback((message, withDetail) => {
   };
 
   const handleAddItem = (event, item) => {
-    if(lidsToRemove.current.indexOf(item.) === -1) {
-      lidsToRemove.current.push(item.);
+    if(lidsToRemove.current.indexOf(item.conabio_id) === -1) {
+      lidsToRemove.current.push(item.conabio_id);
       setThereAreItemsToAdd(true);
       
       //will count A
@@ -1234,12 +1831,16 @@ const showMessageB = useCallback((message, withDetail) => {
       //will count B
       cancelCountingPromisesB();
       isCountingRefB.current = false;
-      handleTransfer('alimentos', item.);
+      //configure B
+      configurePaginationB('reset');
+      //reload B
+      setDataTriggerB(prevDataTriggerB => !prevDataTriggerB);
+      handleTransfer('alimentos', item.conabio_id);
     }
   };
 
   const handleRemoveItem = (event, item) => {
-    let iof = lidsToRemove.current.indexOf(item.);
+    let iof = lidsToRemove.current.indexOf(item.conabio_id);
     if(iof !== -1) { 
       lidsToRemove.current.splice(iof, 1);
 
@@ -1250,6 +1851,10 @@ const showMessageB = useCallback((message, withDetail) => {
       //will count A
       cancelCountingPromises();
       isCountingRef.current = false;
+      //configure A
+      configurePaginationB('reset');
+      //reload A
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
 
       //decrement count B
       if(countB > 0) setCountB(countB-1);
@@ -1258,7 +1863,7 @@ const showMessageB = useCallback((message, withDetail) => {
       isCountingRefB.current = false;
       //reload B
       reloadDataB();
-      handleUntransfer('alimentos', item.);
+      handleUntransfer('alimentos', item.conabio_id);
     }
   }
 
@@ -1314,14 +1919,14 @@ const showMessageB = useCallback((message, withDetail) => {
                     <List id='AlimentosToRemoveTransferView-list-listA'
                       dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.;
+                        let key = it.conabio_id;
                         let label = it.descripcion_alimento;
                         let sublabel = undefined;
-                        let disabled = lidsToRemove.current.find(=> === it.) !== undefined;
+                        let disabled = lidsToRemove.current.find(conabio_id=> conabio_id=== it.conabio_id) !== undefined;
 
                         return (
                           <ListItem 
-                            id={'AlimentosToRemoveTransferView-listA-listItem-'+it.}
+                            id={'AlimentosToRemoveTransferView-listA-listItem-'+it.conabio_id}
                             key={key} 
                             role="listitem" 
                             button 
@@ -1342,8 +1947,8 @@ const showMessageB = useCallback((message, withDetail) => {
                                   {/* referencia_id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ '' }>
-                                        <Typography variant="body1" display="block" noWrap={true}>{it.}</Typography>
+                                      <Tooltip title={ 'conabio_id' }>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.conabio_id}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -1378,7 +1983,7 @@ const showMessageB = useCallback((message, withDetail) => {
                               <Tooltip title={!disabled ? t('modelPanels.transferToRemove') : t('modelPanels.alreadyToRemove') }>
                                 <span>
                                   <IconButton
-                                    id={'AlimentosToRemoveTransferView-listA-listItem-'+it.+'-button-remove'}
+                                    id={'AlimentosToRemoveTransferView-listA-listItem-'+it.conabio_id+'-button-remove'}
                                     color="primary"
                                     className={classes.iconButton}
                                     onClick={(event) => {
@@ -1423,6 +2028,19 @@ const showMessageB = useCallback((message, withDetail) => {
               )}
 
               {/* Pagination */}
+              <AlimentosToRemoveTransferViewCursorPagination
+                count={count}
+                rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                hasNextPage={hasNextPage}
+                hasPreviousPage={hasPreviousPage}
+                handleFirstPageButtonClick={handleFirstPageButtonClick}
+                handleLastPageButtonClick={handleLastPageButtonClick}
+                handleNextButtonClick={handleNextButtonClick}
+                handleBackButtonClick={handleBackButtonClick}
+                handleChangeRowsPerPage={handleChangeRowsPerPage}
+              />
             </Card>
           )}
         </Grid>
@@ -1552,13 +2170,13 @@ const showMessageB = useCallback((message, withDetail) => {
                     <List id='AlimentosToRemoveTransferView-list-listB'
                       dense component="div" role="list">
                       {itemsB.map(it => {
-                        let key = it.;
+                        let key = it.conabio_id;
                         let label = it.descripcion_alimento;
                         let sublabel = undefined;
 
                         return (
                           <ListItem 
-                            id={'AlimentosToRemoveTransferView-listB-listItem-'+it.}
+                            id={'AlimentosToRemoveTransferView-listB-listItem-'+it.conabio_id}
                             key={key} 
                             role="listitem"
                             button
@@ -1579,8 +2197,8 @@ const showMessageB = useCallback((message, withDetail) => {
                                   {/* referencia_id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ '' }>
-                                        <Typography variant="body1" display="block" noWrap={true}>{it.}</Typography>
+                                      <Tooltip title={ 'conabio_id' }>
+                                        <Typography variant="body1" display="block" noWrap={true}>{it.conabio_id}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -1614,7 +2232,7 @@ const showMessageB = useCallback((message, withDetail) => {
                             <ListItemSecondaryAction>
                               <Tooltip title={ t('modelPanels.untransferToRemove') }>
                                 <IconButton
-                                  id={'AlimentosToRemoveTransferView-listB-listItem-'+it.+'-button-remove'}
+                                  id={'AlimentosToRemoveTransferView-listB-listItem-'+it.conabio_id+'-button-remove'}
                                   color="primary"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -1656,6 +2274,19 @@ const showMessageB = useCallback((message, withDetail) => {
               )}
 
               {/* Pagination */}
+              <AlimentosToRemoveTransferViewCursorPagination
+                count={countB}
+                rowsPerPageOptions={(countB <=10) ? [] : (countB <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                rowsPerPage={(countB <=10) ? '' : rowsPerPageB}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                hasNextPage={hasNextPageB}
+                hasPreviousPage={hasPreviousPageB}
+                handleFirstPageButtonClick={handleFirstPageButtonClickB}
+                handleLastPageButtonClick={handleLastPageButtonClickB}
+                handleNextButtonClick={handleNextButtonClickB}
+                handleBackButtonClick={handleBackButtonClickB}
+                handleChangeRowsPerPage={handleChangeRowsPerPageB}
+              />
             </Card>
           )}
         </Grid>

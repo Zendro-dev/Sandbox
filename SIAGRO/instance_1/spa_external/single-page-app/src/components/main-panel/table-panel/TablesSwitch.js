@@ -9,6 +9,7 @@ import NoPermissionSectionPage from '../pages/NoPermissionSectionPage'
 const CaracteristicaCuantitativaTable = lazy(() => import(/* webpackChunkName: "Table-CaracteristicaCuantitativa" */ './models-tables/caracteristica_cuantitativa-table/Caracteristica_cuantitativaEnhancedTable'));
 const MetodoTable = lazy(() => import(/* webpackChunkName: "Table-Metodo" */ './models-tables/metodo-table/MetodoEnhancedTable'));
 const ReferenciaTable = lazy(() => import(/* webpackChunkName: "Table-Referencia" */ './models-tables/referencia-table/ReferenciaEnhancedTable'));
+const RegistroTable = lazy(() => import(/* webpackChunkName: "Table-Registro" */ './models-tables/registro-table/RegistroEnhancedTable'));
 const TaxonTable = lazy(() => import(/* webpackChunkName: "Table-Taxon" */ './models-tables/taxon-table/TaxonEnhancedTable'));
 const RoleTable = lazy(() => import(/* webpackChunkName: "Table-Role" */ './admin-tables/role-table/RoleEnhancedTable'));
 const RoleToUserTable = lazy(() => import(/* webpackChunkName: "Table-RoleToUser" */ './admin-tables/role_to_user-table/Role_to_userEnhancedTable'));
@@ -42,6 +43,13 @@ export default function TablesSwitch(props) {
             (permissions&&permissions.referencia&&Array.isArray(permissions.referencia)
             &&(permissions.referencia.includes('read') || permissions.referencia.includes('*')))
             ? ((props) => <ReferenciaTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
+        } />
+        <Route exact path="/main/model/registro" 
+          render={
+            /* acl check */
+            (permissions&&permissions.registro&&Array.isArray(permissions.registro)
+            &&(permissions.registro.includes('read') || permissions.registro.includes('*')))
+            ? ((props) => <RegistroTable {...props} permissions={permissions}/>) : ((props) => <NoPermissionSectionPage {...props}/>)
         } />
         <Route exact path="/main/model/taxon" 
           render={

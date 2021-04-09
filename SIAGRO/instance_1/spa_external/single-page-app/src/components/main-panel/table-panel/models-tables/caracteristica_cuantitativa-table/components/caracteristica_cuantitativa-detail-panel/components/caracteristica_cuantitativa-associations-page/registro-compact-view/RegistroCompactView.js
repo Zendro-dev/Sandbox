@@ -323,6 +323,11 @@ export default function RegistroCompactView(props) {
                 let iof = idsRemoved.indexOf(item.id);
                 if(iof !== -1) {
 
+                  //strict contention
+                  if (!isOnApiRequestRef.current) {
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  }
                   return;
                 }
               }
@@ -334,6 +339,11 @@ export default function RegistroCompactView(props) {
               if(idsAdded) {
                 let iof = idsAdded.indexOf(item.id);
                 if(iof !== -1) {
+                  //strict contention
+                  if (!isOnApiRequestRef.current) {
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  }
                   return;
                 }
               }
@@ -365,11 +375,11 @@ export default function RegistroCompactView(props) {
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.;
+          let idUpdated = entry[1].item.conabio_id;
           
           //lookup item on table
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.conabio_id===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -380,6 +390,11 @@ export default function RegistroCompactView(props) {
         //case B: deleted
         if(entry[1].op === "delete") {
 
+          //strict contention
+          if (!isOnApiRequestRef.current) {
+            //reload
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          }
           return;
         }
       });
@@ -408,6 +423,8 @@ export default function RegistroCompactView(props) {
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
   }, [isOnApiRequest]);
@@ -459,6 +476,12 @@ export default function RegistroCompactView(props) {
 
 
 
+  const handleReloadClick = (event) => {
+    //check strict contention
+    if(isOnApiRequestRef.current) { return; }
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
 
   /**
    * Items handlers
@@ -518,13 +541,13 @@ export default function RegistroCompactView(props) {
                     <List id='RegistroCompactView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.;
+                        let key = it.conabio_id;
                         let label = it.nombrecomun;
                         let sublabel = undefined;
        
                         return (
                           <ListItem 
-                            id={'RegistroCompactView-listA-listItem-'+it.}
+                            id={'RegistroCompactView-listA-listItem-'+it.conabio_id}
                             key={key} 
                             role="listitem" 
                             button 
@@ -545,10 +568,10 @@ export default function RegistroCompactView(props) {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ '' }>
+                                      <Tooltip title={ 'conabio_id' }>
                                         <Typography
-                                        id={'RegistroCompactView-listA-listItem-id-'+it.}
-                                        variant="body1" display="block" noWrap={true}>{it.}</Typography>
+                                        id={'RegistroCompactView-listA-listItem-id-'+it.conabio_id}
+                                        variant="body1" display="block" noWrap={true}>{it.conabio_id}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -566,7 +589,7 @@ export default function RegistroCompactView(props) {
                                   {(label) && (
                                     <Tooltip title={ 'nombrecomun' }>
                                       <Typography
-                                      id={'RegistroCompactView-listA-listItem-label-'+it.}
+                                      id={'RegistroCompactView-listA-listItem-label-'+it.conabio_id}
                                       component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
                                   )}
@@ -575,7 +598,7 @@ export default function RegistroCompactView(props) {
                                   {(sublabel) && (
                                     <Tooltip title={ '' }>
                                       <Typography
-                                      id={'RegistroCompactView-listA-listItem-sublabel-'+it.}
+                                      id={'RegistroCompactView-listA-listItem-sublabel-'+it.conabio_id}
                                       component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}

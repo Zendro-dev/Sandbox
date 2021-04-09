@@ -218,7 +218,7 @@ export default {
           $endemismo:String,
           $categoriaSorter:String,
           $bibliografia:[String],
-          $addEjemplares: [ID],
+          $addAlimentos: [ID],
 `;
 
     //set parameters assignation
@@ -240,7 +240,7 @@ export default {
             endemismo:$endemismo,
             categoriaSorter:$categoriaSorter,
             bibliografia:$bibliografia,
-            addEjemplares: $addEjemplares,
+            addAlimentos: $addAlimentos,
 `;
 
     //set attributes to fetch
@@ -336,8 +336,8 @@ export default {
           $endemismo:String,
           $categoriaSorter:String,
           $bibliografia:[String],
-          $addEjemplares: [ID],
-          $removeEjemplares: [ID],
+          $addAlimentos: [ID],
+          $removeAlimentos: [ID],
 `;
 
     //set parameters assignation
@@ -359,8 +359,8 @@ export default {
             endemismo: $endemismo,
             categoriaSorter: $categoriaSorter,
             bibliografia: $bibliografia,
-            addEjemplares: $addEjemplares,
-            removeEjemplares: $removeEjemplares,
+            addAlimentos: $addAlimentos,
+            removeAlimentos: $removeAlimentos,
 `;
 
     //set attributes to fetch
@@ -474,9 +474,9 @@ export default {
  */
 
   /**
-   * getEjemplares   *
-   * Get ejemplars records associated to the given taxon record
-   * through association 'Ejemplares', from GraphQL Server.
+   * getAlimentos   *
+   * Get registros records associated to the given taxon record
+   * through association 'Alimentos', from GraphQL Server.
    *
    *
    * @param {String} url GraphQL Server url
@@ -485,7 +485,7 @@ export default {
    * @param {Object} variables Object with cursor-based-pagination variables.
    * @param {String} ops Object with adittional query options.
    */
-  async getEjemplares(url, itemId, searchText, variables, ops) {
+  async getAlimentos(url, itemId, searchText, variables, ops) {
     //internal checks
     if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
     if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
@@ -494,93 +494,20 @@ export default {
 
     //set attributes
     let qattributes = 
-    `id,
-     region,
-     localidad,
-     longitud,
-     latitud,
-     datum,
-     validacionambiente,
-     geovalidacion,
-     paismapa,
-     estadomapa,
-     claveestadomapa,
-     mt24nombreestadomapa,
-     mt24claveestadomapa,
-     municipiomapa,
-     clavemunicipiomapa,
-     mt24nombremunicipiomapa,
-     mt24clavemunicipiomapa,
-     incertidumbrexy,
-     altitudmapa,
-     usvserieI,
-     usvserieII,
-     usvserieIII,
-     usvserieIV,
-     usvserieV,
-     usvserieVI,
-     anp,
-     grupobio,
-     subgrupobio,
-     taxon,
-     autor,
-     estatustax,
-     reftax,
-     taxonvalido,
-     autorvalido,
-     reftaxvalido,
-     taxonvalidado,
-     endemismo,
-     taxonextinto,
-     ambiente,
-     nombrecomun,
-     formadecrecimiento,
-     prioritaria,
-     nivelprioridad,
-     exoticainvasora,
-     nom059,
-     cites,
-     iucn,
-     categoriaresidenciaaves,
-     probablelocnodecampo,
-     obsusoinfo,
-     coleccion,
-     institucion,
-     paiscoleccion,
-     numcatalogo,
-     numcolecta,
-     procedenciaejemplar,
-     determinador,
-     aniodeterminacion,
-     mesdeterminacion,
-     diadeterminacion,
-     fechadeterminacion,
-     calificadordeterminacion,
-     colector,
-     aniocolecta,
-     mescolecta,
-     diacolecta,
-     fechacolecta,
-     tipo,
-     ejemplarfosil,
-     proyecto,
-     fuente,
-     formadecitar,
-     licenciauso,
-     urlproyecto,
-     urlorigen,
-     urlejemplar,
-     ultimafechaactualizacion,
-     cuarentena,
-     version,
-     especie,
-     especievalida,
-     especievalidabusqueda,
+    `conabio_id,
+     clave_original,
+     tipo_alimento,
+     food_type,
+     descripcion_alimento,
+     food_description,
+     procedencia,
+     taxon_id,
+     referencias_ids,
 `;
 
     variables["id"] = itemId;
     //set search
-    let s = getSearchArgument('ejemplar', searchText, ops, 'object');
+    let s = getSearchArgument('registro', searchText, ops, 'object');
     if(s) variables.search = s.search;
     let qbody = `
           pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
@@ -591,16 +518,16 @@ export default {
           }`;
 
     let query =
-      `query readOneTaxon($id:ID!, $search: searchEjemplarInput, $pagination: paginationCursorInput!) {
+      `query readOneTaxon($id:ID!, $search: searchRegistroInput, $pagination: paginationCursorInput!) {
              readOneTaxon(id:$id) {
-                ejemplaresConnection(search: $search, pagination: $pagination) {
+                alimentosConnection(search: $search, pagination: $pagination) {
                   ${qbody},
                 },
              }}`;
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getEjemplares', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getAlimentos', query, variables);
 
 //request
     let response = await requestGraphql({ url, query, variables });
@@ -611,15 +538,15 @@ export default {
       //check type
       if(!response.data.data["readOneTaxon"]
       || typeof response.data.data["readOneTaxon"] !== 'object'
-      || !response.data.data["readOneTaxon"]["ejemplaresConnection"]
-      || typeof response.data.data["readOneTaxon"]["ejemplaresConnection"] !== 'object'
-      || !Array.isArray(response.data.data["readOneTaxon"]["ejemplaresConnection"].edges)
-      || typeof response.data.data["readOneTaxon"]["ejemplaresConnection"].pageInfo !== 'object' 
-      || response.data.data["readOneTaxon"]["ejemplaresConnection"].pageInfo === null)
+      || !response.data.data["readOneTaxon"]["alimentosConnection"]
+      || typeof response.data.data["readOneTaxon"]["alimentosConnection"] !== 'object'
+      || !Array.isArray(response.data.data["readOneTaxon"]["alimentosConnection"].edges)
+      || typeof response.data.data["readOneTaxon"]["alimentosConnection"].pageInfo !== 'object' 
+      || response.data.data["readOneTaxon"]["alimentosConnection"].pageInfo === null)
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      items = response.data.data["readOneTaxon"]["ejemplaresConnection"];
+      items = response.data.data["readOneTaxon"]["alimentosConnection"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     //return value
@@ -633,10 +560,10 @@ export default {
  */
 
   /**
-   * getEjemplaresCount
+   * getAlimentosCount
    * 
-   * Get ejemplars records count associated to the given taxon record
-   * through association 'Ejemplares', from GraphQL Server.
+   * Get registros records count associated to the given taxon record
+   * through association 'Alimentos', from GraphQL Server.
    * 
    * 
    * @param {String} url GraphQL Server url
@@ -644,24 +571,24 @@ export default {
    * @param {String} searchText Text string currently on search bar.
    * @param {String} ops Object with adittional query options.
    */
-  async getEjemplaresCount(url, itemId, searchText, ops) {
+  async getAlimentosCount(url, itemId, searchText, ops) {
     let graphqlErrors = [];
 
     let variables = {"id": itemId};
     //search
-    let s = getSearchArgument('ejemplar', searchText, ops, 'object');
+    let s = getSearchArgument('registro', searchText, ops, 'object');
     if(s) variables.search = s.search;
     //query
     let query =
-      `query readOneTaxon($id:ID!, $search: searchEjemplarInput) { 
+      `query readOneTaxon($id:ID!, $search: searchRegistroInput) { 
              readOneTaxon(id:$id) {
-              countFilteredEjemplares(search: $search) 
+              countFilteredAlimentos(search: $search) 
        }}`
 
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getEjemplaresCount', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getAlimentosCount', query, variables);
     
     //request
     let response = await requestGraphql({ url, query, variables });
@@ -672,11 +599,11 @@ export default {
       //check type
       if(!response.data.data["readOneTaxon"]
       || typeof response.data.data["readOneTaxon"] !== 'object'
-      || !Number.isInteger(response.data.data["readOneTaxon"]["countFilteredEjemplares"])) 
+      || !Number.isInteger(response.data.data["readOneTaxon"]["countFilteredAlimentos"])) 
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      count = response.data.data["readOneTaxon"]["countFilteredEjemplares"];
+      count = response.data.data["readOneTaxon"]["countFilteredAlimentos"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     //return value
@@ -690,95 +617,65 @@ export default {
  */
 
   /**
-   * getNotAssociatedEjemplaresCount
+   * getNotAssociatedAlimentosCount
    *
-   * Get count of not associated Ejemplares from GraphQL Server.
+   * Get count of not associated Alimentos from GraphQL Server.
    *
    * @param {String} url GraphQL Server url.
    * @param {String} itemId Model item internalId.
    * @param {String} searchText Text string currently on search bar.
    * @param {String} ops Object with adittional query options.
    */
-  async getNotAssociatedEjemplaresCount(url, itemId, searchText, ops) {
+  async getNotAssociatedAlimentosCount(url, itemId, searchText, ops) {
     let graphqlErrors = [];
     /**
      * Algorithm:
-     *    1. get count of all associtation items (countA).
-     *    2. get count of all associated items (countB).
-     *    3. @return (countA - countB).
-     *  
+     *    1. get a filtered count over all items.
+     *       filters:
+     *          1.1: exclude itemId in association.targetKey field.
+     *          1.2: include null values in association.targetKey field.  
+     *    2. @return filtered count. 
      */
-
-    /**
-     *    1. get count of all associtation items (countA).
-     * 
-     */
-    let variables = {};
     //search
-    let s = getSearchArgument('ejemplar', searchText, ops, 'object');
-    if(s) variables.search = s.search;
+    let s = getSearchArgument('registro', searchText, ops, 'object');
+  
+    //make filter to exclude itemId on FK & include null's
+    let f1 = {field: "taxon_id", valueType: "String", value: itemId, operator: "ne"};
+    let f2 = {field: "taxon_id", valueType: "String", value: null, operator: "eq"};
+    let nf = {operator: "or", search: [ f1, f2 ]};
+    
+    //add new filter to ands array
+    if(s) s.search.search.push(nf);
+    else  s = {search: nf};
 
-    //set query
+    //set search
+    let variables = {search: s.search};
+
+     //set query
     let query = 
-     `query countEjemplars($search: searchEjemplarInput) {
-            countEjemplars(search: $search) }`;
+     `query countRegistros($search: searchRegistroInput) {
+            countRegistros(search: $search) }`;
     
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedEjemplaresCount.query1', query, variables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAlimentosCount', query, variables);
     //request
     let response = await requestGraphql({ url, query, variables });
-    let countA = null;
+    let count = null;
     //check
-    let check = checkResponse(response, graphqlErrors, "countEjemplars");
+    let check = checkResponse(response, graphqlErrors, "countRegistros");
     if(check === 'ok') {
       //check type
-      if(!Number.isInteger(response.data.data["countEjemplars"])) 
+      if(!Number.isInteger(response.data.data["countRegistros"])) 
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      countA = response.data.data["countEjemplars"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    /**
-     *    2. get count of all associated items (countB).
-     *  
-     */
-    variables = {};
-    //id
-    variables["id"] = itemId;
-    //search
-    if(s) variables.search = s.search;
-    //query
-    query =
-      `query readOneTaxon($id:ID!, $search: searchEjemplarInput) { 
-             readOneTaxon(id:$id) {
-              countFilteredEjemplares(search: $search) 
-       }}`
-
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getEjemplaresCount.query2', query, variables);
-    //request
-    response = await requestGraphql({ url, query, variables });
-    let countB = null;
-    //check
-    check = checkResponse(response, graphqlErrors, "readOneTaxon");
-    if(check === 'ok') {
-      //check types
-      if(!response.data.data["readOneTaxon"]
-      ||typeof response.data.data["readOneTaxon"] !== 'object'
-      || !Number.isInteger(response.data.data["readOneTaxon"]["countFilteredEjemplares"])
-      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      
-      //get value
-      countB = response.data.data["readOneTaxon"]["countFilteredEjemplares"];
+      count = response.data.data["countRegistros"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     //return value
-    return {value: (countA - countB), message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
 
 
@@ -788,9 +685,9 @@ export default {
  */
 
 /**
- * getNotAssociatedEjemplares
+ * getNotAssociatedAlimentos
  *
- * Get not associated Ejemplares items from GraphQL Server.
+ * Get not associated Alimentos items from GraphQL Server.
  *
  * @param {String} url GraphQL Server url.
  * @param {String} itemId Model item internalId.
@@ -799,7 +696,7 @@ export default {
  * @param {String} ops Object with additional query options.
  * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
  */
-async getNotAssociatedEjemplares(url, itemId, searchText, variables, ops, batchSize) {
+async getNotAssociatedAlimentos(url, itemId, searchText, variables, ops, batchSize) {
    //internal checks
    if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
    if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
@@ -808,519 +705,78 @@ async getNotAssociatedEjemplares(url, itemId, searchText, variables, ops, batchS
 
   //set attributes
   let qattributes = 
-    `id,
-     region,
-     localidad,
-     longitud,
-     latitud,
-     datum,
-     validacionambiente,
-     geovalidacion,
-     paismapa,
-     estadomapa,
-     claveestadomapa,
-     mt24nombreestadomapa,
-     mt24claveestadomapa,
-     municipiomapa,
-     clavemunicipiomapa,
-     mt24nombremunicipiomapa,
-     mt24clavemunicipiomapa,
-     incertidumbrexy,
-     altitudmapa,
-     usvserieI,
-     usvserieII,
-     usvserieIII,
-     usvserieIV,
-     usvserieV,
-     usvserieVI,
-     anp,
-     grupobio,
-     subgrupobio,
-     taxon,
-     autor,
-     estatustax,
-     reftax,
-     taxonvalido,
-     autorvalido,
-     reftaxvalido,
-     taxonvalidado,
-     endemismo,
-     taxonextinto,
-     ambiente,
-     nombrecomun,
-     formadecrecimiento,
-     prioritaria,
-     nivelprioridad,
-     exoticainvasora,
-     nom059,
-     cites,
-     iucn,
-     categoriaresidenciaaves,
-     probablelocnodecampo,
-     obsusoinfo,
-     coleccion,
-     institucion,
-     paiscoleccion,
-     numcatalogo,
-     numcolecta,
-     procedenciaejemplar,
-     determinador,
-     aniodeterminacion,
-     mesdeterminacion,
-     diadeterminacion,
-     fechadeterminacion,
-     calificadordeterminacion,
-     colector,
-     aniocolecta,
-     mescolecta,
-     diacolecta,
-     fechacolecta,
-     tipo,
-     ejemplarfosil,
-     proyecto,
-     fuente,
-     formadecitar,
-     licenciauso,
-     urlproyecto,
-     urlorigen,
-     urlejemplar,
-     ultimafechaactualizacion,
-     cuarentena,
-     version,
-     especie,
-     especievalida,
-     especievalidabusqueda,
+    `conabio_id,
+     clave_original,
+     tipo_alimento,
+     food_type,
+     descripcion_alimento,
+     food_description,
+     procedencia,
+     taxon_id,
+     referencias_ids,
 `;
-  /**
-   * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-   *  1 Until @requiredItems are fetched, do:
-   *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-   *        where each item will be fetched with the correspondent associationConnection, which in turn will be 
-   *        filtered by the current itemId. The resulting associationConnection will contain a non-empty edges-array if
-   *        the current item is associated or an empty edges-array otherwise.
-   *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-   *        Only the items with an empty edges-array in its associationConnection will be added.
-   *    1.4 Check number of fetched items:
-   *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-   *               1.4.1.1 Adjust pagination to get the next batch of items.
-   *               1.4.1.2 @continue with next iteration.
-   *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items: 
-   *               1.4.2.1 Return Connection with edges and pageInfo properly configured.  
-   *               1.4.2.2 @done
-   */
-  //set direction
-  let isForward = variables.pagination.first ? true : false;
-  //set required number of items
-  let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
-
-  /**
-   * Initialize batch query
-   * 
-   */
-  //pagination
-  let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null};
-  //search
-  let batchSearch = getSearchArgument('ejemplar', searchText, ops, 'object');
-  //variables
-  let batchVariables = {"id": itemId, pagination: batchPagination};
-  if(batchSearch) batchVariables.search = batchSearch.search;
-  
-  let batchQuery = 
-        `query ejemplarsConnection($id: String, $search: searchEjemplarInput, $pagination: paginationCursorInput!) {
-               ejemplarsConnection(search: $search, pagination: $pagination) {
-                  pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-                  edges {node {
-                    ${qattributes}
-                    Connection(
-                      search: {field: id, value: $id, valueType: String, operator: eq },
-                      pagination: {first: 1}){ edges {node {id}}}
-          }}}}`;
-
-  //initialize results
-  let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-  let nonaEdges = [];
-
-  //batch counter
-  let iteration = 1;
-  
-   /**
-   * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-   *  1 Until @requiredItems are fetched, do:
-   * 
-   */
-  while(nonaEdges.length < requiredItems) {    
     /**
-     *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-     *        where each item will be fetched with the correspondent associationConnection, which in turn will be 
-     *        filtered by the current itemId. The resulting associationConnection will contain a non-empty edges-array if
-     *        the current item is associated or an empty edges-array otherwise.
-     * 
+     * Algorithm:
+     *    1. get a filtered items.
+     *       filters:
+     *          1.1: exclude itemId in association.targetKey field.
+     *          1.2: include null values in association.targetKey field.  
+     *    2. @return filtered items. 
      */
+    //search
+    let s = getSearchArgument('registro', searchText, ops, 'object');
+  
+    //make filter to exclude itemId on FK & include null's
+    let f1 = {field: "taxon_id", valueType: "String", value: itemId, operator: "ne"};
+    let f2 = {field: "taxon_id", valueType: "String", value: null, operator: "eq"};
+    let nf = {operator: "or", search: [ f1, f2 ]};
+    
+    //add new filter to ands array
+    if(s) s.search.search.push(nf);
+    else  s = {search: nf};
+
+    //set search
+    variables.search = s.search;
+    //set query
+    let qbody = `
+          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
+          edges {
+            node {
+              ${qattributes}
+            }
+          }`;
+    let query =
+      `query registrosConnection($search: searchRegistroInput, $pagination: paginationCursorInput!) {
+             registrosConnection(search: $search, pagination: $pagination) {
+                  ${qbody},
+                },
+             }`;
     /**
      * Debug
      */
-    if(globals.REQUEST_LOGGER) logRequest(`getNotAssociatedEjemplares.batch.${iteration}`, batchQuery, batchVariables);
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedAlimentos', query, variables);
 
     //request
-    let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
-    let batchConnection = null;
+    let response = await requestGraphql({ url, query, variables });
+    let items = null;
     //check
-    let check = checkResponse(response, graphqlErrors, "ejemplarsConnection");
+    let check = checkResponse(response, graphqlErrors, "registrosConnection");
     if(check === 'ok') {
       //check type
-      if(!response.data.data["ejemplarsConnection"]
-      || typeof response.data.data["ejemplarsConnection"] !== 'object'
-      || !Array.isArray(response.data.data["ejemplarsConnection"].edges)
-      || typeof response.data.data["ejemplarsConnection"].pageInfo !== 'object'
-      || response.data.data["ejemplarsConnection"].pageInfo === null)
+      if(!response.data.data["registrosConnection"]
+      || typeof response.data.data["registrosConnection"] !== 'object'
+      || !Array.isArray(response.data.data["registrosConnection"].edges)
+      || typeof response.data.data["registrosConnection"].pageInfo !== 'object' 
+      || response.data.data["registrosConnection"].pageInfo === null)
       return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
       //get value
-      batchConnection = response.data.data["ejemplarsConnection"];
+      items = response.data.data["registrosConnection"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-    
-    /**
-     *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-     *        Only the items with an empty edges-array in its associationConnection will be added.
-     * 
-     */
-    //get all not associated in current batch
-    let batchEdges = [];
-    for(let i=0; (i<batchConnection.edges.length && nonaEdges.length<requiredItems); i++) {          
-        //check: not associated item
-        if(batchConnection.edges[i].node["Connection"].edges.length === 0) {
-        
-          //new non-associated edge
-          let edge = {...batchConnection.edges[i]};
 
-          //push new edge
-          batchEdges.push(edge);
-        }
-    }
-    let thereAreMoreNonaItems = (batchEdges.length > (requiredItems - nonaEdges.length));
-
-    if(batchEdges.length > 0) { //if there are new non-associated items... 
-      //adjust pageInfo (start)
-      if(nonaEdges.length === 0) {
-        if(isForward) {
-          nonaPageInfo.startCursor = batchEdges[0].cursor;
-          nonaPageInfo.hasPreviousPage = batchConnection.pageInfo.hasPreviousPage;
-        } else {
-          nonaPageInfo.endCursor = batchEdges[batchEdges.length-1].cursor;
-          nonaPageInfo.hasNextPage = batchConnection.pageInfo.hasNextPage;
-        }
-      } 
-      //join new items
-      if(isForward) nonaEdges = [...nonaEdges, ...batchEdges.slice(0, (requiredItems - nonaEdges.length)) ];
-      else          nonaEdges = [...batchEdges.slice(-(requiredItems - nonaEdges.length)), ...nonaEdges ];
-    }
-
-    /**
-     *    1.4 Check number of fetched items:
-     *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-     *               1.4.1.1 Adjust pagination to get the next batch of items.
-     *               1.4.1.2 @continue with next iteration.
-     *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items: 
-     *               1.4.2.1 Return Connection with edges and pageInfo properly configured.  
-     *               1.4.2.2 @done
-     * 
-     */
-    let thereAreMoreItems = isForward ? batchConnection.pageInfo.hasNextPage : batchConnection.pageInfo.hasPreviousPage;
-
-    if(nonaEdges.length < requiredItems && thereAreMoreItems) {
-      //adjust pagination for next batch associated ids
-      batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
-      batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-      batchPagination.includeCursor = false;
-      batchVariables.pagination = batchPagination;
-
-      //continue with next iteration...
-      iteration++;
-    } else {
-      
-      //adjust pagination info (end)
-      if(nonaEdges.length > 0) {
-        if(isForward) {
-          nonaPageInfo.endCursor = nonaEdges[nonaEdges.length - 1].cursor;
-          nonaPageInfo.hasNextPage = batchConnection.pageInfo.hasNextPage || thereAreMoreNonaItems;
-        } else {
-          nonaPageInfo.startCursor = nonaEdges[0].cursor;
-          nonaPageInfo.hasPreviousPage = batchConnection.pageInfo.hasPreviousPage || thereAreMoreNonaItems;
-        }
-      }
-
-      //delete innerConnecton and cursor
-      for(let i=0; i<nonaEdges.length; i++) {
-        delete nonaEdges[i].node["Connection"];
-        delete nonaEdges[i].cursor;
-      }
-
-      //return value
-      return {value: {pageInfo: nonaPageInfo, edges: nonaEdges}, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-    }
-  }//end: while()
-
-  /////////////////////////////
-  /**
-   * Alternative algorithm.
-   * 
-   * Fetch not associated items excluding associated ones in batches.
-   */
-  /////////////////////////////
-  // /**
-  //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-  //  *  1 Until @requiredItems are fetched, do:
-  //  *    1.1 Get @batchSize associated ids.
-  //  *    1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-  //  *        with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
-  //  *        associated id in this set.
-  //  *    1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-  //  *    1.4 Check number of items fetched:
-  //  *        1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-  //  *               1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
-  //  *               1.4.1.2 @continue with next iteration.
-  //  *        1.4.2  Else: fetched items are equal to the requested number of items in 1.2 or there are no more items:
-  //  *               1.4.2.1 Return Connection with edges and pageInfo properly configured. 
-  //  *               1.4.2.2 @done
-  //  */
-
-  // //set direction
-  // let isForward = variables.pagination.first ? true : false;
-  // //set required number of items
-  // let requiredItems = isForward ? variables.pagination.first : variables.pagination.last;
-  // //set general search filters
-  // let s = getSearchArgument('ejemplar', searchText, ops, 'object');
-
-  // /**
-  //  * Initialize batch query
-  //  * 
-  //  */
-  // //pagination
-  // let batchPagination = {...variables.pagination, first: isForward ? batchSize : null, last: !isForward ? batchSize : null, includeCursor: false};
-  // //search
-  // let batchSearch = s ? {...s} : null;
-  // //variables
-  // let batchVariables = {"id": itemId, pagination: batchPagination};
-  // if(batchSearch) batchVariables.search = batchSearch.search;
-  // //query
-  // let batchQuery = 
-  //       `query readOneTaxon($id:ID!, $search: searchEjemplarInput, $pagination: paginationCursorInput!) {
-  //              readOneTaxon(id: $id) {
-  //                 ejemplaresConnection( search: $search, pagination: $pagination ) {
-  //                   pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //                   edges {node {id}}
-  //         }}}`;
-
-  // /**
-  //  * Initialize non-associated items query
-  //  * 
-  //  */
-  // //pagination
-  // let nonaPagination = {...variables.pagination};
-  // //search
-  // let nonaSearch = null; //will be set in each iteration
-  // //variables
-  // let nonaVariables = {pagination: nonaPagination};
-  // //query
-  // let nonaQuery =
-  //       `query ejemplarsConnection($search: searchEjemplarInput, $pagination: paginationCursorInput!) {
-  //              ejemplarsConnection( search: $search, pagination: $pagination ) {
-  //                 pageInfo {startCursor endCursor hasPreviousPage hasNextPage}
-  //                 edges {node {${qattributes}}}
-  //         }}`;
-
-  // //initialize final results
-  // let nonaPageInfo = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
-  // let nonaEdges = [];
-
-  // /**
-  //  * Recursive fetch of not associated items algorithm (cursor-based-pagination):
-  //  *  1 Until @requiredItems are fetched, do:
-  //  * 
-  //  */
-  // let iteration = 1;
-  // while(nonaEdges.length < requiredItems) {
-  //   /**
-  //    * 1.1 Get @batchSize associated ids.
-  //    * 
-  //    */
-
-  //   /**
-  //    * Debug
-  //    */
-  //   if(globals.REQUEST_LOGGER) logRequest(`getNotAssociatedEjemplares.batch.${iteration}`, batchQuery, batchVariables);
-
-  //   //request
-  //   let response = await requestGraphql({ url, query:batchQuery, variables:batchVariables });
-  //   let batchConnection = null;
-  //   //check
-  //   let check = checkResponse(response, graphqlErrors, "readOneTaxon");
-  //   if(check === 'ok') {
-  //     //check type
-  //     if(!response.data.data["readOneTaxon"]
-  //     || typeof response.data.data["readOneTaxon"] !== 'object'
-  //     || response.data.data["readOneTaxon"]["ejemplaresConnection"] === null
-  //     || typeof response.data.data["readOneTaxon"]["ejemplaresConnection"] !== 'object'
-  //     || !Array.isArray(response.data.data["readOneTaxon"]["ejemplaresConnection"].edges)
-  //     || typeof response.data.data["readOneTaxon"]["ejemplaresConnection"].pageInfo !== 'object' 
-  //     || response.data.data["readOneTaxon"]["ejemplaresConnection"].pageInfo === null)
-  //     return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-  //     //get value
-  //     batchConnection = response.data.data["readOneTaxon"]["ejemplaresConnection"];
-  //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-    
-  //   //get ids to exclude
-  //   let idsToExclude = batchConnection.edges.map(o => o.node.id);
-
-  //   /**
-  //    * Debug
-  //    */
-  //   console.log("@@-- iteration: ", iteration);
-  //   console.log("@@-- requiredItems: ", requiredItems);
-  //   console.log("@@-- batchConnection: ", batchConnection);
-  //   console.log("@@-- idsToExclude: ", idsToExclude);
-
-  //   /**
-  //    * 1.2 Get @requiredItems ( equal to @first or @last ) minus lenght.of( @notAssociatedItems already fetched) items, 
-  //    *      with a search filter excluding the set of associated ids fetched at 1.1 and not exceeding the last (or first) 
-  //    *      associated id in this set.
-  //    */
-  //   //init with general search
-  //   nonaSearch = s ? {...s} : null;
-  
-  //   //case: there are associated items to exclude...
-  //   if(idsToExclude.length > 0) {
-  //     //add exclusions
-  //     let nonaOps = {
-  //       exclude: [{
-  //         type: 'String',
-  //         values: {"id": idsToExclude}
-  //       }]
-  //     };
-      
-  //     //set exclusion filters (ands)
-  //     let nonaSearchB = getSearchArgument('ejemplar', null, nonaOps, 'object');
-
-  //     //set filter to limit results
-  //     if(isForward) {
-  //       //case: there are more associated ids...
-  //       if(batchConnection.pageInfo.hasNextPage) {
-  //         //make filter to limit results to before the last associated id.
-  //         let f1 = {field: "id", valueType: String, value: idsToExclude[idsToExclude.length-1], operator: "lt"};
-  //         //add filter
-  //         nonaSearchB.search.search.push(f1);
-  //       }
-  //     } else { //isBackward
-  //       //case: there are more associated ids...
-  //       if(batchConnection.pageInfo.hasPreviousPage) {
-  //         //make filter to limit results to after the first associated id.
-  //         let f1 = {field: "id", valueType: String, value: idsToExclude[0], operator: "gt"};
-  //         //add filter
-  //         nonaSearchB.search.search.push(f1);
-  //       }
-  //     }
-
-  //     //join search filters
-  //     if(nonaSearch) nonaSearch.search.search = [...nonaSearch.search.search, ...nonaSearchB.search.search];
-  //     else           nonaSearch = nonaSearchB;
-  //   }
-  //   //add search to variables
-  //   if(nonaSearch) nonaVariables.search = nonaSearch.search;
-
-  //   /**
-  //    * Debug
-  //    */
-  //   if(globals.REQUEST_LOGGER) logRequest(`getNotAssociatedEjemplares.nonAssociatedBatch.${iteration}`, nonaQuery, nonaVariables);
-    
-  //   //request
-  //   response = await requestGraphql({ url, query:nonaQuery, variables:nonaVariables });
-  //   let nonaConnection = null;
-  //   //check
-  //   check = checkResponse(response, graphqlErrors, "ejemplarsConnection");
-  //   if(check === 'ok') {
-  //     //check type
-  //     if(!response.data.data["ejemplarsConnection"]
-  //     || typeof response.data.data["ejemplarsConnection"] !== 'object'
-  //     || !Array.isArray(response.data.data["ejemplarsConnection"].edges)
-  //     || typeof response.data.data["ejemplarsConnection"].pageInfo !== 'object' 
-  //     || response.data.data["ejemplarsConnection"].pageInfo === null)
-  //     return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-  //     //get value
-  //     nonaConnection = response.data.data["ejemplarsConnection"];
-  //   } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-  //   /**
-  //    * Debug
-  //    */
-  //   console.log("@@-- nonaConnection: ", nonaConnection);
-
-  //   /**
-  //    * 1.3 Join fetched items in 1.2 with previous ones if any: in @notAssociatedItemsEdges array.
-  //    */
-  //   if(nonaConnection.edges.length > 0) { //if there are new items...
-  //     //adjust pageInfo for the first non associated items
-  //     if(nonaEdges.length === 0) {
-  //       nonaPageInfo = { ...nonaConnection.pageInfo};
-  //     } else {  //adjust pageInfo for the last non associated items
-  //       if(isForward) {
-  //         nonaPageInfo.endCursor = nonaConnection.pageInfo.endCursor;
-  //         nonaPageInfo.hasNextPage = nonaConnection.pageInfo.hasNextPage;
-  //       } else {
-  //         nonaPageInfo.startCursor = nonaConnection.pageInfo.startCursor;
-  //         nonaPageInfo.hasPreviousPage = nonaConnection.pageInfo.hasPreviousPage;
-  //       }
-  //     } 
-  //     //join new items      
-  //     if(isForward) nonaEdges = [...nonaEdges, ...nonaConnection.edges ];
-  //     else          nonaEdges = [...nonaConnection.edges, ...nonaEdges ];
-  //   }
-
-  //   /**
-  //    * Debug
-  //    */
-  //   console.log("@@-- nonaEdges: ", nonaEdges);
-
-  //   /**
-  //    * 1.4 Check number of items fetched:
-  //    *    1.4.1  If: fetched items are less than the requested number of items in 1.2 and there are more items:
-  //    *           1.4.1.1 Adjust pagination to get the next batch of associated ids and next not-associated items page.
-  //    *           1.4.1.2 @continue with next iteration.
-  //    *    1.4.2  If: fetched items are equal to the requested number of items in 1.2 or there are no more items:
-  //    *           1.4.2.1 Return Connection with edges and pageInfo properly configured. 
-  //    *           1.4.2.2 @done
-  //    */
-  //   let thereAreMoreItems = isForward ? batchConnection.pageInfo.hasNextPage : batchConnection.pageInfo.hasPreviousPage;
-
-  //   /**
-  //    * Debug
-  //    */
-  //   console.log("@@-- thereAreMoreItems: ", thereAreMoreItems);
-  //   console.log("@@-- nonaEdges.length : ", nonaEdges.length);
-
-  //   if(nonaEdges.length < requiredItems && thereAreMoreItems) {
-  //     //adjust pagination for next batch associated ids
-  //     batchPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
-  //     batchPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-  //     batchVariables.pagination = batchPagination;
-      
-  //     //adjust pagination for the next non-associated items
-  //     nonaPagination.first = isForward ? (requiredItems - nonaEdges.length) : null;
-  //     nonaPagination.last = !isForward ? (requiredItems - nonaEdges.length) : null;
-  //     nonaPagination.after = isForward ? batchConnection.pageInfo.endCursor : null;
-  //     nonaPagination.before = !isForward ? batchConnection.pageInfo.startCursor : null;
-  //     nonaPagination.includeCursor = false;
-  //     nonaVariables = {pagination: nonaPagination}; //search will be set in next iteration
-
-  //     //continue with next iteration...
-  //     iteration++;
-  //   } else {        
-  //     //return value
-  //     return {value: {pageInfo: nonaPageInfo, edges: nonaEdges}, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  //   }
-  // }//end: while()
-},
+    //return value
+    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
 
 
 

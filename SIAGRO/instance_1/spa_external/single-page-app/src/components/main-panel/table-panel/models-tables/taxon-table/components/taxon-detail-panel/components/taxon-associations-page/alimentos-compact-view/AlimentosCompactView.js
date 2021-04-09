@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { loadApi } from '../../../../../../../../../../requests/requests.index.js';
 import { makeCancelable } from '../../../../../../../../../../utils'
 import AlimentosCompactViewToolbar from './components/AlimentosCompactViewToolbar';
+import AlimentosCompactViewCursorPagination from './components/AlimentosCompactViewCursorPagination';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
@@ -82,6 +83,12 @@ export default function AlimentosCompactView(props) {
   const pageRef = useRef(0);
   const rowsPerPageRef = useRef(10);
   const isCountingRef = useRef(false);
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageInfo = useRef({startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false});
+  const paginationRef = useRef({first: rowsPerPage, after: null, last: null, before: null, includeCursor: false});
+  const isForwardPagination = useRef(true);
+  const isCursorPaginating = useRef(false);
   const cancelableCountingPromises = useRef([]);
   const cancelablePromises = useRef([]);
 
@@ -131,6 +138,8 @@ export default function AlimentosCompactView(props) {
     * Callbacks:
     *  showMessage
     *  showMessageB
+    *  configurePagination
+    *  onEmptyPage
     *  clearRequestGetData
     *  getCount
     *  getData
@@ -168,15 +177,167 @@ export default function AlimentosCompactView(props) {
     });
   },[enqueueSnackbar]);
 
+  /**
+   * configurePagination
+   * 
+   * Set the configuration needed to perform a reload of data
+   * in the given mode.
+   */
+  const configurePagination = useCallback((mode) => {
+    switch(mode) {
+      case "reset":
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+      
+      case "reload":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.startCursor,
+          last: null,
+          before: null,
+          includeCursor: true,
+        }
+        break;
+
+      case "firstPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "lastPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "nextPage":
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: pageInfo.current.endCursor,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+
+      case "previousPage":
+        //set direction
+        isForwardPagination.current = false;
+        //set pagination attributes
+        paginationRef.current = {
+          first: null,
+          after: null,
+          last: rowsPerPageRef.current,
+          before: pageInfo.current.startCursor,
+          includeCursor: false,
+        }
+        break;
+
+      default: //reset
+        //reset page info attributes
+        pageInfo.current = {startCursor: null, endCursor: null, hasPreviousPage: false, hasNextPage: false};
+        //set direction
+        isForwardPagination.current = true;
+        //set pagination attributes
+        paginationRef.current = {
+          first: rowsPerPageRef.current,
+          after: null,
+          last: null,
+          before: null,
+          includeCursor: false,
+        }
+        break;
+    }
+  }, []);
 
 
+  const onEmptyPage = useCallback((pi) => {
+    //case: forward
+    if(isForwardPagination.current) {
+      if(pi && pi.hasPreviousPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('previousPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    } else {//case: backward
+      if(pi && pi.hasNextPage) {
+        //configure
+        isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
+        setIsOnApiRequest(false);
+        configurePagination('nextPage');
+        
+        //reload
+        setDataTrigger(prevDataTrigger => !prevDataTrigger);
+        return;
+      }
+    }
+
+    //update pageInfo
+    pageInfo.current = pi;
+    setHasPreviousPage(pageInfo.current.hasPreviousPage);
+    setHasNextPage(pageInfo.current.hasNextPage);
+
+    //configure pagination (default)
+    configurePagination('reload');
+
+    //ok
+    setItems([]);
+
+    //ends request
+    isOnApiRequestRef.current = false;
+    isCursorPaginating.current = false;
+    setIsOnApiRequest(false);
+    return;
+    
+  }, [configurePagination]);
 
   const clearRequestGetData = useCallback(() => {
+    //configure pagination
+    configurePagination('reset');
           
     setItems([]);
     isOnApiRequestRef.current = false;
     setIsOnApiRequest(false);
-  },[]);
+  },[configurePagination]);
 
   /**
    * getCount
@@ -297,6 +458,9 @@ export default function AlimentosCompactView(props) {
     /*
       API Request: api.taxon.getAlimentos
     */
+    let variables = {
+      pagination: {...paginationRef.current}
+    };
     /*
       API Request: api.taxon.getAlimentos
     */
@@ -348,12 +512,33 @@ export default function AlimentosCompactView(props) {
           return;
         }
 
+        //get items
+        let its = response.value.edges.map(o => o.node);
+        let pi = response.value.pageInfo;
+
+        /*
+          Check: empty page
+        */
+        if( its.length === 0 ) 
+        {
+          onEmptyPage(pi);
+          return;
+        }
+
+        //update pageInfo
+        pageInfo.current = pi;
+        setHasPreviousPage(pageInfo.current.hasPreviousPage);
+        setHasNextPage(pageInfo.current.hasNextPage);
+
+        //configure pagination (default)
+        configurePagination('reload');
 
         //ok
         setItems([...its]);
 
         //ends request
         isOnApiRequestRef.current = false;
+        isCursorPaginating.current = false;
         setIsOnApiRequest(false);
         return;
       },
@@ -382,7 +567,7 @@ export default function AlimentosCompactView(props) {
         }
       });
 
-  }, [graphqlServerUrl, showMessage, clearRequestGetData, t, dataTrigger, item.id, search, getCount]);
+  }, [graphqlServerUrl, showMessage, clearRequestGetData, t, dataTrigger, item.id, search, getCount, configurePagination, onEmptyPage]);
 
   useEffect(() => {
 
@@ -465,6 +650,15 @@ export default function AlimentosCompactView(props) {
                   cancelCountingPromises();
                   isCountingRef.current = false;
 
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure
+                    configurePagination('reload');
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
                   return;
                 }
               }
@@ -481,6 +675,15 @@ export default function AlimentosCompactView(props) {
                   //will count
                   cancelCountingPromises();
                   isCountingRef.current = false;
+                  //strict contention
+                  if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+                    //configure
+                    configurePagination('reload');
+                    //reload
+                    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+                  } else {
+                    getCount();
+                  }
                   return;
                 }
               }
@@ -512,11 +715,11 @@ export default function AlimentosCompactView(props) {
       oens.forEach( (entry) => {
         //case A: updated
         if(entry[1].op === "update"&&entry[1].newItem) {
-          let idUpdated = entry[1].item.;
+          let idUpdated = entry[1].item.conabio_id;
           
           //lookup item on table
           let nitemsA = Array.from(items);
-          let iofA = nitemsA.findIndex((item) => item.===idUpdated);
+          let iofA = nitemsA.findIndex((item) => item.conabio_id===idUpdated);
           if(iofA !== -1) {
             //set new item
             nitemsA[iofA] = entry[1].newItem;
@@ -526,9 +729,9 @@ export default function AlimentosCompactView(props) {
 
         //case B: deleted
         if(entry[1].op === "delete") {
-          let idRemoved = entry[1].item.;
+          let idRemoved = entry[1].item.conabio_id;
           //lookup item on table
-          let iofA = items.findIndex((item) => item.===idRemoved);
+          let iofA = items.findIndex((item) => item.conabio_id===idRemoved);
           if(iofA !== -1) {
             //decrement A
             setCount(count-1);
@@ -537,11 +740,20 @@ export default function AlimentosCompactView(props) {
           cancelCountingPromises();
           isCountingRef.current = false;
 
+          //strict contention
+          if (!isOnApiRequestRef.current && !isCursorPaginating.current) {
+            //configure
+            configurePagination('reload');
+            //reload
+            setDataTrigger(prevDataTrigger => !prevDataTrigger);
+          } else {
+            getCount();
+          }
           return;
         }
       });
     }//end: Case 2
-  }, [lastModelChanged, lastChangeTimestamp, items, item.id, count, getCount]);
+  }, [lastModelChanged, lastChangeTimestamp, items, item.id, count, getCount, configurePagination]);
 
   useEffect(() => {
     //return if this flag is set
@@ -561,13 +773,31 @@ export default function AlimentosCompactView(props) {
     }
   }, [page]);
 
+  useEffect(() => {
+    //update ref
+    rowsPerPageRef.current = rowsPerPage;
+
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    
+    //configure pagination
+    configurePagination('reset');
+    //reload    
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  }, [rowsPerPage, configurePagination]);
 
   useEffect(() => {
     if (!isOnApiRequest && isPendingApiRequestRef.current) {
       isPendingApiRequestRef.current = false;
+      //configure
+      configurePagination('reload');
+      //reload
+      setDataTrigger(prevDataTrigger => !prevDataTrigger);
     }
     updateHeights();
-  }, [isOnApiRequest]);
+  }, [isOnApiRequest, configurePagination]);
 
   useEffect(() => {
     if(Array.isArray(items) && items.length > 0) { 
@@ -622,6 +852,49 @@ export default function AlimentosCompactView(props) {
    */
 
 
+  const handleFirstPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('firstPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('lastPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleNextButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('nextPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
+
+  const handleBackButtonClick = (event) => {
+    //strict contention
+    if (isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure A
+    configurePagination('previousPage');
+    //reload A
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
 
   const handleChangeRowsPerPage = event => {
     if(event.target.value !== rowsPerPage)
@@ -635,6 +908,16 @@ export default function AlimentosCompactView(props) {
     }
   };
 
+  const handleReloadClick = (event) => {
+    //check strict contention
+    if(isOnApiRequestRef.current || isCursorPaginating.current) { return; }
+    //set strict contention
+    isCursorPaginating.current = true;
+    //configure pagination
+    configurePagination('reset');
+    //reload
+    setDataTrigger(prevDataTrigger => !prevDataTrigger);
+  };
 
   /**
    * Items handlers
@@ -694,13 +977,13 @@ export default function AlimentosCompactView(props) {
                     <List id='AlimentosCompactView-list-listA'
                     dense component="div" role="list" >
                       {items.map(it => {
-                        let key = it.;
+                        let key = it.conabio_id;
                         let label = it.descripcion_alimento;
                         let sublabel = undefined;
        
                         return (
                           <ListItem 
-                            id={'AlimentosCompactView-listA-listItem-'+it.}
+                            id={'AlimentosCompactView-listA-listItem-'+it.conabio_id}
                             key={key} 
                             role="listitem" 
                             button 
@@ -721,10 +1004,10 @@ export default function AlimentosCompactView(props) {
                                   {/* id*/}
                                   <Grid container alignItems='center' alignContent='center' wrap='nowrap' spacing={1}>
                                     <Grid item>
-                                      <Tooltip title={ '' }>
+                                      <Tooltip title={ 'conabio_id' }>
                                         <Typography
-                                        id={'AlimentosCompactView-listA-listItem-id-'+it.}
-                                        variant="body1" display="block" noWrap={true}>{it.}</Typography>
+                                        id={'AlimentosCompactView-listA-listItem-id-'+it.conabio_id}
+                                        variant="body1" display="block" noWrap={true}>{it.conabio_id}</Typography>
                                       </Tooltip>
                                     </Grid>
                                     {/*Key icon*/}
@@ -742,7 +1025,7 @@ export default function AlimentosCompactView(props) {
                                   {(label) && (
                                     <Tooltip title={ 'descripcion_alimento' }>
                                       <Typography
-                                      id={'AlimentosCompactView-listA-listItem-label-'+it.}
+                                      id={'AlimentosCompactView-listA-listItem-label-'+it.conabio_id}
                                       component="span" variant="body1" display="inline" color="textPrimary">{label}</Typography>
                                     </Tooltip>
                                   )}
@@ -751,7 +1034,7 @@ export default function AlimentosCompactView(props) {
                                   {(sublabel) && (
                                     <Tooltip title={ '' }>
                                       <Typography
-                                      id={'AlimentosCompactView-listA-listItem-sublabel-'+it.}
+                                      id={'AlimentosCompactView-listA-listItem-sublabel-'+it.conabio_id}
                                       component="span" variant="body2" display="inline" color='textSecondary'>{" — "+sublabel} </Typography>
                                     </Tooltip>
                                   )}
@@ -789,6 +1072,19 @@ export default function AlimentosCompactView(props) {
               )}
 
               {/* Pagination */}
+              <AlimentosCompactViewCursorPagination
+                count={count}
+                rowsPerPageOptions={(count <=10) ? [] : (count <=50) ? [5, 10, 25, 50] : [5, 10, 25, 50, 100]}
+                rowsPerPage={(count <=10) ? '' : rowsPerPage}
+                labelRowsPerPage = { t('modelPanels.rows', 'Rows') }
+                hasNextPage={hasNextPage}
+                hasPreviousPage={hasPreviousPage}
+                handleFirstPageButtonClick={handleFirstPageButtonClick}
+                handleLastPageButtonClick={handleLastPageButtonClick}
+                handleNextButtonClick={handleNextButtonClick}
+                handleBackButtonClick={handleBackButtonClick}
+                handleChangeRowsPerPage={handleChangeRowsPerPage}
+              />
             </Card>
           )}
         </Grid>

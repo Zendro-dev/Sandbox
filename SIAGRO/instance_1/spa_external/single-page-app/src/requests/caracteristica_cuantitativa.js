@@ -197,8 +197,8 @@ export default {
           $unidad:String,
           $nombre_corto:String,
           $comentarios:String,
-          $addRegistro: ID,
           $addMetodo: ID,
+          $addRegistro: ID,
 `;
 
     //set parameters assignation
@@ -208,8 +208,8 @@ export default {
             unidad:$unidad,
             nombre_corto:$nombre_corto,
             comentarios:$comentarios,
-            addRegistro: $addRegistro,
             addMetodo: $addMetodo,
+            addRegistro: $addRegistro,
 `;
 
     //set attributes to fetch
@@ -285,10 +285,10 @@ export default {
           $unidad:String,
           $nombre_corto:String,
           $comentarios:String,
-          $addRegistro: ID,
-          $removeRegistro: ID,
           $addMetodo: ID,
           $removeMetodo: ID,
+          $addRegistro: ID,
+          $removeRegistro: ID,
 `;
 
     //set parameters assignation
@@ -299,10 +299,10 @@ export default {
             unidad: $unidad,
             nombre_corto: $nombre_corto,
             comentarios: $comentarios,
-            addRegistro: $addRegistro,
-            removeRegistro: $removeRegistro,
             addMetodo: $addMetodo,
             removeMetodo: $removeMetodo,
+            addRegistro: $addRegistro,
+            removeRegistro: $removeRegistro,
 `;
 
     //set attributes to fetch
@@ -399,482 +399,6 @@ export default {
     //return value
     return {value: result, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
   },
-
-
-/**
- * Filter
- * ------
- */
-
-  /**
-   * getRegistro   *
-   * Get ejemplars records associated to the given caracteristica_cuantitativa record
-   * through association 'Registro', from GraphQL Server.
-   *
-   *
-   * @param {String} url GraphQL Server url
-   * @param {Number} itemId Model item internalId.
-   * @param {String} searchText Text string currently on search bar.
-   * @param {Object} variables Object with cursor-based-pagination variables.
-   * @param {String} ops Object with adittional query options.
-   */
-  async getRegistro(url, itemId, searchText, variables, ops) {
-    let graphqlErrors = [];
-
-    //set attributes
-    let qattributes = 
-    `id,
-     region,
-     localidad,
-     longitud,
-     latitud,
-     datum,
-     validacionambiente,
-     geovalidacion,
-     paismapa,
-     estadomapa,
-     claveestadomapa,
-     mt24nombreestadomapa,
-     mt24claveestadomapa,
-     municipiomapa,
-     clavemunicipiomapa,
-     mt24nombremunicipiomapa,
-     mt24clavemunicipiomapa,
-     incertidumbrexy,
-     altitudmapa,
-     usvserieI,
-     usvserieII,
-     usvserieIII,
-     usvserieIV,
-     usvserieV,
-     usvserieVI,
-     anp,
-     grupobio,
-     subgrupobio,
-     taxon,
-     autor,
-     estatustax,
-     reftax,
-     taxonvalido,
-     autorvalido,
-     reftaxvalido,
-     taxonvalidado,
-     endemismo,
-     taxonextinto,
-     ambiente,
-     nombrecomun,
-     formadecrecimiento,
-     prioritaria,
-     nivelprioridad,
-     exoticainvasora,
-     nom059,
-     cites,
-     iucn,
-     categoriaresidenciaaves,
-     probablelocnodecampo,
-     obsusoinfo,
-     coleccion,
-     institucion,
-     paiscoleccion,
-     numcatalogo,
-     numcolecta,
-     procedenciaejemplar,
-     determinador,
-     aniodeterminacion,
-     mesdeterminacion,
-     diadeterminacion,
-     fechadeterminacion,
-     calificadordeterminacion,
-     colector,
-     aniocolecta,
-     mescolecta,
-     diacolecta,
-     fechacolecta,
-     tipo,
-     ejemplarfosil,
-     proyecto,
-     fuente,
-     formadecitar,
-     licenciauso,
-     urlproyecto,
-     urlorigen,
-     urlejemplar,
-     ultimafechaactualizacion,
-     cuarentena,
-     version,
-     especie,
-     especievalida,
-     especievalidabusqueda,
-`;
-
-    variables = { "id": itemId };
-    //set query
-    let query = 
-      `query readOneCaracteristica_cuantitativa($id:ID!) {
-             readOneCaracteristica_cuantitativa(id:$id) {
-                registro{
-                  ${qattributes}
-                }
-             }}`;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getRegistro', query, variables);
-    
-    //request
-    let response = await requestGraphql({ url, query, variables });
-    let associatedItem = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
-    if(check === 'ok') {
-      //check types
-      if(!response.data.data["readOneCaracteristica_cuantitativa"]
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
-      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      
-      //get value
-      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: associatedItem, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
-
-
-/**
- * Filter
- * ------
- */
-
-  /**
-   * getNotAssociatedRegistroCount
-   *
-   * Get count of not associated Registro from GraphQL Server.
-   *
-   * @param {String} url GraphQL Server url.
-   * @param {String} itemId Model item internalId.
-   * @param {String} searchText Text string currently on search bar.
-   * @param {String} ops Object with adittional query options.
-   */
-  async getNotAssociatedRegistroCount(url, itemId, searchText, ops) {
-    let graphqlErrors = [];
-    /**
-     * Algorithm:
-     *    1. get associated item id.
-     *    2. get count of all items with corresponding filters:
-     *      2.1 if: there is search filter:
-     *          2.1.1: if: there is associated item:
-     *            2.1.1.1: add filter to exclude associated item id.
-     *            2.1.1.2: get filtered count.
-     *          2.1.2: @return filtered count.
-     *      2.2 else: there isn't search filter:
-     *          2.2.1: get all items count.
-     *            2.2.1.1: if: there is associated item:
-     *              2.2.1.1.1: @return count-1.
-     *            2.2.1.2: else: there isn't associated item:
-     *              2.2.1.2.1: @return count. 
-     */
-  
-    /**
-     *    1. get associated item id.
-     * 
-     */
-    let variables = {"id": itemId};
-    let query = 
-      `query readOneCaracteristica_cuantitativa($id:ID!) {
-             readOneCaracteristica_cuantitativa(id:$id) {
-                registro{
-                  id                }
-             }}`;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistroCount.query1', query, variables);
-    //request
-    let response = await requestGraphql({ url, query, variables });
-    let associatedItem = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
-    if(check === 'ok') {
-      //check types
-      if(!response.data.data["readOneCaracteristica_cuantitativa"]
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
-      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      
-      //get value
-      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-   /**
-     *    2. get count of all items with corresponding filters:
-     *      2.1 if: there is search filter:
-     *          2.1.1: if: there is associated item:
-     *            2.1.1.1: add filter to exclude associated item id.
-     *            2.1.1.2: get filtered count.
-     *          2.1.2: @return filtered count.
-     *      2.2 else: there isn't search filter:
-     *          2.2.1: get all items count.
-     *            2.2.1.1: if: there is associated item:
-     *              2.2.1.1.1: @return count-1.
-     *            2.2.1.2: else: there isn't associated item:
-     *              2.2.1.2.1: @return count. 
-     */
-    variables = {};
-    //search
-    let s = getSearchArgument('ejemplar', searchText, ops, 'object');
-    if(s) {
-      if(associatedItem) {
-        //make filter to exclude associated item
-        let f1 = {field: "id", valueType: "String", value: associatedItem["id"], operator: "ne"};
-        //add new filter to ands array
-        s.search.search.push(f1)        
-      }
-      //set search
-      variables.search = s.search;
-    }
-    //set query
-    query = 
-      `query countEjemplars($search: searchEjemplarInput) {
-             countEjemplars(search: $search) }
-      `;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistroCount.query2', query, variables);
-    //request
-    response = await requestGraphql({ url, query, variables });
-    let count = null;
-    //check
-    check = checkResponse(response, graphqlErrors, "countEjemplars");
-    if(check === 'ok') {
-      //check type
-      if(!Number.isInteger(response.data.data["countEjemplars"])) 
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      count = response.data.data["countEjemplars"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    if(!s && associatedItem)  return {value: count-1, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-    else                      return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
-
-/**
- * Filter
- * ------
- */
-
-/**
- * getNotAssociatedRegistro
- *
- * Get not associated Registro items from GraphQL Server.
- *
- * @param {String} url GraphQL Server url.
- * @param {String} itemId Model item internalId.
- * @param {String} searchText Text string currently on search bar.
- * @param {Object} variables Object with cursor-based-pagination variables.
- * @param {String} ops Object with additional query options.
- * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
- */
-async getNotAssociatedRegistro(url, itemId, searchText, variables, ops, batchSize) {
-   //internal checks
-   if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
-   if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
-    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
-  let graphqlErrors = [];
-
-  //set attributes
-  let qattributes = 
-    `id,
-     region,
-     localidad,
-     longitud,
-     latitud,
-     datum,
-     validacionambiente,
-     geovalidacion,
-     paismapa,
-     estadomapa,
-     claveestadomapa,
-     mt24nombreestadomapa,
-     mt24claveestadomapa,
-     municipiomapa,
-     clavemunicipiomapa,
-     mt24nombremunicipiomapa,
-     mt24clavemunicipiomapa,
-     incertidumbrexy,
-     altitudmapa,
-     usvserieI,
-     usvserieII,
-     usvserieIII,
-     usvserieIV,
-     usvserieV,
-     usvserieVI,
-     anp,
-     grupobio,
-     subgrupobio,
-     taxon,
-     autor,
-     estatustax,
-     reftax,
-     taxonvalido,
-     autorvalido,
-     reftaxvalido,
-     taxonvalidado,
-     endemismo,
-     taxonextinto,
-     ambiente,
-     nombrecomun,
-     formadecrecimiento,
-     prioritaria,
-     nivelprioridad,
-     exoticainvasora,
-     nom059,
-     cites,
-     iucn,
-     categoriaresidenciaaves,
-     probablelocnodecampo,
-     obsusoinfo,
-     coleccion,
-     institucion,
-     paiscoleccion,
-     numcatalogo,
-     numcolecta,
-     procedenciaejemplar,
-     determinador,
-     aniodeterminacion,
-     mesdeterminacion,
-     diadeterminacion,
-     fechadeterminacion,
-     calificadordeterminacion,
-     colector,
-     aniocolecta,
-     mescolecta,
-     diacolecta,
-     fechacolecta,
-     tipo,
-     ejemplarfosil,
-     proyecto,
-     fuente,
-     formadecitar,
-     licenciauso,
-     urlproyecto,
-     urlorigen,
-     urlejemplar,
-     ultimafechaactualizacion,
-     cuarentena,
-     version,
-     especie,
-     especievalida,
-     especievalidabusqueda,
-`;
-    /**
-     * Algorithm:
-     *    1. get associated item id.
-     *    2. get all items exluding associated item if there is one.
-     *    3: @return filtered items.
-     * 
-     */
-  
-    /**
-     *    1. get associated item id.
-     * 
-     */
-    let query = 
-      `{  readOneCaracteristica_cuantitativa(id: ${itemId}) {
-            registro{
-              id            }
-          }
-        }`;
-     /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistro.query1', query);
-    //request
-    let response = await requestGraphql({ url, query });
-    let associatedItem = null;
-    //check
-    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
-    if(check === 'ok') {
-      //check types
-      if(!response.data.data["readOneCaracteristica_cuantitativa"]
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
-      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
-      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-      
-      //get value
-      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    /**
-     *    2. get all items exluding associated item if there is one.
-     * 
-     */
-    //make filter to exclude associated item
-    let f1 = null;
-    if(associatedItem) f1 = {field: "id", valueType: "String", value: associatedItem["id"], operator: "ne"};
-
-    //search
-    let s = getSearchArgument('ejemplar', searchText, ops, 'object');
-    if(s) {
-      //add new filter to ands array
-      if(f1) s.search.search.push(f1); 
-      //set search
-      variables.search = s.search;
-    } else {
-      if(f1) {
-        //add new filter search
-        s = {search: f1};        
-        //set search
-        variables.search = s.search;
-      }
-    }
-    //set query
-    let qbody = `
-          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
-          edges {
-            node {
-              ${qattributes}
-            }
-          }`;
-    query =
-      `query ejemplarsConnection($search: searchEjemplarInput, $pagination: paginationCursorInput!) {
-             ejemplarsConnection(search: $search, pagination: $pagination) {
-                  ${qbody},
-                },
-             }`;
-    /**
-     * Debug
-     */
-    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistro.query2', query, variables);
-
-    //request
-    response = await requestGraphql({ url, query, variables });
-    let items = null;
-    //check
-    check = checkResponse(response, graphqlErrors, "ejemplarsConnection");
-    if(check === 'ok') {
-      //check type
-      if(!response.data.data["ejemplarsConnection"]
-      || typeof response.data.data["ejemplarsConnection"] !== 'object'
-      || !Array.isArray(response.data.data["ejemplarsConnection"].edges)
-      || typeof response.data.data["ejemplarsConnection"].pageInfo !== 'object' 
-      || response.data.data["ejemplarsConnection"].pageInfo === null)
-      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-      //get value
-      items = response.data.data["ejemplarsConnection"];
-    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-
-    //return value
-    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
-  },
-
 
 
 /**
@@ -1189,6 +713,336 @@ async getNotAssociatedMetodo(url, itemId, searchText, variables, ops, batchSize)
 
       //get value
       items = response.data.data["metodosConnection"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: items, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+
+
+
+/**
+ * Filter
+ * ------
+ */
+
+  /**
+   * getRegistro   *
+   * Get registros records associated to the given caracteristica_cuantitativa record
+   * through association 'Registro', from GraphQL Server.
+   *
+   *
+   * @param {String} url GraphQL Server url
+   * @param {Number} itemId Model item internalId.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {Object} variables Object with cursor-based-pagination variables.
+   * @param {String} ops Object with adittional query options.
+   */
+  async getRegistro(url, itemId, searchText, variables, ops) {
+    let graphqlErrors = [];
+
+    //set attributes
+    let qattributes = 
+    `conabio_id,
+     clave_original,
+     tipo_alimento,
+     food_type,
+     descripcion_alimento,
+     food_description,
+     procedencia,
+     taxon_id,
+     referencias_ids,
+`;
+
+    variables = { "id": itemId };
+    //set query
+    let query = 
+      `query readOneCaracteristica_cuantitativa($id:ID!) {
+             readOneCaracteristica_cuantitativa(id:$id) {
+                registro{
+                  ${qattributes}
+                }
+             }}`;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getRegistro', query, variables);
+    
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let associatedItem = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOneCaracteristica_cuantitativa"]
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    return {value: associatedItem, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+
+
+
+/**
+ * Filter
+ * ------
+ */
+
+  /**
+   * getNotAssociatedRegistroCount
+   *
+   * Get count of not associated Registro from GraphQL Server.
+   *
+   * @param {String} url GraphQL Server url.
+   * @param {String} itemId Model item internalId.
+   * @param {String} searchText Text string currently on search bar.
+   * @param {String} ops Object with adittional query options.
+   */
+  async getNotAssociatedRegistroCount(url, itemId, searchText, ops) {
+    let graphqlErrors = [];
+    /**
+     * Algorithm:
+     *    1. get associated item id.
+     *    2. get count of all items with corresponding filters:
+     *      2.1 if: there is search filter:
+     *          2.1.1: if: there is associated item:
+     *            2.1.1.1: add filter to exclude associated item id.
+     *            2.1.1.2: get filtered count.
+     *          2.1.2: @return filtered count.
+     *      2.2 else: there isn't search filter:
+     *          2.2.1: get all items count.
+     *            2.2.1.1: if: there is associated item:
+     *              2.2.1.1.1: @return count-1.
+     *            2.2.1.2: else: there isn't associated item:
+     *              2.2.1.2.1: @return count. 
+     */
+  
+    /**
+     *    1. get associated item id.
+     * 
+     */
+    let variables = {"id": itemId};
+    let query = 
+      `query readOneCaracteristica_cuantitativa($id:ID!) {
+             readOneCaracteristica_cuantitativa(id:$id) {
+                registro{
+                  conabio_id                }
+             }}`;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistroCount.query1', query, variables);
+    //request
+    let response = await requestGraphql({ url, query, variables });
+    let associatedItem = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOneCaracteristica_cuantitativa"]
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+   /**
+     *    2. get count of all items with corresponding filters:
+     *      2.1 if: there is search filter:
+     *          2.1.1: if: there is associated item:
+     *            2.1.1.1: add filter to exclude associated item id.
+     *            2.1.1.2: get filtered count.
+     *          2.1.2: @return filtered count.
+     *      2.2 else: there isn't search filter:
+     *          2.2.1: get all items count.
+     *            2.2.1.1: if: there is associated item:
+     *              2.2.1.1.1: @return count-1.
+     *            2.2.1.2: else: there isn't associated item:
+     *              2.2.1.2.1: @return count. 
+     */
+    variables = {};
+    //search
+    let s = getSearchArgument('registro', searchText, ops, 'object');
+    if(s) {
+      if(associatedItem) {
+        //make filter to exclude associated item
+        let f1 = {field: "conabio_id", valueType: "String", value: associatedItem["conabio_id"], operator: "ne"};
+        //add new filter to ands array
+        s.search.search.push(f1)        
+      }
+      //set search
+      variables.search = s.search;
+    }
+    //set query
+    query = 
+      `query countRegistros($search: searchRegistroInput) {
+             countRegistros(search: $search) }
+      `;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistroCount.query2', query, variables);
+    //request
+    response = await requestGraphql({ url, query, variables });
+    let count = null;
+    //check
+    check = checkResponse(response, graphqlErrors, "countRegistros");
+    if(check === 'ok') {
+      //check type
+      if(!Number.isInteger(response.data.data["countRegistros"])) 
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      count = response.data.data["countRegistros"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    //return value
+    if(!s && associatedItem)  return {value: count-1, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+    else                      return {value: count, message: 'ok', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+  },
+
+
+/**
+ * Filter
+ * ------
+ */
+
+/**
+ * getNotAssociatedRegistro
+ *
+ * Get not associated Registro items from GraphQL Server.
+ *
+ * @param {String} url GraphQL Server url.
+ * @param {String} itemId Model item internalId.
+ * @param {String} searchText Text string currently on search bar.
+ * @param {Object} variables Object with cursor-based-pagination variables.
+ * @param {String} ops Object with additional query options.
+ * @param {Int}    batchSize Max number of records to fetch in batch from GraphQL Server.
+ */
+async getNotAssociatedRegistro(url, itemId, searchText, variables, ops, batchSize) {
+   //internal checks
+   if(!variables||typeof variables !== 'object') throw new Error("internal_error: expected object 'variables' argument");
+   if(!variables.pagination||typeof variables.pagination !== 'object' ) throw new Error("internal_error: pagination object expected in variables");
+    if(!variables.pagination.first&&!variables.pagination.last ) throw new Error("internal_error: pagination first or last positive argument expected");
+  let graphqlErrors = [];
+
+  //set attributes
+  let qattributes = 
+    `conabio_id,
+     clave_original,
+     tipo_alimento,
+     food_type,
+     descripcion_alimento,
+     food_description,
+     procedencia,
+     taxon_id,
+     referencias_ids,
+`;
+    /**
+     * Algorithm:
+     *    1. get associated item id.
+     *    2. get all items exluding associated item if there is one.
+     *    3: @return filtered items.
+     * 
+     */
+  
+    /**
+     *    1. get associated item id.
+     * 
+     */
+    let query = 
+      `{  readOneCaracteristica_cuantitativa(id: ${itemId}) {
+            registro{
+              conabio_id            }
+          }
+        }`;
+     /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistro.query1', query);
+    //request
+    let response = await requestGraphql({ url, query });
+    let associatedItem = null;
+    //check
+    let check = checkResponse(response, graphqlErrors, "readOneCaracteristica_cuantitativa");
+    if(check === 'ok') {
+      //check types
+      if(!response.data.data["readOneCaracteristica_cuantitativa"]
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"] !== 'object'
+      || typeof response.data.data["readOneCaracteristica_cuantitativa"]["registro"] !== 'object' //can be null
+      ) return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+      
+      //get value
+      associatedItem = response.data.data["readOneCaracteristica_cuantitativa"]["registro"];
+    } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+    /**
+     *    2. get all items exluding associated item if there is one.
+     * 
+     */
+    //make filter to exclude associated item
+    let f1 = null;
+    if(associatedItem) f1 = {field: "conabio_id", valueType: "String", value: associatedItem["conabio_id"], operator: "ne"};
+
+    //search
+    let s = getSearchArgument('registro', searchText, ops, 'object');
+    if(s) {
+      //add new filter to ands array
+      if(f1) s.search.search.push(f1); 
+      //set search
+      variables.search = s.search;
+    } else {
+      if(f1) {
+        //add new filter search
+        s = {search: f1};        
+        //set search
+        variables.search = s.search;
+      }
+    }
+    //set query
+    let qbody = `
+          pageInfo {startCursor, endCursor, hasPreviousPage, hasNextPage},
+          edges {
+            node {
+              ${qattributes}
+            }
+          }`;
+    query =
+      `query registrosConnection($search: searchRegistroInput, $pagination: paginationCursorInput!) {
+             registrosConnection(search: $search, pagination: $pagination) {
+                  ${qbody},
+                },
+             }`;
+    /**
+     * Debug
+     */
+    if(globals.REQUEST_LOGGER) logRequest('getNotAssociatedRegistro.query2', query, variables);
+
+    //request
+    response = await requestGraphql({ url, query, variables });
+    let items = null;
+    //check
+    check = checkResponse(response, graphqlErrors, "registrosConnection");
+    if(check === 'ok') {
+      //check type
+      if(!response.data.data["registrosConnection"]
+      || typeof response.data.data["registrosConnection"] !== 'object'
+      || !Array.isArray(response.data.data["registrosConnection"].edges)
+      || typeof response.data.data["registrosConnection"].pageInfo !== 'object' 
+      || response.data.data["registrosConnection"].pageInfo === null)
+      return {data: response.data.data, value: null, message: 'bad_type', graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
+
+      //get value
+      items = response.data.data["registrosConnection"];
     } else return {data: response.data.data, value: null, message: check, graphqlErrors: (graphqlErrors.length>0) ? graphqlErrors : undefined};
 
     //return value

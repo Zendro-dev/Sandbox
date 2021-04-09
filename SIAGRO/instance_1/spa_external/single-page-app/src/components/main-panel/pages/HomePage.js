@@ -9,7 +9,7 @@ export default function Home() {
         <br />
         <br />
         <br />
-        <h2>Home</h2>
+        <h2>Home edited</h2>
         <p>Home</p>
         <p>Home</p>
       </div>

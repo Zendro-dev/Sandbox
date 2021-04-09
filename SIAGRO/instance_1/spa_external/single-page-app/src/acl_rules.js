@@ -108,6 +108,37 @@ module.exports = {
       }]
     },
     /**
+     * Model: registro
+     */
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'registro',
+        permissions: 'create'
+      }]
+    },
+    {
+      roles: 'reader',
+      allows: [{
+        resources: 'registro',
+        permissions: 'read'
+      }]
+    },
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'registro',
+        permissions: 'update'
+      }]
+    },
+    {
+      roles: 'editor',
+      allows: [{
+        resources: 'registro',
+        permissions: 'delete'
+      }]
+    },
+    /**
      * Model: taxon
      */
     {

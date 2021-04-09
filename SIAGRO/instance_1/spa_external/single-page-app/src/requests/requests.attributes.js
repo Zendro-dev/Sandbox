@@ -39,6 +39,17 @@ const modelsAttributes = {
       "referencia": "String",
       "registros_ids": "[String]",
   },
+  'registro': {
+      "conabio_id": "String",
+      "clave_original": "String",
+      "tipo_alimento": "String",
+      "food_type": "String",
+      "descripcion_alimento": "String",
+      "food_description": "String",
+      "procedencia": "String",
+      "taxon_id": "String",
+      "referencias_ids": "[String]",
+  },
   'taxon': {
       "id": "String",
       "taxon": "String",

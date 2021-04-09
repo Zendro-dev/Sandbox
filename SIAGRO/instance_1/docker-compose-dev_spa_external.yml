@@ -15,7 +15,7 @@ services:
      - REACT_APP_ZENDRO_EXPORT_URL=http://siagro01.conabio.gob.mx:3002/export
      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
    volumes:
-     - ./spa_external:/usr/Sandbox
+     - ./spa_external:/usr/ScienceDbStarterPack
    networks:
      - SIAGRO_NUTRI
    # Install dependencies and start single-page-app-server in development
