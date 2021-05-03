@@ -67,6 +67,32 @@ services:
       - |
         npm start
 
+
+  graphiql:
+    container_name: graphiql-auth
+    restart: unless-stopped
+    stdin_open: true
+    depends_on:
+      - db_postgres
+      - graphql_server
+    build:
+      context: .
+      dockerfile: Dockerfile.graphiql
+    environment:
+      REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
+      REACT_APP_LOGIN_URL: "http://localhost:3000/login"
+      PORT: "7000"
+    networks:
+      - backend
+    volumes:
+      - ../graphiql-auth:/usr/src/app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
 networks:
   backend:
   frontend:

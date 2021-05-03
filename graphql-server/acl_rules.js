@@ -13,6 +13,16 @@ module.exports = {
             }]
         },
 
+        // meta-query
+
+        {
+            roles: 'reader',
+            allows: [{
+                resources: 'meta_query',
+                permissions: ''
+            }]
+        },
+
         //models
         /**
          * Model: alien

@@ -1,0 +1,9 @@
+FROM node:14-stretch-slim
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install dependencies
+# RUN apt-get update && apt-get install -y bash
+
+EXPOSE 7000

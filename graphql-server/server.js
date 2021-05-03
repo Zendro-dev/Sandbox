@@ -159,7 +159,6 @@ app.post('/meta_query', cors(), async (req, res, next) => {
         helper.eitherJqOrJsonpath(jq, jsonPath);
 
         const graphQlResponse = await graphql(Schema, query, resolvers, context, variables);
-        console.log('metaQuery - respone:\n' + JSON.stringify(graphQlResponse));
         let output = graphQlResponse.data;
         if(output) {
           if (helper.isNotUndefinedAndNotNull(jq)) { // jq
