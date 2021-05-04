@@ -162,7 +162,7 @@ app.post('/meta_query', cors(), async (req, res, next) => {
         let output = graphQlResponse.data;
         if(output) {
           if (helper.isNotUndefinedAndNotNull(jq)) { // jq
-            output = await nodejq.run(jq, graphQlResponse.data, { input: 'json', output: 'json' }).catch((err) => {throw err});
+            output = await nodejq.run(jq, graphQlResponse.data, { input: 'json', output: 'json' });
           } else { // JSONPath
             output = JSONPath({ path: jsonPath, json: graphQlResponse.data, wrap: false });
           }
