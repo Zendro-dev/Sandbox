@@ -10,9 +10,9 @@ services:
      - 3001:3001
    environment:
      - PORT=3001
-     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://cenzontledev.conabio.gob.mx:3000/graphql
-     - REACT_APP_ZENDRO_LOGIN_URL=http://cenzontledev.conabio.gob.mx:3000/login
-     - REACT_APP_ZENDRO_EXPORT_URL=http://cenzontledev.conabio.gob.mx:3000/export
+     - REACT_APP_ZENDRO_GRAPHQL_SERVER_URL=http://siagro01.conabio.gob.mx:3000/graphql
+     - REACT_APP_ZENDRO_LOGIN_URL=http://siagro01.conabio.gob.mx:3000/login
+     - REACT_APP_ZENDRO_EXPORT_URL=http://siagro01.conabio.gob.mx:3000/export
      - REACT_APP_ZENDRO_MAX_UPLOAD_SIZE=500
    volumes:
      - ./spa_external:/usr/Sandbox
