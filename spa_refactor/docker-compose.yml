@@ -86,6 +86,8 @@ services:
       - "7000:7000"
     networks:
       - backend
+    ports:
+      - "7000:7000"
     volumes:
       - ../graphiql-auth:/usr/src/app
     command:
