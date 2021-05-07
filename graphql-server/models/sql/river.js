@@ -174,7 +174,8 @@ module.exports = class river extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            rivers: edges.map((edge) => edge.node)
         };
     }
 

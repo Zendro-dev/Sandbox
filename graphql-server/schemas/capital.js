@@ -21,6 +21,7 @@ module.exports = `
     }
 type CapitalConnection{
   edges: [CapitalEdge]
+  capitals: [capital]
   pageInfo: pageInfo!
 }
 
@@ -67,7 +68,8 @@ type CapitalEdge{
     capitals(search: searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationInput! ): [capital]
     readOneCapital(capital_id: ID!): capital
     countCapitals(search: searchCapitalInput ): Int
-    vueTableCapital : VueTableCapital    csvTableTemplateCapital: [String]
+    vueTableCapital : VueTableCapital
+    csvTableTemplateCapital: [String]
     capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput! ): CapitalConnection
   }
 

@@ -179,6 +179,7 @@ country.prototype.riversConnection = function({
     if (!Array.isArray(this.river_ids) || this.river_ids.length === 0) {
         return {
             edges: [],
+            rivers: [],
             pageInfo: {
                 startCursor: null,
                 endCursor: null,

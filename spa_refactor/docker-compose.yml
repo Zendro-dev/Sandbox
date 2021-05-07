@@ -82,6 +82,8 @@ services:
       REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
       REACT_APP_LOGIN_URL: "http://localhost:3000/login"
       PORT: "7000"
+    ports:
+      - "7000:7000"
     networks:
       - backend
     volumes:

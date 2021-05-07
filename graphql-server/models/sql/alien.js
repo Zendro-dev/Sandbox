@@ -195,7 +195,8 @@ module.exports = class alien extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            aliens: edges.map((edge) => edge.node)
         };
     }
 

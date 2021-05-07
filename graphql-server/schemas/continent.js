@@ -30,6 +30,7 @@ module.exports = `
     }
 type ContinentConnection{
   edges: [ContinentEdge]
+  continents: [continent]
   pageInfo: pageInfo!
 }
 
@@ -72,7 +73,8 @@ type ContinentEdge{
     continents(search: searchContinentInput, order: [ orderContinentInput ], pagination: paginationInput! ): [continent]
     readOneContinent(continent_id: ID!): continent
     countContinents(search: searchContinentInput ): Int
-    vueTableContinent : VueTableContinent    csvTableTemplateContinent: [String]
+    vueTableContinent : VueTableContinent
+    csvTableTemplateContinent: [String]
     continentsConnection(search:searchContinentInput, order: [ orderContinentInput ], pagination: paginationCursorInput! ): ContinentConnection
   }
 

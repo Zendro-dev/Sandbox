@@ -68,6 +68,7 @@ module.exports = `
     }
 type AlienConnection{
   edges: [AlienEdge]
+  aliens: [alien]
   pageInfo: pageInfo!
 }
 
@@ -119,7 +120,8 @@ type AlienEdge{
     aliens(search: searchAlienInput, order: [ orderAlienInput ], pagination: paginationInput! ): [alien]
     readOneAlien(idField: ID!): alien
     countAliens(search: searchAlienInput ): Int
-    vueTableAlien : VueTableAlien    csvTableTemplateAlien: [String]
+    vueTableAlien : VueTableAlien
+    csvTableTemplateAlien: [String]
     aliensConnection(search:searchAlienInput, order: [ orderAlienInput ], pagination: paginationCursorInput! ): AlienConnection
   }
 

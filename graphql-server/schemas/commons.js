@@ -31,6 +31,21 @@ module.exports = `
     contains
     contained
     not
+    all
+  }
+  
+  enum CassandraOperator{
+    eq
+    lt
+    gt
+    lte
+    gte
+    in
+    contains   # CONTAINS
+    ctk    # CONTAINS KEY
+    tgt    # Token > Token
+    tget   # Token >= Token
+    and
   }
 
   enum Order{

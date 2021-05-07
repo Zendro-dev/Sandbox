@@ -44,6 +44,7 @@ module.exports = `
     }
 type CountryConnection{
   edges: [CountryEdge]
+  countries: [country]
   pageInfo: pageInfo!
 }
 
@@ -91,7 +92,8 @@ type CountryEdge{
     countries(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationInput! ): [country]
     readOneCountry(country_id: ID!): country
     countCountries(search: searchCountryInput ): Int
-    vueTableCountry : VueTableCountry    csvTableTemplateCountry: [String]
+    vueTableCountry : VueTableCountry
+    csvTableTemplateCountry: [String]
     countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput! ): CountryConnection
   }
 

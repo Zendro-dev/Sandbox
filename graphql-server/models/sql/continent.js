@@ -168,7 +168,8 @@ module.exports = class continent extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            continents: edges.map((edge) => edge.node)
         };
     }
 

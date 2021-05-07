@@ -172,7 +172,8 @@ module.exports = class capital extends Sequelize.Model {
         let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
         return {
             edges,
-            pageInfo
+            pageInfo,
+            capitals: edges.map((edge) => edge.node)
         };
     }
 
@@ -369,6 +370,7 @@ module.exports = class capital extends Sequelize.Model {
         return "Records successfully updated!"
     }
 
+
     /**
      * bulkDisAssociateCapitalWithCountry_id - bulkDisAssociaton of given ids
      *
@@ -395,6 +397,7 @@ module.exports = class capital extends Sequelize.Model {
         await Promise.all(promises);
         return "Records successfully updated!"
     }
+
 
 
     /**

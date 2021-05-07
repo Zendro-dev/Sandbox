@@ -42,6 +42,7 @@ module.exports = `
     }
 type RiverConnection{
   edges: [RiverEdge]
+  rivers: [river]
   pageInfo: pageInfo!
 }
 
@@ -86,7 +87,8 @@ type RiverEdge{
     rivers(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput! ): [river]
     readOneRiver(river_id: ID!): river
     countRivers(search: searchRiverInput ): Int
-    vueTableRiver : VueTableRiver    csvTableTemplateRiver: [String]
+    vueTableRiver : VueTableRiver
+    csvTableTemplateRiver: [String]
     riversConnection(search:searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput! ): RiverConnection
   }
 
