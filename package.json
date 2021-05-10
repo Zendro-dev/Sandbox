@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "scripts": {
+    "up": "bash ./scripts/up.sh dev",
+    "up:prod": "bash ./scripts/up.sh prod1",
+    "down": "bash ./scripts/down.sh",
+    "down:rm-volumes": "bash ./scripts/down.sh dev -v",
+    "restart:api": "bash ./scripts/restart.sh dev untwist_graphql_server"
+  },
+  "workspaces": [
+    "graphiql-auth",
+    "graphql-server",
+    "single-page-app"
+  ]
+}

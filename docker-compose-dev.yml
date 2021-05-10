@@ -1,0 +1,111 @@
+version: "3.7"
+
+services:
+  phenomis_demo_postgres:
+    container_name: phenomis_demo-postgres
+    restart: unless-stopped
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - sdb_db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  phenomis_demo_graphql_server:
+    container_name: phenomis_demo-graphql_server
+    restart: unless-stopped
+    depends_on:
+      - phenomis_demo_postgres
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.graphql_server
+    environment:
+      PORT: "3002"
+      JQ_PATH: /usr/bin/jq
+      NODE_JQ_SKIP_INSTALL_BINARY: "true"
+      ## modifiable environment variables. Uncomment and set or export the needed environment settings.
+      # LIMIT_RECORDS : ${LIMIT_RECORDS:-10000}
+      REQUIRE_SIGN_IN: "true"
+      # SALT_ROUNDS: ${SALT_ROUNDS:-10}
+      # MAX_TIME_OUT: ${MAX_TIME_OUT:-2000}
+      # POST_REQUEST_MAX_BODY_SIZE: ${POST_REQUEST_MAX_BODY_SIZE:-"1mb"}
+      # ERROR_LOG: ${ERROR_LOG:-"compact"}
+      # MAIL_SERVICE: ${MAIL_SERVICE:-"gmail"}
+      # MAIL_HOST: ${MAIL_HOST:-"smtp.gmail.com"}
+      # MAIL_ACCOUNT: ${MAIL_ACCOUNT:-"sci.db.service@gmail.com"}
+      # MAIL_PASSWORD: ${MAIL_PASSWORD:-"SciDbServiceQAZ"}
+      # EXPORT_TIME_OUT: ${EXPORT_TIME_OUT:-3600}
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "3000:3002"
+    volumes:
+      - ./graphql-server:/usr/graphql-server
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+  phenomis_demo_app_server:
+    container_name: phenomis_demo-spa
+    restart: unless-stopped
+    # Workaround. See https://github.com/facebook/create-react-app/issues/8688
+    stdin_open: true
+    depends_on:
+      - phenomis_demo_postgres
+      - phenomis_demo_graphql_server
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.spa
+    environment:
+      PORT: "8082"
+    networks:
+      - frontend
+    ports:
+      - "8080:8082"
+    volumes:
+      - ./single-page-app:/usr/single-page-app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        yarn serve
+
+  phenomis_demo_graphiql:
+    container_name: phenomis_demo-graphiql-auth
+    restart: unless-stopped
+    stdin_open: true
+    depends_on:
+      - phenomis_demo_postgres
+      - phenomis_demo_graphql_server
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.graphiql
+    environment:
+      REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
+      REACT_APP_LOGIN_URL: "http://localhost:3000/login"
+      PORT: "7002"
+    networks:
+      - backend
+    volumes:
+      - ./graphiql-auth:/usr/graphiql-auth
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
+volumes:
+  sdb_db_data:
+
+networks:
+  backend:
+  frontend:

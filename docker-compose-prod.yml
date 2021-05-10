@@ -1,0 +1,131 @@
+version: "3.7"
+
+services:
+  phenomis_demo_postgres:
+    container_name: phenomis_demo-postgres
+    restart: unless-stopped
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - sdb_db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  phenomis_demo_graphql_server:
+    container_name: phenomis_demo-graphql_server
+    restart: unless-stopped
+    depends_on:
+      - phenomis_demo_postgres
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.graphql_server
+    environment:
+      PORT: "3002"
+      JQ_PATH: /usr/bin/jq
+      NODE_JQ_SKIP_INSTALL_BINARY: "true"
+      ## modifiable environment variables. Uncomment and set or export the needed environment settings.
+      # LIMIT_RECORDS : ${LIMIT_RECORDS:-10000}
+      REQUIRE_SIGN_IN: "true"
+      # SALT_ROUNDS: ${SALT_ROUNDS:-10}
+      # MAX_TIME_OUT: ${MAX_TIME_OUT:-2000}
+      # POST_REQUEST_MAX_BODY_SIZE: ${POST_REQUEST_MAX_BODY_SIZE:-"1mb"}
+      # ERROR_LOG: ${ERROR_LOG:-"compact"}
+      # MAIL_SERVICE: ${MAIL_SERVICE:-"gmail"}
+      # MAIL_HOST: ${MAIL_HOST:-"smtp.gmail.com"}
+      # MAIL_ACCOUNT: ${MAIL_ACCOUNT:-"sci.db.service@gmail.com"}
+      # MAIL_PASSWORD: ${MAIL_PASSWORD:-"SciDbServiceQAZ"}
+      # EXPORT_TIME_OUT: ${EXPORT_TIME_OUT:-3600}
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "phenomis_demo_graphql_server"
+      traefik.frontend.rule: "Host:graphql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "3002"
+    volumes:
+      - ./graphql-server:/usr/graphql-server
+    networks:
+      - backend
+      - reverseproxy
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        ./migrateDbAndStartServer.sh
+
+  phenomis_demo_app_server:
+    container_name: phenomis_demo-spa
+    restart: unless-stopped
+    # Workaround. See https://github.com/facebook/create-react-app/issues/8688
+    stdin_open: true
+    depends_on:
+      - phenomis_demo_postgres
+      - phenomis_demo_graphql_server
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.spa
+    environment:
+      PORT: "8082"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "phenomis_demo_app_server"
+      traefik.frontend.rule: "Host:spa.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "8082"
+    volumes:
+      - ./single-page-app:/usr/single-page-app
+    networks:
+      - reverseproxy
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -rf .next
+        yarn install
+        yarn build
+        yarn export
+        yarn serve
+
+  phenomis_demo_graphiql:
+    container_name: phenomis_demo-graphiql-auth
+    restart: unless-stopped
+    stdin_open: true
+    depends_on:
+      - phenomis_demo_postgres
+      - phenomis_demo_graphql_server
+    build:
+      context: ./contexts
+      dockerfile: Dockerfile.graphiql
+    environment:
+      REACT_APP_SERVER_URL: "http://graphql.zendro-dev.org/graphql"
+      REACT_APP_LOGIN_URL: "http://graphql.zendro-dev.org/login"
+      PORT: "7002"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "phenomis_demo_graphiql"
+      traefik.frontend.rule: "Host:graphiql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "7002"
+    volumes:
+      - ./graphiql-auth:/usr/graphiql-auth
+    networks:
+      - backend
+      - reverseproxy
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm install
+        npm start
+
+volumes:
+  sdb_db_data:
+
+networks:
+  backend:
+  reverseproxy:
+    external: true

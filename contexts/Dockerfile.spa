@@ -1,0 +1,9 @@
+FROM node:14-stretch-slim
+
+# Create app directory
+WORKDIR /usr/single-page-app
+
+# Clone the skeleton App project and install dependencies
+# RUN apt-get update && apt-get install -y git bash
+
+EXPOSE 8082

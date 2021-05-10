@@ -1,0 +1,10 @@
+{
+  "default-sql": {
+    "storageType": "sql",
+    "username": "phenomis",
+    "password": "phenomis",
+    "database": "phenomis_development",
+    "host": "phenomis_demo_postgres",
+    "dialect": "postgres"
+  }
+}
