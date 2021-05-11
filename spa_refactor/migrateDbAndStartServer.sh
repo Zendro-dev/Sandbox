@@ -64,4 +64,4 @@ psql \
   -f ../seedUserDb.sql
 
 # Start GraphQL-server
-npm start acl
+npm run dev acl
