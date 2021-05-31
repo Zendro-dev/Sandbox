@@ -19,7 +19,8 @@ module.exports.validator_patch = function(country) {
         "$async": true,
         "properties": {
             "name": {
-                "type": ["string", "null"]
+                "type": ["string", "null"],
+                "pattern": "^[A-Za-z]+$"
             },
             "country_id": {
                 "type": ["string", "null"]

@@ -33,7 +33,8 @@ module.exports = {
                 type: Sequelize[dict['String']]
             },
             country_id: {
-                type: Sequelize[dict['String']]
+                type: Sequelize[dict['String']],
+                unique: true
             }
 
         });
