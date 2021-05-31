@@ -178,7 +178,9 @@ app.post("/meta_query", cors(), async (req, res, next) => {
           variables
         );
         let output = graphQlResponse.data;
-        if (output) {
+        console.log({ graphQlResponse, output})
+        const resolversHaveData = Object.values(graphQlResponse.data).some((val) => val);
+        if (resolversHaveData) {
           if (helper.isNotUndefinedAndNotNull(jq)) {
             // jq
             output = await nodejq.run(jq, graphQlResponse.data, { input: "json", output: "json" });
