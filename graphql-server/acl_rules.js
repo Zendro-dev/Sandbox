@@ -41,13 +41,5 @@ module.exports = {
                 permissions: ['read']
             }]
         },
-
-        {
-            roles: 'reader',
-            allows: [{
-                resources: ['meta_query'],
-                permissions: ['execute']
-            }]
-        }
     ]
 }
