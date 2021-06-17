@@ -20,6 +20,7 @@ module.exports = {
                 resources: [
                     'alien',
                     'capital',
+                    'city',
                     'continent',
                     'country',
                     'river',
@@ -34,6 +35,7 @@ module.exports = {
                 resources: [
                     'alien',
                     'capital',
+                    'city',
                     'continent',
                     'country',
                     'river',

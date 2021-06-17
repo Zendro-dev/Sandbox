@@ -21,7 +21,7 @@ module.exports =  function( context, resource, permission ) {
 
   let token_bearer =  context.request.headers["authorization"];
   let token = token_bearer.replace("Bearer ","");
-  console.log("TOKEN",typeof token, token);
+  // console.log("TOKEN",typeof token, token);
   try{
     //Identify user from context
     let decoded = jwt.verify(token, JWT_SECRET);

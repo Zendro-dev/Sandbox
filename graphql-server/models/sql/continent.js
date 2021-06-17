@@ -27,10 +27,12 @@ const definition = {
     },
     associations: {
         countries: {
-            type: 'to_many',
+            type: 'one_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'continent',
             target: 'country',
             targetKey: 'continent_id',
-            keyIn: 'country',
+            keysIn: 'country',
             targetStorageType: 'sql'
         }
     },

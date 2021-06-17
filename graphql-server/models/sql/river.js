@@ -25,17 +25,29 @@ const definition = {
         name: 'String',
         length: 'Int',
         river_id: 'String',
-        country_ids: '[String]'
+        country_ids: '[String]',
+        city_ids: '[String]'
     },
     associations: {
         countries: {
-            type: 'to_many',
-            reverseAssociationType: 'to_many',
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'rivers',
             target: 'country',
             targetKey: 'river_ids',
             sourceKey: 'country_ids',
-            keyIn: 'river',
+            keysIn: 'river',
             targetStorageType: 'sql'
+        },
+        cities: {
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'rivers',
+            target: 'city',
+            targetKey: 'river_ids',
+            sourceKey: 'city_ids',
+            keysIn: 'river',
+            targetStorageType: 'cassandra'
         }
     },
     internalId: 'river_id',
@@ -69,6 +81,10 @@ module.exports = class river extends Sequelize.Model {
                 type: Sequelize[dict['Int']]
             },
             country_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            city_ids: {
                 type: Sequelize[dict['[String]']],
                 defaultValue: '[]'
             }
@@ -332,6 +348,31 @@ module.exports = class river extends Sequelize.Model {
             });
         }
     }
+    /**
+     * add_city_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   river_id   IdAttribute of the root model to be updated
+     * @param {Array}   city_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_city_ids(river_id, city_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            city_ids.forEach(idx => {
+                promises.push(models.city.add_river_ids(idx, [`${river_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(river_id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.city_ids), city_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                city_ids: updated_ids
+            });
+        }
+    }
 
     /**
      * remove_country_ids - field Mutation (model-layer) for to_many associationsArguments to remove
@@ -355,6 +396,31 @@ module.exports = class river extends Sequelize.Model {
             updated_ids = JSON.stringify(updated_ids);
             await record.update({
                 country_ids: updated_ids
+            });
+        }
+    }
+    /**
+     * remove_city_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   river_id   IdAttribute of the root model to be updated
+     * @param {Array}   city_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_city_ids(river_id, city_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            city_ids.forEach(idx => {
+                promises.push(models.city.remove_river_ids(idx, [`${river_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(river_id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.city_ids), city_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                city_ids: updated_ids
             });
         }
     }

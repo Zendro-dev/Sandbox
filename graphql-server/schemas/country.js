@@ -28,6 +28,22 @@ module.exports = `
     """
     @search-request
     """
+    citiesFilter(search: searchCityInput, order: [ orderCityInput ], pagination: paginationInput!): [city]
+
+
+    """
+    @search-request
+    """
+    citiesConnection(search: searchCityInput, order: [ orderCityInput ], pagination: paginationCursorInput!): CityConnection
+
+    """
+    @count-request
+    """
+    countFilteredCities(search: searchCityInput) : Int
+  
+    """
+    @search-request
+    """
     riversFilter(search: searchRiverInput, order: [ orderRiverInput ], pagination: paginationInput!): [river]
 
 
@@ -98,8 +114,8 @@ type CountryEdge{
   }
 
   type Mutation {
-    addCountry(country_id: ID!, name: String , addUnique_capital:ID, addContinent:ID  , addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): country!
-    updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID , addContinent:ID, removeContinent:ID   , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): country!
+    addCountry(country_id: ID!, name: String , addUnique_capital:ID, addContinent:ID  , addCities:[ID], addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): country!
+    updateCountry(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID , addContinent:ID, removeContinent:ID   , addCities:[ID], removeCities:[ID] , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): country!
     deleteCountry(country_id: ID!): String!
     bulkAddCountryCsv: String!
     bulkAssociateCountryWithContinent_id(bulkAssociationInput: [bulkAssociationCountryWithContinent_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

@@ -53,6 +53,11 @@ for object in ${DB_KEYS[@]}; do
 
   fi
 
+  if [[ "$storageType" == "cassandra" ]]; then
+    # Run the migrations
+    node ./scripts/setup_cassandra_db.js
+  fi
+
 done
 
 psql \

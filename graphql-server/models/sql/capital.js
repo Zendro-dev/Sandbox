@@ -28,10 +28,12 @@ const definition = {
     },
     associations: {
         unique_country: {
-            type: 'to_one',
+            type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'unique_capital',
             target: 'country',
             targetKey: 'country_id',
-            keyIn: 'capital',
+            keysIn: 'capital',
             targetStorageType: 'sql'
         }
     },

@@ -22,6 +22,12 @@ module.exports = `
     """
     country_ids: [String]
 
+    """
+    @original-field
+    
+    """
+    city_ids: [String]
+
       
     """
     @search-request
@@ -38,6 +44,22 @@ module.exports = `
     @count-request
     """
     countFilteredCountries(search: searchCountryInput) : Int
+  
+    """
+    @search-request
+    """
+    citiesFilter(search: searchCityInput, order: [ orderCityInput ], pagination: paginationInput!): [city]
+
+
+    """
+    @search-request
+    """
+    citiesConnection(search: searchCityInput, order: [ orderCityInput ], pagination: paginationCursorInput!): CityConnection
+
+    """
+    @count-request
+    """
+    countFilteredCities(search: searchCityInput) : Int
   
     }
 type RiverConnection{
@@ -67,6 +89,7 @@ type RiverEdge{
     name
     length
     country_ids
+    city_ids
   }
   input searchRiverInput {
     field: riverField
@@ -93,8 +116,8 @@ type RiverEdge{
   }
 
   type Mutation {
-    addRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): river!
-    updateRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): river!
+    addRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID], addCities:[ID] , skipAssociationsExistenceChecks:Boolean = false): river!
+    updateRiver(river_id: ID!, name: String, length: Int   , addCountries:[ID], removeCountries:[ID] , addCities:[ID], removeCities:[ID]  , skipAssociationsExistenceChecks:Boolean = false): river!
     deleteRiver(river_id: ID!): String!
     bulkAddRiverCsv: String!
       }

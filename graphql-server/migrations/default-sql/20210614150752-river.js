@@ -38,6 +38,10 @@ module.exports = {
             country_ids: {
                 type: Sequelize[dict['[String]']],
                 defaultValue: '[]'
+            },
+            city_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             }
 
         });

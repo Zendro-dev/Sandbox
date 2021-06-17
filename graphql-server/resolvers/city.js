@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const river = require(path.join(__dirname, '..', 'models', 'index.js')).river;
+const city = require(path.join(__dirname, '..', 'models', 'index.js')).city;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,242 +14,153 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addCountries': 'country',
-    'addCities': 'city'
+    'addCountry': 'country',
+    'addRivers': 'river'
 }
 
 
 
-
 /**
- * river.prototype.countriesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
+ * city.prototype.country - Return associated record
  *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
  */
-river.prototype.countriesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.country.idAttribute(),
-        "value": this.country_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.countries({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * river.prototype.countFilteredCountries - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-river.prototype.countFilteredCountries = function({
+city.prototype.country = async function({
     search
 }, context) {
 
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
-        return 0;
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.country.idAttribute(),
-        "value": this.country_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.countCountries({
-        search: nsearch
-    }, context);
-}
-
-/**
- * river.prototype.countriesConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-river.prototype.countriesConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
-        return {
-            edges: [],
-            countries: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
+    if (helper.isNotUndefinedAndNotNull(this.country_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneCountry({
+                [models.country.idAttribute()]: this.country_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.country.idAttribute(),
+                "value": this.country_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.countriesConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
             }
-        };
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.country.idAttribute(),
-        "value": this.country_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.countriesConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * river.prototype.citiesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-river.prototype.citiesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.city_ids) || this.city_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.city.idAttribute(),
-        "value": this.city_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.cities({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
-/**
- * river.prototype.countFilteredCities - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-river.prototype.countFilteredCities = function({
-    search
-}, context) {
-
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.city_ids) || this.city_ids.length === 0) {
-        return 0;
-    }
-    let nsearch = search && search.field === models.city.idAttribute() && search.operator === 'eq' ? search : helper.addSearchField({
-        "search": search,
-        "field": models.city.idAttribute(),
-        "value": this.city_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.countCities({
-        search: nsearch
-    }, context);
-}
-
-/**
- * river.prototype.citiesConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-river.prototype.citiesConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.city_ids) || this.city_ids.length === 0) {
-        return {
-            edges: [],
-            cities: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-    let foreignKeys = [...this.city_ids];
-    let nsearch;
-    if (search && search.field === models.city.idAttribute() && (search.operator === 'eq' || search.operator === 'in')) {
-        console.log(search.value);
-        console.log(this.city_ids);
-        foreignKeys = foreignKeys.filter(id => search.value.split(',').includes(id));
-        nsearch = {
-            "field": models.city.idAttribute(),
-            "value": foreignKeys.join(','),
-            "valueType": "Array",
-            "operator": "in" 
+            return found;
         }
-    } else {
-        nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.city.idAttribute(),
-            "value": this.city_ids.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
     }
+}
 
-    console.log({nsearch});
+/**
+ * city.prototype.riversFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+city.prototype.riversFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
 
-    
-    return resolvers.citiesConnection({
+
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.river_ids) || this.river_ids.length === 0) {
+        return [];
+    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.river.idAttribute(),
+        "value": this.river_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.rivers({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * city.prototype.countFilteredRivers - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+city.prototype.countFilteredRivers = function({
+    search
+}, context) {
+
+
+    //return 0 if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.river_ids) || this.river_ids.length === 0) {
+        return 0;
+    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.river.idAttribute(),
+        "value": this.river_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.countRivers({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * city.prototype.riversConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+city.prototype.riversConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+
+
+    //return an empty response if the foreignKey Array is empty, no need to query the database
+    if (!Array.isArray(this.river_ids) || this.river_ids.length === 0) {
+        return {
+            edges: [],
+            rivers: [],
+            pageInfo: {
+                startCursor: null,
+                endCursor: null,
+                hasPreviousPage: false,
+                hasNextPage: false
+            }
+        };
+    }
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": models.river.idAttribute(),
+        "value": this.river_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
+    return resolvers.riversConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -265,78 +176,76 @@ river.prototype.citiesConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-river.prototype.handleAssociations = async function(input, benignErrorReporter) {
+city.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addCountries)) {
-        promises_add.push(this.add_countries(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addRivers)) {
+        promises_add.push(this.add_rivers(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addCities)) {
-        promises_add.push(this.add_cities(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addCountry)) {
+        promises_add.push(this.add_country(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeCountries)) {
-        promises_remove.push(this.remove_countries(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeRivers)) {
+        promises_remove.push(this.remove_rivers(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeCities)) {
-        promises_remove.push(this.remove_cities(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeCountry)) {
+        promises_remove.push(this.remove_country(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_countries - field Mutation for to_many associations to add
+ * add_rivers - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-river.prototype.add_countries = async function(input, benignErrorReporter) {
+city.prototype.add_rivers = async function(input, benignErrorReporter) {
 
-    await river.add_country_ids(this.getIdValue(), input.addCountries, benignErrorReporter);
-    this.country_ids = helper.unionIds(this.country_ids, input.addCountries);
+    await city.add_river_ids(this.getIdValue(), input.addRivers, benignErrorReporter);
+    this.river_ids = helper.unionIds(this.river_ids, input.addRivers);
 }
 
 /**
- * add_cities - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_country - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-river.prototype.add_cities = async function(input, benignErrorReporter) {
-
-    await river.add_city_ids(this.getIdValue(), input.addCities, benignErrorReporter);
-    this.city_ids = helper.unionIds(this.city_ids, input.addCities);
+city.prototype.add_country = async function(input, benignErrorReporter) {
+    await city.add_country_id(this.getIdValue(), input.addCountry, benignErrorReporter);
+    this.country_id = input.addCountry;
 }
 
 /**
- * remove_countries - field Mutation for to_many associations to remove
+ * remove_rivers - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-river.prototype.remove_countries = async function(input, benignErrorReporter) {
+city.prototype.remove_rivers = async function(input, benignErrorReporter) {
 
-    await river.remove_country_ids(this.getIdValue(), input.removeCountries, benignErrorReporter);
-    this.country_ids = helper.differenceIds(this.country_ids, input.removeCountries);
+    await city.remove_river_ids(this.getIdValue(), input.removeRivers, benignErrorReporter);
+    this.river_ids = helper.differenceIds(this.river_ids, input.removeRivers);
 }
 
 /**
- * remove_cities - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_country - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-river.prototype.remove_cities = async function(input, benignErrorReporter) {
-
-    await river.remove_city_ids(this.getIdValue(), input.removeCities, benignErrorReporter);
-    this.city_ids = helper.differenceIds(this.city_ids, input.removeCities);
+city.prototype.remove_country = async function(input, benignErrorReporter) {
+    if (input.removeCountry == this.country_id) {
+        await city.remove_country_id(this.getIdValue(), input.removeCountry, benignErrorReporter);
+        this.country_id = null;
+    }
 }
 
 
@@ -350,16 +259,16 @@ river.prototype.remove_cities = async function(input, benignErrorReporter) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let river = await resolvers.readOneRiver({
-        river_id: id
+    let city = await resolvers.readOneCity({
+        city_id: id
     }, context);
     //check that record actually exists
-    if (river === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (city === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(river.countFilteredCountries({}, context));
-    promises_to_many.push(river.countFilteredCities({}, context));
+    promises_to_many.push(city.countFilteredRivers({}, context));
+    promises_to_one.push(city.country({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -379,14 +288,14 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`river with river_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`city with city_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
 
 module.exports = {
     /**
-     * rivers - Check user authorization and return certain number, specified in pagination argument, of records that
+     * cities - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -395,22 +304,22 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    rivers: async function({
+    cities: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "rivers");
+        if (await checkAuthorization(context, 'city', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "cities");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await river.readAll(search, order, pagination, benignErrorReporter);
+            return await city.readAll(search, order, pagination, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * riversConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * citiesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -419,76 +328,78 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    riversConnection: async function({
+    citiesConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
+        if (await checkAuthorization(context, 'city', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "riversConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "citiesConnection");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await river.readAllCursor(search, order, pagination, benignErrorReporter);
+            let allowFiltering = await checkAuthorization(context, 'city', 'search');
+            return await city.readAllCursor(search, pagination, benignErrorReporter, allowFiltering);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneRiver - Check user authorization and return one record with the specified river_id in the river_id argument.
+     * readOneCity - Check user authorization and return one record with the specified city_id in the city_id argument.
      *
-     * @param  {number} {river_id}    river_id of the record to retrieve
+     * @param  {number} {city_id}    city_id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with river_id requested
+     * @return {object}         Record with city_id requested
      */
-    readOneRiver: async function({
-        river_id
+    readOneCity: async function({
+        city_id
     }, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneRiver");
+        if (await checkAuthorization(context, 'city', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneCity");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await river.readById(river_id, benignErrorReporter);
+            return await city.readById(city_id, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countRivers - Counts number of records that holds the conditions specified in the search argument
+     * countCities - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countRivers: async function({
+    countCities: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
+        if (await checkAuthorization(context, 'city', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await river.countRecords(search, benignErrorReporter);
+            let allowFiltering = await checkAuthorization(context, 'city', 'search');
+            return await city.countRecords(search, benignErrorReporter, allowFiltering);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * vueTableRiver - Return table of records as needed for displaying a vuejs table
+     * vueTableCity - Return table of records as needed for displaying a vuejs table
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Records with format as needed for displaying a vuejs table
      */
-    vueTableRiver: async function(_, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
-            return helper.vueTable(context.request, river, ["id", "name", "river_id"]);
+    vueTableCity: async function(_, context) {
+        if (await checkAuthorization(context, 'city', 'read') === true) {
+            return helper.vueTable(context.request, city, ["id", "city_id", "name", "country_id"]);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addRiver - Check user authorization and creates a new record with data specified in the input argument.
+     * addCity - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -496,8 +407,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addRiver: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'river', 'create');
+    addCity: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'city', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -506,43 +417,43 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdRiver = await river.addOne(inputSanitized, benignErrorReporter);
-            await createdRiver.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdRiver;
+            let createdCity = await city.addOne(inputSanitized, benignErrorReporter);
+            await createdCity.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdCity;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAddRiverCsv - Load csv file of records
+     * bulkAddCityCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddRiverCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'river', 'create') === true) {
+    bulkAddCityCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'city', 'create') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return river.bulkAddCsv(context, benignErrorReporter);
+            return city.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteRiver - Check user authorization and delete a record with the specified river_id in the river_id argument.
+     * deleteCity - Check user authorization and delete a record with the specified city_id in the city_id argument.
      *
-     * @param  {number} {river_id}    river_id of the record to delete
+     * @param  {number} {city_id}    city_id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteRiver: async function({
-        river_id
+    deleteCity: async function({
+        city_id
     }, context) {
-        if (await checkAuthorization(context, 'river', 'delete') === true) {
-            if (await validForDeletion(river_id, context)) {
+        if (await checkAuthorization(context, 'city', 'delete') === true) {
+            if (await validForDeletion(city_id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return river.deleteOne(river_id, benignErrorReporter);
+                return city.deleteOne(city_id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -550,7 +461,7 @@ module.exports = {
     },
 
     /**
-     * updateRiver - Check user authorization and update the record specified in the input argument
+     * updateCity - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -558,8 +469,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateRiver: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'river', 'update');
+    updateCity: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'city', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -568,26 +479,66 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedRiver = await river.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRiver.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedRiver;
+            let updatedCity = await city.updateOne(inputSanitized, benignErrorReporter);
+            await updatedCity.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedCity;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
+    /**
+     * bulkAssociateCityWithCountry_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateCityWithCountry_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                country_id
+            }) => country_id)), models.country);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                city_id
+            }) => city_id)), city);
+        }
+        return await city.bulkAssociateCityWithCountry_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateCityWithCountry_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateCityWithCountry_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                country_id
+            }) => country_id)), models.country);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                city_id
+            }) => city_id)), city);
+        }
+        return await city.bulkDisAssociateCityWithCountry_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
-     * csvTableTemplateRiver - Returns table's template
+     * csvTableTemplateCity - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateRiver: async function(_, context) {
-        if (await checkAuthorization(context, 'river', 'read') === true) {
+    csvTableTemplateCity: async function(_, context) {
+        if (await checkAuthorization(context, 'city', 'read') === true) {
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return river.csvTableTemplate(benignErrorReporter);
+            return city.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
