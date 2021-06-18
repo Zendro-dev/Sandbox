@@ -1,0 +1,103 @@
+{
+	"model": "registro_siagro",
+	"storageType": "sql",
+	
+	"attributes": {
+		"siagro_id": "String",
+		"IndividuosCopias": "Int",
+		"TipoPreparacion": "String",
+		"FuenteColectaObservacion": "String",
+		"Habitat": "String",
+		"EstatusEcologico": "String",
+		"PlantaManejada": "String",
+		"MaterialColectado": "String",
+		"FormaVida": "String",
+		"FormaCrecimiento": "String",
+		"Sexo": "String",
+		"Fenologia": "String",
+		"AlturaEjemplar": "Float",
+		"Abundancia": "String",
+		"OtrasObservacionesEjemplar": "String",
+		"Uso": "String",
+		"ParteUtilizada": "String",
+		"LenguaNombreComun": "String",
+		"NombreComun": "String",
+		"InstitucionRespaldaObservacion": "String",
+		"TipoVegetacion": "String",
+		"AutorizacionInformacion": "String",
+		"donante_id": "Int",
+		"proyecto_id": "String",
+		"snib_id": "String"
+  	},
+
+	"associations": {
+		"proyecto": { 
+			"type": "to_one",
+			"target": "proyecto",
+			"targetKey": "proyecto_id",
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "proyecto_id",
+			"sublabel": "NombreProyecto"
+    	},
+
+		"manejo": { 
+			"type": "to_one",
+			"target": "manejo", 
+			"targetKey": "registro_id", 
+			"keyIn": "manejo", 
+			"targetStorageType": "sql",
+			"label": "TipoManejo", 
+			"sublabel": "TipoAgroecosistema" 
+    	},
+
+		"sitio": {
+			"type": "to_one", 
+			"target": "sitio", 
+			"targetKey": "snib_id", 
+			"keyIn": "registro_siagro", 
+			"targetStorageType": "generic", 
+			"label": "estadomapa", 
+			"sublabel": "municipiomapa"
+    	},
+
+		"taxon": { 
+			"type": "to_one", 
+			"target": "taxon", 
+			"targetKey": "snib_id", 
+			"keyIn": "registro_siagro", 
+			"targetStorageType": "generic", 
+			"label": "Genero", 
+			"sublabel": "EpitetoEspecifico" 
+    	},
+
+		"donante": { 
+			"type": "to_one", 
+			"target": "donante", 
+			"targetKey": "donante_id", 
+			"keyIn": "registro_siagro", 
+			"targetStorageType": "sql", 
+			"label": "NombreDonanteInformante"
+    	},
+
+    	"determinacion": { 
+			"type": "to_one", 
+			"target": "determinacion", 
+			"targetKey": "snib_id", 
+			"keyIn": "registro_siagro", 
+			"targetStorageType": "generic", 
+			"label": "determinador"
+    	},
+
+    	"registro_snib": { 
+			"type": "to_one", 
+			"target": "registro_snib", 
+			"targetKey": "snib_id", 
+			"keyIn": "registro_siagro", 
+			"targetStorageType": "generic", 
+			"label": "id"
+    	}
+	},
+
+	"internalId": "siagro_id"
+}

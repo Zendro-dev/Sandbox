@@ -18,11 +18,14 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: [
-                    'alien',
-                    'capital',
-                    'continent',
-                    'country',
-                    'river',
+                    'determinacion',
+                    'donante',
+                    'manejo',
+                    'proyecto',
+                    'registro_siagro',
+                    'registro_snib',
+                    'sitio',
+                    'taxon',
                 ],
                 permissions: ['create', 'update', 'delete', 'search']
             }]
@@ -32,11 +35,14 @@ module.exports = {
             roles: 'reader',
             allows: [{
                 resources: [
-                    'alien',
-                    'capital',
-                    'continent',
-                    'country',
-                    'river',
+                    'determinacion',
+                    'donante',
+                    'manejo',
+                    'proyecto',
+                    'registro_siagro',
+                    'registro_snib',
+                    'sitio',
+                    'taxon',
                 ],
                 permissions: ['read']
             }]

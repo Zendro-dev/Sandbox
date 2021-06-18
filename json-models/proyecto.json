@@ -1,0 +1,26 @@
+{
+	"model": "proyecto",
+	"storageType": "sql",
+	
+	"attributes": {
+		"proyecto_id": "String",
+		"NombreProyecto": "String",
+		"InstitucionProyecto": "String",
+		"FechaInicioProyecto": "Date",
+		"FechaFinProyecto": "Date"
+  	},
+
+	"associations": {
+		"registro_siagro": { 
+			"type": "to_many",
+			"target": "registro_siagro",
+			"targetKey": "proyecto_id",
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+  		}
+  	},
+
+	"internalId": "proyecto_id"
+}

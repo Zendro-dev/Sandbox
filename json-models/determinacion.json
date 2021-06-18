@@ -1,0 +1,26 @@
+{
+	"model": "determinacion", 
+	"storageType": "generic",
+	
+	"attributes": {
+		"id": "String",
+		"determinador": "String",
+		"fechadeterminacion": "String",
+		"calificadordeterminacion": "String",
+		"tipo": "String"
+  },
+
+	"associations": {
+		"registro_siagro": { 
+			"type": "to_one", 
+			"target": "registro_siagro",
+			"targetKey": "snib_id",
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+    }
+  },
+
+	"internalId": "id"
+}

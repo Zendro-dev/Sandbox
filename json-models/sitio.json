@@ -1,0 +1,31 @@
+{
+	"model": "sitio",
+	"storageType": "generic",
+	
+	"attributes": { 
+		"id": "String",
+		"paismapa": "String",
+		"estadomapa": "String",
+		"claveestadomapa": "String",
+		"clavemunicipiomapa": "String",
+		"municipiomapa": "String",
+		"localidad": "String",
+		"latitud": "Float",
+		"longitud": "Float",
+		"datum": "String"
+	},
+
+	"associations": {
+		"registro_siagro": {
+			"type": "to_one",
+			"target": "registro_siagro",
+			"targetKey": "snib_id",
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+    	}
+  	},
+
+	"internalId": "id"
+}

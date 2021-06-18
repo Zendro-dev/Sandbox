@@ -2,4 +2,4 @@
 
 set -e
 
-docker-compose -f './spa_refactor/docker-compose.yml' down -v
+docker-compose -f './spa_refactor/docker-compose.yml' down

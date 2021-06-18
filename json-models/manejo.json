@@ -1,0 +1,44 @@
+{
+	"model": "manejo", 
+	"storageType": "sql",
+	
+	"attributes": { 
+		"manejo_id": "Int",
+		"TipoManejo" : "String",
+		"TipoAgroecosistema" : "String",
+		"DescripcionAgroecosistema" : "String",
+		"SindromeDomesticacion" : "String",
+		"TenenciaTierra" : "String",
+		"TipoMaterialProduccion" : "String",
+		"OrigenMaterial" : "String",
+		"DestinoProduccion" : "String",
+		"MesSiembra" : "String",
+		"MesFloracion" : "String",
+		"MesFructificacion" : "String",
+		"MesCosecha" : "String",
+		"SistemaCultivo" : "String",
+		"CultivosAsociados" : "String",
+		"UnidadesSuperficieProduccion" : "String",
+		"SuperficieProduccion" : "Float",
+		"UnidadesRendimiento" : "String",
+		"Rendimiento" : "Float",
+		"TipoRiego" : "String",
+		"CaracteristicaResistenciaTolerancia" : "String",
+		"CaracteristicaSusceptible" : "String",
+		"registro_id": "String"
+  	},
+
+	"associations": {
+		"registro_siagro": { 
+			"type": "to_one",
+			"target": "registro_siagro",
+			"targetKey": "registro_id",
+			"keyIn": "manejo",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+    	}
+  	},
+
+	"internalId": "manejo_id"
+}

@@ -1,0 +1,29 @@
+{
+	"model": "taxon",
+	"storageType": "generic",
+	
+	"attributes": { 
+		"id": "Int",
+		"Genero": "String", 
+		"EpitetoEspecifico": "String", 
+		"EpitetoSubespecie": "String", 
+		"EpitetoVariedad": "String", 
+		"EpitetoForma": "String", 
+		"EpitetoRaza": "String", 
+		"EpitetoCultivar": "String" 
+  	},
+
+	"associations": {
+		"registro_siagro": { 
+			"type": "to_many",
+			"target": "registro_siagro",
+			"targetKey": "snib_id", 
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+    	}
+  	},
+
+	"internalId": "id"
+}

@@ -1,0 +1,35 @@
+{
+	"model": "registro_snib",
+	"storageType": "generic",
+	
+	"attributes": {
+		"id": "String",
+		"procedenciaejemplar": "String",
+		"fechacolecta": "String",
+		"numcolecta": "String",
+		"ambiente": "String",
+		"colector": "String",
+		"coleccion": "String",
+		"numcatalogo": "String",		
+		"proyecto": "String",
+		"formadecitar": "String",
+		"licenciauso": "String",
+		"urlproyecto": "String",
+		"urlejemplar": "String",
+		"version": "String"
+	},
+
+	"associations": {
+		"registro_siagro": {
+			"type": "to_one", 
+			"target": "registro_siagro",
+			"targetKey": "snib_id",
+			"keyIn": "registro_siagro",
+			"targetStorageType": "sql",
+			"label": "siagro_id",
+			"sublabel": "NombreComun"
+    	}
+	},
+
+	"internalId": "id"
+}
