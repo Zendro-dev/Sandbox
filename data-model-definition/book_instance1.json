@@ -1,0 +1,47 @@
+{
+    "model": "book",
+    "storageType": "sql-adapter",
+    "adapterName": "book_instance1",
+    "regex": "instance1",
+    "attributes": {
+        "book_id":"String",
+        "name": "String",
+        "country_ids": "[String]",
+        "publisher_id": "String"
+    },
+  
+    "associations": {
+        "authors":{
+            "type":"many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "works",
+            "target":"author",
+            "targetKey": "book_id",
+            "sourceKey": "author_id",
+            "keysIn": "author_to_book",
+            "targetStorageType": "distributed-data-model"
+        },
+        "countries":{
+            "type":"many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "available_books",
+            "target":"country",
+            "targetKey": "book_ids",
+            "sourceKey": "country_ids",
+            "keysIn": "book",
+            "targetStorageType": "distributed-data-model"
+        },
+        "publisher": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "books",
+            "target": "publisher",
+            "targetKey": "publisher_id",
+            "keysIn": "book",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+  
+    "internalId": "book_id",
+    "useDataLoader": true
+}

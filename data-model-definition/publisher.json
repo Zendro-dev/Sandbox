@@ -1,0 +1,24 @@
+{
+    "model": "publisher",
+    "storageType": "distributed-data-model",
+    "registry": ["publisher_instance1", "publisher_instance2"],
+    "attributes": {
+      "publisher_id": "String",
+      "name": "String"
+    },
+    "associations": {
+      "books": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "publisher",
+        "target": "book",
+        "targetKey": "publisher_id",
+        "keysIn": "book",
+        "targetStorageType": "distributed-data-model"
+      }
+    },
+  
+    "internalId" : "publisher_id",
+    "useDataLoader": true
+}
+  

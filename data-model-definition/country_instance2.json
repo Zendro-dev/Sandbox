@@ -1,0 +1,34 @@
+{
+    "model": "country",
+    "storageType": "ddm-adapter",
+    "adapterName": "country_instance2",
+    "regex": "instance2",
+    "url": "http://localhost:3030/graphql",
+    "attributes": {
+        "country_id":"String",
+        "name": "String",
+        "book_ids": "[String]"
+    },
+    "associations": {
+        "capital": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "country",
+            "target": "capital",
+            "targetKey": "country_id",
+            "keysIn": "capital",
+            "targetStorageType": "distributed-data-model"
+        },
+        "available_books":{
+            "type":"many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "countries",
+            "target":"book",
+            "targetKey": "country_ids",
+            "sourceKey": "book_ids",
+            "keysIn": "country",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "country_id"
+}

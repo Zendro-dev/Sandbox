@@ -1,0 +1,25 @@
+{
+    "model": "author",
+    "storageType": "distributed-data-model",
+    "registry": ["author_instance1", "author_instance2"],
+    "attributes": {
+        "author_id":"String",
+        "name": "String",
+        "book_ids": "[String]"
+    },
+  
+    "associations": {
+        "works":{
+            "type":"many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "authors",
+            "target":"book",
+            "targetKey": "author_id",
+            "sourceKey": "book_id",
+            "keysIn": "author_to_book",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+  
+    "internalId": "author_id"
+}

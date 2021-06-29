@@ -1,0 +1,24 @@
+{
+    "model": "capital",
+    "storageType": "distributed-data-model",
+    "registry": ["capital_instance1", "capital_instance2"],
+    "attributes": {
+        "capital_id":"String",
+        "name": "String",
+        "country_id": "String"
+    },
+  
+    "associations": {
+        "country": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "capital",
+            "target": "country",
+            "targetKey": "country_id",
+            "keysIn": "capital",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+  
+    "internalId": "capital_id"
+}

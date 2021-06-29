@@ -1,0 +1,24 @@
+{
+    "model": "capital",
+    "storageType": "ddm-adapter",
+    "adapterName": "capital_instance2",
+    "regex": "instance2",
+    "url": "http://localhost:3030/graphql",
+    "attributes": {
+        "capital_id":"String",
+        "name": "String",
+        "country_id": "String"
+    },
+    "associations": {
+        "country": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "capital",
+            "target": "country",
+            "targetKey": "country_id",
+            "keysIn": "capital",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "capital_id"
+}

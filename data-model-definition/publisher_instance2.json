@@ -1,0 +1,23 @@
+{
+    "model": "publisher",
+    "storageType": "ddm-adapter",
+    "adapterName": "publisher_instance2",
+    "regex": "instance2",
+    "url": "http://localhost:3030/graphql",
+    "attributes": {
+        "publisher_id": "String",
+        "name": "String"
+    },
+    "associations": {
+        "books": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "publisher",
+            "target": "book",
+            "targetKey": "publisher_id",
+            "keysIn": "book",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "publisher_id"
+}

@@ -1,0 +1,25 @@
+{
+    "model": "author",
+    "storageType": "ddm-adapter",
+    "adapterName": "author_instance2",
+    "regex": "instance2",
+    "url": "http://localhost:3030/graphql",
+    "attributes": {
+        "author_id":"String",
+        "name": "String",
+        "book_ids": "[String]"
+    },
+    "associations": {
+        "works":{
+            "type":"many_to_many",
+            "implementation": "sql_cross_table",
+            "reverseAssociation": "authors",
+            "target":"book",
+            "targetKey": "author_id",
+            "sourceKey": "book_id",
+            "keysIn": "author_to_book",
+            "targetStorageType": "distributed-data-model"
+        }
+    },
+    "internalId": "author_id"
+}
