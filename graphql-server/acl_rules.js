@@ -18,12 +18,22 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: [
-                    'alien',
+                    'author',
+                    'author_to_book',
+                    'book',
                     'capital',
-                    'city',
-                    'continent',
                     'country',
-                    'river',
+                    'publisher',
+                    'author_instance1',
+                    'author_instance2',
+                    'book_instance1',
+                    'book_instance2',
+                    'capital_instance1',
+                    'capital_instance2',
+                    'country_instance1',
+                    'country_instance2',
+                    'publisher_instance1',
+                    'publisher_instance2',
                 ],
                 permissions: ['create', 'update', 'delete', 'search']
             }]
@@ -33,12 +43,22 @@ module.exports = {
             roles: 'reader',
             allows: [{
                 resources: [
-                    'alien',
+                    'author',
+                    'author_to_book',
+                    'book',
                     'capital',
-                    'city',
-                    'continent',
                     'country',
-                    'river',
+                    'publisher',
+                    'author_instance1',
+                    'author_instance2',
+                    'book_instance1',
+                    'book_instance2',
+                    'capital_instance1',
+                    'capital_instance2',
+                    'country_instance1',
+                    'country_instance2',
+                    'publisher_instance1',
+                    'publisher_instance2',
                 ],
                 permissions: ['read']
             }]

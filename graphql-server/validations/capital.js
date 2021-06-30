@@ -18,10 +18,10 @@ module.exports.validator_patch = function(capital) {
     capital.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "name": {
+            "capital_id": {
                 "type": ["string", "null"]
             },
-            "capital_id": {
+            "name": {
                 "type": ["string", "null"]
             },
             "country_id": {

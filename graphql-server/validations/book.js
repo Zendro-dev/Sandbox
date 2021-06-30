@@ -6,43 +6,46 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(country) {
+module.exports.validator_patch = function(book) {
 
-    country.prototype.validationControl = {
+    book.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    country.prototype.validatorSchema = {
+    book.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "country_id": {
+            "book_id": {
                 "type": ["string", "null"]
             },
             "name": {
                 "type": ["string", "null"]
             },
-            "book_ids": {
+            "country_ids": {
                 "type": ["array", "null"]
+            },
+            "publisher_id": {
+                "type": ["string", "null"]
             }
         }
     }
 
-    country.prototype.asyncValidate = ajv.compile(
-        country.prototype.validatorSchema
+    book.prototype.asyncValidate = ajv.compile(
+        book.prototype.validatorSchema
     )
 
-    country.prototype.validateForCreate = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    book.prototype.validateForCreate = async function(record) {
+        return await book.prototype.asyncValidate(record)
     }
 
-    country.prototype.validateForUpdate = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    book.prototype.validateForUpdate = async function(record) {
+        return await book.prototype.asyncValidate(record)
     }
 
-    country.prototype.validateForDelete = async function(id) {
+    book.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -53,9 +56,9 @@ module.exports.validator_patch = function(country) {
         }
     }
 
-    country.prototype.validateAfterRead = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    book.prototype.validateAfterRead = async function(record) {
+        return await book.prototype.asyncValidate(record)
     }
 
-    return country
+    return book
 }

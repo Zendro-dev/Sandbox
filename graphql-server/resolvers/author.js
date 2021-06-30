@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const country = require(path.join(__dirname, '..', 'models', 'index.js')).country;
+const author = require(path.join(__dirname, '..', 'models', 'index.js')).author;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -13,120 +13,9 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
-const associationArgsDef = {
-    'addCapital': 'capital',
-    'addAvailable_books': 'book'
-}
-
-/**
- * country.prototype.capital - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-country.prototype.capital = async function({
-    search
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "country_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    let found = (await resolvers.capitalsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 capitals matching country with country_id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the country model. Returning first capital.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
-}
+const associationArgsDef = {}
 
 
-/**
- * country.prototype.countFilteredAvailable_books - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-country.prototype.countFilteredAvailable_books = function({
-    search
-}, context) {
-
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
-        return 0;
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.book.idAttribute(),
-        "value": this.book_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.countBooks({
-        search: nsearch
-    }, context);
-}
-
-
-/**
- * country.prototype.available_booksConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-country.prototype.available_booksConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
-        return {
-            edges: [],
-            books: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.book.idAttribute(),
-        "value": this.book_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.booksConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 
 
@@ -137,72 +26,38 @@ country.prototype.available_booksConnection = function({
  * @param {object} input   Info of each field to create the new record
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-country.prototype.handleAssociations = async function(input, benignErrorReporter) {
+author.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addAvailable_books)) {
-        promises_add.push(this.add_available_books(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addCapital)) {
-        promises_add.push(this.add_capital(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.addWorks)) {
+        promises_add.push(this.add_works(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeAvailable_books)) {
-        promises_remove.push(this.remove_available_books(input, benignErrorReporter));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeCapital)) {
-        promises_remove.push(this.remove_capital(input, benignErrorReporter));
+    if (helper.isNonEmptyArray(input.removeWorks)) {
+        promises_remove.push(this.remove_works(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_available_books - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_works - field Mutation for to_many associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-country.prototype.add_available_books = async function(input, benignErrorReporter) {
-
-    await country.add_book_ids(this.getIdValue(), input.addAvailable_books, benignErrorReporter);
-    this.book_ids = helper.unionIds(this.book_ids, input.addAvailable_books);
+author.prototype.add_works = async function(input) {
+    await models.author.add_author_id(this, input.addWorks);
 }
 
 /**
- * add_capital - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-country.prototype.add_capital = async function(input, benignErrorReporter) {
-    await models.capital.add_country_id(input.addCapital, this.getIdValue(), benignErrorReporter);
-}
-
-/**
- * remove_available_books - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_works - field Mutation for to_many associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-country.prototype.remove_available_books = async function(input, benignErrorReporter) {
-
-    await country.remove_book_ids(this.getIdValue(), input.removeAvailable_books, benignErrorReporter);
-    this.book_ids = helper.differenceIds(this.book_ids, input.removeAvailable_books);
-}
-
-/**
- * remove_capital - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- */
-country.prototype.remove_capital = async function(input, benignErrorReporter) {
-    await models.capital.remove_country_id(input.removeCapital, this.getIdValue(), benignErrorReporter);
+author.prototype.remove_works = async function(input) {
+    await models.author.remove_author_id(this, input.removeWorks);
 }
 
 
@@ -215,16 +70,14 @@ country.prototype.remove_capital = async function(input, benignErrorReporter) {
  */
 async function countAllAssociatedRecords(id, context) {
 
-    let country = await resolvers.readOneCountry({
-        country_id: id
+    let author = await resolvers.readOneAuthor({
+        author_id: id
     }, context);
     //check that record actually exists
-    if (country === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (author === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_many.push(country.countFilteredAvailable_books({}, context));
-    promises_to_one.push(country.capital({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -244,7 +97,7 @@ async function countAllAssociatedRecords(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
-        throw new Error(`country with country_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`author with author_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
 
     if (context.benignErrors.length > 0) {
@@ -257,7 +110,7 @@ async function validForDeletion(id, context) {
 module.exports = {
 
     /**
-     * countriesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * authorsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -266,7 +119,7 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    countriesConnection: async function({
+    authorsConnection: async function({
         search,
         order,
         pagination
@@ -275,20 +128,20 @@ module.exports = {
         helper.checkCursorBasedPaginationArgument(pagination);
         // reduce recordsLimit and check if exceeded
         let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-        helper.checkCountAndReduceRecordsLimit(limit, context, "countriesConnection");
+        helper.checkCountAndReduceRecordsLimit(limit, context, "authorsConnection");
 
         //construct benignErrors reporter with context
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
         //check: adapters
-        let registeredAdapters = Object.values(country.registeredAdapters);
+        let registeredAdapters = Object.values(author.registeredAdapters);
         if (registeredAdapters.length === 0) {
-            throw new Error('No adapters registered for data model "country"');
+            throw new Error('No adapters registered for data model "author"');
         } //else
 
         //exclude adapters
         let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
         if (adapters.length === 0) {
-            throw new Error('All adapters was excluded for data model "country"');
+            throw new Error('All adapters was excluded for data model "author"');
         } //else
 
         //check: auth adapters
@@ -299,56 +152,56 @@ module.exports = {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
             let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await country.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+            return await author.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
                 throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
             } else {
-                throw new Error('No available adapters for data model "country" ');
+                throw new Error('No available adapters for data model "author" ');
             }
         }
     },
 
 
     /**
-     * readOneCountry - Check user authorization and return one record with the specified country_id in the country_id argument.
+     * readOneAuthor - Check user authorization and return one record with the specified author_id in the author_id argument.
      *
-     * @param  {number} {country_id}    country_id of the record to retrieve
+     * @param  {number} {author_id}    author_id of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with country_id requested
+     * @return {object}         Record with author_id requested
      */
-    readOneCountry: async function({
-        country_id
+    readOneAuthor: async function({
+        author_id
     }, context) {
         //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, country.adapterForIri(country_id), 'read');
+        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(author_id), 'read');
         if (authorizationCheck === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneCountry");
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneAuthor");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
-            return country.readById(country_id, benignErrorReporter);
+            return author.readById(author_id, benignErrorReporter);
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * addCountry - Check user authorization and creates a new record with data specified in the input argument
+     * addAuthor - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addCountry: async function(input, context) {
+    addAuthor: async function(input, context) {
         //check: input has idAttribute
-        if (!input.country_id) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'country_id'.`);
+        if (!input.author_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'author_id'.`);
         }
 
         //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, country.adapterForIri(input.country_id), 'create');
+        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(input.author_id), 'create');
         if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
@@ -359,7 +212,7 @@ module.exports = {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
-            let createdRecord = await country.addOne(inputSanitized, benignErrorReporter);
+            let createdRecord = await author.addOne(inputSanitized, benignErrorReporter);
             await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return createdRecord;
         } else { //adapter not auth
@@ -369,38 +222,38 @@ module.exports = {
 
 
     /**
-     * bulkAddCountryCsv - Load csv file of records
+     * bulkAddAuthorCsv - Load csv file of records
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      */
-    bulkAddCountryCsv: async function(_, context) {
-        if (await checkAuthorization(context, 'country', 'create') === true) {
+    bulkAddAuthorCsv: async function(_, context) {
+        if (await checkAuthorization(context, 'author', 'create') === true) {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return country.bulkAddCsv(context, benignErrorReporter);
+            return author.bulkAddCsv(context, benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteCountry - Check user authorization and delete a record with the specified country_id in the country_id argument.
+     * deleteAuthor - Check user authorization and delete a record with the specified author_id in the author_id argument.
      *
-     * @param  {number} {country_id}    country_id of the record to delete
+     * @param  {number} {author_id}    author_id of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteCountry: async function({
-        country_id
+    deleteAuthor: async function({
+        author_id
     }, context) {
         //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, country.adapterForIri(country_id), 'delete');
+        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(author_id), 'delete');
         if (authorizationCheck === true) {
-            if (await validForDeletion(country_id, context)) {
+            if (await validForDeletion(author_id, context)) {
                 //construct benignErrors reporter with context
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return country.deleteOne(country_id, benignErrorReporter);
+                return author.deleteOne(author_id, benignErrorReporter);
             }
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
@@ -408,20 +261,20 @@ module.exports = {
     },
 
     /**
-     * updateCountry - Check user authorization and update the record specified in the input argument
+     * updateAuthor - Check user authorization and update the record specified in the input argument
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateCountry: async function(input, context) {
+    updateAuthor: async function(input, context) {
         //check: input has idAttribute
-        if (!input.country_id) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'country_id'.`);
+        if (!input.author_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'author_id'.`);
         }
 
         //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, country.adapterForIri(input.country_id), 'update');
+        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(input.author_id), 'update');
         if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
@@ -431,7 +284,7 @@ module.exports = {
             }
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedRecord = await country.updateOne(inputSanitized, benignErrorReporter);
+            let updatedRecord = await author.updateOne(inputSanitized, benignErrorReporter);
             await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedRecord;
         } else { //adapter not auth
@@ -440,29 +293,29 @@ module.exports = {
     },
 
     /**
-     * countCountries - Counts number of records that holds the conditions specified in the search argument
+     * countAuthors - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
 
-    countCountries: async function({
+    countAuthors: async function({
         search
     }, context) {
         //construct benignErrors reporter with context
         let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
         //check: adapters
-        let registeredAdapters = Object.values(country.registeredAdapters);
+        let registeredAdapters = Object.values(author.registeredAdapters);
         if (registeredAdapters.length === 0) {
-            throw new Error('No adapters registered for data model "country"');
+            throw new Error('No adapters registered for data model "author"');
         } //else
 
         //exclude adapters
         let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
         if (adapters.length === 0) {
-            throw new Error('All adapters was excluded for data model "country"');
+            throw new Error('All adapters was excluded for data model "author"');
         } //else
 
         //check: auth adapters
@@ -473,30 +326,30 @@ module.exports = {
                 context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
             }
             let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await country.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+            return await author.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
         } else { //adapters not auth || errors
             // else new Error
             if (authorizationCheck.authorizationErrors.length > 0) {
                 throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
             } else {
-                throw new Error('No available adapters for data model "country"');
+                throw new Error('No available adapters for data model "author"');
             }
         }
     },
 
 
     /**
-     * csvTableTemplateCountry - Returns table's template
+     * csvTableTemplateAuthor - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateCountry: async function(_, context) {
-        if (await checkAuthorization(context, 'country', 'read') === true) {
+    csvTableTemplateAuthor: async function(_, context) {
+        if (await checkAuthorization(context, 'author', 'read') === true) {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return country.csvTableTemplate(benignErrorReporter);
+            return author.csvTableTemplate(benignErrorReporter);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

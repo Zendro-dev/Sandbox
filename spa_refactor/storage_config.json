@@ -6,13 +6,5 @@
     "database": "zendro_development",
     "host": "db_postgres",
     "dialect": "postgres"
-  },
-  "default-cassandra": {
-    "storageType": "cassandra",
-    "username": "zendro",
-    "password": "zendro",
-    "keyspace": "zendro",
-    "host": "cassandradb",
-    "port": "9042"
   }
 }

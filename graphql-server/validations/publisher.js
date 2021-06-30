@@ -6,43 +6,40 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(country) {
+module.exports.validator_patch = function(publisher) {
 
-    country.prototype.validationControl = {
+    publisher.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    country.prototype.validatorSchema = {
+    publisher.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "country_id": {
+            "publisher_id": {
                 "type": ["string", "null"]
             },
             "name": {
                 "type": ["string", "null"]
-            },
-            "book_ids": {
-                "type": ["array", "null"]
             }
         }
     }
 
-    country.prototype.asyncValidate = ajv.compile(
-        country.prototype.validatorSchema
+    publisher.prototype.asyncValidate = ajv.compile(
+        publisher.prototype.validatorSchema
     )
 
-    country.prototype.validateForCreate = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    publisher.prototype.validateForCreate = async function(record) {
+        return await publisher.prototype.asyncValidate(record)
     }
 
-    country.prototype.validateForUpdate = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    publisher.prototype.validateForUpdate = async function(record) {
+        return await publisher.prototype.asyncValidate(record)
     }
 
-    country.prototype.validateForDelete = async function(id) {
+    publisher.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -53,9 +50,9 @@ module.exports.validator_patch = function(country) {
         }
     }
 
-    country.prototype.validateAfterRead = async function(record) {
-        return await country.prototype.asyncValidate(record)
+    publisher.prototype.validateAfterRead = async function(record) {
+        return await publisher.prototype.asyncValidate(record)
     }
 
-    return country
+    return publisher
 }

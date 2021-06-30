@@ -21,6 +21,7 @@ const {
   ConnectionError,
   getAndConnectDataModelClass,
 } = require("../connection");
+const config = require("../config/data_models_storage_config.json");
 /**
  * paginate - Creates pagination argument as needed in sequelize cotaining limit and offset accordingly to the current
  * page implicit in the request info.
@@ -1360,7 +1361,7 @@ module.exports.addSearchField = function (
       search.operator === undefined ||
       (search.value === undefined && search.search === undefined)
     ) {
-      search = {
+      nsearch = {
         field: field,
         value: value,
         operator: operator,
@@ -2327,11 +2328,13 @@ module.exports.buildCursorBasedSequelizeOptions = function (
     idAttribute
   );
   // add +1 to the LIMIT to get information about following pages.
-  options["limit"] = this.isNotUndefinedAndNotNull(pagination.first)
-    ? pagination.first + 1
-    : this.isNotUndefinedAndNotNull(pagination.last)
-    ? pagination.last + 1
-    : undefined;
+  if (pagination) {
+    options["limit"] = this.isNotUndefinedAndNotNull(pagination.first)
+      ? pagination.first + 1
+      : this.isNotUndefinedAndNotNull(pagination.last)
+      ? pagination.last + 1
+      : undefined;
+  }
   return options;
 };
 
@@ -2378,11 +2381,15 @@ module.exports.buildCursorBasedGenericOptions = function (
     idAttribute
   );
   // add +1 to the LIMIT to get information about following pages.
-  genericOptions["pagination"] = this.isNotUndefinedAndNotNull(pagination.first)
-    ? { limit: pagination.first + 1 }
-    : this.isNotUndefinedAndNotNull(pagination.last)
-    ? { limit: pagination.last + 1 }
-    : undefined;
+  if (pagination) {
+    genericOptions["pagination"] = this.isNotUndefinedAndNotNull(
+      pagination.first
+    )
+      ? { limit: pagination.first + 1 }
+      : this.isNotUndefinedAndNotNull(pagination.last)
+      ? { limit: pagination.last + 1 }
+      : undefined;
+  }
   return genericOptions;
 };
 
@@ -2544,6 +2551,41 @@ module.exports.buildEdgeObject = function (records) {
   return edges;
 };
 
+module.exports.createIndexes = async (storage, model, definition, database) => {
+  if ("neo4j" === storage) {
+    const driver = await model.storageHandler;
+    const session = driver.session({
+      database: config[database || `default-${storage}`].database,
+    });
+    try {
+      const modelName = definition.model;
+      const label =
+        modelName.length === 1
+          ? modelName.toUpperCase()
+          : modelName.slice(0, 1).toUpperCase() +
+            modelName.slice(1, modelName.length);
+      const id = definition.internalId ?? definition.id.name;
+
+      await session.run(
+        `CREATE INDEX index_${id} IF NOT EXISTS FOR (n:${label}) ON (n.${id})`
+      );
+    } catch (error) {
+      throw error;
+    } finally {
+      await session.close();
+    }
+  } else if ("mongodb" === storage) {
+    try {
+      const db = await model.storageHandler;
+      const collection = await db.collection(definition.model);
+      const id = definition.internalId ?? definition.id.name;
+      await collection.createIndex({ [id]: 1 });
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
 module.exports.initializeStorageHandlersForModels = async (models) => {
   console.log("initialize storage handlers for models");
   const connectionInstances = await getConnectionInstances();
@@ -2552,8 +2594,9 @@ module.exports.initializeStorageHandlersForModels = async (models) => {
 
   for (let name of Object.keys(models.sql)) {
     const database = models.sql[name].database;
-    const connection = connectionInstances.get(database || "default-sql")
-      .connection;
+    const connection = connectionInstances.get(
+      database || "default-sql"
+    ).connection;
     if (!connection) throw new ConnectionError(models.sql[name]);
 
     // setup storageHandler
@@ -2574,7 +2617,14 @@ module.exports.initializeStorageHandlersForModels = async (models) => {
     }
   });
 
-  const storageTypes = ["mongodb", "cassandra", "amazonS3", "trino", "presto"];
+  const storageTypes = [
+    "mongodb",
+    "cassandra",
+    "amazonS3",
+    "trino",
+    "presto",
+    "neo4j",
+  ];
   for (let storage of storageTypes) {
     console.log(`assign storage handler to ${storage} models`);
 
@@ -2590,6 +2640,14 @@ module.exports.initializeStorageHandlersForModels = async (models) => {
       getAndConnectDataModelClass(model, connection);
 
       console.log("assign storage handler to model: " + name);
+      if (["neo4j", "mongodb"].includes(storage)) {
+        await module.exports.createIndexes(
+          storage,
+          model,
+          models[storage][name],
+          database
+        );
+      }
     }
   }
 };
@@ -2601,8 +2659,9 @@ module.exports.initializeStorageHandlersForAdapters = async (adapters) => {
 
   for (let name of Object.keys(adapters.sql)) {
     const database = adapters.sql[name].database;
-    const connection = connectionInstances.get(database || "default-sql")
-      .connection;
+    const connection = connectionInstances.get(
+      database || "default-sql"
+    ).connection;
     if (!connection) throw new ConnectionError(adapters.sql[name]);
 
     // setup storageHandler
@@ -2613,7 +2672,14 @@ module.exports.initializeStorageHandlersForAdapters = async (adapters) => {
     console.log("assign storage handler to adapter: " + name);
   }
 
-  const storageTypes = ["mongodb", "cassandra", "amazonS3", "trino", "presto"];
+  const storageTypes = [
+    "mongodb",
+    "cassandra",
+    "amazonS3",
+    "trino",
+    "presto",
+    "neo4j",
+  ];
   for (let storage of storageTypes) {
     console.log(`assign storage handler to ${storage} adapters`);
 
@@ -2629,6 +2695,14 @@ module.exports.initializeStorageHandlersForAdapters = async (adapters) => {
       getAndConnectDataModelClass(adapter, connection);
 
       console.log("assign storage handler to adapter: " + name);
+      if (["neo4j", "mongodb"].includes(storage)) {
+        await module.exports.createIndexes(
+          storage,
+          adapter,
+          adapters[storage][name],
+          database
+        );
+      }
     }
   }
 };
@@ -2645,3 +2719,39 @@ module.exports.copyWithoutUnsetAttributes = function (obj) {
     )
   );
 };
+
+/**
+ * parseFieldResolverSearchArgForCassandra - recursive function to parse the search tree for eq/in searches on the given
+ * "idAttribute" parameter. This function is a workaround for fieldResolvers to a cassandra model.
+ * See https://github.com/Zendro-dev/graphql-server-model-codegen/issues/186 for a details on the issue.
+ * 
+ * WARNING: This workaround only partially solves the problem.
+ *  - cassandra still does not allow SELECT queries on indexed columns with IN clause for the PRIMARY KEY.
+ *  - If there are multiple nodes with searches on the idAttribute cassandra will still throw since multiple
+ *    Equal restrictions on the id field are not allowed
+ *  - This only works for associations where the foreignKey is stored on the side of the cassandra model, since
+ *    IN clauses are only allowed on the primarykey column, not on any foreignkey column.
+ * 
+ * @param {object} search search argument as passed to the resolver 
+ * @param {array} ids foreignkey or keys to check
+ * @param {string} idAttribute model id attribute name
+ * @returns {boolean} hasIdSearch - True if at least one node in the search tree has a eq/in search on the idAttribute
+ *                                  Be aware that this function manipulates the search object given directly.
+ */
+ module.exports.parseFieldResolverSearchArgForCassandra = function(search, ids, idAttribute, hasIdSearch=false) {
+  if (search && search.operator === 'and') {
+    search.search.forEach(searchVal => {
+      hasIdSearch = this.parseFieldResolverSearchArgForCassandra(searchVal, ids, idAttribute, hasIdSearch);
+    }) 
+  } else {
+    if(search && search.field === idAttribute && (search.operator === 'eq' || search.operator === 'in')) {
+      hasIdSearch = true;
+      const valueArr = search.operator === 'eq' ? [search.value] : search.value.split(',');
+      const intersection = Array.isArray(ids) ? _.intersection(valueArr, ids) : _.intersection(valueArr, [ids]);
+      search.operator = 'in';
+      search.value = intersection.length > 0 ? intersection.join(',') : [];
+      search.valueType = intersection.length > 0 ? "Array" : undefined;
+    }
+  }
+  return hasIdSearch;
+}

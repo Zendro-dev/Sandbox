@@ -14,19 +14,17 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addUnique_country': 'country'
+    'addCountry': 'country'
 }
 
-
-
 /**
- * capital.prototype.unique_country - Return associated record
+ * capital.prototype.country - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-capital.prototype.unique_country = async function({
+capital.prototype.country = async function({
     search
 }, context) {
 
@@ -71,44 +69,43 @@ capital.prototype.handleAssociations = async function(input, benignErrorReporter
 
     let promises_add = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.addUnique_country)) {
-        promises_add.push(this.add_unique_country(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.addCountry)) {
+        promises_add.push(this.add_country(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
     let promises_remove = [];
 
-    if (helper.isNotUndefinedAndNotNull(input.removeUnique_country)) {
-        promises_remove.push(this.remove_unique_country(input, benignErrorReporter));
+    if (helper.isNotUndefinedAndNotNull(input.removeCountry)) {
+        promises_remove.push(this.remove_country(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
 
 }
 /**
- * add_unique_country - field Mutation for to_one associations to add
+ * add_country - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-capital.prototype.add_unique_country = async function(input, benignErrorReporter) {
-    await capital.add_country_id(this.getIdValue(), input.addUnique_country, benignErrorReporter);
-    this.country_id = input.addUnique_country;
+capital.prototype.add_country = async function(input, benignErrorReporter) {
+    await capital.add_country_id(this.getIdValue(), input.addCountry, benignErrorReporter);
+    this.country_id = input.addCountry;
 }
 
 /**
- * remove_unique_country - field Mutation for to_one associations to remove
+ * remove_country - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
-capital.prototype.remove_unique_country = async function(input, benignErrorReporter) {
-    if (input.removeUnique_country == this.country_id) {
-        await capital.remove_country_id(this.getIdValue(), input.removeUnique_country, benignErrorReporter);
+capital.prototype.remove_country = async function(input, benignErrorReporter) {
+    if (input.removeCountry == this.country_id) {
+        await capital.remove_country_id(this.getIdValue(), input.removeCountry, benignErrorReporter);
         this.country_id = null;
     }
 }
-
 
 
 /**
@@ -128,7 +125,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_many = [];
     let promises_to_one = [];
 
-    promises_to_one.push(capital.unique_country({}, context));
+    promises_to_one.push(capital.country({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -150,33 +147,15 @@ async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
         throw new Error(`capital with capital_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
+
+    if (context.benignErrors.length > 0) {
+        throw new Error('Errors occurred when counting associated records. No deletion permitted for reasons of security.');
+    }
+
     return true;
 }
 
 module.exports = {
-    /**
-     * capitals - Check user authorization and return certain number, specified in pagination argument, of records that
-     * holds the condition of search argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search     Search argument for filtering records
-     * @param  {array} order       Type of sorting (ASC, DESC) for each field
-     * @param  {object} pagination Offset and limit to get the records from and to respectively
-     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
-     */
-    capitals: async function({
-        search,
-        order,
-        pagination
-    }, context) {
-        if (await checkAuthorization(context, 'capital', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "capitals");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await capital.readAll(search, order, pagination, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
 
     /**
      * capitalsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -193,16 +172,45 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'capital', 'read') === true) {
-            helper.checkCursorBasedPaginationArgument(pagination);
-            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "capitalsConnection");
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await capital.readAllCursor(search, order, pagination, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "capitalsConnection");
+
+        //construct benignErrors reporter with context
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        //check: adapters
+        let registeredAdapters = Object.values(capital.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "capital"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "capital"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            return await capital.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "capital" ');
+            }
         }
     },
+
 
     /**
      * readOneCapital - Check user authorization and return one record with the specified capital_id in the capital_id argument.
@@ -214,74 +222,52 @@ module.exports = {
     readOneCapital: async function({
         capital_id
     }, context) {
-        if (await checkAuthorization(context, 'capital', 'read') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, capital.adapterForIri(capital_id), 'read');
+        if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneCapital");
+            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await capital.readById(capital_id, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+
+            return capital.readById(capital_id, benignErrorReporter);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * countCapitals - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countCapitals: async function({
-        search
-    }, context) {
-        if (await checkAuthorization(context, 'capital', 'read') === true) {
-            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await capital.countRecords(search, benignErrorReporter);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * vueTableCapital - Return table of records as needed for displaying a vuejs table
-     *
-     * @param  {string} _       First parameter is not used
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Records with format as needed for displaying a vuejs table
-     */
-    vueTableCapital: async function(_, context) {
-        if (await checkAuthorization(context, 'capital', 'read') === true) {
-            return helper.vueTable(context.request, capital, ["id", "name", "capital_id", "country_id"]);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * addCapital - Check user authorization and creates a new record with data specified in the input argument.
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
+     * addCapital - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addCapital: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'capital', 'create');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.capital_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'capital_id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, capital.adapterForIri(input.capital_id), 'create');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
+            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdCapital = await capital.addOne(inputSanitized, benignErrorReporter);
-            await createdCapital.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdCapital;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+
+            let createdRecord = await capital.addOne(inputSanitized, benignErrorReporter);
+            await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
+
 
     /**
      * bulkAddCapitalCsv - Load csv file of records
@@ -291,6 +277,7 @@ module.exports = {
      */
     bulkAddCapitalCsv: async function(_, context) {
         if (await checkAuthorization(context, 'capital', 'create') === true) {
+            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return capital.bulkAddCsv(context, benignErrorReporter);
         } else {
@@ -308,40 +295,93 @@ module.exports = {
     deleteCapital: async function({
         capital_id
     }, context) {
-        if (await checkAuthorization(context, 'capital', 'delete') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, capital.adapterForIri(capital_id), 'delete');
+        if (authorizationCheck === true) {
             if (await validForDeletion(capital_id, context)) {
+                //construct benignErrors reporter with context
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
                 return capital.deleteOne(capital_id, benignErrorReporter);
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
      * updateCapital - Check user authorization and update the record specified in the input argument
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateCapital: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'capital', 'update');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.capital_id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'capital_id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, capital.adapterForIri(input.capital_id), 'update');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
+            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedCapital = await capital.updateOne(inputSanitized, benignErrorReporter);
-            await updatedCapital.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedCapital;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let updatedRecord = await capital.updateOne(inputSanitized, benignErrorReporter);
+            await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
+        }
+    },
+
+    /**
+     * countCapitals - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+
+    countCapitals: async function({
+        search
+    }, context) {
+        //construct benignErrors reporter with context
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+        //check: adapters
+        let registeredAdapters = Object.values(capital.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "capital"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "capital"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            return await capital.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "capital"');
+            }
         }
     },
 
@@ -395,6 +435,7 @@ module.exports = {
      */
     csvTableTemplateCapital: async function(_, context) {
         if (await checkAuthorization(context, 'capital', 'read') === true) {
+            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return capital.csvTableTemplate(benignErrorReporter);
         } else {
