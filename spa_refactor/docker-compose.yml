@@ -4,6 +4,7 @@ services:
 
   db_postgres:
     container_name: pgdb
+    restart: unless-stopped
     image: postgres:13-alpine
     environment:
       - POSTGRES_USER=postgres
@@ -14,7 +15,8 @@ services:
      - backend
 
   graphql_server:
-    container_name: gqlserver
+    container_name: graphql_server
+    restart: unless-stopped
     depends_on:
       - db_postgres
     build:
@@ -26,17 +28,21 @@ services:
       - ./seedUserDb.sql:/usr/src/seedUserDb.sql
       - ./migrateDbAndStartServer.sh:/usr/src/app/migrateDbAndStartServer.sh
       - .env:/usr/src/app/.env
-    ports:
-      - 3000:3000
     environment:
       JQ_PATH: /usr/bin/jq
       LIMIT_RECORDS: 10000
       PGPASSWORD: zendro
-      PORT: 3000
+      PORT: "3002"
       REQUIRE_SIGN_IN: "false"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "graphql_server"
+      traefik.frontend.rule: "Host:graphql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "3002"
     networks:
       - backend
-      - frontend
+      - reverseproxy
     command:
       - /bin/sh
       - -c
@@ -51,17 +57,22 @@ services:
   #     dockerfile: Dockerfile
   #   volumes:
   #     - ../single-page-app:/usr/src/app
-  #   ports:
-  #    - 8081:3000
   #   environment:
+  #     PORT: "8082"
   #     JQ_PATH: /usr/bin/jq
   #     REACT_APP_ZENDRO_MAX_RECORD_LIMIT: 100
-  #     REACT_APP_ZENDRO_GRAPHQL_SERVER_URL: http://localhost:3000/graphql
-  #     REACT_APP_ZENDRO_LOGIN_URL: http://localhost:3000/login
-  #     REACT_APP_ZENDRO_EXPORT_URL: http://localhost:3000/export
+  #     REACT_APP_ZENDRO_GRAPHQL_SERVER_URL: http://graphql.zendro-dev.org/graphql
+  #     REACT_APP_ZENDRO_LOGIN_URL: http://graphql.zendro-dev.org/login
+  #     REACT_APP_ZENDRO_EXPORT_URL: http://graphql.zendro-dev.org/export
   #     REACT_APP_ZENDRO_MAX_UPLOAD_SIZE: 500
+  #  labels:
+  #     traefik.enable: "true"
+  #     traefik.backend: "spa"
+  #     traefik.frontend.rule: "Host:spa.zendro-dev.org"
+  #     traefik.docker.network: "reverseproxy"
+  #     traefik.port: "8082"
   #   networks:
-  #     - frontend
+  #     - reverseproxy
   #   command:
   #     - /bin/sh
   #     - -c
@@ -69,8 +80,8 @@ services:
   #       npm start
 
 
-  graphiql:
-    container_name: graphiql-auth
+  graphiqlauth:
+    container_name: graphiqlauth
     restart: unless-stopped
     stdin_open: true
     depends_on:
@@ -80,13 +91,18 @@ services:
       context: .
       dockerfile: Dockerfile.graphiql
     environment:
-      REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
-      REACT_APP_LOGIN_URL: "http://localhost:3000/login"
-      PORT: "7000"
+      REACT_APP_SERVER_URL: "http://graphql.zendro-dev.org/graphql"
+      REACT_APP_LOGIN_URL: "http://graphql.zendro-dev.org/login"
+      PORT: "7002"
     networks:
       - backend
-    ports:
-      - "7000:7000"
+      - reverseproxy
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "graphiqlauth"
+      traefik.frontend.rule: "Host:graphiql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "7002"
     volumes:
       - ../graphiql-auth:/usr/src/app
     command:
@@ -98,4 +114,5 @@ services:
 
 networks:
   backend:
-  frontend:
+  reverseproxy:
+    external: true
