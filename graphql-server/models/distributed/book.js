@@ -44,7 +44,7 @@ const definition = {
             targetStorageType: 'distributed-data-model'
         },
         publisher: {
-            type: 'one_to_many',
+            type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'books',
             target: 'publisher',
@@ -445,6 +445,17 @@ module.exports = class book {
     }
 
 
+    /**
+     * add_publisher_id - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async add_publisher_id(book_id, publisher_id, benignErrorReporter) {
+        let responsibleAdapter = this.adapterForIri(book_id);
+        return await adapters[responsibleAdapter].add_publisher_id(book_id, publisher_id, benignErrorReporter);
+    }
 
     /**
      * add_country_ids - field Mutation (model-layer) for to_many associationsArguments to add
@@ -458,6 +469,17 @@ module.exports = class book {
         return await adapters[responsibleAdapter].add_country_ids(book_id, country_ids, benignErrorReporter, handle_inverse);
     }
 
+    /**
+     * remove_publisher_id - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     */
+    static async remove_publisher_id(book_id, publisher_id, benignErrorReporter) {
+        let responsibleAdapter = this.adapterForIri(book_id);
+        return await adapters[responsibleAdapter].remove_publisher_id(book_id, publisher_id, benignErrorReporter);
+    }
 
     /**
      * remove_country_ids - field Mutation (model-layer) for to_many associationsArguments to remove
@@ -475,6 +497,40 @@ module.exports = class book {
 
 
 
+    /**
+     * bulkAssociateBookWithPublisher_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateBookWithPublisher_id(bulkAssociationInput, benignErrorReporter) {
+        let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
+        var promises = [];
+        Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkAssociateBookWithPublisher_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+        });
+        await Promise.all(promises);
+        return "Records successfully updated!";
+    }
+
+
+    /**
+     * bulkDisAssociateBookWithPublisher_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateBookWithPublisher_id(bulkAssociationInput, benignErrorReporter) {
+        let mappedBulkAssociateInputToAdapters = this.mapBulkAssociationInputToAdapters(bulkAssociationInput);
+        var promises = [];
+        Object.keys(mappedBulkAssociateInputToAdapters).forEach(responsibleAdapter => {
+            promises.push(adapters[responsibleAdapter].bulkDisAssociateBookWithPublisher_id(mappedBulkAssociateInputToAdapters[responsibleAdapter], benignErrorReporter))
+        });
+        await Promise.all(promises);
+        return "Records successfully updated!";
+    }
 
 
 

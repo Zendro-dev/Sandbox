@@ -31,10 +31,6 @@ module.exports = {
 
             name: {
                 type: Sequelize[dict['String']]
-            },
-            book_ids: {
-                type: Sequelize[dict['[String]']],
-                defaultValue: '[]'
             }
 
         });

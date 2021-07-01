@@ -10,11 +10,6 @@ type author{
   
   """
   name: String
-"""
-  @original-field
-  
-  """
-  book_ids: [String]
 
 
   """
@@ -54,7 +49,6 @@ type VueTableAuthor{
 enum authorField {
   author_id
   name
-  book_ids
 
 }
 
@@ -82,8 +76,8 @@ type Query {
 }
 
 type Mutation {
-  addAuthor(author_id: ID!, name: String, book_ids: [String]   , addWorks:[ID] , skipAssociationsExistenceChecks:Boolean = false): author!
-  updateAuthor(author_id: ID!, name: String, book_ids: [String]   , addWorks:[ID], removeWorks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): author!
+  addAuthor(author_id: ID!, name: String   , addWorks:[ID] , skipAssociationsExistenceChecks:Boolean = false): author!
+  updateAuthor(author_id: ID!, name: String   , addWorks:[ID], removeWorks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): author!
   deleteAuthor(author_id: ID!): String!
   bulkAddAuthorCsv: String
   }

@@ -33,7 +33,6 @@ module.exports = class author_instance2 {
               {
                 author_id 
                 name 
-                book_ids 
                 
               }
             }`;
@@ -99,7 +98,6 @@ module.exports = class author_instance2 {
 
         let query = `query authorsConnection($search: searchAuthorInput $pagination: paginationCursorInput! $order: [orderAuthorInput]){
       authorsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  author_id  name
-         book_ids
         } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
 
 
@@ -135,13 +133,10 @@ module.exports = class author_instance2 {
         let query = `
           mutation addAuthor(
               $author_id:ID!  
-            $name:String
-            $book_ids:[String]          ){
+            $name:String          ){
             addAuthor(            author_id:$author_id  
-            name:$name
-            book_ids:$book_ids){
+            name:$name){
               author_id                name
-                book_ids
               }
           }`;
 
@@ -199,15 +194,12 @@ module.exports = class author_instance2 {
           mutation
             updateAuthor(
               $author_id:ID! 
-              $name:String 
-              $book_ids:[String]             ){
+              $name:String             ){
               updateAuthor(
                 author_id:$author_id 
-                name:$name 
-                book_ids:$book_ids               ){
+                name:$name               ){
                 author_id 
                 name 
-                book_ids 
               }
             }`
 

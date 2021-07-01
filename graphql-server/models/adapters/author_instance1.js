@@ -25,8 +25,7 @@ const definition = {
     regex: 'instance1',
     attributes: {
         author_id: 'String',
-        name: 'String',
-        book_ids: '[String]'
+        name: 'String'
     },
     associations: {
         works: {
@@ -68,10 +67,6 @@ module.exports = class author_instance1 extends Sequelize.Model {
             },
             name: {
                 type: Sequelize[dict['String']]
-            },
-            book_ids: {
-                type: Sequelize[dict['[String]']],
-                defaultValue: '[]'
             }
 
 

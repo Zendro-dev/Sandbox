@@ -22,6 +22,7 @@ type book{
   publisher_id: String
 
 
+publisher(search: searchPublisherInput): publisher
   """
   @search-request
   """
@@ -38,14 +39,6 @@ type book{
   @count-request
   """
   countFilteredCountries(search: searchCountryInput) : Int
-  """
-  @search-request
-  """
-  publisherConnection(search: searchPublisherInput, order: [ orderPublisherInput ], pagination: paginationCursorInput!): PublisherConnection
-  """
-  @count-request
-  """
-  countFilteredPublisher(search: searchPublisherInput) : Int
 
 }
 
@@ -94,7 +87,10 @@ input orderBookInput{
   order: Order
 }
 
-
+input bulkAssociationBookWithPublisher_idInput{
+  book_id: ID!
+  publisher_id: ID!
+}
 
 type Query {
   readOneBook(book_id: ID!): book
@@ -104,9 +100,11 @@ type Query {
 }
 
 type Mutation {
-  addBook(book_id: ID!, name: String   , addAuthors:[ID], addCountries:[ID], addPublisher:[ID] , skipAssociationsExistenceChecks:Boolean = false): book!
-  updateBook(book_id: ID!, name: String   , addAuthors:[ID], removeAuthors:[ID] , addCountries:[ID], removeCountries:[ID] , addPublisher:[ID], removePublisher:[ID]  , skipAssociationsExistenceChecks:Boolean = false): book!
+  addBook(book_id: ID!, name: String , addPublisher:ID  , addAuthors:[ID], addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): book!
+  updateBook(book_id: ID!, name: String , addPublisher:ID, removePublisher:ID   , addAuthors:[ID], removeAuthors:[ID] , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): book!
   deleteBook(book_id: ID!): String!
   bulkAddBookCsv: String
-  }
+  bulkAssociateBookWithPublisher_id(bulkAssociationInput: [bulkAssociationBookWithPublisher_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  bulkDisAssociateBookWithPublisher_id(bulkAssociationInput: [bulkAssociationBookWithPublisher_idInput], skipAssociationsExistenceChecks:Boolean = false): String!
+}
 `;

@@ -51,7 +51,7 @@ const definition = {
             targetStorageType: 'distributed-data-model'
         },
         publisher: {
-            type: 'one_to_many',
+            type: 'many_to_one',
             implementation: 'foreignkeys',
             reverseAssociation: 'books',
             target: 'publisher',
@@ -284,6 +284,29 @@ module.exports = class book_instance1 extends Sequelize.Model {
     }
 
 
+    /**
+     * add_publisher_id - field Mutation (adapter-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
+    static async add_publisher_id(book_id, publisher_id) {
+        let updated = await super.update({
+            publisher_id: publisher_id
+        }, {
+            where: {
+                book_id: book_id
+            }
+        });
+        return updated;
+    }
+
+
+
+
 
     /**
      * add_country_ids - field Mutation (model-layer) for to_many associationsArguments to add
@@ -312,6 +335,30 @@ module.exports = class book_instance1 extends Sequelize.Model {
             });
         }
     }
+
+
+
+    /**
+     * remove_publisher_id - field Mutation (adapter-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   book_id   IdAttribute of the root model to be updated
+     * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
+     */
+
+
+
+    static async remove_publisher_id(book_id, publisher_id) {
+        let updated = await super.update({
+            publisher_id: null
+        }, {
+            where: {
+                book_id: book_id,
+                publisher_id: publisher_id
+            }
+        });
+        return updated;
+    }
+
 
 
 
@@ -404,6 +451,59 @@ module.exports = class book_instance1 extends Sequelize.Model {
         return helper.csvTableTemplate(definition);
     }
 
+    /**
+     * bulkAssociateBookWithPublisher_id - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateBookWithPublisher_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "publisher_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            publisher_id,
+            book_id
+        }) => {
+            promises.push(super.update({
+                publisher_id: publisher_id
+            }, {
+                where: {
+                    book_id: book_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+
+    /**
+     * bulkDisAssociateBookWithPublisher_id - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateBookWithPublisher_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "publisher_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            publisher_id,
+            book_id
+        }) => {
+            promises.push(super.update({
+                publisher_id: null
+            }, {
+                where: {
+                    book_id: book_id,
+                    publisher_id: publisher_id
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 

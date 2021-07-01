@@ -14,10 +14,47 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 
 const associationArgsDef = {
-    'addCountries': 'country',
-    'addPublisher': 'publisher'
+    'addPublisher': 'publisher',
+    'addCountries': 'country'
 }
 
+/**
+ * book.prototype.publisher - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+book.prototype.publisher = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.publisher_id)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOnePublisher({
+                [models.publisher.idAttribute()]: this.publisher_id
+            }, context)
+        } else {
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.publisher.idAttribute(),
+                "value": this.publisher_id,
+                "operator": "eq"
+            });
+            let found = (await resolvers.publishersConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 
 
 /**
@@ -93,61 +130,6 @@ book.prototype.countriesConnection = function({
     }, context);
 }
 
-/**
- * book.prototype.countFilteredPublisher - Count number of associated records that holds the conditions specified in the search argument
- *
- * @param  {object} {search} description
- * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}          Number of associated records that holds the conditions specified in the search argument
- */
-book.prototype.countFilteredPublisher = function({
-    search
-}, context) {
-
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "publisher_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.countPublishers({
-        search: nsearch
-    }, context);
-}
-
-
-/**
- * book.prototype.publisherConnection - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
- */
-book.prototype.publisherConnection = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "publisher_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    return resolvers.publishersConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-
 
 
 
@@ -163,11 +145,11 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.addCountries)) {
         promises_add.push(this.add_countries(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addPublisher)) {
-        promises_add.push(this.add_publisher(input, benignErrorReporter));
-    }
     if (helper.isNonEmptyArray(input.addAuthors)) {
         promises_add.push(this.add_authors(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addPublisher)) {
+        promises_add.push(this.add_publisher(input, benignErrorReporter));
     }
 
     await Promise.all(promises_add);
@@ -175,11 +157,11 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.removeCountries)) {
         promises_remove.push(this.remove_countries(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removePublisher)) {
-        promises_remove.push(this.remove_publisher(input, benignErrorReporter));
-    }
     if (helper.isNonEmptyArray(input.removeAuthors)) {
         promises_remove.push(this.remove_authors(input, benignErrorReporter));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removePublisher)) {
+        promises_remove.push(this.remove_publisher(input, benignErrorReporter));
     }
 
     await Promise.all(promises_remove);
@@ -208,21 +190,14 @@ book.prototype.add_countries = async function(input, benignErrorReporter) {
 }
 
 /**
- * add_publisher - field Mutation for to_many associations to add
- * uses bulkAssociate to efficiently update associations
+ * add_publisher - field Mutation for to_one associations to add
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 book.prototype.add_publisher = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.addPublisher.map(associatedRecordId => {
-        return {
-            publisher_id: this.getIdValue(),
-            [models.publisher.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.publisher.bulkAssociatePublisherWithPublisher_id(bulkAssociationInput, benignErrorReporter);
+    await book.add_publisher_id(this.getIdValue(), input.addPublisher, benignErrorReporter);
+    this.publisher_id = input.addPublisher;
 }
 
 /**
@@ -248,21 +223,16 @@ book.prototype.remove_countries = async function(input, benignErrorReporter) {
 }
 
 /**
- * remove_publisher - field Mutation for to_many associations to remove
- * uses bulkAssociate to efficiently update associations
+ * remove_publisher - field Mutation for to_one associations to remove
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 book.prototype.remove_publisher = async function(input, benignErrorReporter) {
-
-    let bulkAssociationInput = input.removePublisher.map(associatedRecordId => {
-        return {
-            publisher_id: this.getIdValue(),
-            [models.publisher.idAttribute()]: associatedRecordId
-        }
-    });
-    await models.publisher.bulkDisAssociatePublisherWithPublisher_id(bulkAssociationInput, benignErrorReporter);
+    if (input.removePublisher == this.publisher_id) {
+        await book.remove_publisher_id(this.getIdValue(), input.removePublisher, benignErrorReporter);
+        this.publisher_id = null;
+    }
 }
 
 
@@ -284,7 +254,7 @@ async function countAllAssociatedRecords(id, context) {
     let promises_to_one = [];
 
     promises_to_many.push(book.countFilteredCountries({}, context));
-    promises_to_many.push(book.countFilteredPublisher({}, context));
+    promises_to_one.push(book.publisher({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -544,6 +514,46 @@ module.exports = {
         }
     },
 
+    /**
+     * bulkAssociateBookWithPublisher_id - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateBookWithPublisher_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                publisher_id
+            }) => publisher_id)), models.publisher);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkAssociateBookWithPublisher_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
+    /**
+     * bulkDisAssociateBookWithPublisher_id - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateBookWithPublisher_id: async function(bulkAssociationInput, context) {
+        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                publisher_id
+            }) => publisher_id)), models.publisher);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                book_id
+            }) => book_id)), book);
+        }
+        return await book.bulkDisAssociateBookWithPublisher_id(bulkAssociationInput.bulkAssociationInput, benignErrorReporter);
+    },
 
     /**
      * csvTableTemplateBook - Returns table's template

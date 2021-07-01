@@ -18,8 +18,7 @@ const definition = {
     ],
     attributes: {
         author_id: 'String',
-        name: 'String',
-        book_ids: '[String]'
+        name: 'String'
     },
     associations: {
         works: {
@@ -52,12 +51,10 @@ module.exports = class author {
 
     constructor({
         author_id,
-        name,
-        book_ids
+        name
     }) {
         this.author_id = author_id;
         this.name = name;
-        this.book_ids = book_ids;
     }
 
     static get name() {

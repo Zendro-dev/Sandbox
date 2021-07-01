@@ -4,8 +4,7 @@
     "registry": ["author_instance1", "author_instance2"],
     "attributes": {
         "author_id":"String",
-        "name": "String",
-        "book_ids": "[String]"
+        "name": "String"
     },
   
     "associations": {
