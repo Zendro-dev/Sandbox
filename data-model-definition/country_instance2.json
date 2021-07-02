@@ -1,9 +1,8 @@
 {
     "model": "country",
-    "storageType": "ddm-adapter",
+    "storageType": "sql-adapter",
     "adapterName": "country_instance2",
     "regex": "instance2",
-    "url": "http://localhost:3030/graphql",
     "attributes": {
         "country_id":"String",
         "name": "String",

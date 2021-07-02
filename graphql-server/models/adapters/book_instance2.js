@@ -1,235 +1,274 @@
-const axios_general = require('axios');
+const _ = require('lodash');
 const globals = require('../../config/globals');
+const Sequelize = require('sequelize');
+const dict = require('../../utils/graphql-sequelize-types');
 const validatorUtil = require('../../utils/validatorUtil');
-const errorHelper = require('../../utils/errors');
 const helper = require('../../utils/helper');
+const searchArg = require('../../utils/search-argument');
+const path = require('path');
+const fileTools = require('../../utils/file-tools');
+const helpersAcl = require('../../utils/helpers-acl');
+const email = require('../../utils/email');
+const fs = require('fs');
+const os = require('os');
+const uuidv4 = require('uuidv4').uuid;
+const models = require(path.join(__dirname, '..', 'index.js'));
 
-let axios = axios_general.create();
-axios.defaults.timeout = globals.MAX_TIME_OUT;
-
-const remoteZendroURL = "http://localhost:3030/graphql";
+const remoteZendroURL = "";
 const iriRegex = new RegExp('instance2');
 
-module.exports = class book_instance2 {
+// An exact copy of the the model definition that comes from the .json file
+const definition = {
+    model: 'book',
+    storageType: 'sql-adapter',
+    adapterName: 'book_instance2',
+    regex: 'instance2',
+    attributes: {
+        book_id: 'String',
+        name: 'String',
+        country_ids: '[String]',
+        publisher_id: 'String'
+    },
+    associations: {
+        countries: {
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'available_books',
+            target: 'country',
+            targetKey: 'book_ids',
+            sourceKey: 'country_ids',
+            keysIn: 'book',
+            targetStorageType: 'distributed-data-model'
+        },
+        publisher: {
+            type: 'many_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'books',
+            target: 'publisher',
+            targetKey: 'publisher_id',
+            keysIn: 'book',
+            targetStorageType: 'distributed-data-model'
+        }
+    },
+    internalId: 'book_id',
+    id: {
+        name: 'book_id',
+        type: 'String'
+    }
+};
+const DataLoader = require("dataloader");
+
+/**
+ * module - Creates a sequelize model
+ *
+ * @param  {object} sequelize Sequelize instance.
+ * @param  {object} DataTypes Allowed sequelize data types.
+ * @return {object}           Sequelize model with associations defined
+ */
+
+module.exports = class book_instance2 extends Sequelize.Model {
+
+    static init(sequelize, DataTypes) {
+        return super.init({
+
+            book_id: {
+                type: Sequelize[dict['String']],
+                primaryKey: true
+            },
+            name: {
+                type: Sequelize[dict['String']]
+            },
+            country_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            publisher_id: {
+                type: Sequelize[dict['String']]
+            }
+
+
+        }, {
+            modelName: "book",
+            tableName: "books",
+            sequelize
+        });
+    }
 
     static get adapterName() {
         return 'book_instance2';
     }
 
     static get adapterType() {
-        return 'ddm-adapter';
+        return 'sql-adapter';
+    }
+
+    /**
+     * Get the storage handler, which is a static property of the data model class.
+     * @returns sequelize.
+     */
+    get storageHandler() {
+        return this.sequelize;
+    }
+
+    /**
+     * Cast array to JSON string for the storage.
+     * @param  {object} record  Original data record.
+     * @return {object}         Record with JSON string if necessary.
+     */
+    static preWriteCast(record) {
+        for (let attr in definition.attributes) {
+            let type = definition.attributes[attr].replace(/\s+/g, '');
+            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
+                record[attr] = JSON.stringify(record[attr]);
+            }
+        }
+        return record;
+    }
+
+    /**
+     * Cast JSON string to array for the validation.
+     * @param  {object} record  Record with JSON string if necessary.
+     * @return {object}         Parsed data record.
+     */
+    static postReadCast(record) {
+        for (let attr in definition.attributes) {
+            let type = definition.attributes[attr].replace(/\s+/g, '');
+            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
+                record[attr] = JSON.parse(record[attr]);
+            }
+        }
+        return record;
     }
 
     static recognizeId(iri) {
         return iriRegex.test(iri);
     }
 
-    static async readById(iri, benignErrorReporter) {
-        let query = `
-          query
-            readOneBook
-            {
-              readOneBook(book_id:"${iri}")
-              {
-                book_id 
-                name 
-                country_ids 
-                publisher_id 
-                
-              }
-            }`;
+    /**
+     * Batch function for readById method.
+     * @param  {array} keys  keys from readById method
+     * @return {array}       searched results
+     */
+    static async batchReadById(keys) {
+        let queryArg = {
+            operator: "in",
+            field: book_instance2.idAttribute(),
+            value: keys.join(),
+            valueType: "Array",
+        };
+        let cursorRes = await book_instance2.readAllCursor(queryArg);
+        cursorRes = cursorRes.books.reduce(
+            (map, obj) => ((map[obj[book_instance2.idAttribute()]] = obj), map), {}
+        );
+        return keys.map(
+            (key) =>
+            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
+        );
+    }
 
+    static readByIdLoader = new DataLoader(book_instance2.batchReadById, {
+        cache: false,
+    });
+
+    static async readById(id) {
+        return await book_instance2.readByIdLoader.load(id);
+    }
+    static countRecords(search) {
+        let options = {};
+
+        /*
+         * Search conditions
+         */
+        if (search !== undefined && search !== null) {
+
+            //check
+            if (typeof search !== 'object') {
+                throw new Error('Illegal "search" argument type, it must be an object.');
+            }
+
+            let arg = new searchArg(search);
+            let arg_sequelize = arg.toSequelize(book_instance2.definition.attributes);
+            options['where'] = arg_sequelize;
+        }
+        return super.count(options);
+    }
+
+    static async readAllCursor(search, order, pagination) {
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), book_instance2.definition.attributes);
+        let records = await super.findAll(options);
+        records = records.map(x => book_instance2.postReadCast(x))
+
+        // get the first record (if exists) in the opposite direction to determine pageInfo.
+        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
+        let oppRecords = [];
+        if (pagination && (pagination.after || pagination.before)) {
+            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
+                ...pagination,
+                includeCursor: false
+            }, this.idAttribute(), book_instance2.definition.attributes);
+            oppRecords = await super.findAll(oppOptions);
+        }
+        // build the graphql Connection Object
+        let edges = helper.buildEdgeObject(records);
+        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
+        return {
+            edges,
+            pageInfo,
+            books: edges.map((edge) => edge.node)
+        };
+    }
+
+    static async addOne(input) {
+        input = book_instance2.preWriteCast(input)
         try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
+            const result = await this.sequelize.transaction(async (t) => {
+                let item = await super.create(input, {
+                    transaction: t
+                });
+                return item;
             });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.readOneBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
+            book_instance2.postReadCast(result.dataValues)
+            book_instance2.postReadCast(result._previousDataValues)
+            return result;
         } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+            throw error;
+        }
+
+    }
+
+    static async deleteOne(id) {
+        let destroyed = await super.destroy({
+            where: {
+                [this.idAttribute()]: id
+            }
+        });
+        if (destroyed !== 0) {
+            return 'Item successfully deleted';
+        } else {
+            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
         }
     }
 
-    static async countRecords(search, benignErrorReporter) {
-        let query = `
-      query countBooks($search: searchBookInput){
-        countBooks(search: $search)
-      }`
-
+    static async updateOne(input) {
+        input = book_instance2.preWriteCast(input)
         try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: {
-                    search: search
+            let result = await this.sequelize.transaction(async (t) => {
+                let to_update = await super.findByPk(input[this.idAttribute()]);
+                if (to_update === null) {
+                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
                 }
+
+                let updated = await to_update.update(input, {
+                    transaction: t
+                });
+                return updated;
             });
-
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.countBooks;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
+            book_instance2.postReadCast(result.dataValues)
+            book_instance2.postReadCast(result._previousDataValues)
+            return result;
         } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
-
-    }
-
-    static async readAllCursor(search, order, pagination, benignErrorReporter) {
-
-        let query = `query booksConnection($search: searchBookInput $pagination: paginationCursorInput! $order: [orderBookInput]){
-      booksConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  book_id  name
-         country_ids
-         publisher_id
-        } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
-
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: {
-                    search: search,
-                    order: order,
-                    pagination: pagination
-                }
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data && response.data.data.booksConnection !== null) {
-                return response.data.data.booksConnection;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
-    }
-
-    static async addOne(input, benignErrorReporter) {
-        let query = `
-          mutation addBook(
-              $book_id:ID!  
-            $name:String          ){
-            addBook(            book_id:$book_id  
-            name:$name){
-              book_id                name
-                country_ids
-                publisher_id
-              }
-          }`;
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: input
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            if (response && response.data && response.data.data) {
-                return response.data.data.addBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
-    }
-
-    static async deleteOne(id, benignErrorReporter) {
-        let query = `
-          mutation
-            deleteBook{
-              deleteBook(
-                book_id: "${id}" )}`;
-
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            if (response && response.data && response.data.data) {
-                return response.data.data.deleteBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
-    }
-
-    static async updateOne(input, benignErrorReporter) {
-        let query = `
-          mutation
-            updateBook(
-              $book_id:ID! 
-              $name:String             ){
-              updateBook(
-                book_id:$book_id 
-                name:$name               ){
-                book_id 
-                name 
-                country_ids 
-                publisher_id 
-              }
-            }`
-
-
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: input
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            if (response && response.data && response.data.data) {
-                return response.data.data.updateBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+            throw error;
         }
     }
 
@@ -239,45 +278,20 @@ module.exports = class book_instance2 {
      *
      * @param {Id}   book_id   IdAttribute of the root model to be updated
      * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
 
-    static async add_publisher_id(book_id, publisher_id, benignErrorReporter) {
-        let query = `
-              mutation
-                updateBook{
-                  updateBook(
-                    book_id:"${book_id}"
-                    addPublisher:"${publisher_id}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    book_id                    publisher_id                  }
-                }`
 
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+
+    static async add_publisher_id(book_id, publisher_id) {
+        let updated = await super.update({
+            publisher_id: publisher_id
+        }, {
+            where: {
+                book_id: book_id
             }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.updateBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
+        });
+        return updated;
     }
-
-
 
 
 
@@ -290,38 +304,24 @@ module.exports = class book_instance2 {
      * @param {Array}   country_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async add_country_ids(book_id, country_ids, benignErrorReporter) {
-        let query = `
-                mutation
-                  updateBook{
-                    updateBook(
-                      book_id:"${book_id}"
-                      addCountries:["${country_ids.join("\",\"")}"]
-                      skipAssociationsExistenceChecks: true
-                    ){
-                      book_id                      country_ids                    }
-                  }`
+    static async add_country_ids(book_id, country_ids, benignErrorReporter, handle_inverse = true) {
 
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            country_ids.forEach(idx => {
+                promises.push(models.country.add_book_ids(idx, [`${book_id}`], benignErrorReporter, false));
             });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.updateBook;
-            } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(book_id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.country_ids), country_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                country_ids: updated_ids
+            });
         }
     }
 
@@ -332,45 +332,21 @@ module.exports = class book_instance2 {
      *
      * @param {Id}   book_id   IdAttribute of the root model to be updated
      * @param {Id}   publisher_id Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
 
-    static async remove_publisher_id(book_id, publisher_id, benignErrorReporter) {
-        let query = `
-              mutation
-                updateBook{
-                  updateBook(
-                    book_id:"${book_id}"
-                    removePublisher:"${publisher_id}"
-                    skipAssociationsExistenceChecks: true
-                  ){
-                    book_id                    publisher_id                  }
-                }`
 
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+
+    static async remove_publisher_id(book_id, publisher_id) {
+        let updated = await super.update({
+            publisher_id: null
+        }, {
+            where: {
+                book_id: book_id,
+                publisher_id: publisher_id
             }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.updateBook;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
+        });
+        return updated;
     }
-
-
 
 
 
@@ -383,65 +359,85 @@ module.exports = class book_instance2 {
      * @param {Array}   country_ids Array foreign Key (stored in "Me") of the Association to be updated.
      */
 
-    static async remove_country_ids(book_id, country_ids, benignErrorReporter) {
-        let query = `
-                mutation
-                  updateBook{
-                    updateBook(
-                      book_id:"${book_id}"
-                      removeCountries:["${country_ids.join("\",\"")}"]
-                      skipAssociationsExistenceChecks: true
-                    ){
-                      book_id                      country_ids                    }
-                  }`
+    static async remove_country_ids(book_id, country_ids, benignErrorReporter, handle_inverse = true) {
 
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            country_ids.forEach(idx => {
+                promises.push(models.country.remove_book_ids(idx, [`${book_id}`], benignErrorReporter, false));
             });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-            if (response && response.data && response.data.data) {
-                return response.data.data.updateBook;
-            } else {
-                throw new Error(`Invalid response from remote zendro-server: ${remoteZendroURL}`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(book_id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.country_ids), country_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                country_ids: updated_ids
+            });
         }
     }
+
 
 
 
 
 
     static bulkAddCsv(context) {
-        throw new Error("book.bulkAddCsv is not implemented.")
+
+        let delim = context.request.body.delim;
+        let cols = context.request.body.cols;
+        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
+
+        context.request.files.csv_file.mv(tmpFile).then(() => {
+
+            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
+                try {
+                    console.log(`Sending ${addedZipFilePath} to the user.`);
+
+                    let attach = [];
+                    attach.push({
+                        filename: path.basename("added_data.zip"),
+                        path: addedZipFilePath
+                    });
+
+                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                        'ScienceDB batch add',
+                        'Your data has been successfully added to the database.',
+                        attach).then(function(info) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.log(info);
+                    }).catch(function(err) {
+                        fileTools.deleteIfExists(addedZipFilePath);
+                        console.error(err);
+                    });
+
+                } catch (error) {
+                    console.error(error.message);
+                }
+
+                fs.unlinkSync(tmpFile);
+            }).catch((error) => {
+                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
+                    'ScienceDB batch add', `${error.message}`).then(function(info) {
+                    console.error(info);
+                }).catch(function(err) {
+                    console.error(err);
+                });
+
+                fs.unlinkSync(tmpFile);
+            });
+
+        }).catch((error) => {
+            throw new Error(error);
+        });
+        return `Bulk import of book_instance2 records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
-    static async csvTableTemplate(benignErrorReporter) {
-        let query = `query { csvTableTemplateBook }`;
-
-        try {
-            let response = await axios.post(remoteZendroURL, {
-                query: query
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            return response.data.data.csvTableTemplateBook;
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
+    static csvTableTemplate() {
+        return helper.csvTableTemplate(definition);
     }
 
     /**
@@ -451,35 +447,23 @@ module.exports = class book_instance2 {
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateBookWithPublisher_id(bulkAssociationInput, benignErrorReporter) {
-        let query = `mutation  bulkAssociateBookWithPublisher_id($bulkAssociationInput: [bulkAssociationBookWithPublisher_idInput]){
-          bulkAssociateBookWithPublisher_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
-        }`
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: {
-                    bulkAssociationInput: bulkAssociationInput
+    static async bulkAssociateBookWithPublisher_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "publisher_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            publisher_id,
+            book_id
+        }) => {
+            promises.push(super.update({
+                publisher_id: publisher_id
+            }, {
+                where: {
+                    book_id: book_id
                 }
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-
-            if (response && response.data && response.data.data) {
-                return response.data.data.bulkAssociateBookWithPublisher_id;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
     }
 
 
@@ -490,37 +474,87 @@ module.exports = class book_instance2 {
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateBookWithPublisher_id(bulkAssociationInput, benignErrorReporter) {
-        let query = `mutation  bulkDisAssociateBookWithPublisher_id($bulkAssociationInput: [bulkAssociationBookWithPublisher_idInput]){
-          bulkDisAssociateBookWithPublisher_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
-        }`
-        try {
-            // Send an HTTP request to the remote server
-            let response = await axios.post(remoteZendroURL, {
-                query: query,
-                variables: {
-                    bulkAssociationInput: bulkAssociationInput
+    static async bulkDisAssociateBookWithPublisher_id(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "book_id", "publisher_id");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            publisher_id,
+            book_id
+        }) => {
+            promises.push(super.update({
+                publisher_id: null
+            }, {
+                where: {
+                    book_id: book_id,
+                    publisher_id: publisher_id
                 }
-            });
-            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
-            if (helper.isNonEmptyArray(response.data.errors)) {
-                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
-            }
-            // STATUS-CODE is 200
-            // NO ERROR as such has been detected by the server (Express)
-            // check if data was send
-
-            if (response && response.data && response.data.data) {
-                return response.data.data.bulkDisAssociateBookWithPublisher_id;
-            } else {
-                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
-            }
-        } catch (error) {
-            //handle caught errors
-            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
-        }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
     }
 
 
+
+    /**
+     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
+     *
+     * @return {type} Name of the attribute that functions as an internalId
+     */
+
+    static idAttribute() {
+        return book_instance2.definition.id.name;
+    }
+
+    /**
+     * idAttributeType - Return the Type of the internalId.
+     *
+     * @return {type} Type given in the JSON model
+     */
+
+    static idAttributeType() {
+        return book_instance2.definition.id.type;
+    }
+
+    /**
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of book_instance2.
+     *
+     * @return {type} id value
+     */
+
+    getIdValue() {
+        return this[book_instance2.idAttribute()]
+    }
+
+    static get definition() {
+        return definition;
+    }
+
+    static base64Decode(cursor) {
+        return Buffer.from(cursor, 'base64').toString('utf-8');
+    }
+
+    base64Enconde() {
+        return Buffer.from(JSON.stringify(this.stripAssociations())).toString('base64');
+    }
+
+    stripAssociations() {
+        let attributes = Object.keys(book_instance2.definition.attributes);
+        let data_values = _.pick(this, attributes);
+        return data_values;
+    }
+
+    static externalIdsArray() {
+        let externalIds = [];
+        if (definition.externalIds) {
+            externalIds = definition.externalIds;
+        }
+
+        return externalIds;
+    }
+
+    static externalIdsObject() {
+        return {};
+    }
 
 }

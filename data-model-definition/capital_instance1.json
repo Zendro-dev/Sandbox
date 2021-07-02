@@ -1,8 +1,9 @@
 {
     "model": "capital",
-    "storageType": "sql-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "capital_instance1",
     "regex": "instance1",
+    "url": "http://graphql.zendro-dev.org/graphql",
     "attributes": {
         "capital_id":"String",
         "name": "String",

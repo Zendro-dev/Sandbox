@@ -1,8 +1,9 @@
 {
     "model": "publisher",
-    "storageType": "sql-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "publisher_instance1",
     "regex": "instance1",
+    "url": "http://graphql.zendro-dev.org/graphql",
     "attributes": {
         "publisher_id": "String",
         "name": "String"

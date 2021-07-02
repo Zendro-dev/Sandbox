@@ -1,8 +1,9 @@
 {
     "model": "country",
-    "storageType": "sql-adapter",
+    "storageType": "ddm-adapter",
     "adapterName": "country_instance1",
     "regex": "instance1",
+    "url": "http://graphql.zendro-dev.org/graphql",
     "attributes": {
         "country_id":"String",
         "name": "String",

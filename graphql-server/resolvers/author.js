@@ -29,37 +29,15 @@ const associationArgsDef = {}
 author.prototype.handleAssociations = async function(input, benignErrorReporter) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addWorks)) {
-        promises_add.push(this.add_works(input, benignErrorReporter));
-    }
+
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeWorks)) {
-        promises_remove.push(this.remove_works(input, benignErrorReporter));
-    }
+
 
     await Promise.all(promises_remove);
 
 }
-/**
- * add_works - field Mutation for to_many associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- */
-author.prototype.add_works = async function(input) {
-    await models.author.add_author_id(this, input.addWorks);
-}
-
-/**
- * remove_works - field Mutation for to_many associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- */
-author.prototype.remove_works = async function(input) {
-    await models.author.remove_author_id(this, input.removeWorks);
-}
-
 
 /**
  * countAllAssociatedRecords - Count records associated with another given record

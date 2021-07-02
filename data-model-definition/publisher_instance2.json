@@ -1,9 +1,8 @@
 {
     "model": "publisher",
-    "storageType": "ddm-adapter",
+    "storageType": "sql-adapter",
     "adapterName": "publisher_instance2",
     "regex": "instance2",
-    "url": "http://localhost:3030/graphql",
     "attributes": {
         "publisher_id": "String",
         "name": "String"

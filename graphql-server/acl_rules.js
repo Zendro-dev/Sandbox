@@ -19,7 +19,6 @@ module.exports = {
             allows: [{
                 resources: [
                     'author',
-                    'author_to_book',
                     'book',
                     'capital',
                     'country',
@@ -44,7 +43,6 @@ module.exports = {
             allows: [{
                 resources: [
                     'author',
-                    'author_to_book',
                     'book',
                     'capital',
                     'country',

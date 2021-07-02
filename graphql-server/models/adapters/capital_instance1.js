@@ -1,260 +1,231 @@
-const _ = require('lodash');
+const axios_general = require('axios');
 const globals = require('../../config/globals');
-const Sequelize = require('sequelize');
-const dict = require('../../utils/graphql-sequelize-types');
 const validatorUtil = require('../../utils/validatorUtil');
+const errorHelper = require('../../utils/errors');
 const helper = require('../../utils/helper');
-const searchArg = require('../../utils/search-argument');
-const path = require('path');
-const fileTools = require('../../utils/file-tools');
-const helpersAcl = require('../../utils/helpers-acl');
-const email = require('../../utils/email');
-const fs = require('fs');
-const os = require('os');
-const uuidv4 = require('uuidv4').uuid;
-const models = require(path.join(__dirname, '..', 'index.js'));
 
-const remoteZendroURL = "";
+let axios = axios_general.create();
+axios.defaults.timeout = globals.MAX_TIME_OUT;
+
+const remoteZendroURL = "http://graphql.zendro-dev.org/graphql";
 const iriRegex = new RegExp('instance1');
 
-// An exact copy of the the model definition that comes from the .json file
-const definition = {
-    model: 'capital',
-    storageType: 'sql-adapter',
-    adapterName: 'capital_instance1',
-    regex: 'instance1',
-    attributes: {
-        capital_id: 'String',
-        name: 'String',
-        country_id: 'String'
-    },
-    associations: {
-        country: {
-            type: 'one_to_one',
-            implementation: 'foreignkeys',
-            reverseAssociation: 'capital',
-            target: 'country',
-            targetKey: 'country_id',
-            keysIn: 'capital',
-            targetStorageType: 'distributed-data-model'
-        }
-    },
-    internalId: 'capital_id',
-    useDataLoader: true,
-    id: {
-        name: 'capital_id',
-        type: 'String'
-    }
-};
-const DataLoader = require("dataloader");
-
-/**
- * module - Creates a sequelize model
- *
- * @param  {object} sequelize Sequelize instance.
- * @param  {object} DataTypes Allowed sequelize data types.
- * @return {object}           Sequelize model with associations defined
- */
-
-module.exports = class capital_instance1 extends Sequelize.Model {
-
-    static init(sequelize, DataTypes) {
-        return super.init({
-
-            capital_id: {
-                type: Sequelize[dict['String']],
-                primaryKey: true
-            },
-            name: {
-                type: Sequelize[dict['String']]
-            },
-            country_id: {
-                type: Sequelize[dict['String']]
-            }
-
-
-        }, {
-            modelName: "capital",
-            tableName: "capitals",
-            sequelize
-        });
-    }
+module.exports = class capital_instance1 {
 
     static get adapterName() {
         return 'capital_instance1';
     }
 
     static get adapterType() {
-        return 'sql-adapter';
-    }
-
-    /**
-     * Get the storage handler, which is a static property of the data model class.
-     * @returns sequelize.
-     */
-    get storageHandler() {
-        return this.sequelize;
-    }
-
-    /**
-     * Cast array to JSON string for the storage.
-     * @param  {object} record  Original data record.
-     * @return {object}         Record with JSON string if necessary.
-     */
-    static preWriteCast(record) {
-        for (let attr in definition.attributes) {
-            let type = definition.attributes[attr].replace(/\s+/g, '');
-            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
-                record[attr] = JSON.stringify(record[attr]);
-            }
-        }
-        return record;
-    }
-
-    /**
-     * Cast JSON string to array for the validation.
-     * @param  {object} record  Record with JSON string if necessary.
-     * @return {object}         Parsed data record.
-     */
-    static postReadCast(record) {
-        for (let attr in definition.attributes) {
-            let type = definition.attributes[attr].replace(/\s+/g, '');
-            if (type[0] === '[' && record[attr] !== undefined && record[attr] !== null) {
-                record[attr] = JSON.parse(record[attr]);
-            }
-        }
-        return record;
+        return 'ddm-adapter';
     }
 
     static recognizeId(iri) {
         return iriRegex.test(iri);
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: capital_instance1.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await capital_instance1.readAllCursor(queryArg);
-        cursorRes = cursorRes.capitals.reduce(
-            (map, obj) => ((map[obj[capital_instance1.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
+    static async readById(iri, benignErrorReporter) {
+        let query = `
+          query
+            readOneCapital
+            {
+              readOneCapital(capital_id:"${iri}")
+              {
+                capital_id 
+                name 
+                country_id 
+                
+              }
+            }`;
 
-    static readByIdLoader = new DataLoader(capital_instance1.batchReadById, {
-        cache: false,
-    });
-
-    static async readById(id) {
-        return await capital_instance1.readByIdLoader.load(id);
-    }
-    static countRecords(search) {
-        let options = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize(capital_instance1.definition.attributes);
-            options['where'] = arg_sequelize;
-        }
-        return super.count(options);
-    }
-
-    static async readAllCursor(search, order, pagination) {
-        // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), capital_instance1.definition.attributes);
-        let records = await super.findAll(options);
-        records = records.map(x => capital_instance1.postReadCast(x))
-
-        // get the first record (if exists) in the opposite direction to determine pageInfo.
-        // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
-        let oppRecords = [];
-        if (pagination && (pagination.after || pagination.before)) {
-            let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
-                ...pagination,
-                includeCursor: false
-            }, this.idAttribute(), capital_instance1.definition.attributes);
-            oppRecords = await super.findAll(oppOptions);
-        }
-        // build the graphql Connection Object
-        let edges = helper.buildEdgeObject(records);
-        let pageInfo = helper.buildPageInfo(edges, oppRecords, pagination);
-        return {
-            edges,
-            pageInfo,
-            capitals: edges.map((edge) => edge.node)
-        };
-    }
-
-    static async addOne(input) {
-        input = capital_instance1.preWriteCast(input)
         try {
-            const result = await this.sequelize.transaction(async (t) => {
-                let item = await super.create(input, {
-                    transaction: t
-                });
-                return item;
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
             });
-            capital_instance1.postReadCast(result.dataValues)
-            capital_instance1.postReadCast(result._previousDataValues)
-            return result;
-        } catch (error) {
-            throw error;
-        }
-
-    }
-
-    static async deleteOne(id) {
-        let destroyed = await super.destroy({
-            where: {
-                [this.idAttribute()]: id
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-        });
-        if (destroyed !== 0) {
-            return 'Item successfully deleted';
-        } else {
-            throw new Error(`Record with ID = ${id} does not exist or could not been deleted`);
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.readOneCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
-    static async updateOne(input) {
-        input = capital_instance1.preWriteCast(input)
+    static async countRecords(search, benignErrorReporter) {
+        let query = `
+      query countCapitals($search: searchCapitalInput){
+        countCapitals(search: $search)
+      }`
+
         try {
-            let result = await this.sequelize.transaction(async (t) => {
-                let to_update = await super.findByPk(input[this.idAttribute()]);
-                if (to_update === null) {
-                    throw new Error(`Record with ID = ${input[this.idAttribute()]} does not exist`);
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    search: search
                 }
-
-                let updated = await to_update.update(input, {
-                    transaction: t
-                });
-                return updated;
             });
-            capital_instance1.postReadCast(result.dataValues)
-            capital_instance1.postReadCast(result._previousDataValues)
-            return result;
+
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.countCapitals;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
         } catch (error) {
-            throw error;
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+
+    }
+
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
+
+        let query = `query capitalsConnection($search: searchCapitalInput $pagination: paginationCursorInput! $order: [orderCapitalInput]){
+      capitalsConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  capital_id  name
+         country_id
+        } } pageInfo{ startCursor endCursor hasPreviousPage hasNextPage } } }`
+
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    search: search,
+                    order: order,
+                    pagination: pagination
+                }
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data && response.data.data.capitalsConnection !== null) {
+                return response.data.data.capitalsConnection;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
+
+    static async addOne(input, benignErrorReporter) {
+        let query = `
+          mutation addCapital(
+              $capital_id:ID!  
+            $name:String          ){
+            addCapital(            capital_id:$capital_id  
+            name:$name){
+              capital_id                name
+                country_id
+              }
+          }`;
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: input
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            if (response && response.data && response.data.data) {
+                return response.data.data.addCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
+
+    static async deleteOne(id, benignErrorReporter) {
+        let query = `
+          mutation
+            deleteCapital{
+              deleteCapital(
+                capital_id: "${id}" )}`;
+
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            if (response && response.data && response.data.data) {
+                return response.data.data.deleteCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
+    }
+
+    static async updateOne(input, benignErrorReporter) {
+        let query = `
+          mutation
+            updateCapital(
+              $capital_id:ID! 
+              $name:String             ){
+              updateCapital(
+                capital_id:$capital_id 
+                name:$name               ){
+                capital_id 
+                name 
+                country_id 
+              }
+            }`
+
+
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: input
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            if (response && response.data && response.data.data) {
+                return response.data.data.updateCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
     }
 
@@ -264,20 +235,45 @@ module.exports = class capital_instance1 extends Sequelize.Model {
      *
      * @param {Id}   capital_id   IdAttribute of the root model to be updated
      * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
 
+    static async add_country_id(capital_id, country_id, benignErrorReporter) {
+        let query = `
+              mutation
+                updateCapital{
+                  updateCapital(
+                    capital_id:"${capital_id}"
+                    addCountry:"${country_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    capital_id                    country_id                  }
+                }`
 
-
-    static async add_country_id(capital_id, country_id) {
-        let updated = await super.update({
-            country_id: country_id
-        }, {
-            where: {
-                capital_id: capital_id
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-        });
-        return updated;
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.updateCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
     }
+
+
 
 
 
@@ -289,21 +285,44 @@ module.exports = class capital_instance1 extends Sequelize.Model {
      *
      * @param {Id}   capital_id   IdAttribute of the root model to be updated
      * @param {Id}   country_id Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      */
 
+    static async remove_country_id(capital_id, country_id, benignErrorReporter) {
+        let query = `
+              mutation
+                updateCapital{
+                  updateCapital(
+                    capital_id:"${capital_id}"
+                    removeCountry:"${country_id}"
+                    skipAssociationsExistenceChecks: true
+                  ){
+                    capital_id                    country_id                  }
+                }`
 
-
-    static async remove_country_id(capital_id, country_id) {
-        let updated = await super.update({
-            country_id: null
-        }, {
-            where: {
-                capital_id: capital_id,
-                country_id: country_id
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
             }
-        });
-        return updated;
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+            if (response && response.data && response.data.data) {
+                return response.data.data.updateCapital;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
     }
+
 
 
 
@@ -314,58 +333,25 @@ module.exports = class capital_instance1 extends Sequelize.Model {
 
 
     static bulkAddCsv(context) {
-
-        let delim = context.request.body.delim;
-        let cols = context.request.body.cols;
-        let tmpFile = path.join(os.tmpdir(), uuidv4() + '.csv');
-
-        context.request.files.csv_file.mv(tmpFile).then(() => {
-
-            fileTools.parseCsvStream(tmpFile, this, delim, cols).then((addedZipFilePath) => {
-                try {
-                    console.log(`Sending ${addedZipFilePath} to the user.`);
-
-                    let attach = [];
-                    attach.push({
-                        filename: path.basename("added_data.zip"),
-                        path: addedZipFilePath
-                    });
-
-                    email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-                        'ScienceDB batch add',
-                        'Your data has been successfully added to the database.',
-                        attach).then(function(info) {
-                        fileTools.deleteIfExists(addedZipFilePath);
-                        console.log(info);
-                    }).catch(function(err) {
-                        fileTools.deleteIfExists(addedZipFilePath);
-                        console.error(err);
-                    });
-
-                } catch (error) {
-                    console.error(error.message);
-                }
-
-                fs.unlinkSync(tmpFile);
-            }).catch((error) => {
-                email.sendEmail(helpersAcl.getTokenFromContext(context).email,
-                    'ScienceDB batch add', `${error.message}`).then(function(info) {
-                    console.error(info);
-                }).catch(function(err) {
-                    console.error(err);
-                });
-
-                fs.unlinkSync(tmpFile);
-            });
-
-        }).catch((error) => {
-            throw new Error(error);
-        });
-        return `Bulk import of capital_instance1 records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        throw new Error("capital.bulkAddCsv is not implemented.")
     }
 
-    static csvTableTemplate() {
-        return helper.csvTableTemplate(definition);
+    static async csvTableTemplate(benignErrorReporter) {
+        let query = `query { csvTableTemplateCapital }`;
+
+        try {
+            let response = await axios.post(remoteZendroURL, {
+                query: query
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            return response.data.data.csvTableTemplateCapital;
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
     }
 
     /**
@@ -375,23 +361,35 @@ module.exports = class capital_instance1 extends Sequelize.Model {
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateCapitalWithCountry_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "capital_id", "country_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            country_id,
-            capital_id
-        }) => {
-            promises.push(super.update({
-                country_id: country_id
-            }, {
-                where: {
-                    capital_id: capital_id
+    static async bulkAssociateCapitalWithCountry_id(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkAssociateCapitalWithCountry_id($bulkAssociationInput: [bulkAssociationCapitalWithCountry_idInput]){
+          bulkAssociateCapitalWithCountry_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+        }`
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
                 }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
+
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkAssociateCapitalWithCountry_id;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
+        }
     }
 
 
@@ -402,87 +400,37 @@ module.exports = class capital_instance1 extends Sequelize.Model {
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "capital_id", "country_id");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            country_id,
-            capital_id
-        }) => {
-            promises.push(super.update({
-                country_id: null
-            }, {
-                where: {
-                    capital_id: capital_id,
-                    country_id: country_id
+    static async bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput, benignErrorReporter) {
+        let query = `mutation  bulkDisAssociateCapitalWithCountry_id($bulkAssociationInput: [bulkAssociationCapitalWithCountry_idInput]){
+          bulkDisAssociateCapitalWithCountry_id(bulkAssociationInput: $bulkAssociationInput, skipAssociationsExistenceChecks: true) 
+        }`
+        try {
+            // Send an HTTP request to the remote server
+            let response = await axios.post(remoteZendroURL, {
+                query: query,
+                variables: {
+                    bulkAssociationInput: bulkAssociationInput
                 }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
+            });
+            //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
+            if (helper.isNonEmptyArray(response.data.errors)) {
+                benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
+            }
+            // STATUS-CODE is 200
+            // NO ERROR as such has been detected by the server (Express)
+            // check if data was send
 
-
-
-    /**
-     * idAttribute - Check whether an attribute "internalId" is given in the JSON model. If not the standard "id" is used instead.
-     *
-     * @return {type} Name of the attribute that functions as an internalId
-     */
-
-    static idAttribute() {
-        return capital_instance1.definition.id.name;
-    }
-
-    /**
-     * idAttributeType - Return the Type of the internalId.
-     *
-     * @return {type} Type given in the JSON model
-     */
-
-    static idAttributeType() {
-        return capital_instance1.definition.id.type;
-    }
-
-    /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of capital_instance1.
-     *
-     * @return {type} id value
-     */
-
-    getIdValue() {
-        return this[capital_instance1.idAttribute()]
-    }
-
-    static get definition() {
-        return definition;
-    }
-
-    static base64Decode(cursor) {
-        return Buffer.from(cursor, 'base64').toString('utf-8');
-    }
-
-    base64Enconde() {
-        return Buffer.from(JSON.stringify(this.stripAssociations())).toString('base64');
-    }
-
-    stripAssociations() {
-        let attributes = Object.keys(capital_instance1.definition.attributes);
-        let data_values = _.pick(this, attributes);
-        return data_values;
-    }
-
-    static externalIdsArray() {
-        let externalIds = [];
-        if (definition.externalIds) {
-            externalIds = definition.externalIds;
+            if (response && response.data && response.data.data) {
+                return response.data.data.bulkDisAssociateCapitalWithCountry_id;
+            } else {
+                throw new Error(`Remote zendro-server (${remoteZendroURL}) did not respond with data.`);
+            }
+        } catch (error) {
+            //handle caught errors
+            errorHelper.handleCaughtErrorAndBenignErrors(error, benignErrorReporter, remoteZendroURL);
         }
-
-        return externalIds;
     }
 
-    static externalIdsObject() {
-        return {};
-    }
+
 
 }

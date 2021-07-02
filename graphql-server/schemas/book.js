@@ -26,14 +26,6 @@ publisher(search: searchPublisherInput): publisher
   """
   @search-request
   """
-  authorsConnection(search: searchAuthorInput, order: [ orderAuthorInput ], pagination: paginationCursorInput!): AuthorConnection
-  """
-  @count-request
-  """
-  countFilteredAuthors(search: searchAuthorInput) : Int
-  """
-  @search-request
-  """
   countriesConnection(search: searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput!): CountryConnection
   """
   @count-request
@@ -100,8 +92,8 @@ type Query {
 }
 
 type Mutation {
-  addBook(book_id: ID!, name: String , addPublisher:ID  , addAuthors:[ID], addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): book!
-  updateBook(book_id: ID!, name: String , addPublisher:ID, removePublisher:ID   , addAuthors:[ID], removeAuthors:[ID] , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): book!
+  addBook(book_id: ID!, name: String , addPublisher:ID  , addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): book!
+  updateBook(book_id: ID!, name: String , addPublisher:ID, removePublisher:ID   , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): book!
   deleteBook(book_id: ID!): String!
   bulkAddBookCsv: String
   bulkAssociateBookWithPublisher_id(bulkAssociationInput: [bulkAssociationBookWithPublisher_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

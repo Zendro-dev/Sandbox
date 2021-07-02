@@ -1,8 +1,9 @@
 {
-    "model": "book",
-    "storageType": "sql-adapter",
+    "model": "book",  
+    "storageType": "ddm-adapter",
     "adapterName": "book_instance1",
     "regex": "instance1",
+    "url": "http://graphql.zendro-dev.org/graphql",
     "attributes": {
         "book_id":"String",
         "name": "String",
@@ -11,16 +12,6 @@
     },
   
     "associations": {
-        "authors":{
-            "type":"many_to_many",
-            "implementation": "sql_cross_table",
-            "reverseAssociation": "works",
-            "target":"author",
-            "targetKey": "book_id",
-            "sourceKey": "author_id",
-            "keysIn": "author_to_book",
-            "targetStorageType": "distributed-data-model"
-        },
         "countries":{
             "type":"many_to_many",
             "implementation": "foreignkeys",

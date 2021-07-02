@@ -12,14 +12,6 @@ type author{
   name: String
 
 
-  """
-  @search-request
-  """
-  worksConnection(search: searchBookInput, order: [ orderBookInput ], pagination: paginationCursorInput!): BookConnection
-  """
-  @count-request
-  """
-  countFilteredWorks(search: searchBookInput) : Int
 
 }
 
@@ -76,8 +68,8 @@ type Query {
 }
 
 type Mutation {
-  addAuthor(author_id: ID!, name: String   , addWorks:[ID] , skipAssociationsExistenceChecks:Boolean = false): author!
-  updateAuthor(author_id: ID!, name: String   , addWorks:[ID], removeWorks:[ID]  , skipAssociationsExistenceChecks:Boolean = false): author!
+  addAuthor(author_id: ID!, name: String    , skipAssociationsExistenceChecks:Boolean = false): author!
+  updateAuthor(author_id: ID!, name: String    , skipAssociationsExistenceChecks:Boolean = false): author!
   deleteAuthor(author_id: ID!): String!
   bulkAddAuthorCsv: String
   }
