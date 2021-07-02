@@ -40,21 +40,6 @@ with open("./data-generator/author_"+instance_prefix+".csv", "w", newline='') as
         name = "author_"+str(i)
         writer.writerow([author_id, name])
 
-print('author_to_book')
-# author_to_book table
-with open("./data-generator/author_to_book_"+instance_prefix+".csv", "w", newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['author_id', 'book_id'])
-    for i in range(size):
-        author_id = instance_prefix+"_at_"+str(i)
-        book_id = instance_prefix+"_bk_"+str(i)
-        writer.writerow([author_id, book_id])
-
-        if i+1<size:
-            author_id = instance_prefix+"_at_"+str(i)
-            book_id = instance_prefix+"_bk_"+str(i+1)
-            writer.writerow([author_id, book_id])
-
 print('book')
 # book table
 with open("./data-generator/book_"+instance_prefix+".csv", "w", newline='') as file:
