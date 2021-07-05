@@ -29,17 +29,6 @@ with open("./data-generator/publisher_"+instance_prefix+".csv", "w", newline='')
         name = "publisher_"+str(i)
         writer.writerow([publisher_id, name])
 
-# author table
-print("author")
-
-with open("./data-generator/author_"+instance_prefix+".csv", "w", newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['author_id', 'name'])
-    for i in range(size):
-        author_id = instance_prefix+"_at_"+str(i)
-        name = "author_"+str(i)
-        writer.writerow([author_id, name])
-
 print('book')
 # book table
 with open("./data-generator/book_"+instance_prefix+".csv", "w", newline='') as file:
