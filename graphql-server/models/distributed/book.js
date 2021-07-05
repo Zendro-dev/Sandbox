@@ -23,16 +23,6 @@ const definition = {
         publisher_id: 'String'
     },
     associations: {
-        authors: {
-            type: 'many_to_many',
-            implementation: 'sql_cross_table',
-            reverseAssociation: 'works',
-            target: 'author',
-            targetKey: 'book_id',
-            sourceKey: 'author_id',
-            keysIn: 'author_to_book',
-            targetStorageType: 'distributed-data-model'
-        },
         countries: {
             type: 'many_to_many',
             implementation: 'foreignkeys',

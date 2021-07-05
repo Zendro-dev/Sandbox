@@ -145,9 +145,6 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.addCountries)) {
         promises_add.push(this.add_countries(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.addAuthors)) {
-        promises_add.push(this.add_authors(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.addPublisher)) {
         promises_add.push(this.add_publisher(input, benignErrorReporter));
     }
@@ -157,9 +154,6 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     if (helper.isNonEmptyArray(input.removeCountries)) {
         promises_remove.push(this.remove_countries(input, benignErrorReporter));
     }
-    if (helper.isNonEmptyArray(input.removeAuthors)) {
-        promises_remove.push(this.remove_authors(input, benignErrorReporter));
-    }
     if (helper.isNotUndefinedAndNotNull(input.removePublisher)) {
         promises_remove.push(this.remove_publisher(input, benignErrorReporter));
     }
@@ -167,15 +161,6 @@ book.prototype.handleAssociations = async function(input, benignErrorReporter) {
     await Promise.all(promises_remove);
 
 }
-/**
- * add_authors - field Mutation for to_many associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- */
-book.prototype.add_authors = async function(input) {
-    await models.book.add_book_id(this, input.addAuthors);
-}
-
 /**
  * add_countries - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
@@ -198,15 +183,6 @@ book.prototype.add_countries = async function(input, benignErrorReporter) {
 book.prototype.add_publisher = async function(input, benignErrorReporter) {
     await book.add_publisher_id(this.getIdValue(), input.addPublisher, benignErrorReporter);
     this.publisher_id = input.addPublisher;
-}
-
-/**
- * remove_authors - field Mutation for to_many associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- */
-book.prototype.remove_authors = async function(input) {
-    await models.book.remove_book_id(this, input.removeAuthors);
 }
 
 /**
