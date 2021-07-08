@@ -40,7 +40,7 @@ const definition = {
         }
     },
     internalId: 'capital_id',
-    useDataLoader: true,
+    useDataLoader: false,
     id: {
         name: 'capital_id',
         type: 'String'
@@ -130,34 +130,13 @@ module.exports = class capital_instance1 extends Sequelize.Model {
         return iriRegex.test(iri);
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: capital_instance1.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await capital_instance1.readAllCursor(queryArg);
-        cursorRes = cursorRes.capitals.reduce(
-            (map, obj) => ((map[obj[capital_instance1.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(capital_instance1.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await capital_instance1.readByIdLoader.load(id);
+        let item = await capital_instance1.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = capital_instance1.postReadCast(item)
+        return item;
     }
     static countRecords(search) {
         let options = {};

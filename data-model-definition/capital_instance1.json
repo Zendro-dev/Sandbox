@@ -23,5 +23,5 @@
     },
   
     "internalId": "capital_id",
-    "useDataLoader": true
+    "useDataLoader": false
 }

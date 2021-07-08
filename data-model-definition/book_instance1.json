@@ -33,5 +33,5 @@
     },
   
     "internalId": "book_id",
-    "useDataLoader": true
+    "useDataLoader": false
 }
