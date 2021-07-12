@@ -60,4 +60,4 @@ for object in ${DB_KEYS[@]}; do
 done
 
 # Start GraphQL-server
-npm run dev
+npm start # acl

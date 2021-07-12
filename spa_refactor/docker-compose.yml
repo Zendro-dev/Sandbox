@@ -11,6 +11,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./initUserDb.sql:/docker-entrypoint-initdb.d/initUserDb.sql
+      - ../data-generator:/mnt/datasets
     networks:
      - backend
 

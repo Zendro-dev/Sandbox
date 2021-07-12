@@ -7,7 +7,7 @@ const helper = require('../../utils/helper');
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
 
-const remoteZendroURL = "http://localhost:3030/graphql";
+const remoteZendroURL = "http://siagro01.conabio.gob.mx:3003/graphql";
 const iriRegex = new RegExp('instance2');
 
 module.exports = class country_instance2 {
