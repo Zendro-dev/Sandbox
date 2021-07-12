@@ -4,7 +4,7 @@
     "username": "zendro",
     "password": "zendro",
     "database": "zendro_development",
-    "host": "db_postgres",
+    "host": "db_postgres_test",
     "dialect": "postgres"
   }
 }

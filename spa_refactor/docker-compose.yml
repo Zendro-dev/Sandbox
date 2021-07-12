@@ -1,22 +1,23 @@
-version: "3.8"
+version: "3.7"
 
 services:
 
-  db_postgres:
-    container_name: pgdb
+  db_postgres_test:
+    container_name: pgdb_stress
     image: postgres:13-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./initUserDb.sql:/docker-entrypoint-initdb.d/initUserDb.sql
+      - ../data-generator/data-generator:/mnt/data-generator  
     networks:
-     - backend
+     - backend_stress
 
-  graphql_server:
-    container_name: gqlserver
+  graphql_server_test:
+    container_name: gqlserver_stress
     depends_on:
-      - db_postgres
+      - db_postgres_test
     build:
       context: .
       dockerfile: Dockerfile
@@ -27,16 +28,16 @@ services:
       - ./migrateDbAndStartServer.sh:/usr/src/app/migrateDbAndStartServer.sh
       - .env:/usr/src/app/.env
     ports:
-      - 3000:3000
+      - 3003:3003
     environment:
       JQ_PATH: /usr/bin/jq
       LIMIT_RECORDS: 10000
       PGPASSWORD: zendro
-      PORT: 3000
+      PORT: 3003
       REQUIRE_SIGN_IN: "false"
     networks:
-      - backend
-      - frontend
+      - backend_stress
+      - frontend_stress
     command:
       - /bin/sh
       - -c
@@ -69,24 +70,24 @@ services:
   #       npm start
 
 
-  graphiql:
-    container_name: graphiql-auth
+  graphiql_test:
+    container_name: graphiql-auth-stress
     restart: unless-stopped
     stdin_open: true
     depends_on:
-      - db_postgres
-      - graphql_server
+      - db_postgres_test
+      - graphql_server_test
     build:
       context: .
       dockerfile: Dockerfile.graphiql
     environment:
-      REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
-      REACT_APP_LOGIN_URL: "http://localhost:3000/login"
-      PORT: "7000"
+      REACT_APP_SERVER_URL: "http://siagro01.conabio.gob.mx:3003/graphql"
+      REACT_APP_LOGIN_URL: "http://siagro01.conabio.gob.mx:3003/login"
+      PORT: "7005"
     networks:
-      - backend
+      - backend_stress
     ports:
-      - "7000:7000"
+      - "7005:7005"
     volumes:
       - ../graphiql-auth:/usr/src/app
     command:
@@ -97,5 +98,5 @@ services:
         npm start
 
 networks:
-  backend:
-  frontend:
+  backend_stress:
+  frontend_stress:
