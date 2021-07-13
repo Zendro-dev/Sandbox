@@ -1,7 +1,6 @@
 {
     "model": "author",
-    "storageType": "distributed-data-model",
-    "registry": ["author_instance1", "author_instance2"],
+    "storageType": "sql",
     "attributes": {
         "author_id":"String",
         "name": "String"
