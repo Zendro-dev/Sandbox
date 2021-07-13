@@ -1,0 +1,22 @@
+{
+    "model": "local_publisher",
+    "storageType": "sql",
+    "attributes": {
+      "publisher_id": "String",
+      "name": "String"
+    },
+    "associations": {
+      "books": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "local_publisher",
+        "target": "local_book",
+        "targetKey": "publisher_id",
+        "keysIn": "local_book",
+        "targetStorageType": "sql"
+      }
+    },
+  
+    "internalId" : "publisher_id",
+    "useDataLoader": true
+}
