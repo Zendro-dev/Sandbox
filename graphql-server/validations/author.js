@@ -23,9 +23,6 @@ module.exports.validator_patch = function(author) {
             },
             "name": {
                 "type": ["string", "null"]
-            },
-            "book_ids": {
-                "type": ["array", "null"]
             }
         }
     }

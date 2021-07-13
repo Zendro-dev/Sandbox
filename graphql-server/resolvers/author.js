@@ -20,6 +20,8 @@ const associationArgsDef = {}
 
 
 
+
+
 /**
  * handleAssociations - handles the given associations in the create and update case.
  *
@@ -38,6 +40,7 @@ author.prototype.handleAssociations = async function(input, benignErrorReporter)
     await Promise.all(promises_remove);
 
 }
+
 
 /**
  * countAllAssociatedRecords - Count records associated with another given record
@@ -77,15 +80,33 @@ async function validForDeletion(id, context) {
     if (await countAllAssociatedRecords(id, context) > 0) {
         throw new Error(`author with author_id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
-
-    if (context.benignErrors.length > 0) {
-        throw new Error('Errors occurred when counting associated records. No deletion permitted for reasons of security.');
-    }
-
     return true;
 }
 
 module.exports = {
+    /**
+     * authors - Check user authorization and return certain number, specified in pagination argument, of records that
+     * holds the condition of search argument, all of them sorted as specified by the order argument.
+     *
+     * @param  {object} search     Search argument for filtering records
+     * @param  {array} order       Type of sorting (ASC, DESC) for each field
+     * @param  {object} pagination Offset and limit to get the records from and to respectively
+     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
+     */
+    authors: async function({
+        search,
+        order,
+        pagination
+    }, context) {
+        if (await checkAuthorization(context, 'author', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "authors");
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await author.readAll(search, order, pagination, benignErrorReporter);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 
     /**
      * authorsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -102,45 +123,16 @@ module.exports = {
         order,
         pagination
     }, context) {
-        // check valid pagination arguments
-        helper.checkCursorBasedPaginationArgument(pagination);
-        // reduce recordsLimit and check if exceeded
-        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-        helper.checkCountAndReduceRecordsLimit(limit, context, "authorsConnection");
-
-        //construct benignErrors reporter with context
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-        //check: adapters
-        let registeredAdapters = Object.values(author.registeredAdapters);
-        if (registeredAdapters.length === 0) {
-            throw new Error('No adapters registered for data model "author"');
-        } //else
-
-        //exclude adapters
-        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
-        if (adapters.length === 0) {
-            throw new Error('All adapters was excluded for data model "author"');
-        } //else
-
-        //check: auth adapters
-        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
-        if (authorizationCheck.authorizedAdapters.length > 0) {
-            //check adapter authorization Errors
-            if (authorizationCheck.authorizationErrors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
-            }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await author.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
-        } else { //adapters not auth || errors
-            // else new Error
-            if (authorizationCheck.authorizationErrors.length > 0) {
-                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
-            } else {
-                throw new Error('No available adapters for data model "author" ');
-            }
+        if (await checkAuthorization(context, 'author', 'read') === true) {
+            helper.checkCursorBasedPaginationArgument(pagination);
+            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+            helper.checkCountAndReduceRecordsLimit(limit, context, "authorsConnection");
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await author.readAllCursor(search, order, pagination, benignErrorReporter);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
-
 
     /**
      * readOneAuthor - Check user authorization and return one record with the specified author_id in the author_id argument.
@@ -152,52 +144,74 @@ module.exports = {
     readOneAuthor: async function({
         author_id
     }, context) {
-        //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(author_id), 'read');
-        if (authorizationCheck === true) {
+        if (await checkAuthorization(context, 'author', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneAuthor");
-            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-            return author.readById(author_id, benignErrorReporter);
-        } else { //adapter not auth
-            throw new Error("You don't have authorization to perform this action on adapter");
+            return await author.readById(author_id, benignErrorReporter);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * addAuthor - Check user authorization and creates a new record with data specified in the input argument
+     * countAuthors - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+    countAuthors: async function({
+        search
+    }, context) {
+        if (await checkAuthorization(context, 'author', 'read') === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            return await author.countRecords(search, benignErrorReporter);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * vueTableAuthor - Return table of records as needed for displaying a vuejs table
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {object}         Records with format as needed for displaying a vuejs table
+     */
+    vueTableAuthor: async function(_, context) {
+        if (await checkAuthorization(context, 'author', 'read') === true) {
+            return helper.vueTable(context.request, author, ["id", "author_id", "name"]);
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * addAuthor - Check user authorization and creates a new record with data specified in the input argument.
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addAuthor: async function(input, context) {
-        //check: input has idAttribute
-        if (!input.author_id) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'author_id'.`);
-        }
-
-        //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(input.author_id), 'create');
-        if (authorizationCheck === true) {
+        let authorization = await checkAuthorization(context, 'author', 'create');
+        if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-            let createdRecord = await author.addOne(inputSanitized, benignErrorReporter);
-            await createdRecord.handleAssociations(inputSanitized, benignErrorReporter);
-            return createdRecord;
-        } else { //adapter not auth
-            throw new Error("You don't have authorization to perform this action on adapter");
+            let createdAuthor = await author.addOne(inputSanitized, benignErrorReporter);
+            await createdAuthor.handleAssociations(inputSanitized, benignErrorReporter);
+            return createdAuthor;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
-
 
     /**
      * bulkAddAuthorCsv - Load csv file of records
@@ -207,7 +221,6 @@ module.exports = {
      */
     bulkAddAuthorCsv: async function(_, context) {
         if (await checkAuthorization(context, 'author', 'create') === true) {
-            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return author.bulkAddCsv(context, benignErrorReporter);
         } else {
@@ -225,93 +238,40 @@ module.exports = {
     deleteAuthor: async function({
         author_id
     }, context) {
-        //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(author_id), 'delete');
-        if (authorizationCheck === true) {
+        if (await checkAuthorization(context, 'author', 'delete') === true) {
             if (await validForDeletion(author_id, context)) {
-                //construct benignErrors reporter with context
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
                 return author.deleteOne(author_id, benignErrorReporter);
             }
-        } else { //adapter not auth
-            throw new Error("You don't have authorization to perform this action on adapter");
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
      * updateAuthor - Check user authorization and update the record specified in the input argument
+     * This function only handles attributes, not associations.
+     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateAuthor: async function(input, context) {
-        //check: input has idAttribute
-        if (!input.author_id) {
-            throw new Error(`Illegal argument. Provided input requires attribute 'author_id'.`);
-        }
-
-        //check: adapters auth
-        let authorizationCheck = await checkAuthorization(context, author.adapterForIri(input.author_id), 'update');
-        if (authorizationCheck === true) {
+        let authorization = await checkAuthorization(context, 'author', 'update');
+        if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
-            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedRecord = await author.updateOne(inputSanitized, benignErrorReporter);
-            await updatedRecord.handleAssociations(inputSanitized, benignErrorReporter);
-            return updatedRecord;
-        } else { //adapter not auth
-            throw new Error("You don't have authorization to perform this action on adapter");
-        }
-    },
-
-    /**
-     * countAuthors - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-
-    countAuthors: async function({
-        search
-    }, context) {
-        //construct benignErrors reporter with context
-        let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-        //check: adapters
-        let registeredAdapters = Object.values(author.registeredAdapters);
-        if (registeredAdapters.length === 0) {
-            throw new Error('No adapters registered for data model "author"');
-        } //else
-
-        //exclude adapters
-        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
-        if (adapters.length === 0) {
-            throw new Error('All adapters was excluded for data model "author"');
-        } //else
-
-        //check: auth adapters
-        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
-        if (authorizationCheck.authorizedAdapters.length > 0) {
-            //check adapter authorization Errors
-            if (authorizationCheck.authorizationErrors.length > 0) {
-                context.benignErrors = context.benignErrors.concat(authorizationCheck.authorizationErrors);
-            }
-            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
-            return await author.countRecords(search, authorizationCheck.authorizedAdapters, benignErrorReporter, searchAuthorizationCheck.authorizedAdapters);
-        } else { //adapters not auth || errors
-            // else new Error
-            if (authorizationCheck.authorizationErrors.length > 0) {
-                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
-            } else {
-                throw new Error('No available adapters for data model "author"');
-            }
+            let updatedAuthor = await author.updateOne(inputSanitized, benignErrorReporter);
+            await updatedAuthor.handleAssociations(inputSanitized, benignErrorReporter);
+            return updatedAuthor;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
         }
     },
 
@@ -325,7 +285,6 @@ module.exports = {
      */
     csvTableTemplateAuthor: async function(_, context) {
         if (await checkAuthorization(context, 'author', 'read') === true) {
-            //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
             return author.csvTableTemplate(benignErrorReporter);
         } else {

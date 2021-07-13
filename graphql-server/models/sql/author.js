@@ -1,34 +1,31 @@
+'use strict';
+
 const _ = require('lodash');
-const globals = require('../../config/globals');
 const Sequelize = require('sequelize');
 const dict = require('../../utils/graphql-sequelize-types');
-const validatorUtil = require('../../utils/validatorUtil');
-const helper = require('../../utils/helper');
 const searchArg = require('../../utils/search-argument');
-const path = require('path');
+const globals = require('../../config/globals');
+const validatorUtil = require('../../utils/validatorUtil');
 const fileTools = require('../../utils/file-tools');
 const helpersAcl = require('../../utils/helpers-acl');
 const email = require('../../utils/email');
 const fs = require('fs');
+const path = require('path');
 const os = require('os');
 const uuidv4 = require('uuidv4').uuid;
+const helper = require('../../utils/helper');
 const models = require(path.join(__dirname, '..', 'index.js'));
-
-const remoteZendroURL = "";
-const iriRegex = new RegExp('instance2');
-
+const moment = require('moment');
+const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
     model: 'author',
-    storageType: 'sql-adapter',
-    adapterName: 'author_instance2',
-    regex: 'instance2',
+    storageType: 'sql',
     attributes: {
         author_id: 'String',
         name: 'String'
     },
     internalId: 'author_id',
-    useDataLoader: true,
     id: {
         name: 'author_id',
         type: 'String'
@@ -44,7 +41,7 @@ const DataLoader = require("dataloader");
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class author_instance2 extends Sequelize.Model {
+module.exports = class author extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
@@ -63,14 +60,6 @@ module.exports = class author_instance2 extends Sequelize.Model {
             tableName: "authors",
             sequelize
         });
-    }
-
-    static get adapterName() {
-        return 'author_instance2';
-    }
-
-    static get adapterType() {
-        return 'sql-adapter';
     }
 
     /**
@@ -111,9 +100,7 @@ module.exports = class author_instance2 extends Sequelize.Model {
         return record;
     }
 
-    static recognizeId(iri) {
-        return iriRegex.test(iri);
-    }
+    static associate(models) {}
 
     /**
      * Batch function for readById method.
@@ -123,13 +110,13 @@ module.exports = class author_instance2 extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: author_instance2.idAttribute(),
+            field: author.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await author_instance2.readAllCursor(queryArg);
+        let cursorRes = await author.readAllCursor(queryArg);
         cursorRes = cursorRes.authors.reduce(
-            (map, obj) => ((map[obj[author_instance2.idAttribute()]] = obj), map), {}
+            (map, obj) => ((map[obj[author.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -137,39 +124,42 @@ module.exports = class author_instance2 extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(author_instance2.batchReadById, {
+    static readByIdLoader = new DataLoader(author.batchReadById, {
         cache: false,
     });
 
     static async readById(id) {
-        return await author_instance2.readByIdLoader.load(id);
+        return await author.readByIdLoader.load(id);
     }
-    static countRecords(search) {
-        let options = {};
-
-        /*
-         * Search conditions
-         */
-        if (search !== undefined && search !== null) {
-
-            //check
-            if (typeof search !== 'object') {
-                throw new Error('Illegal "search" argument type, it must be an object.');
-            }
-
-            let arg = new searchArg(search);
-            let arg_sequelize = arg.toSequelize(author_instance2.definition.attributes);
-            options['where'] = arg_sequelize;
-        }
+    static async countRecords(search) {
+        let options = {}
+        options['where'] = helper.searchConditionsToSequelize(search, author.definition.attributes);
         return super.count(options);
     }
 
-    static async readAllCursor(search, order, pagination) {
-        // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), author_instance2.definition.attributes);
+    static async readAll(search, order, pagination, benignErrorReporter) {
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+        // build the sequelize options object for limit-offset-based pagination
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => author_instance2.postReadCast(x))
+        records = records.map(x => author.postReadCast(x))
+        // validationCheck after read
+        return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
+    }
 
+    static async readAllCursor(search, order, pagination, benignErrorReporter) {
+        //use default BenignErrorReporter if no BenignErrorReporter defined
+        benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
+
+        // build the sequelize options object for cursor-based pagination
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
+        let records = await super.findAll(options);
+
+        records = records.map(x => author.postReadCast(x))
+
+        // validationCheck after read
+        records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
         // get the first record (if exists) in the opposite direction to determine pageInfo.
         // if no cursor was given there is no need for an extra query as the results will start at the first (or last) page.
         let oppRecords = [];
@@ -177,7 +167,7 @@ module.exports = class author_instance2 extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), author_instance2.definition.attributes);
+            }, this.idAttribute(), author.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -191,7 +181,9 @@ module.exports = class author_instance2 extends Sequelize.Model {
     }
 
     static async addOne(input) {
-        input = author_instance2.preWriteCast(input)
+        //validate input
+        await validatorUtil.validateData('validateForCreate', this, input);
+        input = author.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -199,8 +191,8 @@ module.exports = class author_instance2 extends Sequelize.Model {
                 });
                 return item;
             });
-            author_instance2.postReadCast(result.dataValues)
-            author_instance2.postReadCast(result._previousDataValues)
+            author.postReadCast(result.dataValues)
+            author.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -209,6 +201,8 @@ module.exports = class author_instance2 extends Sequelize.Model {
     }
 
     static async deleteOne(id) {
+        //validate id
+        await validatorUtil.validateData('validateForDelete', this, id);
         let destroyed = await super.destroy({
             where: {
                 [this.idAttribute()]: id
@@ -222,7 +216,9 @@ module.exports = class author_instance2 extends Sequelize.Model {
     }
 
     static async updateOne(input) {
-        input = author_instance2.preWriteCast(input)
+        //validate input
+        await validatorUtil.validateData('validateForUpdate', this, input);
+        input = author.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -235,21 +231,13 @@ module.exports = class author_instance2 extends Sequelize.Model {
                 });
                 return updated;
             });
-            author_instance2.postReadCast(result.dataValues)
-            author_instance2.postReadCast(result._previousDataValues)
+            author.postReadCast(result.dataValues)
+            author.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
         }
     }
-
-
-
-
-
-
-
-
 
     static bulkAddCsv(context) {
 
@@ -296,15 +284,35 @@ module.exports = class author_instance2 extends Sequelize.Model {
                 fs.unlinkSync(tmpFile);
             });
 
+
+
         }).catch((error) => {
             throw new Error(error);
         });
-        return `Bulk import of author_instance2 records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+
+        return `Bulk import of author records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
-    static csvTableTemplate() {
+    /**
+     * csvTableTemplate - Allows the user to download a template in CSV format with the
+     * properties and types of this model.
+     *
+     * @param {BenignErrorReporter} benignErrorReporter can be used to generate the standard
+     * GraphQL output {error: ..., data: ...}. If the function reportError of the benignErrorReporter
+     * is invoked, the server will include any so reported errors in the final response, i.e. the
+     * GraphQL response will have a non empty errors property.
+     */
+    static async csvTableTemplate(benignErrorReporter) {
         return helper.csvTableTemplate(definition);
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -314,9 +322,8 @@ module.exports = class author_instance2 extends Sequelize.Model {
      *
      * @return {type} Name of the attribute that functions as an internalId
      */
-
     static idAttribute() {
-        return author_instance2.definition.id.name;
+        return author.definition.id.name;
     }
 
     /**
@@ -324,19 +331,17 @@ module.exports = class author_instance2 extends Sequelize.Model {
      *
      * @return {type} Type given in the JSON model
      */
-
     static idAttributeType() {
-        return author_instance2.definition.id.type;
+        return author.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of author_instance2.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of author.
      *
      * @return {type} id value
      */
-
     getIdValue() {
-        return this[author_instance2.idAttribute()]
+        return this[author.idAttribute()]
     }
 
     static get definition() {
@@ -352,7 +357,7 @@ module.exports = class author_instance2 extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(author_instance2.definition.attributes);
+        let attributes = Object.keys(author.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
