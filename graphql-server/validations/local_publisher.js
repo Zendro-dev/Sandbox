@@ -6,19 +6,19 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(author) {
+module.exports.validator_patch = function(local_publisher) {
 
-    author.prototype.validationControl = {
+    local_publisher.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    author.prototype.validatorSchema = {
+    local_publisher.prototype.validatorSchema = {
         "$async": true,
         "properties": {
-            "author_id": {
+            "publisher_id": {
                 "type": ["string", "null"]
             },
             "name": {
@@ -27,19 +27,19 @@ module.exports.validator_patch = function(author) {
         }
     }
 
-    author.prototype.asyncValidate = ajv.compile(
-        author.prototype.validatorSchema
+    local_publisher.prototype.asyncValidate = ajv.compile(
+        local_publisher.prototype.validatorSchema
     )
 
-    author.prototype.validateForCreate = async function(record) {
-        return await author.prototype.asyncValidate(record)
+    local_publisher.prototype.validateForCreate = async function(record) {
+        return await local_publisher.prototype.asyncValidate(record)
     }
 
-    author.prototype.validateForUpdate = async function(record) {
-        return await author.prototype.asyncValidate(record)
+    local_publisher.prototype.validateForUpdate = async function(record) {
+        return await local_publisher.prototype.asyncValidate(record)
     }
 
-    author.prototype.validateForDelete = async function(id) {
+    local_publisher.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -50,9 +50,9 @@ module.exports.validator_patch = function(author) {
         }
     }
 
-    author.prototype.validateAfterRead = async function(record) {
-        return await author.prototype.asyncValidate(record)
+    local_publisher.prototype.validateAfterRead = async function(record) {
+        return await local_publisher.prototype.asyncValidate(record)
     }
 
-    return author
+    return local_publisher
 }

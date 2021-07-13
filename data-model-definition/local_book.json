@@ -1,0 +1,33 @@
+{
+    "model": "local_book",
+    "storageType": "sql",
+    "attributes": {
+        "book_id":"String",
+        "name": "String",
+        "country_ids": "[String]",
+        "publisher_id": "String"
+    },
+    "associations": {
+        "local_countries":{
+            "type":"many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "available_local_books",
+            "target":"local_country",
+            "targetKey": "book_ids",
+            "sourceKey": "country_ids",
+            "keysIn": "local_book",
+            "targetStorageType": "sql"
+        },
+        "local_publisher": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "local_books",
+            "target": "local_publisher",
+            "targetKey": "publisher_id",
+            "keysIn": "local_book",
+            "targetStorageType": "sql"
+        }
+    },
+  
+    "internalId": "book_id"
+}

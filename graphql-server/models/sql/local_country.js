@@ -19,15 +19,37 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    model: 'author',
+    model: 'local_country',
     storageType: 'sql',
     attributes: {
-        author_id: 'String',
-        name: 'String'
+        country_id: 'String',
+        name: 'String',
+        book_ids: '[String]'
     },
-    internalId: 'author_id',
+    associations: {
+        local_capital: {
+            type: 'one_to_one',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'local_country',
+            target: 'local_capital',
+            targetKey: 'country_id',
+            keysIn: 'local_capital',
+            targetStorageType: 'sql'
+        },
+        available_local_books: {
+            type: 'many_to_many',
+            implementation: 'foreignkeys',
+            reverseAssociation: 'local_countries',
+            target: 'local_book',
+            targetKey: 'country_ids',
+            sourceKey: 'book_ids',
+            keysIn: 'local_country',
+            targetStorageType: 'sql'
+        }
+    },
+    internalId: 'country_id',
     id: {
-        name: 'author_id',
+        name: 'country_id',
         type: 'String'
     }
 };
@@ -41,23 +63,27 @@ const DataLoader = require("dataloader");
  * @return {object}           Sequelize model with associations defined
  */
 
-module.exports = class author extends Sequelize.Model {
+module.exports = class local_country extends Sequelize.Model {
 
     static init(sequelize, DataTypes) {
         return super.init({
 
-            author_id: {
+            country_id: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
             name: {
                 type: Sequelize[dict['String']]
+            },
+            book_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
             }
 
 
         }, {
-            modelName: "author",
-            tableName: "authors",
+            modelName: "local_country",
+            tableName: "local_countries",
             sequelize
         });
     }
@@ -100,7 +126,12 @@ module.exports = class author extends Sequelize.Model {
         return record;
     }
 
-    static associate(models) {}
+    static associate(models) {
+        local_country.hasOne(models.local_capital, {
+            as: 'local_capital',
+            foreignKey: 'country_id'
+        });
+    }
 
     /**
      * Batch function for readById method.
@@ -110,13 +141,13 @@ module.exports = class author extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: author.idAttribute(),
+            field: local_country.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await author.readAllCursor(queryArg);
-        cursorRes = cursorRes.authors.reduce(
-            (map, obj) => ((map[obj[author.idAttribute()]] = obj), map), {}
+        let cursorRes = await local_country.readAllCursor(queryArg);
+        cursorRes = cursorRes.local_countries.reduce(
+            (map, obj) => ((map[obj[local_country.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -124,16 +155,16 @@ module.exports = class author extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(author.batchReadById, {
+    static readByIdLoader = new DataLoader(local_country.batchReadById, {
         cache: false,
     });
 
     static async readById(id) {
-        return await author.readByIdLoader.load(id);
+        return await local_country.readByIdLoader.load(id);
     }
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, author.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, local_country.definition.attributes);
         return super.count(options);
     }
 
@@ -141,9 +172,9 @@ module.exports = class author extends Sequelize.Model {
         //use default BenignErrorReporter if no BenignErrorReporter defined
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), local_country.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => author.postReadCast(x))
+        records = records.map(x => local_country.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -153,10 +184,10 @@ module.exports = class author extends Sequelize.Model {
         benignErrorReporter = errorHelper.getDefaultBenignErrorReporterIfUndef(benignErrorReporter);
 
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), author.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), local_country.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => author.postReadCast(x))
+        records = records.map(x => local_country.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -167,7 +198,7 @@ module.exports = class author extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), author.definition.attributes);
+            }, this.idAttribute(), local_country.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -176,14 +207,14 @@ module.exports = class author extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            authors: edges.map((edge) => edge.node)
+            local_countries: edges.map((edge) => edge.node)
         };
     }
 
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = author.preWriteCast(input)
+        input = local_country.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -191,8 +222,8 @@ module.exports = class author extends Sequelize.Model {
                 });
                 return item;
             });
-            author.postReadCast(result.dataValues)
-            author.postReadCast(result._previousDataValues)
+            local_country.postReadCast(result.dataValues)
+            local_country.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -218,7 +249,7 @@ module.exports = class author extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = author.preWriteCast(input)
+        input = local_country.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -231,8 +262,8 @@ module.exports = class author extends Sequelize.Model {
                 });
                 return updated;
             });
-            author.postReadCast(result.dataValues)
-            author.postReadCast(result._previousDataValues)
+            local_country.postReadCast(result.dataValues)
+            local_country.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -290,7 +321,7 @@ module.exports = class author extends Sequelize.Model {
             throw new Error(error);
         });
 
-        return `Bulk import of author records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
+        return `Bulk import of local_country records started. You will be send an email to ${helpersAcl.getTokenFromContext(context).email} informing you about success or errors`;
     }
 
     /**
@@ -308,7 +339,57 @@ module.exports = class author extends Sequelize.Model {
 
 
 
+    /**
+     * add_book_ids - field Mutation (model-layer) for to_many associationsArguments to add
+     *
+     * @param {Id}   country_id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async add_book_ids(country_id, book_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            book_ids.forEach(idx => {
+                promises.push(models.local_book.add_country_ids(idx, [`${country_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
 
+        let record = await super.findByPk(country_id);
+        if (record !== null) {
+            let updated_ids = helper.unionIds(JSON.parse(record.book_ids), book_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                book_ids: updated_ids
+            });
+        }
+    }
+
+    /**
+     * remove_book_ids - field Mutation (model-layer) for to_many associationsArguments to remove
+     *
+     * @param {Id}   country_id   IdAttribute of the root model to be updated
+     * @param {Array}   book_ids Array foreign Key (stored in "Me") of the Association to be updated.
+     */
+    static async remove_book_ids(country_id, book_ids, benignErrorReporter, handle_inverse = true) {
+        //handle inverse association
+        if (handle_inverse) {
+            let promises = [];
+            book_ids.forEach(idx => {
+                promises.push(models.local_book.remove_country_ids(idx, [`${country_id}`], benignErrorReporter, false));
+            });
+            await Promise.all(promises);
+        }
+
+        let record = await super.findByPk(country_id);
+        if (record !== null) {
+            let updated_ids = helper.differenceIds(JSON.parse(record.book_ids), book_ids);
+            updated_ids = JSON.stringify(updated_ids);
+            await record.update({
+                book_ids: updated_ids
+            });
+        }
+    }
 
 
 
@@ -323,7 +404,7 @@ module.exports = class author extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return author.definition.id.name;
+        return local_country.definition.id.name;
     }
 
     /**
@@ -332,16 +413,16 @@ module.exports = class author extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return author.definition.id.type;
+        return local_country.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of author.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of local_country.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[author.idAttribute()]
+        return this[local_country.idAttribute()]
     }
 
     static get definition() {
@@ -357,7 +438,7 @@ module.exports = class author extends Sequelize.Model {
     }
 
     stripAssociations() {
-        let attributes = Object.keys(author.definition.attributes);
+        let attributes = Object.keys(local_country.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
