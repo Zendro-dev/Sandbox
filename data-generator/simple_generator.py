@@ -2,8 +2,8 @@ import csv
 from random import randrange
 import json
 
-size = 1000000
-instance_prefix = "instance1"
+size = 20000
+instance_prefix = "instance2"
 
 
 # capital table
