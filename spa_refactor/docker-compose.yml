@@ -12,6 +12,8 @@ services:
     volumes:
       - ./initUserDb.sql:/docker-entrypoint-initdb.d/initUserDb.sql
       - ../data-generator:/mnt/datasets
+    ports:
+      - 1234:5432
     networks:
      - backend
 
