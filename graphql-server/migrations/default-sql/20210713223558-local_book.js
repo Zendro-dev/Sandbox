@@ -14,9 +14,9 @@ module.exports = {
      * @return {promise}                Resolved if the table was created successfully, rejected otherwise.
      */
     up: function(queryInterface, Sequelize) {
-        return queryInterface.createTable('authors', {
+        return queryInterface.createTable('local_books', {
 
-            author_id: {
+            book_id: {
                 type: Sequelize.STRING,
                 primaryKey: true
             },
@@ -31,6 +31,13 @@ module.exports = {
 
             name: {
                 type: Sequelize[dict['String']]
+            },
+            country_ids: {
+                type: Sequelize[dict['[String]']],
+                defaultValue: '[]'
+            },
+            publisher_id: {
+                type: Sequelize[dict['String']]
             }
 
         });
@@ -44,7 +51,7 @@ module.exports = {
      * @return {promise}                Resolved if the table was deleted successfully, rejected otherwise.
      */
     down: function(queryInterface, Sequelize) {
-        return queryInterface.dropTable('authors');
+        return queryInterface.dropTable('local_books');
     }
 
 };

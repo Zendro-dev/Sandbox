@@ -18,10 +18,13 @@ module.exports = {
             roles: 'editor',
             allows: [{
                 resources: [
-                    'author',
                     'book',
                     'capital',
                     'country',
+                    'local_book',
+                    'local_capital',
+                    'local_country',
+                    'local_publisher',
                     'publisher',
                     'book_instance1',
                     'book_instance2',
@@ -40,10 +43,13 @@ module.exports = {
             roles: 'reader',
             allows: [{
                 resources: [
-                    'author',
                     'book',
                     'capital',
                     'country',
+                    'local_book',
+                    'local_capital',
+                    'local_country',
+                    'local_publisher',
                     'publisher',
                     'book_instance1',
                     'book_instance2',

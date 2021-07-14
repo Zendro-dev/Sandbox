@@ -1,9 +1,0 @@
-{
-    "model": "author",
-    "storageType": "sql",
-    "attributes": {
-        "author_id":"String",
-        "name": "String"
-    },  
-    "internalId": "author_id"
-}
