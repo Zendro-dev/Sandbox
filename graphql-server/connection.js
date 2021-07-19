@@ -292,10 +292,13 @@ exports.ConnectionError = class ConnectionError extends Error {
  * @returns The data model class with connection as a static property.
  */
 exports.getAndConnectDataModelClass = (modelClass, connection) => {
-  return Object.defineProperty(modelClass, "storageHandler", {
+
+  if(!modelClass.hasOwnProperty('storageHandler')){	
+   return Object.defineProperty(modelClass, "storageHandler", {
     value: connection,
     writable: false, // cannot be changed in the future
     enumerable: true,
     configurable: false,
   });
+  }
 };
