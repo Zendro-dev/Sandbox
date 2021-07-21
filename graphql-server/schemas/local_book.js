@@ -94,6 +94,7 @@ type Local_bookEdge{
     vueTableLocal_book : VueTableLocal_book
     csvTableTemplateLocal_book: [String]
     local_booksConnection(search:searchLocal_bookInput, order: [ orderLocal_bookInput ], pagination: paginationCursorInput! ): Local_bookConnection
+    const_books: [local_book]  
   }
 
   type Mutation {
