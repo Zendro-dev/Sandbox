@@ -10,7 +10,9 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./initUserDb.sql:/docker-entrypoint-initdb.d/initUserDb.sql
-      - ../data-generator/data-generator:/mnt/data-generator  
+      - ../data-generator/data-generator:/mnt/data-generator
+    ports:
+      - 1234:5432  
     networks:
      - backend_stress
 
