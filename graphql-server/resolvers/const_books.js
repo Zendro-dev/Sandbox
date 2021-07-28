@@ -7,7 +7,7 @@ axios.defaults.timeout = globals.MAX_TIME_OUT;
 const remoteZendroURL = "http://siagro01.conabio.gob.mx:3003/graphql";
 
 module.exports = {
-    const_books: function(_,context){
+    const_books: async (_,context)=>{
         let query = `
             query const_books{
                 const_books{
