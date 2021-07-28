@@ -110,7 +110,7 @@ async function principal(){
    }
 
    // Loop for measuring time in adapter instance1	
-   for await (let i of [...Array(1000).keys()]){
+   for await (let i of [...Array(100).keys()]){
     let time_start =  Date.now();
     let result = await time_adapter('book_instance1');
     let time_end =  Date.now();
