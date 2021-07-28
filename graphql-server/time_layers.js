@@ -39,7 +39,6 @@ async function time_model(context){
 
 
 //measure time in resolver layer
-
 async function time_resolver(context){
     
     return await resolvers.booksConnection({pagination:{first:9000}},context);
@@ -48,9 +47,8 @@ async function time_resolver(context){
 //measure time in adapter layer
 async function time_adapter(adapter_name, context){
 
-let benignErrorReporter = new errorHelper.BenignErrorReporter(context);	
- return await adapters[adapter_name].readAllCursor(undefined,undefined,{first: 5000},benignErrorReporter);
-
+     let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+     return await adapters[adapter_name].readAllCursor(undefined,undefined,{first: 9000},benignErrorReporter);
 }
 
 let context = {
@@ -71,18 +69,21 @@ let context = {
 async function principal(){
     await initializeStorageHandlersForModels(models);
     await initializeStorageHandlersForAdapters(adapters);
+ 
+   // Loop for measuring time in resolver layer
    for await (let i of [...Array(100).keys()]){
     let time_start =  Date.now();
     let result = await time_resolver(context);
     let time_end =  Date.now();	   
     let time_total = time_end - time_start ;
-    //console.log("RESULT RESOLVER IN LOOP: ", result_resolver);
+    //console.log("RESULT RESOLVER IN LOOP: ", result);
     //console.log("TIME RESULT: ", time_total, "ms");
     context.recordsLimit = 10000;
     time_results.resolver+= `,${time_total}`
     delete result;
    } 
 
+   // Loop for measuring time in model layer	
    for await (let i of [...Array(100).keys()]){
     let time_start =  Date.now();
     let result = await time_model(context);
@@ -95,7 +96,7 @@ async function principal(){
     delete result;
    } 
 
-   
+   // Loop for measuring time in adapter instance2
    for await (let i of [...Array(100).keys()]){
     let time_start =  Date.now();
     let result = await time_adapter('book_instance2');
@@ -108,18 +109,18 @@ async function principal(){
     delete result;
    }
 
-  /*	
-   for await (let i of [...Array(100).keys()]){
+   // Loop for measuring time in adapter instance1	
+   for await (let i of [...Array(1000).keys()]){
     let time_start =  Date.now();
     let result = await time_adapter('book_instance1');
     let time_end =  Date.now();
     let time_total = time_end - time_start;
    // console.log("RESULT MODEL: ", result);
-    console.log("TIME RESULT ADAPTER 1: ", time_total, "ms");
+   // console.log("TIME RESULT ADAPTER 1: ", time_total, "ms");
     context.recordsLimit = 10000;
     time_results.adapter_instance1+= `,${time_total}`
     delete result;
-   }*/
+   }
 	
 
    console.log("TIME RESULTS: ", time_results);
