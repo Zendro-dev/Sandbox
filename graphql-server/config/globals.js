@@ -50,7 +50,7 @@ const REQUIRE_SIGN_IN = process.env.REQUIRE_SIGN_IN === "false" ? false : true;
 const SALT_ROUNDS = process.env.SALT_ROUNDS || 10;
 
 // Timeouts
-const MAX_TIME_OUT = process.env.MAX_TIME_OUT || 2000;
+const MAX_TIME_OUT = process.env.MAX_TIME_OUT || 20000;
 const EXPORT_TIME_OUT = process.env.EXPORT_TIME_OUT || 3600
 
 const config = {
