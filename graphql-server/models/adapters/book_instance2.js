@@ -97,6 +97,14 @@ module.exports = class book_instance2 {
     }
 
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
+        const startTime = new Date()
+        const result = await this.oldReadAllCursor(search, order, pagination, benignErrorReporter)
+        const measuredTime = (new Date()) - startTime
+        console.log('booksConnection_remote_adapter:', measuredTime)
+        return result
+    }
+
+    static async oldReadAllCursor(search, order, pagination, benignErrorReporter) {
 
         let query = `query booksConnection($search: searchBookInput $pagination: paginationCursorInput! $order: [orderBookInput]){
       booksConnection(search:$search pagination:$pagination order:$order){ edges{cursor node{  book_id  name

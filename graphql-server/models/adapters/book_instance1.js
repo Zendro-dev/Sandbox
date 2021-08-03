@@ -195,6 +195,14 @@ module.exports = class book_instance1 extends Sequelize.Model {
     }
 
     static async readAllCursor(search, order, pagination) {
+        const startTime = new Date()
+        const result = await this.oldReadAllCursor(search, order, pagination)
+        const measuredTime = (new Date()) - startTime
+        console.log( 'booksConnection_local_adapter:', measuredTime)
+        return result
+    }
+
+    static async oldReadAllCursor(search, order, pagination) {
         // build the sequelize options object for cursor-based pagination
         let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), book_instance1.definition.attributes);
         let records = await super.findAll(options);

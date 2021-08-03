@@ -208,8 +208,15 @@ module.exports = class book {
             }, 0);
         });
     }
+    static async readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters){
+        const startTime = new Date()
+        const result = await this.oldReadAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters)
+        const measuredTime = (new Date()) - startTime
+        console.log( 'booksConnection_model:', measuredTime)
+        return result
+    }
 
-    static readAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
+    static async oldReadAllCursor(search, order, pagination, authorizedAdapters, benignErrorReporter, searchAuthorizedAdapters) {
         let authAdapters = [];
         /**
          * Differentiated cases:
