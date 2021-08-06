@@ -28,6 +28,7 @@ const associationArgsDef = {
 country.prototype.capital = async function({
     search
 }, context) {
+    const startTime = new Date()
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -49,6 +50,8 @@ country.prototype.capital = async function({
                 `Not unique "to_one" association Error: Found > 1 capitals matching country with country_id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the country model. Returning first capital.`
             ));
         }
+        const measuredTime = (new Date()) - startTime
+        console.log(`capital*country&${this.getIdValue().slice(0, 9)}:`, measuredTime)
         return found[0].node;
     }
     return null;
@@ -62,11 +65,11 @@ country.prototype.capital = async function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-country.prototype.countFilteredAvailable_books = function({
+country.prototype.countFilteredAvailable_books = async function({
     search
 }, context) {
 
-
+    const startTime = new Date()
     //return 0 if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
         return 0;
@@ -78,9 +81,10 @@ country.prototype.countFilteredAvailable_books = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.countBooks({
-        search: nsearch
-    }, context);
+    const res = await resolvers.countBooks({search: nsearch}, context);
+    const measuredTime = (new Date()) - startTime
+    console.log(`countFilteredAvailable_books*country&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return res
 }
 
 
@@ -95,12 +99,12 @@ country.prototype.countFilteredAvailable_books = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-country.prototype.available_booksConnection = function({
+country.prototype.available_booksConnection = async function({
     search,
     order,
     pagination
 }, context) {
-
+    const startTime = new Date()
     //return an empty response if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
         return {
@@ -121,11 +125,14 @@ country.prototype.available_booksConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.booksConnection({
+    const res = await resolvers.booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log(`available_booksConnection*country&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return res
 }
 
 
@@ -321,6 +328,7 @@ module.exports = {
     readOneCountry: async function({
         country_id
     }, context) {
+        const startTime = new Date()
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, country.adapterForIri(country_id), 'read');
         if (authorizationCheck === true) {
@@ -328,7 +336,13 @@ module.exports = {
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
 
-            return country.readById(country_id, benignErrorReporter);
+            const res = await country.readById(country_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            if (!context['field']){
+                console.log(`readOneCountry&${country_id.slice(0, 9)}:`, measuredTime)
+            }
+            
+            return res
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }

@@ -26,10 +26,10 @@ const associationArgsDef = {
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-publisher.prototype.countFilteredBooks = function({
+publisher.prototype.countFilteredBooks = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -37,9 +37,12 @@ publisher.prototype.countFilteredBooks = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countBooks({
+    const res = await resolvers.countBooks({
         search: nsearch
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log(`countFilteredBooks*publisher&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return res
 }
 
 
@@ -54,11 +57,12 @@ publisher.prototype.countFilteredBooks = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-publisher.prototype.booksConnection = function({
+publisher.prototype.booksConnection = async function({
     search,
     order,
     pagination
 }, context) {
+    const startTime = new Date()
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -66,12 +70,14 @@ publisher.prototype.booksConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-
-    return resolvers.booksConnection({
+    const res = await resolvers.booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log(`booksConnection*publisher&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return res
 }
 
 
@@ -250,14 +256,19 @@ module.exports = {
     readOnePublisher: async function({
         publisher_id
     }, context) {
+        const startTime = new Date()
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, publisher.adapterForIri(publisher_id), 'read');
         if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOnePublisher");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-            return publisher.readById(publisher_id, benignErrorReporter);
+            const res = await publisher.readById(publisher_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            if (!context['field']){
+                console.log(`readOnePublisher&${publisher_id.slice(0, 9)}:`, measuredTime)
+            }
+            return res
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }

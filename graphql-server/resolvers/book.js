@@ -28,12 +28,16 @@ const associationArgsDef = {
 book.prototype.publisher = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     if (helper.isNotUndefinedAndNotNull(this.publisher_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOnePublisher({
+            context['field']=true
+            const res = await resolvers.readOnePublisher({
                 [models.publisher.idAttribute()]: this.publisher_id
             }, context)
+            const measuredTime = (new Date()) - startTime
+            console.log(`publisher*book&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+            return res
         } else {
             //build new search filter
             let nsearch = helper.addSearchField({
@@ -64,11 +68,11 @@ book.prototype.publisher = async function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-book.prototype.countFilteredCountries = function({
+book.prototype.countFilteredCountries = async function({
     search
 }, context) {
 
-
+    const startTime = new Date()
     //return 0 if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
         return 0;
@@ -80,9 +84,12 @@ book.prototype.countFilteredCountries = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.countCountries({
+    const result = await resolvers.countCountries({
         search: nsearch
     }, context);
+	const measuredTime = (new Date()) - startTime
+	console.log(`countFilteredCountries*book&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return result
 }
 
 
@@ -97,12 +104,12 @@ book.prototype.countFilteredCountries = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-book.prototype.countriesConnection = function({
+book.prototype.countriesConnection = async function({
     search,
     order,
     pagination
 }, context) {
-
+    const startTime = new Date()
     //return an empty response if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
         return {
@@ -123,11 +130,14 @@ book.prototype.countriesConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.countriesConnection({
+	const result = await resolvers.countriesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+	const measuredTime = (new Date()) - startTime
+	console.log(`countriesConnection*book&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+    return result
 }
 
 
@@ -327,14 +337,17 @@ module.exports = {
     readOneBook: async function({
         book_id
     }, context) {
+        const startTime = new Date()
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, book.adapterForIri(book_id), 'read');
         if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneBook");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-            return book.readById(book_id, benignErrorReporter);
+            const res = await book.readById(book_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            console.log(`readOneBook&${book_id.slice(0, 9)}:`, measuredTime)
+            return res
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }

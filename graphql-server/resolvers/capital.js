@@ -27,12 +27,16 @@ const associationArgsDef = {
 capital.prototype.country = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     if (helper.isNotUndefinedAndNotNull(this.country_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneCountry({
+            context['field']=true
+            const res = await resolvers.readOneCountry({
                 [models.country.idAttribute()]: this.country_id
             }, context)
+            const measuredTime = (new Date()) - startTime
+            console.log(`country*capital&${this.getIdValue().slice(0, 9)}:`, measuredTime)
+            return res
         } else {
             //build new search filter
             let nsearch = helper.addSearchField({
@@ -222,14 +226,17 @@ module.exports = {
     readOneCapital: async function({
         capital_id
     }, context) {
+        const startTime = new Date()
         //check: adapters auth
         let authorizationCheck = await checkAuthorization(context, capital.adapterForIri(capital_id), 'read');
         if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneCapital");
             //construct benignErrors reporter with context
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-
-            return capital.readById(capital_id, benignErrorReporter);
+            const res = await capital.readById(capital_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            console.log(`readOneCapital&${capital_id.slice(0, 9)}:`, measuredTime)
+            return res
         } else { //adapter not auth
             throw new Error("You don't have authorization to perform this action on adapter");
         }

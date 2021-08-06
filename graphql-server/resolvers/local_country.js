@@ -30,6 +30,7 @@ const associationArgsDef = {
 local_country.prototype.local_capital = async function({
     search
 }, context) {
+    const startTime = new Date()
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -50,6 +51,8 @@ local_country.prototype.local_capital = async function({
                 `Not unique "to_one" association Error: Found > 1 local_capitals matching local_country with country_id ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the local_country model. Returning first local_capital.`
             ));
         }
+        const measuredTime = (new Date()) - startTime
+        console.log('local_capital*local_country:', measuredTime)
         return found[0].node;
     }
     return null;
@@ -98,11 +101,11 @@ local_country.prototype.available_local_booksFilter = function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-local_country.prototype.countFilteredAvailable_local_books = function({
+local_country.prototype.countFilteredAvailable_local_books = async function({
     search
 }, context) {
 
-
+    const startTime = new Date()
     //return 0 if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
         return 0;
@@ -116,9 +119,12 @@ local_country.prototype.countFilteredAvailable_local_books = function({
         "operator": "in"
     });
 
-    return resolvers.countLocal_books({
+    const res = await resolvers.countLocal_books({
         search: nsearch
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log('countFilteredAvailable_local_books*local_country:', measuredTime)
+    return res
 }
 
 /**
@@ -132,12 +138,12 @@ local_country.prototype.countFilteredAvailable_local_books = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-local_country.prototype.available_local_booksConnection = function({
+local_country.prototype.available_local_booksConnection = async function({
     search,
     order,
     pagination
 }, context) {
-
+    const startTime = new Date()
 
     //return an empty response if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.book_ids) || this.book_ids.length === 0) {
@@ -160,11 +166,14 @@ local_country.prototype.available_local_booksConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.local_booksConnection({
+    const res = await resolvers.local_booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log('available_local_booksConnection*local_country:', measuredTime)
+    return res
 }
 
 
@@ -350,10 +359,16 @@ module.exports = {
     readOneLocal_country: async function({
         country_id
     }, context) {
+        const startTime = new Date()
         if (await checkAuthorization(context, 'local_country', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneLocal_country");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await local_country.readById(country_id, benignErrorReporter);
+            const res = await local_country.readById(country_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            if (!context['field']){
+                console.log('readOneLocal_country:', measuredTime)
+            }
+            return res
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

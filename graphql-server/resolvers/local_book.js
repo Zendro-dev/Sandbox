@@ -30,12 +30,16 @@ const associationArgsDef = {
 local_book.prototype.local_publisher = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     if (helper.isNotUndefinedAndNotNull(this.publisher_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneLocal_publisher({
+            context['field']=true
+            const res = await resolvers.readOneLocal_publisher({
                 [models.local_publisher.idAttribute()]: this.publisher_id
             }, context)
+            const measuredTime = (new Date()) - startTime
+            console.log(`local_publisher*local_book:`, measuredTime)
+            return res
         } else {
 
             //build new search filter
@@ -102,11 +106,11 @@ local_book.prototype.local_countriesFilter = function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-local_book.prototype.countFilteredLocal_countries = function({
+local_book.prototype.countFilteredLocal_countries = async function({
     search
 }, context) {
 
-
+    const startTime = new Date()
     //return 0 if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
         return 0;
@@ -120,9 +124,12 @@ local_book.prototype.countFilteredLocal_countries = function({
         "operator": "in"
     });
 
-    return resolvers.countLocal_countries({
+    const result = await resolvers.countLocal_countries({
         search: nsearch
     }, context);
+	const measuredTime = (new Date()) - startTime
+	console.log(`countFilteredLocal_countries*local_book:`, measuredTime)
+    return result
 }
 
 /**
@@ -136,13 +143,13 @@ local_book.prototype.countFilteredLocal_countries = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-local_book.prototype.local_countriesConnection = function({
+local_book.prototype.local_countriesConnection = async function({
     search,
     order,
     pagination
 }, context) {
 
-
+    const startTime = new Date()
     //return an empty response if the foreignKey Array is empty, no need to query the database
     if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
         return {
@@ -164,11 +171,14 @@ local_book.prototype.local_countriesConnection = function({
         "valueType": "Array",
         "operator": "in"
     });
-    return resolvers.local_countriesConnection({
+    const result = await resolvers.local_countriesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+	const measuredTime = (new Date()) - startTime
+	console.log(`local_countriesConnection*local_book:`, measuredTime)
+    return result
 }
 
 
@@ -358,10 +368,14 @@ module.exports = {
     readOneLocal_book: async function({
         book_id
     }, context) {
+        const startTime = new Date()
         if (await checkAuthorization(context, 'local_book', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneLocal_book");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await local_book.readById(book_id, benignErrorReporter);
+            const res = await local_book.readById(book_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            console.log('readOneLocal_book:', measuredTime)
+            return res
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

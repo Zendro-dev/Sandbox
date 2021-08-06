@@ -29,12 +29,16 @@ const associationArgsDef = {
 local_capital.prototype.local_country = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     if (helper.isNotUndefinedAndNotNull(this.country_id)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneLocal_country({
+            context['field']=true
+            const res = await resolvers.readOneLocal_country({
                 [models.local_country.idAttribute()]: this.country_id
             }, context)
+            const measuredTime = (new Date()) - startTime
+            console.log('local_country*local_capital:', measuredTime)
+            return res
         } else {
 
             //build new search filter
@@ -215,10 +219,14 @@ module.exports = {
     readOneLocal_capital: async function({
         capital_id
     }, context) {
+        const startTime = new Date()
         if (await checkAuthorization(context, 'local_capital', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneLocal_capital");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await local_capital.readById(capital_id, benignErrorReporter);
+            const res = await local_capital.readById(capital_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            console.log('readOneLocal_capital:', measuredTime)
+            return res
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

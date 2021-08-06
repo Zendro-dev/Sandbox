@@ -60,10 +60,10 @@ local_publisher.prototype.booksFilter = function({
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-local_publisher.prototype.countFilteredBooks = function({
+local_publisher.prototype.countFilteredBooks = async function({
     search
 }, context) {
-
+    const startTime = new Date()
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
@@ -71,9 +71,12 @@ local_publisher.prototype.countFilteredBooks = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countLocal_books({
+    const res = await resolvers.countLocal_books({
         search: nsearch
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log('countFilteredBooks*local_publisher:', measuredTime)
+    return res
 }
 
 /**
@@ -87,12 +90,12 @@ local_publisher.prototype.countFilteredBooks = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-local_publisher.prototype.booksConnection = function({
+local_publisher.prototype.booksConnection = async function({
     search,
     order,
     pagination
 }, context) {
-
+    const startTime = new Date()
 
     //build new search filter
     let nsearch = helper.addSearchField({
@@ -101,11 +104,14 @@ local_publisher.prototype.booksConnection = function({
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.local_booksConnection({
+    const res = await resolvers.local_booksConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
+    const measuredTime = (new Date()) - startTime
+    console.log('booksConnection*local_publisher:', measuredTime)
+    return res
 }
 
 
@@ -274,10 +280,16 @@ module.exports = {
     readOneLocal_publisher: async function({
         publisher_id
     }, context) {
+        const startTime = new Date()
         if (await checkAuthorization(context, 'local_publisher', 'read') === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneLocal_publisher");
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            return await local_publisher.readById(publisher_id, benignErrorReporter);
+            const res = await local_publisher.readById(publisher_id, benignErrorReporter);
+            const measuredTime = (new Date()) - startTime
+            if (!context['field']){
+                console.log('readOneLocal_publisher:', measuredTime)
+            }
+            return res
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
