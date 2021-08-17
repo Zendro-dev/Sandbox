@@ -1,0 +1,23 @@
+{
+    "model": "local_capital",
+    "storageType": "sql",
+    "attributes": {
+        "capital_id":"String",
+        "name": "String",
+        "country_id": "String"
+    },
+  
+    "associations": {
+        "local_country": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "local_capital",
+            "target": "local_country",
+            "targetKey": "country_id",
+            "keysIn": "local_capital",
+            "targetStorageType": "sql"
+        }
+    },
+  
+    "internalId": "capital_id"
+}
