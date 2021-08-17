@@ -29,5 +29,6 @@
         }
     },
   
-    "internalId": "country_id"
+    "internalId": "country_id",
+    "useDataLoader": false
 }

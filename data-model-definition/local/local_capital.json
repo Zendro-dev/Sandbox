@@ -19,5 +19,6 @@
         }
     },
   
-    "internalId": "capital_id"
+    "internalId": "capital_id",
+    "useDataLoader": false
 }

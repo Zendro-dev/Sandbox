@@ -37,7 +37,7 @@ const definition = {
         }
     },
     internalId: 'publisher_id',
-    useDataLoader: true,
+    useDataLoader: false,
     id: {
         name: 'publisher_id',
         type: 'String'
@@ -119,34 +119,13 @@ module.exports = class local_publisher extends Sequelize.Model {
         });
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: local_publisher.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await local_publisher.readAllCursor(queryArg);
-        cursorRes = cursorRes.local_publishers.reduce(
-            (map, obj) => ((map[obj[local_publisher.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(local_publisher.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await local_publisher.readByIdLoader.load(id);
+        let item = await local_publisher.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = local_publisher.postReadCast(item)
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
     static async countRecords(search) {
         let options = {}

@@ -48,6 +48,7 @@ const definition = {
         }
     },
     internalId: 'country_id',
+    useDataLoader: false,
     id: {
         name: 'country_id',
         type: 'String'
@@ -133,34 +134,13 @@ module.exports = class local_country extends Sequelize.Model {
         });
     }
 
-    /**
-     * Batch function for readById method.
-     * @param  {array} keys  keys from readById method
-     * @return {array}       searched results
-     */
-    static async batchReadById(keys) {
-        let queryArg = {
-            operator: "in",
-            field: local_country.idAttribute(),
-            value: keys.join(),
-            valueType: "Array",
-        };
-        let cursorRes = await local_country.readAllCursor(queryArg);
-        cursorRes = cursorRes.local_countries.reduce(
-            (map, obj) => ((map[obj[local_country.idAttribute()]] = obj), map), {}
-        );
-        return keys.map(
-            (key) =>
-            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
-        );
-    }
-
-    static readByIdLoader = new DataLoader(local_country.batchReadById, {
-        cache: false,
-    });
-
     static async readById(id) {
-        return await local_country.readByIdLoader.load(id);
+        let item = await local_country.findByPk(id);
+        if (item === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        item = local_country.postReadCast(item)
+        return validatorUtil.validateData('validateAfterRead', this, item);
     }
     static async countRecords(search) {
         let options = {}

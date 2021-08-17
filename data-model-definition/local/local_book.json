@@ -29,5 +29,6 @@
         }
     },
   
-    "internalId": "book_id"
+    "internalId": "book_id",
+    "useDataLoader": false
 }
