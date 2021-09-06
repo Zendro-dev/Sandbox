@@ -1,4 +1,5 @@
 const axios_general = require('axios');
+const axiosTime = require('axios-time');
 const globals = require('../../config/globals');
 const validatorUtil = require('../../utils/validatorUtil');
 const errorHelper = require('../../utils/errors');
@@ -6,6 +7,7 @@ const helper = require('../../utils/helper');
 
 let axios = axios_general.create();
 axios.defaults.timeout = globals.MAX_TIME_OUT;
+axiosTime(axios);
 
 const remoteZendroURL = "http://siagro01.conabio.gob.mx:3003/graphql";
 const iriRegex = new RegExp('instance2');
@@ -123,6 +125,7 @@ module.exports = class book_instance2 {
                     pagination: pagination
                 }
             });
+            console.log('booksConnection_axios:', response.timings.elapsedTime)
             //check if remote service returned benign Errors in the response and add them to the benignErrorReporter
             if (helper.isNonEmptyArray(response.data.errors)) {
                 benignErrorReporter.reportError(errorHelper.handleRemoteErrors(response.data.errors, remoteZendroURL));
