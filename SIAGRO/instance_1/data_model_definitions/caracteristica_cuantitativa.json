@@ -19,7 +19,7 @@
       "target": "registro",
       "targetKey": "registro_id",
       "keyIn": "caracteristica_cuantitativa",
-      "label": "nombrecomun"
+      "label": "descripcion_alimento"
     },
 
     "metodo": {
@@ -27,7 +27,8 @@
       "targetStorageType": "sql",
       "target": "metodo",
       "targetKey": "metodo_id",
-      "keyIn": "caracteristica_cuantitativa"
+      "keyIn": "caracteristica_cuantitativa",
+      "label": "descripcion"
     }
   }
 }
