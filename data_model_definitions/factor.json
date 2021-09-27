@@ -8,8 +8,7 @@
     "type": "String",
     "assay_ids": "[String]",
     "study_ids": "[String]",
-    "ontologyAnnotation_ids": "[String]",
-    "fileAttachment_ids": "[String]"
+    "ontologyAnnotation_ids": "[String]"
   },
   "associations": {
     "assays": {
@@ -21,8 +20,6 @@
       "targetKey": "factor_ids",
       "sourceKey": "assay_ids",
       "keysIn": "factor"
-
-
     },
     "studies": {
       "type": "many_to_many",
@@ -33,8 +30,6 @@
       "targetKey": "factor_ids",
       "sourceKey": "study_ids",
       "keysIn": "factor"
-
-
     },
     "ontologyAnnotation": {
       "type": "many_to_many",
@@ -45,20 +40,15 @@
       "targetKey": "factor_ids",
       "sourceKey": "ontologyAnnotation_ids",
       "keysIn": "factor"
-
-
     },
     "fileAttachments": {
-      "type": "many_to_many",
+      "type": "one_to_many",
       "implementation": "foreignkeys",
-      "reverseAssociation": "factors",
+      "reverseAssociation": "factor",
       "targetStorageType": "sql",
       "target": "fileAttachment",
-      "targetKey": "factor_ids",
-      "sourceKey": "fileAttachment_ids",
-      "keysIn": "factor"
-
-
+      "targetKey": "factor_id",
+      "keysIn": "fileAttachment"
     }
 
   },

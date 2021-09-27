@@ -6,10 +6,10 @@
     "name": "String",
     "description": "String",
     "type": "Date",
+    
     "study_ids": "[String]",
     "assay_ids": "[String]",
-    "ontologyAnnotation_ids": "[String]",
-    "fileAttachment_ids": "[String]"
+    "ontologyAnnotation_ids": "[String]"
   },
   "associations": {
     "studies": {
@@ -21,8 +21,6 @@
       "targetKey": "protocol_ids",
       "sourceKey": "study_ids",
       "keysIn": "protocol"
-
-
     },
     "assays": {
       "type": "many_to_many",
@@ -33,8 +31,6 @@
       "targetKey": "protocol_ids",
       "sourceKey": "assay_ids",
       "keysIn": "protocol"
-
-
     },
     "ontologyAnnotation": {
       "type": "many_to_many",
@@ -45,20 +41,15 @@
       "targetKey": "protocol_ids",
       "sourceKey": "ontologyAnnotation_ids",
       "keysIn": "protocol"
-
-
     },
     "fileAttachments": {
-      "type": "many_to_many",
+      "type": "one_to_many",
       "implementation": "foreignkeys",
-      "reverseAssociation": "protocols",
+      "reverseAssociation": "protocol",
       "targetStorageType": "sql",
       "target": "fileAttachment",
-      "targetKey": "protocol_ids",
-      "sourceKey": "fileAttachment_ids",
-      "keysIn": "protocol"
-
-
+      "targetKey": "protocol_id",
+      "keysIn": "fileAttachment"
     }
   },
   "internalId": "protocol_id"

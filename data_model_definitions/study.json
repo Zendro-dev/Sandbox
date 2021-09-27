@@ -13,8 +13,7 @@
     "protocol_ids": "[String]",
     "contact_ids": "[String]",
     "material_ids": "[String]",
-    "ontologyAnnotation_ids": "[String]",
-    "fileAttachment_ids": "[String]"
+    "ontologyAnnotation_ids": "[String]"
   },
   "associations": {
     "investigation": {
@@ -25,7 +24,6 @@
       "target": "investigation",
       "targetKey": "investigation_id",
       "keysIn": "study"
-
     },
     "assays": {
       "type": "one_to_many",
@@ -35,7 +33,6 @@
       "target": "assay",
       "targetKey": "study_id",
       "keysIn": "assay"
-
     },
     "factors": {
       "type": "many_to_many",
@@ -46,8 +43,6 @@
       "targetKey": "study_ids",
       "sourceKey": "factor_ids",
       "keysIn": "study"
-
-
     },
     "protocols": {
       "type": "many_to_many",
@@ -58,8 +53,6 @@
       "targetKey": "study_ids",
       "sourceKey": "protocol_ids",
       "keysIn": "study"
-
-
     },
     "contacts": {
       "type": "many_to_many",
@@ -70,8 +63,6 @@
       "targetKey": "study_ids",
       "sourceKey": "contact_ids",
       "keysIn": "study"
-
-
     },
     "materials": {
       "type": "many_to_many",
@@ -82,8 +73,6 @@
       "targetKey": "study_ids",
       "sourceKey": "material_ids",
       "keysIn": "study"
-
-
     },
     "ontologyAnnotations": {
       "type": "many_to_many",
@@ -94,20 +83,15 @@
       "targetKey": "study_ids",
       "sourceKey": "ontologyAnnotation_ids",
       "keysIn": "study"
-
-
     },
     "fileAttachments": {
-      "type": "many_to_many",
+      "type": "one_to_many",
       "implementation": "foreignkeys",
-      "reverseAssociation": "studies",
+      "reverseAssociation": "study",
       "targetStorageType": "sql",
       "target": "fileAttachment",
-      "targetKey": "study_ids",
-      "sourceKey": "fileAttachment_ids",
-      "keysIn": "study"
-
-
+      "targetKey": "study_id",
+      "keysIn": "fileAttachment"
     }
   },
   "internalId": "study_id"

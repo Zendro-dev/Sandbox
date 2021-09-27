@@ -9,22 +9,9 @@
     "endDate": "Date",
 
     "ontologyAnnotation_ids": "[String]",
-    "contact_ids": "[String]",
-    "fileAttachment_ids": "[String]"
+    "contact_ids": "[String]"
   },
   "associations": {
-    "contacts": {
-      "type": "many_to_many",
-      "implementation": "foreignkeys",
-      "reverseAssociation": "investigations",
-      "targetStorageType": "sql",
-      "target": "contact",
-      "targetKey": "investigation_ids",
-      "sourceKey": "contact_ids",
-      "keysIn": "investigation"
-
-
-    },
     "studies": {
       "type": "one_to_many",
       "implementation": "foreignkeys",
@@ -33,7 +20,6 @@
       "target": "study",
       "targetKey": "investigation_id",
       "keysIn": "study"
-
     },
     "ontologyAnnotations": {
       "type": "many_to_many",
@@ -44,20 +30,15 @@
       "targetKey": "investigation_ids",
       "sourceKey": "ontologyAnnotation_ids",
       "keysIn": "investigation"
-
-
     },
     "fileAttachments": {
-      "type": "many_to_many",
+      "type": "one_to_many",
       "implementation": "foreignkeys",
-      "reverseAssociation": "investigations",
+      "reverseAssociation": "investigation",
       "targetStorageType": "sql",
       "target": "fileAttachment",
-      "targetKey": "investigation_ids",
-      "sourceKey": "fileAttachment_ids",
-      "keysIn": "investigation"
-
-
+      "targetKey": "investigation_id",
+      "keysIn": "fileAttachment"
     }
   },
   "internalId": "investigation_id"

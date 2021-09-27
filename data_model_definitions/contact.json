@@ -10,9 +10,7 @@
     "affiliation" : "String",
 
     "study_ids": "[String]",
-    "investigation_ids": "[String]",
-    "fileAttachment_ids": "[String]",
-    "ontologyAnnotation_ids": "[String]"
+    "investigation_ids": "[String]"
   },
   "associations": {
     "studies": {
@@ -24,8 +22,6 @@
       "targetKey": "contact_ids",
       "sourceKey": "study_ids",
       "keysIn": "contact"
-
-
     },
     "investigations": {
       "type": "many_to_many",
@@ -36,8 +32,6 @@
       "targetKey": "contact_ids",
       "sourceKey": "investigation_ids",
       "keysIn": "contact"
-
-
     }
   },
   "internalId": "contact_id"

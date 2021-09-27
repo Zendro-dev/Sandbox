@@ -12,8 +12,7 @@
     "factor_ids": "[String]",
     "protocol_ids": "[String]",
     "material_ids": "[String]",
-    "ontologyAnnotation_ids": "[String]",
-    "fileAttachment_ids": "[String]"
+    "ontologyAnnotation_ids": "[String]"
   },
   "associations": {
     "study": {
@@ -24,17 +23,6 @@
       "target": "study",
       "targetKey": "study_id",
       "keysIn": "assay"
-
-    },
-    "assayResults": {
-      "type": "one_to_many",
-      "implementation": "foreignkeys",
-      "reverseAssociation": "assay",
-      "targetStorageType": "sql",
-      "target": "assayResult",
-      "targetKey": "assay_id",
-      "keysIn": "assayResult"
-
     },
     "factors": {
       "type": "many_to_many",
@@ -45,9 +33,6 @@
       "targetKey": "assay_ids",
       "sourceKey": "factor_ids",
       "keysIn": "assay"
-
-
-
     },
     "materials": {
       "type": "many_to_many",
@@ -58,8 +43,6 @@
       "targetKey": "assay_ids",
       "sourceKey": "material_ids",
       "keysIn": "assay"
-
-
     },
     "protocols": {
       "type": "many_to_many",
@@ -80,21 +63,15 @@
       "targetKey": "assay_ids",
       "sourceKey": "ontologyAnnotation_ids",
       "keysIn": "assay"
-
-
-
     },
     "fileAttachments": {
-      "type": "many_to_many",
+      "type": "one_to_many",
       "implementation": "foreignkeys",
-      "reverseAssociation": "assays",
+      "reverseAssociation": "assay",
       "targetStorageType": "sql",
       "target": "fileAttachment",
-      "targetKey": "assay_ids",
-      "sourceKey": "fileAttachment_ids",
-      "keysIn": "assay"
-
-
+      "targetKey": "assay_id",
+      "keysIn": "fileAttachment"
     }
   },
   "internalId": "assay_id"
