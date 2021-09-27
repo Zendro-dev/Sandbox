@@ -1,0 +1,65 @@
+{
+  "model": "protocol",
+  "storageType": "sql",
+  "attributes": {
+    "protocol_id": "String",
+    "name": "String",
+    "description": "String",
+    "type": "Date",
+    "study_ids": "[String]",
+    "assay_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "protocols",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "protocol_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "protocol"
+
+
+    },
+    "assays": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "protocols",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "protocol_ids",
+      "sourceKey": "assay_ids",
+      "keysIn": "protocol"
+
+
+    },
+    "ontologyAnnotation": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "protocols",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "protocol_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "protocol"
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "protocols",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "protocol_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "protocol"
+
+
+    }
+  },
+  "internalId": "protocol_id"
+}

@@ -1,0 +1,44 @@
+{
+  "model": "contact",
+  "storageType": "sql",
+  "attributes": {
+    "contact_id" : "String",
+    "name" : "String",
+    "email" : "String",
+    "phone" : "String",
+    "address" : "String",
+    "affiliation" : "String",
+
+    "study_ids": "[String]",
+    "investigation_ids": "[String]",
+    "fileAttachment_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "contacts",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "contact_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "contact"
+
+
+    },
+    "investigations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "contacts",
+      "targetStorageType": "sql",
+      "target": "investigation",
+      "targetKey": "contact_ids",
+      "sourceKey": "investigation_ids",
+      "keysIn": "contact"
+
+
+    }
+  },
+  "internalId": "contact_id"
+}

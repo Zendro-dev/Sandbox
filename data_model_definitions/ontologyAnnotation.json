@@ -1,0 +1,107 @@
+{
+  "model": "ontologyAnnotation",
+  "storageType": "sql",
+  "attributes": {
+    "ontologyAnnotation_id": "String",
+    "ontology": "String",
+    "ontologyURL": "String",
+    "term": "String",
+    "termURL": "String",
+
+    "investigation_ids" : "[String]",
+    "study_ids": "[String]",
+    "assay_ids": "[String]",
+    "assayResult_ids": "[String]",
+    "factor_ids": "[String]",
+    "material_ids": "[String]",
+    "protocol_ids": "[String]",
+    "contact_ids": "[String]"
+  },
+  "associations": {
+    "investigations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotations",
+      "targetStorageType": "sql",
+      "target": "investigation",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "investigation_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "studies": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotations",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "assays": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotations",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "assay_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "assayResults": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotations",
+      "targetStorageType": "sql",
+      "target": "assayResult",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "assayResult_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "factors": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotation",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "factor_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "materials": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotation",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "material_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    },
+    "protocols": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "ontologyAnnotation",
+      "targetStorageType": "sql",
+      "target": "protocol",
+      "targetKey": "ontologyAnnotation_ids",
+      "sourceKey": "protocol_ids",
+      "keysIn": "ontologyAnnotation"
+
+
+    }
+  },
+  "internalId": "ontologyAnnotation_id"
+}

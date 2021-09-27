@@ -1,0 +1,107 @@
+{
+  "model": "material",
+  "storageType": "sql",
+  "attributes": {
+    "material_id": "String",
+    "name": "String",
+    "description": "String",
+    "type": "String",
+
+    "study_ids": "[String]",
+    "assay_ids": "[String]",
+    "assayResult_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "sourceSet_ids": "[String]",
+    "element_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "materials",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "material_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "material"
+
+
+    },
+    "assays": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "materials",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "material_ids",
+      "sourceKey": "assay_ids",
+      "keysIn": "material"
+
+
+    },
+    "assayResults": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "materials",
+      "targetStorageType": "sql",
+      "target": "assayResult",
+      "targetKey": "material_ids",
+      "sourceKey": "assayResult_ids",
+      "keysIn": "material"
+
+
+    },
+    "ontologyAnnotation": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "materials",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "material_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "material"
+
+
+    },
+
+    "sourceSets" : {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "elements",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "element_ids",
+      "sourceKey": "sourceSet_ids",
+      "keysIn": "material"
+
+
+    },
+    "elements" : {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "sourceSets",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "sourceSet_ids",
+      "sourceKey": "element_ids",
+      "keysIn": "material"
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "materials",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "material_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "material"
+
+
+    }
+
+  },
+  "internalId": "material_id"
+}

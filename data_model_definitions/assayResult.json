@@ -1,0 +1,66 @@
+{
+  "model": "assayResult",
+  "storageType": "sql",
+  "attributes": {
+    "assayResult_id": "String",
+    "unit": "String",
+    "value_as_str": "String",
+    "value_as_int": "Int",
+    "value_as_bool": "Boolean",
+    "value_as_float": "Float",
+
+    "assay_id": "String",
+    "material_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "assay": {
+      "type": "many_to_one",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assayResults",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "assay_id",
+      "keysIn": "assayResult"
+
+    },
+    "materials": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assayResults",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "assayResult_ids",
+      "sourceKey": "material_ids",
+      "keysIn": "assayResult"
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assayResults",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "assayResult_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "assayResult"
+
+
+    },
+    "ontologyAnnotations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assayResults",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "assayResult_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "assayResult"
+
+
+    }
+  },
+  "internalId": "assayResult_id"
+}

@@ -1,0 +1,101 @@
+{
+  "model": "assay",
+  "storageType": "sql",
+  "attributes": {
+    "assay_id": "String",
+    "measurement": "String",
+    "technology": "String",
+    "platform": "String",
+    "method": "String",
+
+    "study_id": "String",
+    "factor_ids": "[String]",
+    "protocol_ids": "[String]",
+    "material_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "study": {
+      "type": "many_to_one",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "study_id",
+      "keysIn": "assay"
+
+    },
+    "assayResults": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assay",
+      "targetStorageType": "sql",
+      "target": "assayResult",
+      "targetKey": "assay_id",
+      "keysIn": "assayResult"
+
+    },
+    "factors": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "assay_ids",
+      "sourceKey": "factor_ids",
+      "keysIn": "assay"
+
+
+
+    },
+    "materials": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "assay_ids",
+      "sourceKey": "material_ids",
+      "keysIn": "assay"
+
+
+    },
+    "protocols": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "protocol",
+      "targetKey": "assay_ids",
+      "sourceKey": "protocol_ids",
+      "keysIn": "assay"
+    },
+    "ontologyAnnotations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "assay_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "assay"
+
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "assays",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "assay_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "assay"
+
+
+    }
+  },
+  "internalId": "assay_id"
+}

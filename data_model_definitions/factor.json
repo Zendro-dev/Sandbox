@@ -1,0 +1,66 @@
+{
+  "model": "factor",
+  "storageType": "sql",
+  "attributes": {
+    "factor_id": "String",
+    "name": "String",
+    "description": "String",
+    "type": "String",
+    "assay_ids": "[String]",
+    "study_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "assays": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "factors",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "factor_ids",
+      "sourceKey": "assay_ids",
+      "keysIn": "factor"
+
+
+    },
+    "studies": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "factors",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "factor_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "factor"
+
+
+    },
+    "ontologyAnnotation": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "factors",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "factor_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "factor"
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "factors",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "factor_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "factor"
+
+
+    }
+
+  },
+  "internalId": "factor_id"
+}

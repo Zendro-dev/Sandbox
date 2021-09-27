@@ -1,0 +1,114 @@
+{
+  "model": "study",
+  "storageType": "sql",
+  "attributes": {
+    "study_id": "String",
+    "name": "String",
+    "description": "String",
+    "startDate": "Date",
+    "endDate": "Date",
+
+    "investigation_id": "String",
+    "factor_ids": "[String]",
+    "protocol_ids": "[String]",
+    "contact_ids": "[String]",
+    "material_ids": "[String]",
+    "ontologyAnnotation_ids": "[String]",
+    "fileAttachment_ids": "[String]"
+  },
+  "associations": {
+    "investigation": {
+      "type": "many_to_one",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "investigation",
+      "targetKey": "investigation_id",
+      "keysIn": "study"
+
+    },
+    "assays": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "study",
+      "targetStorageType": "sql",
+      "target": "assay",
+      "targetKey": "study_id",
+      "keysIn": "assay"
+
+    },
+    "factors": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "factor",
+      "targetKey": "study_ids",
+      "sourceKey": "factor_ids",
+      "keysIn": "study"
+
+
+    },
+    "protocols": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "protocol",
+      "targetKey": "study_ids",
+      "sourceKey": "protocol_ids",
+      "keysIn": "study"
+
+
+    },
+    "contacts": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "contact",
+      "targetKey": "study_ids",
+      "sourceKey": "contact_ids",
+      "keysIn": "study"
+
+
+    },
+    "materials": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "material",
+      "targetKey": "study_ids",
+      "sourceKey": "material_ids",
+      "keysIn": "study"
+
+
+    },
+    "ontologyAnnotations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "study_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "study"
+
+
+    },
+    "fileAttachments": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "studies",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "study_ids",
+      "sourceKey": "fileAttachment_ids",
+      "keysIn": "study"
+
+
+    }
+  },
+  "internalId": "study_id"
+}
