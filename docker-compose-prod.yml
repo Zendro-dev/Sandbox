@@ -90,7 +90,6 @@ services:
     ports:
       - 7000:7000
     environment:
-      # Set your production environment variables here
       PORT: "7000"
       REACT_APP_SERVER_URL: "http://localhost:3000/graphql"
       REACT_APP_LOGIN_URL: "http://localhost:3000/login"
@@ -107,10 +106,44 @@ services:
       - |
         npm install
         npm start
-   
+
+  gql_minio1:
+    image: minio/minio
+    container_name: minio1
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniominio
+      MINIO_REGION: us-east-1
+    volumes:
+      - datastore:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    command: server --console-address ":9001" /data 
+    networks:
+      - backend   
+
+  imgproxy:
+    image: darthsim/imgproxy
+    container_name: imgproxy1
+    restart: always
+    environment:
+      IMGPROXY_USE_S3: "true"
+      IMGPROXY_S3_ENDPOINT: http://gql_minio1:9000
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: miniominio
+      AWS_REGION: us-east-1
+      IMGPROXY_BIND: ":8082"
+    ports:
+      - 8082:8082
+    networks:
+     - backend
+    
+
 
 volumes:
   zendro_db_data:
+  datastore:
 
 networks:
   backend:
