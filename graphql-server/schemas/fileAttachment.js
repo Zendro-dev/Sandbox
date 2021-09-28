@@ -161,8 +161,8 @@ type FileAttachmentEdge{
 
   type Mutation {
     uploadFileAttachment(file: Upload): fileAttachment
-    addFileAttachment( identifierName: String , addInvestigation:ID, addStudy:ID, addAssay:ID, addFactor:ID, addMaterial:ID, addProtocol:ID   , skipAssociationsExistenceChecks:Boolean = false): fileAttachment!
-    updateFileAttachment(id: ID!, identifierName: String , addInvestigation:ID, removeInvestigation:ID , addStudy:ID, removeStudy:ID , addAssay:ID, removeAssay:ID , addFactor:ID, removeFactor:ID , addMaterial:ID, removeMaterial:ID , addProtocol:ID, removeProtocol:ID    , skipAssociationsExistenceChecks:Boolean = false): fileAttachment!
+    addFileAttachment( file: Upload identifierName: String , addInvestigation:ID, addStudy:ID, addAssay:ID, addFactor:ID, addMaterial:ID, addProtocol:ID   , skipAssociationsExistenceChecks:Boolean = false): fileAttachment!
+    updateFileAttachment(file: Upload id: ID!, identifierName: String , addInvestigation:ID, removeInvestigation:ID , addStudy:ID, removeStudy:ID , addAssay:ID, removeAssay:ID , addFactor:ID, removeFactor:ID , addMaterial:ID, removeMaterial:ID , addProtocol:ID, removeProtocol:ID    , skipAssociationsExistenceChecks:Boolean = false): fileAttachment!
     deleteFileAttachment(id: ID!): String!
     bulkAddFileAttachmentCsv: String!
     bulkAssociateFileAttachmentWithInvestigation_id(bulkAssociationInput: [bulkAssociationFileAttachmentWithInvestigation_idInput], skipAssociationsExistenceChecks:Boolean = false): String!

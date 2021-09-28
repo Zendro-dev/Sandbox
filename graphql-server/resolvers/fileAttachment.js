@@ -626,7 +626,7 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let createdFileAttachment = await fileAttachment.addOne(inputSanitized, benignErrorReporter);
+            let createdFileAttachment = await fileAttachment.uploadFileAttachment(inputSanitized, benignErrorReporter);
             await createdFileAttachment.handleAssociations(inputSanitized, benignErrorReporter);
             return createdFileAttachment;
         } else {
@@ -634,8 +634,8 @@ module.exports = {
         }
     },
 
-    uploadAttachment: async function({file}, context){
-        return await attachment.uploadAttachment(file,context);
+    uploadFileAttachment: async function({file}, context){
+        return await fileAttachment.uploadFileAttachment(file,context);
     },
 
     /**
@@ -666,7 +666,7 @@ module.exports = {
         if (await checkAuthorization(context, 'fileAttachment', 'delete') === true) {
             if (await validForDeletion(id, context)) {
                 let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-                return fileAttachment.deleteOne(id, benignErrorReporter);
+                return fileAttachment.deleteFileAttachment(id, benignErrorReporter);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -692,7 +692,7 @@ module.exports = {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
             }
             let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
-            let updatedFileAttachment = await fileAttachment.updateOne(inputSanitized, benignErrorReporter);
+            let updatedFileAttachment = await fileAttachment.updateFileAttachment(inputSanitized, benignErrorReporter);
             await updatedFileAttachment.handleAssociations(inputSanitized, benignErrorReporter);
             return updatedFileAttachment;
         } else {

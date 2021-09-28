@@ -26,6 +26,8 @@ const initializeStorageHandlersForAdapters = require(path.join(
   "helper.js"
 )).initializeStorageHandlersForAdapters;
 
+const { graphqlUploadExpress } = require('graphql-upload');
+
 var acl = null;
 let resolvers = null;
 let simpleExport = null;
@@ -45,7 +47,7 @@ app.use((req, res, next) => {
 });
 
 // Force users to sign in to get access to anything else than '/login'
-console.log("Authentication (JWT Bearer Token) required? ", globals.REQUIRE_SIGN_IN);
+console.log("REQUIRE: ", globals.REQUIRE_SIGN_IN);
 if (globals.REQUIRE_SIGN_IN) {
   app.use(jwt({ secret: globals.JWT_SECRET }).unless({ path: ['/login'] }));
 }
@@ -58,11 +60,9 @@ if (process.argv.length > 2 && process.argv[2] == "acl") {
 
   /* set authorization rules from file acl_rules.js */
   acl.allow(aclRules);
-  console.log("Authorization rules set!");
+  console.log("Authoization rules set!");
 } else {
-  console.log(
-    "Server started without Authorization-Check. Start with command " + 
-    "line argument 'acl', if Rule Based Authorization is wanted.");
+  console.log("Open server, no authorization rules");
 }
 
 /* Schema */
@@ -119,11 +119,12 @@ app.use("/export", cors(), async (req, res) => {
   }
 });
 
-app.use(fileUpload());
+//app.use(fileUpload());
 /*request is passed as context by default  */
 app.use(
   "/graphql",
   cors(),
+  graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
   graphqlHTTP((req) => ({
     schema: Schema,
     rootValue: resolvers,

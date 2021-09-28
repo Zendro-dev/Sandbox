@@ -99,6 +99,10 @@ const definition = {
 };
 const DataLoader = require("dataloader");
 
+const URL_IMG_PROXY = "http://localhost:8082/"
+const IMG_BUCKET_NAME = "images";
+const FILES_BUCKET_NAME = "test"
+
 /**
  * module - Creates a sequelize model
  *
@@ -343,6 +347,43 @@ module.exports = class fileAttachment extends Sequelize.Model {
         return await this.addOne(input);
     }
 
+    static async updateFileAttachment(input){
+
+        if(input.file){
+            console.log("FILE: ", input.file);
+
+            
+            const {filename, mimetype, createReadStream} =  await input.file.file;
+            const stream = createReadStream();
+            input['fileName'] = input.fileName ?? filename;
+            
+            const bucket_name = isImagePackage(input.fileName) ?  IMG_BUCKET_NAME : FILES_BUCKET_NAME;
+            
+            // delete old attachment
+            let oldAttachment = await super.findByPk(input.id);
+            let deleted = await minioClient.deleteFile(oldAttachment.fileName, bucket_name);
+            if(!deleted.success){
+                throw deleted.error;
+            }
+            
+            const exists = await minioClient.fileExists(input.fileName, bucket_name);
+            console.log("EXISTS: ", exists);
+            if( !exists) {
+                const upload = await minioClient.uploadFile(stream, input.fileName, bucket_name);
+                if(! upload.success){
+                    throw upload.error;
+                }
+                input['mimeType'] = mimetype;
+                input['fileURL'] = upload.url;
+                input['fileSize'] = upload.fileSize;
+            }else{
+                throw new Error(`File with name ${input.fileName} already exists.`)
+            }
+
+        }
+        return await this.updateOne(input);
+    }
+
     urlThumbnail({width, height, format}){
         if(this.isImage() ){
             let url = `${URL_IMG_PROXY}unsafe/fit/${width}/${height}/sm/0/plain/s3://images/${this.fileName}@${format}`;
@@ -353,6 +394,19 @@ module.exports = class fileAttachment extends Sequelize.Model {
 
     isImage(){
         return isImagePackage(this.fileName);
+    }
+
+    static async deleteFileAttachment(id){
+        let attachment = await super.findByPk(id);
+        if (attachment === null) {
+            throw new Error(`Record with ID = "${id}" does not exist`);
+        }
+        const bucket_name = isImagePackage(attachment.fileName) ?  IMG_BUCKET_NAME : FILES_BUCKET_NAME;
+        let deleted = await minioClient.deleteFile(attachment.fileName, bucket_name);
+        if(!deleted.success){
+          throw deleted.error;
+        }
+        return  this.deleteOne(id);
     }
 
     static async deleteOne(id) {
