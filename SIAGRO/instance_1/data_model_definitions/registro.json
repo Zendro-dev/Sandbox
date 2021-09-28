@@ -29,7 +29,8 @@
 			"targetKey": "registro_id",
 			"keyIn": "caracteristica_cuantitativa",
 			"targetStorageType": "sql",
-			"label": "nombre_corto"
+			"label": "nombre_corto",
+			"sublabel": "valor"
 		},
 
 		"referencias": {
