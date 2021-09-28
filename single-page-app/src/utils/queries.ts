@@ -110,7 +110,10 @@ export const readOneRecordWithAssoc = (
   const readResolver = `readOne${modelNameCp}`;
 
   const { idArg, idVar } = parseQueryAttributes(attributes);
-  const { fields } = parseQueryAttributes(associationAttributes);
+  let { fields } = parseQueryAttributes(associationAttributes);
+
+  if (assocModelName === 'fileAttachment')
+    fields = `${fields} urlThumbnail(width: 50, height: 50, format: "png")`;
 
   /* TO MANY */
   const assocResolverToMany = `${assocNameLc}Connection`;
@@ -333,7 +336,9 @@ export const queryRecordsWithToOne = (
     namePlCp: modelNamePlCp,
   } = getInflections(modelName);
 
-  const { fields: modelFields } = parseQueryAttributes(modelAttributes);
+  let { fields: modelFields } = parseQueryAttributes(modelAttributes);
+  if (modelName === 'fileAttachment')
+    modelFields = `${modelFields} urlThumbnail(width: 50, height: 50, format: "png")`;
   const modelResolver = `${modelNamePlLc}Connection`;
   const queryName = `read${modelNamePlCp}With${assocNameCp}`;
 

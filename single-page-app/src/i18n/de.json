@@ -105,7 +105,10 @@
     "read-only": "Das Formular ist schreibgeschützt",
     "tab-associations": "Assoziationen",
     "tab-attributes": "Attribute",
-    "update": "Aktualisieren"
+    "update": "Aktualisieren",
+    "upload-file": "Datei auswählen",
+    "no-file": "Bitte wählen sie eine Datei",
+    "download-file": "Datei herunterladen"
   },
   "restricted": {
     "not-logged-header": "Sie sind nicht eingeloggt",

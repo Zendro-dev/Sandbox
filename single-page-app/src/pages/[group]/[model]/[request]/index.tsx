@@ -179,6 +179,7 @@ const Record: PageWithLayout<RecordUrlQuery> = (props) => {
     }
   };
 
+  console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa');
   /**
    * Submit the form values to the Zendro GraphQL endpoint. Triggers a revalidation.
    */
@@ -194,6 +195,8 @@ const Record: PageWithLayout<RecordUrlQuery> = (props) => {
           props.request === 'edit'
             ? zendro.queries[props.model].updateOne
             : zendro.queries[props.model].createOne;
+
+        console.log({ request, dataRecord });
 
         const response = await zendro.request<Record<string, DataRecord>>(
           request.query,
