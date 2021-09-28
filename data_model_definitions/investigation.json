@@ -39,6 +39,16 @@
       "target": "fileAttachment",
       "targetKey": "investigation_id",
       "keysIn": "fileAttachment"
+    },
+    "contacts": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigations",
+      "targetStorageType": "sql",
+      "target": "contact",
+      "targetKey": "investigation_ids",
+      "sourceKey": "contact_ids",
+      "keysIn": "investigation" 
     }
   },
   "internalId": "investigation_id"

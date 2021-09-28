@@ -1,0 +1,45 @@
+{
+  "model": "investigation",
+  "storageType": "sql",
+  "attributes": {
+    "trialDbId": "String",
+    "trialName": "String",
+    "trialDescription": "String",
+    "startDate": "Date",
+    "endDate": "Date",
+
+    "ontologyAnnotation_ids": "[String]",
+    "contact_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation",
+      "targetStorageType": "sql",
+      "target": "study",
+      "targetKey": "investigation_id",
+      "keysIn": "study"
+    },
+    "ontologyAnnotations": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigations",
+      "targetStorageType": "sql",
+      "target": "ontologyAnnotation",
+      "targetKey": "investigation_ids",
+      "sourceKey": "ontologyAnnotation_ids",
+      "keysIn": "investigation"
+    },
+    "fileAttachments": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation",
+      "targetStorageType": "sql",
+      "target": "fileAttachment",
+      "targetKey": "investigation_ids",
+      "keysIn": "investigation"
+    }
+  },
+  "internalId": "investigation_id"
+}

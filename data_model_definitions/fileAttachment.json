@@ -1,78 +1,74 @@
 {
   "model": "fileAttachment",
   "storageType": "sql",
-  "attributes": {
-    "fileAttachment_id": "String",
+  "attributes":{
     "fileName": "String",
-    "mimeType": "String",
-    "fileSizeKb": "Int",
     "fileURL": "String",
-    "isImage": "Boolean",
-    "smallThumbnailURL": "String",
-    "bigThumbnailURL": "String",
+    "mimeType": "String",
+    "fileSize": "Int",
+    "identifierName": "String",
 
-    "investigation_ids": "[String]",
-    "study_ids": "[String]",
-    "assay_ids": "[String]",
-    "factor_ids": "[String]",
-    "material_ids": "[String]",
-    "protocol_ids": "[String]"
+    "investigation_id": "String",
+    "study_id": "String",
+    "assay_id": "String",
+    "factor_id": "String",
+    "material_id": "String",
+    "protocol_id": "String"
   },
   "associations": {
-    "investigations": {
-      "type": "many_to_many",
+    "investigation": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "investigation",
-      "sourceKey": "investigation_ids",
+      "targetKey": "investigation_id",
       "keysIn": "fileAttachment"
     },
-    "studies": {
-      "type": "many_to_many",
+    "study": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "study",
-      "sourceKey": "study_ids",
+      "targetKey": "study_id",
       "keysIn": "fileAttachment"
     },
-    "assays": {
-      "type": "many_to_many",
+    "assay": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "assay",
-      "sourceKey": "assay_ids",
+      "targetKey": "assay_id",
       "keysIn": "fileAttachment"
     },
-    "factors": {
-      "type": "many_to_many",
+    "factor": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "factor",
-      "sourceKey": "factor_ids",
+      "targetKey": "factor_id",
       "keysIn": "fileAttachment"
     },
-    "materials": {
-      "type": "many_to_many",
+    "material": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "material",
-      "sourceKey": "material_ids",
+      "targetKey": "material_id",
       "keysIn": "fileAttachment"
     },
-    "protocols": {
-      "type": "many_to_many",
+    "protocol": {
+      "type": "many_to_one",
       "implementation": "foreignkeys",
       "reverseAssociation": "fileAttachments",
       "targetStorageType": "sql",
       "target": "protocol",
-      "sourceKey": "protocol_ids",
+      "targetKey": "protocol_id",
       "keysIn": "fileAttachment"
-    }
-  },
-  "internalId": "fileAttachment_id"
+	  }
+  }
 }
