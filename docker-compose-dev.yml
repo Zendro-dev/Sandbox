@@ -33,6 +33,7 @@ services:
       - ./graphql-server:/usr/graphql-server
       # override default default config with Starterpack config
       - ./config/data_models_storage_config.json:/usr/graphql-server/config/data_models_storage_config.json
+      - ./brapi_express:/usr/graphql-server/brapi_express
     networks:
       - backend
     # Await POSTGRES role and DB creation, migrate schema, then start web

@@ -27,6 +27,7 @@ const initializeStorageHandlersForAdapters = require(path.join(
 )).initializeStorageHandlersForAdapters;
 
 const { graphqlUploadExpress } = require('graphql-upload');
+const brapiRouter = require('./brapi_express/express_routes.js');
 
 var acl = null;
 let resolvers = null;
@@ -206,6 +207,15 @@ app.post("/meta_query", cors(), async (req, res, next) => {
     res.json({ data: null, errors: [formatError(error)] });
   }
 });
+
+/*
+ * Mount BrApi routes
+ */
+const gqlImpl = brapiRouter.buildGqlFunction(Schema, require("./resolvers/index.js"), graphql);
+brapiRouter.mountRoutes(app, "/brapi/v2", models, gqlImpl, acl);
+
+
+
 /**
  * uncaughtException handler needed to prevent node from crashing upon receiving a malformed jq filter.
  */
@@ -223,12 +233,15 @@ app.use(function (err, req, res, next) {
   }
 });
 
+/*
+ * Start the Server, initialize resolvers and setup connections to storages.
+ */
 var server = app.listen(APP_PORT, async () => {
   await initializeStorageHandlersForModels(models);
   await initializeStorageHandlersForAdapters(adapters);
   resolvers = require("./resolvers/index");
   simpleExport = require("./utils/simple-export");
-  console.log(`App listening on port ${APP_PORT}`);
+  console.log(`Server listening on port ${APP_PORT}`);
 });
 
 module.exports = server;

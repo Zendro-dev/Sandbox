@@ -1,5 +1,6 @@
-const modelNames;
-const readOneGqlTemplate = 'readOne###model###(id: ###id###){###attributes###}';
+var modelNames;
+const readOneGqlTemplate = '{readOne###model###(###id_name###: ###id###){###attributes###}}';
+const excludeModels = ["user", "role", "role_to_user"];
 
 /**
  * capitalizeString - set initial character to upper case
@@ -34,9 +35,10 @@ const isSearchRequest = function(urlStr) {
   return urlStr.includes("search");
 }
 
-const getReadOneGraphQlQuery = function(model, idValue, attributesToFetch) {
+const getReadOneGraphQlQuery = function(modelName, idName, idValue, attributesToFetch) {
   return readOneGqlTemplate.replace(
     "###model###", modelName).replace(
+    "###id_name###", idName).replace(
     "###id###", idValue).replace(
     "###attributes###", attributesToFetch);
 }
@@ -46,18 +48,12 @@ const createReadOneRoute = function(model, acl, gqlFunc) {
     const modelName = capitalizeString(model.definition.model);
     const idValue = req.params[model.idAttribute()];
     const atrs = Object.keys(model.definition.attributes).join(" ");
-    let gqlQuery;
-    if (isSearchRequest(req.url)) {
-      /* gqlQuery = ... */;
-      throw new Error("Not implemented");
-    } else {
-      gqlQuery = getReadOneGraphQlQuery(model, idValue, atrs);
-    }
+    const gqlQuery = getReadOneGraphQlQuery(modelName, model.idAttribute(), idValue, atrs);
     const gqlContext = {
       request: req,
       acl: acl,
       benignErrors: [],
-      recordsLimit: globals.LIMIT_RECORDS,
+      recordsLimit: process.env.LIMIT_RECORDS,
     }
     const gqlResponse = await gqlFunc(gqlQuery, gqlContext, undefined);
     res.json(gqlResponse);
@@ -66,6 +62,7 @@ const createReadOneRoute = function(model, acl, gqlFunc) {
 
 const buildGqlFunction = function(gqlSchema, gqlResolvers, gqlImplFunc) {
   return async function(gqlQuery, gqlContext, gqlVariables) {
+    console.log(`Resolvers = ${gqlResolvers}`);
     return gqlImplFunc(
         gqlSchema,
         gqlQuery,
