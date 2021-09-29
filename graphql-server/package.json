@@ -59,7 +59,8 @@
     "supertest": "^4.0.2",
     "sync-request": "^6.1.0",
     "uuidv4": "^6.0.8",
-    "xlsx": "^0.16.1"
+    "xlsx": "^0.16.1",
+    "inflection": "^1.13.1"
   },
   "devDependencies": {
     "mocha": "^7.1.2",
