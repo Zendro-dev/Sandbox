@@ -30,7 +30,7 @@ const { graphqlUploadExpress } = require('graphql-upload');
 const brapiRouter = require('./brapi_express/express_routes.js');
 
 var acl = null;
-let resolvers = null;
+const resolvers = require("./resolvers/index");
 let simpleExport = null;
 
 var cors = require("cors");
@@ -211,7 +211,7 @@ app.post("/meta_query", cors(), async (req, res, next) => {
 /*
  * Mount BrApi routes
  */
-const gqlImpl = brapiRouter.buildGqlFunction(Schema, require("./resolvers/index.js"), graphql);
+const gqlImpl = brapiRouter.buildGqlFunction(Schema, resolvers, graphql);
 brapiRouter.mountRoutes(app, "/brapi/v2", models, gqlImpl, acl);
 
 
@@ -239,7 +239,6 @@ app.use(function (err, req, res, next) {
 var server = app.listen(APP_PORT, async () => {
   await initializeStorageHandlersForModels(models);
   await initializeStorageHandlersForAdapters(adapters);
-  resolvers = require("./resolvers/index");
   simpleExport = require("./utils/simple-export");
   console.log(`Server listening on port ${APP_PORT}`);
 });
