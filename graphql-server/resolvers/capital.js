@@ -12,7 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addUnique_country': 'country'
 }
@@ -36,6 +36,7 @@ capital.prototype.unique_country = async function({
                 [models.country.idAttribute()]: this.country_id
             }, context)
         } else {
+
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -256,6 +257,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateCapitalForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCapitalForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'capital', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    capital,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCapitalForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCapitalForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'capital', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    capital,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCapitalForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {capital_id} capital_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCapitalForDeletion: async ({
+        capital_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'capital', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(capital_id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    capital,
+                    capital_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCapitalAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {capital_id} capital_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCapitalAfterReading: async ({
+        capital_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'capital', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    capital,
+                    capital_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addCapital - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

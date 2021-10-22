@@ -29,6 +29,9 @@ module.exports.validator_patch = function(river) {
             },
             "country_ids": {
                 "type": ["array", "null"]
+            },
+            "city_ids": {
+                "type": ["array", "null"]
             }
         }
     }

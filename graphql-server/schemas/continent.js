@@ -27,7 +27,12 @@ module.exports = `
     """
     countFilteredCountries(search: searchCountryInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type ContinentConnection{
   edges: [ContinentEdge]
   continents: [continent]
@@ -54,11 +59,12 @@ type ContinentEdge{
     continent_id
     name
   }
+  
   input searchContinentInput {
     field: continentField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchContinentInput]
   }
 
@@ -76,6 +82,10 @@ type ContinentEdge{
     vueTableContinent : VueTableContinent
     csvTableTemplateContinent: [String]
     continentsConnection(search:searchContinentInput, order: [ orderContinentInput ], pagination: paginationCursorInput! ): ContinentConnection
+    validateContinentForCreation(continent_id: ID!, name: String   , addCountries:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateContinentForUpdating(continent_id: ID!, name: String   , addCountries:[ID], removeCountries:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateContinentForDeletion(continent_id: ID!): Boolean!
+    validateContinentAfterReading(continent_id: ID!): Boolean!
   }
 
   type Mutation {

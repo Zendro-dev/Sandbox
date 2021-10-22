@@ -12,7 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCountries': 'country',
     'addCities': 'city'
@@ -73,6 +73,7 @@ river.prototype.countFilteredCountries = function({
     if (!Array.isArray(this.country_ids) || this.country_ids.length === 0) {
         return 0;
     }
+
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.country.idAttribute(),
@@ -80,6 +81,7 @@ river.prototype.countFilteredCountries = function({
         "valueType": "Array",
         "operator": "in"
     });
+
     return resolvers.countCountries({
         search: nsearch
     }, context);
@@ -116,6 +118,7 @@ river.prototype.countriesConnection = function({
             }
         };
     }
+
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.country.idAttribute(),
@@ -181,13 +184,18 @@ river.prototype.countFilteredCities = function({
     if (!Array.isArray(this.city_ids) || this.city_ids.length === 0) {
         return 0;
     }
-    let nsearch = search && search.field === models.city.idAttribute() && search.operator === 'eq' ? search : helper.addSearchField({
+
+
+    //WORKAROUND for cassandra targetStorageType. Mainpulate search to intersect Equal searches on the primaryKey
+    const hasIdSearch = helper.parseFieldResolverSearchArgForCassandra(search, this.city_ids, models.city.idAttribute());
+    let nsearch = hasIdSearch ? search : helper.addSearchField({
         "search": search,
         "field": models.city.idAttribute(),
         "value": this.city_ids.join(','),
         "valueType": "Array",
         "operator": "in"
     });
+
     return resolvers.countCities({
         search: nsearch
     }, context);
@@ -224,31 +232,16 @@ river.prototype.citiesConnection = function({
             }
         };
     }
-    let foreignKeys = [...this.city_ids];
-    let nsearch;
-    if (search && search.field === models.city.idAttribute() && (search.operator === 'eq' || search.operator === 'in')) {
-        console.log(search.value);
-        console.log(this.city_ids);
-        foreignKeys = foreignKeys.filter(id => search.value.split(',').includes(id));
-        nsearch = {
-            "field": models.city.idAttribute(),
-            "value": foreignKeys.join(','),
-            "valueType": "Array",
-            "operator": "in" 
-        }
-    } else {
-        nsearch = helper.addSearchField({
-            "search": search,
-            "field": models.city.idAttribute(),
-            "value": this.city_ids.join(','),
-            "valueType": "Array",
-            "operator": "in"
-        });
-    }
 
-    console.log({nsearch});
 
-    
+    const hasIdSearch = helper.parseFieldResolverSearchArgForCassandra(search, this.city_ids, models.city.idAttribute());
+    let nsearch = hasIdSearch ? search : helper.addSearchField({
+        "search": search,
+        "field": models.city.idAttribute(),
+        "value": this.city_ids.join(','),
+        "valueType": "Array",
+        "operator": "in"
+    });
     return resolvers.citiesConnection({
         search: nsearch,
         order: order,
@@ -487,6 +480,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateRiverForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateRiverForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'river', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    river,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateRiverForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateRiverForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'river', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    river,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateRiverForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {river_id} river_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateRiverForDeletion: async ({
+        river_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'river', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(river_id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    river,
+                    river_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateRiverAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {river_id} river_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateRiverAfterReading: async ({
+        river_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'river', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    river,
+                    river_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addRiver - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

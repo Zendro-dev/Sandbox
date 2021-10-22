@@ -57,7 +57,12 @@ module.exports = `
     """
     countFilteredRivers(search: searchRiverInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type CountryConnection{
   edges: [CountryEdge]
   countries: [country]
@@ -86,11 +91,12 @@ type CountryEdge{
     continent_id
     river_ids
   }
+  
   input searchCountryInput {
     field: countryField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchCountryInput]
   }
 
@@ -111,6 +117,10 @@ type CountryEdge{
     vueTableCountry : VueTableCountry
     csvTableTemplateCountry: [String]
     countriesConnection(search:searchCountryInput, order: [ orderCountryInput ], pagination: paginationCursorInput! ): CountryConnection
+    validateCountryForCreation(country_id: ID!, name: String , addUnique_capital:ID, addContinent:ID  , addCities:[ID], addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCountryForUpdating(country_id: ID!, name: String , addUnique_capital:ID, removeUnique_capital:ID , addContinent:ID, removeContinent:ID   , addCities:[ID], removeCities:[ID] , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCountryForDeletion(country_id: ID!): Boolean!
+    validateCountryAfterReading(country_id: ID!): Boolean!
   }
 
   type Mutation {

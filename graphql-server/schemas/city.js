@@ -70,7 +70,12 @@ module.exports = `
     """
     countFilteredRivers(search: searchRiverInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type CityConnection{
   edges: [CityEdge]
   cities: [city]
@@ -104,11 +109,12 @@ type CityEdge{
     river_ids
     country_id
   }
+  
   input searchCityInput {
     field: cityField
     value: String
     valueType: InputType
-    operator: CassandraOperator
+    operator: CassandraOperator 
     search: [searchCityInput]
   }
 
@@ -129,6 +135,10 @@ type CityEdge{
     vueTableCity : VueTableCity
     csvTableTemplateCity: [String]
     citiesConnection(search:searchCityInput, order: [ orderCityInput ], pagination: paginationCursorInput! ): CityConnection
+    validateCityForCreation(city_id: ID!, name: String, intArr: [Int], strArr: [String], floatArr: [Float], boolArr: [Boolean], dateTimeArr: [DateTime] , addCountry:ID  , addRivers:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCityForUpdating(city_id: ID!, name: String, intArr: [Int], strArr: [String], floatArr: [Float], boolArr: [Boolean], dateTimeArr: [DateTime] , addCountry:ID, removeCountry:ID   , addRivers:[ID], removeRivers:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCityForDeletion(city_id: ID!): Boolean!
+    validateCityAfterReading(city_id: ID!): Boolean!
   }
 
   type Mutation {

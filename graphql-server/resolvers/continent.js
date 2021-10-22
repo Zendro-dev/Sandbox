@@ -12,7 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCountries': 'country'
 }
@@ -316,6 +316,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateContinentForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateContinentForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'continent', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    continent,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateContinentForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateContinentForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'continent', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    continent,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateContinentForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {continent_id} continent_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateContinentForDeletion: async ({
+        continent_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'continent', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(continent_id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    continent,
+                    continent_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateContinentAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {continent_id} continent_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateContinentAfterReading: async ({
+        continent_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'continent', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    continent,
+                    continent_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addContinent - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

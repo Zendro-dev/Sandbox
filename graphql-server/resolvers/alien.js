@@ -12,7 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {}
 
 
@@ -186,6 +186,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateAlienForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateAlienForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'alien', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    alien,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateAlienForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateAlienForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'alien', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    alien,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateAlienForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {idField} idField of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateAlienForDeletion: async ({
+        idField
+    }, context) => {
+        if ((await checkAuthorization(context, 'alien', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(idField, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    alien,
+                    idField);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateAlienAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {idField} idField of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateAlienAfterReading: async ({
+        idField
+    }, context) => {
+        if ((await checkAuthorization(context, 'alien', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    alien,
+                    idField);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addAlien - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

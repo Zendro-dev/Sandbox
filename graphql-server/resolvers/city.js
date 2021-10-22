@@ -12,7 +12,7 @@ const resolvers = require(path.join(__dirname, 'index.js'));
 const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
-
+const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
     'addCountry': 'country',
     'addRivers': 'river'
@@ -37,6 +37,7 @@ city.prototype.country = async function({
                 [models.country.idAttribute()]: this.country_id
             }, context)
         } else {
+
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -110,6 +111,7 @@ city.prototype.countFilteredRivers = function({
     if (!Array.isArray(this.river_ids) || this.river_ids.length === 0) {
         return 0;
     }
+
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.river.idAttribute(),
@@ -117,6 +119,7 @@ city.prototype.countFilteredRivers = function({
         "valueType": "Array",
         "operator": "in"
     });
+
     return resolvers.countRivers({
         search: nsearch
     }, context);
@@ -153,6 +156,7 @@ city.prototype.riversConnection = function({
             }
         };
     }
+
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.river.idAttribute(),
@@ -398,6 +402,138 @@ module.exports = {
         }
     },
 
+    /**
+     * validateCityForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCityForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'city', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    city,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCityForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCityForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'city', 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    city,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCityForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {city_id} city_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCityForDeletion: async ({
+        city_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'city', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validForDeletion(city_id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    city,
+                    city_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateCityAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {city_id} city_id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateCityAfterReading: async ({
+        city_id
+    }, context) => {
+        if ((await checkAuthorization(context, 'city', 'read')) === true) {
+            let benignErrorReporter = new errorHelper.BenignErrorReporter(context);
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    city,
+                    city_id);
+                return true;
+            } catch (error) {
+                benignErrorReporter.reportError(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
     /**
      * addCity - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.

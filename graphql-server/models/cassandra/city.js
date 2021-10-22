@@ -51,6 +51,7 @@ const definition = {
         type: 'String'
     }
 };
+const DataLoader = require("dataloader");
 
 /**
  * module - Creates a class to administer Cassandra model types
@@ -77,6 +78,32 @@ module.exports = class city {
     }
 
     /**
+     * Batch function for readById method.
+     * @param  {array} keys  keys from readById method
+     * @return {array}       searched results
+     */
+    static async batchReadById(keys) {
+        let queryArg = {
+            operator: "in",
+            field: city.idAttribute(),
+            value: keys.join(),
+            valueType: "Array",
+        };
+        let cursorRes = await city.readAllCursor(queryArg);
+        cursorRes = cursorRes.cities.reduce(
+            (map, obj) => ((map[obj[city.idAttribute()]] = obj), map), {}
+        );
+        return keys.map(
+            (key) =>
+            cursorRes[key] || new Error(`Record with ID = "${key}" does not exist`)
+        );
+    }
+
+    static readByIdLoader = new DataLoader(city.batchReadById, {
+        cache: false,
+    });
+
+    /**
      * readById - The model implementation for reading a single record given by its ID
      *
      * This method is the implementation for reading a single record for the Cassandra storage type, based on CQL.
@@ -85,18 +112,8 @@ module.exports = class city {
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        const query = `SELECT * FROM "cities" WHERE city_id = ?`;
-        let queryResult = await this.storageHandler.execute(query, [id], {
-            prepare: true
-        });
-        let firstResult = queryResult.first();
-        if (firstResult === null) {
-            throw new Error(`Record with ID = "${id}" does not exist`);
-        }
-        let item = new city(firstResult);
-        return validatorUtil.validateData('validateAfterRead', this, item);
+        return await city.readByIdLoader.load(id);
     }
-
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
      *
@@ -140,9 +157,6 @@ module.exports = class city {
         let cassandraSearch = pagination && pagination.after ? cassandraHelper.cursorPaginationArgumentsToCassandra(search, pagination, 'city_id') : search;
         let whereOptions = cassandraHelper.searchConditionsToCassandra(cassandraSearch, definition, allowFiltering);
 
-         
-        console.log(JSON.stringify(whereOptions, null, 2));   
-
         let query = 'SELECT * FROM "cities"' + whereOptions;
 
         // Set page size if needed
@@ -159,7 +173,7 @@ module.exports = class city {
             let edge = {};
             let rowAscity = new city(row);
             edge.node = rowAscity;
-            edge.cursor = rowAscity.base64Enconde();
+            edge.cursor = rowAscity.base64Encode();
             return edge;
         });
 
@@ -463,7 +477,6 @@ module.exports = class city {
      *
      * @return {type} Name of the attribute that functions as an internalId
      */
-
     static idAttribute() {
         return city.definition.id.name;
     }
@@ -473,7 +486,6 @@ module.exports = class city {
      *
      * @return {type} Type given in the JSON model
      */
-
     static idAttributeType() {
         return city.definition.id.type;
     }
@@ -483,9 +495,8 @@ module.exports = class city {
      *
      * @return {type} id value
      */
-
     getIdValue() {
-        return this[city.idAttribute()]
+        return this[city.idAttribute()];
     }
 
     /**
@@ -502,22 +513,33 @@ module.exports = class city {
      * @return {string} The stringified object in UTF-8 format
      */
     static base64Decode(cursor) {
-        return Buffer.from(cursor, 'base64').toString('utf-8');
+        return Buffer.from(cursor, "base64").toString("utf-8");
     }
 
     /**
-     * base64Enconde - Encode a city to a base 64 String
+     * base64Encode - Encode  city to a base 64 String
      *
      * @return {string} The city object, encoded in a base 64 String
      */
-    base64Enconde() {
-        return Buffer.from(JSON.stringify(this.stripAssociations())).toString('base64');
+    base64Encode() {
+        return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
+            "base64"
+        );
     }
 
     /**
-     * stripAssociations - Instant method for getting all attributes of a city.
+     * asCursor - alias method for base64Encode
      *
-     * @return {object} The attributes of a city in object form
+     * @return {string} The city object, encoded in a base 64 String
+     */
+    asCursor() {
+        return this.base64Encode()
+    }
+
+    /**
+     * stripAssociations - Instance method for getting all attributes of city.
+     *
+     * @return {object} The attributes of city in object form
      */
     stripAssociations() {
         let attributes = Object.keys(city.definition.attributes);
@@ -526,9 +548,9 @@ module.exports = class city {
     }
 
     /**
-     * externalIdsArray - Get all attributes of a city that are marked as external IDs.
+     * externalIdsArray - Get all attributes of city that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of a city that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of city that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -540,12 +562,11 @@ module.exports = class city {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of a city.
+     * externalIdsObject - Get all external IDs of city.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */
     static externalIdsObject() {
         return {};
     }
-
 }

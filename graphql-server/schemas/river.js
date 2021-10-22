@@ -61,7 +61,12 @@ module.exports = `
     """
     countFilteredCities(search: searchCityInput) : Int
   
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type RiverConnection{
   edges: [RiverEdge]
   rivers: [river]
@@ -91,11 +96,12 @@ type RiverEdge{
     country_ids
     city_ids
   }
+  
   input searchRiverInput {
     field: riverField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchRiverInput]
   }
 
@@ -113,6 +119,10 @@ type RiverEdge{
     vueTableRiver : VueTableRiver
     csvTableTemplateRiver: [String]
     riversConnection(search:searchRiverInput, order: [ orderRiverInput ], pagination: paginationCursorInput! ): RiverConnection
+    validateRiverForCreation(river_id: ID!, name: String, length: Int   , addCountries:[ID], addCities:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRiverForUpdating(river_id: ID!, name: String, length: Int   , addCountries:[ID], removeCountries:[ID] , addCities:[ID], removeCities:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateRiverForDeletion(river_id: ID!): Boolean!
+    validateRiverAfterReading(river_id: ID!): Boolean!
   }
 
   type Mutation {

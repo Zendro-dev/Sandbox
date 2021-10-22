@@ -65,7 +65,12 @@ module.exports = `
     booleanArrayField: [Boolean]
 
       
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type AlienConnection{
   edges: [AlienEdge]
   aliens: [alien]
@@ -101,11 +106,12 @@ type AlienEdge{
     datetimeArrayField
     booleanArrayField
   }
+  
   input searchAlienInput {
     field: alienField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchAlienInput]
   }
 
@@ -123,6 +129,10 @@ type AlienEdge{
     vueTableAlien : VueTableAlien
     csvTableTemplateAlien: [String]
     aliensConnection(search:searchAlienInput, order: [ orderAlienInput ], pagination: paginationCursorInput! ): AlienConnection
+    validateAlienForCreation(idField: ID!, stringField: String, intField: Int, floatField: Float, datetimeField: DateTime, booleanField: Boolean, stringArrayField: [String], intArrayField: [Int], floatArrayField: [Float], datetimeArrayField: [DateTime], booleanArrayField: [Boolean]    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAlienForUpdating(idField: ID!, stringField: String, intField: Int, floatField: Float, datetimeField: DateTime, booleanField: Boolean, stringArrayField: [String], intArrayField: [Int], floatArrayField: [Float], datetimeArrayField: [DateTime], booleanArrayField: [Boolean]    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateAlienForDeletion(idField: ID!): Boolean!
+    validateAlienAfterReading(idField: ID!): Boolean!
   }
 
   type Mutation {

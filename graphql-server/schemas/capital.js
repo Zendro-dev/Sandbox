@@ -18,7 +18,12 @@ module.exports = `
 
     unique_country(search: searchCountryInput): country
     
-    }
+    
+    """
+    @record as base64 encoded cursor for paginated connections
+    """
+    asCursor: String!
+}
 type CapitalConnection{
   edges: [CapitalEdge]
   capitals: [capital]
@@ -46,11 +51,12 @@ type CapitalEdge{
     name
     country_id
   }
+  
   input searchCapitalInput {
     field: capitalField
     value: String
     valueType: InputType
-    operator: Operator
+    operator: GenericPrestoSqlOperator 
     search: [searchCapitalInput]
   }
 
@@ -71,6 +77,10 @@ type CapitalEdge{
     vueTableCapital : VueTableCapital
     csvTableTemplateCapital: [String]
     capitalsConnection(search:searchCapitalInput, order: [ orderCapitalInput ], pagination: paginationCursorInput! ): CapitalConnection
+    validateCapitalForCreation(capital_id: ID!, name: String , addUnique_country:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCapitalForUpdating(capital_id: ID!, name: String , addUnique_country:ID, removeUnique_country:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateCapitalForDeletion(capital_id: ID!): Boolean!
+    validateCapitalAfterReading(capital_id: ID!): Boolean!
   }
 
   type Mutation {
