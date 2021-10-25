@@ -143,6 +143,9 @@ async function createDefaultRealmRoles(token) {
   console.log(`Keycloak default realm roles created`);
 }
 
+/**
+ * getClientUUID - gets the keycloak UUID for a specified client
+ */
 async function getClientUUID(token, clientId) {
   const clients = await keycloakGetRequest(
     token,
@@ -152,6 +155,10 @@ async function getClientUUID(token, clientId) {
   return clients.data.find((client) => client.clientId === clientId).id;
 }
 
+/**
+ * createDefaultClientRoles - create the default administrator, editor and reader roles
+ * for a specified Client
+ */
 async function createDefaultClientRoles(token, clientId) {
   const clientUUID = await getClientUUID(token, clientId);
 
@@ -182,6 +189,10 @@ async function createDefaultClientRoles(token, clientId) {
   console.log(`Keycloak default client roles for client ${clientId} created`);
 }
 
+/**
+ * associateCompositeRoles - associates the default realm roles with the default roles
+ * of a specified client
+ */
 async function associateCompositeRoles(token, clientId) {
   // get client UUID
   const clientUUID = await getClientUUID(token, clientId);
@@ -214,6 +225,7 @@ async function associateCompositeRoles(token, clientId) {
       ]
     );
   }
+  console.log(`Keycloak default roles associated to client ${clientId}`);
 }
 
 /**
@@ -257,6 +269,8 @@ async function createDefaultUser(token) {
       [{ id: realmRoleId, name: `realm-${role}` }]
     );
   }
+
+  console.log("Keycloak default user created");
 }
 
 /**
