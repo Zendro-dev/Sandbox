@@ -1,0 +1,23 @@
+{
+  "model": "environment",
+  "storageType": "sql",
+  "attributes": {
+		"id": "String",
+		"parameter": "String",
+		"value": "String",
+
+		"study_id": "String"
+  },
+  "associations": {
+		"study": {
+			"type": "many_to_one",
+			"reverseAssociation": "environment_parameters",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "sql",
+      "targetKey": "study_id",
+      "keysIn": "environment"
+		}
+  },
+	"internalId": "id"
+}

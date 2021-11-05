@@ -1,0 +1,35 @@
+{
+  "model": "factor",
+  "storageType": "sql",
+  "attributes": {
+		"id": "String",
+		"type": "String",
+		"description": "String",
+		"values": "[String]",
+
+		"study_id": "String",
+		"observation_unit_ids": "[String]"
+  },
+  "associations": {
+		"study": {
+			"type": "many_to_one",
+			"reverseAssociation": "factors",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "sql",
+      "targetKey": "study_id",
+      "keysIn": "factor"
+		},
+		"observation_units": {
+			"type": "many_to_many",
+			"reverseAssociation": "factors",
+			"implementation": "foreignkeys",
+      "target": "observation_unit",
+			"targetStorageType": "sql",
+      "targetKey": "factor_ids",
+      "sourceKey": "observation_unit_ids",
+      "keysIn": "factor"
+		}
+  },
+	"internalId": "id"
+}
