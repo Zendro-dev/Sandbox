@@ -100,5 +100,18 @@ services:
         npm install
         npm start
 
+  gql_minio1:
+    image: minio/minio
+    container_name: minio1
+    network_mode: host
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniominio
+      MINIO_REGION: us-east-1
+    volumes:
+      - ./zendro_minio_data:/data
+    command: server --console-address ":9001" /data
+
 volumes:
   zendro_db_data:
+  zendro_minio_data:
