@@ -1,0 +1,58 @@
+{
+  "model": "data_file",
+  "storageType": "distributed-data-model",
+  "registry": ["data_file_local","data_file_public"],
+  "attributes": {
+		"id": "String",
+		"url": "String",
+		"description": "String",
+		"version": "String",
+
+		"study_id": "String",
+		"observation_unit_ids": "[String]",
+		"observed_variable_ids": "[String]",
+		"sample_ids": "[String]"
+  },
+  "associations": {
+		"study": {
+			"type": "many_to_one",
+			"reverseAssociation": "data_files",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "study_id",
+      "keysIn": "data_file"
+		},
+		"observation_units": {
+			"type": "many_to_many",
+			"reverseAssociation": "data_files",
+			"implementation": "foreignkeys",
+      "target": "observation_unit",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "data_file_ids",
+      "sourceKey": "observation_unit_ids",
+      "keysIn": "data_file"
+		},
+		"observed_variables": {
+			"type": "many_to_many",
+			"reverseAssociation": "data_files",
+			"implementation": "foreignkeys",
+      "target": "observed_variable",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "data_file_ids",
+      "sourceKey": "observed_variable_ids",
+      "keysIn": "data_file"
+		},
+		"samples": {
+			"type": "many_to_many",
+			"reverseAssociation": "data_files",
+			"implementation": "foreignkeys",
+      "target": "sample",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "data_file_ids",
+      "sourceKey": "sample_ids",
+      "keysIn": "data_file"
+		}
+  },
+	"internalId": "id"
+}

@@ -1,0 +1,26 @@
+{
+  "model": "environment",
+  "storageType": "zendro-webservice-adapter",
+  "adapterName": "environment_public",
+  "regex": "zendro_public",
+  "url": "http://graphql.zendro-dev.org/graphql",
+  "attributes": {
+		"id": "String",
+		"parameter": "String",
+		"value": "String",
+
+		"study_id": "String"
+  },
+  "associations": {
+		"study": {
+			"type": "many_to_one",
+			"reverseAssociation": "environment_parameters",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "study_id",
+      "keysIn": "environment"
+		}
+  },
+	"internalId": "id"
+}

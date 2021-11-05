@@ -1,0 +1,51 @@
+{
+  "model": "biological_material",
+  "storageType": "distributed-data-model",
+  "registry": ["biological_material_local","biological_material_public"],
+  "attributes": {
+		"id": "String",
+		"organism": "String",
+		"genus": "String",
+		"species": "String",
+		"infraspecific_name": "String",
+		"location_latitude": "String",
+		"location_longitude": "String",
+		"location_altitude": "Float",
+		"location_coordinates_uncertainty": "Float",
+		"preprocessing": "String",
+		"source_id": "String",
+		"source_doi": "String",
+		"source_latitude": "String",
+		"source_longitude": "String",
+		"source_altitude": "Float",
+		"source_coordinates_uncertainty": "Float",
+		"source_description": "String",
+
+		"study_ids": "[String]",
+		"observation_unit_ids": "[String]"
+  },
+  "associations": {
+		"studies": {
+			"type": "many_to_many",
+			"reverseAssociation": "biological_materials",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "biological_material_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "biological_material"
+		},
+
+		"observation_units": {
+			"type": "many_to_many",
+			"reverseAssociation": "biological_materials",
+			"implementation": "foreignkeys",
+      "target": "observation_unit",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "biological_material_ids",
+      "sourceKey": "observation_unit_ids",
+      "keysIn": "biological_material"
+		}
+  },
+	"internalId": "id"
+}

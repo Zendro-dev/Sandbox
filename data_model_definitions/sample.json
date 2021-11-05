@@ -1,0 +1,39 @@
+{
+  "model": "sample",
+  "storageType": "distributed-data-model",
+  "registry": ["sample_local","sample_public"],
+  "attributes": {
+		"id": "String",
+		"value": "String",
+		"plant_structure_development_stage": "String",
+		"plant_anatomical_entity": "String",
+		"description": "String",
+		"collection_date": "DateTime",
+		"external_id": "String",
+
+		"observation_unit_id": "String",
+		"data_file_ids": "[String]"
+  },
+  "associations": {
+		"data_files": {
+			"type": "many_to_many",
+			"reverseAssociation": "samples",
+			"implementation": "foreignkeys",
+      "target": "data_file",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "sample_ids",
+      "sourceKey": "data_file_ids",
+      "keysIn": "sample"
+		},
+		"observation_unit": {
+		  "type": "many_to_one",
+			"reverseAssociation": "samples",
+			"implementation": "foreignkeys",
+      "target": "observation_unit",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "observation_unit_id",
+      "keysIn": "sample"
+		}
+  },
+	"internalId": "id"
+}
