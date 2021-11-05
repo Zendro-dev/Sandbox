@@ -1,0 +1,43 @@
+mutation {
+  addInvestigation(
+    id: "zendro_local/MIAPPE/v1.1/investigation/1"
+    title: "MY OWN EXTENSION to Araport 11 - RNA-seq of Arabidopsis thaliana Col-0 plants under different growth conditions from multiple studies"
+    description: "Using the public Araport 11 data, we study gene expression in our own growing conditions and compare it to the public data"
+  ) {
+    id
+    title
+    description
+  }
+  addStudy(
+    id: "zendro_local/MIAPPE/v1.1/study/1"
+    title: "Assessment of Gene Expression in Etiolation conditions"
+    description: "Arabidopsis thaliana Col-0 plants will be grown in complete absence of light. Gene Expression will be measured with RNA-Seq"
+    institution: "At Home, where else? Or maybe on this alien's UFO? Should be possible, too"
+    location_country: "Mars, the planet"
+    addInvestigation: "zendro_local/MIAPPE/v1.1/investigation/1"
+  ) {
+    id
+    title
+    description
+    institution
+    location_country
+    investigation {
+      id
+      title
+    }
+  }
+  addData_file(
+    id: "zendro_local/MIAPPE/v1.1/data_file/1"
+    description: "Table of gene expression data, one gene per row. Columns indicate combinations of genotype * sampled tissue * growing conditions (treatment). Cells hold Transcripts Per Million [TPM] values."
+    url: "to do"
+    addStudy: "zendro_local/MIAPPE/v1.1/study/1"
+  ) {
+    id
+    description
+    url
+    study {
+      id
+      title
+    }
+  }
+}
