@@ -119,6 +119,10 @@ Password: admin
 
 You should be able to browse your data, as well as the distibuted data from the public MIAPPE endpoint.
 
+### Plot the data
+
+Included in the Sandbox is a html file example on how to use [amazonS3 javascript sdk](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/s3-examples.html) to access and then [plotly.js](https://plotly.com/javascript/) to plot the data. You can find the example in `./single-page-app/public/plot.html`.
+
 ### Stop the containers
 
 To stop the containers run
