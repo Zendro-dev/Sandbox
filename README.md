@@ -7,6 +7,14 @@ This document is intended to give step-by-step instructions on how to setup and 
 
 ## Setup the local MIAPPE instance from the Sandbox
 
+### Get the code
+
+```sh
+git clone git@github.com:Zendro-dev/Sandbox.git MIAPPE_biohackathon2021_local
+cd MIAPPE_biohackathon2021_local
+git checkout MIAPPE_biohackathon2021_local
+```
+
 ### Run the docker containers
 
 To start the docker containers run
