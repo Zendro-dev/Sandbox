@@ -1,4 +1,11 @@
-# Setup the local MIAPPE instance
+# Local MIAPPE zendro data-warehouse
+
+This document is intended to give step-by-step instructions on how to setup and use the local MIAPPE zendro instance. There are 2 ways to do this.
+
+- Use the fully setup Sandbox and just start, following the instructions from [here](https://github.com/Zendro-dev/Sandbox/tree/MIAPPE_biohackathon2021_local#setup-the-local-miappe-instance-from-the-sandbox).
+- Use the zendro CLI to setup the local MIAPPE instance manually, following the instructions from [here](https://github.com/Zendro-dev/Sandbox/tree/MIAPPE_biohackathon2021_local#set-up-miappe-warehouse-from-empty-zendro-project).
+
+## Setup the local MIAPPE instance from the Sandbox
 
 ### Run the docker containers
 
@@ -120,9 +127,9 @@ To stop the containers run
 docker-compose -f docker-compose-prod.yml up down
 ```
 
-# Set up MIAPPE warehouse from empty zendro project
+## Set up MIAPPE warehouse from empty zendro project
 
-This section describes how to setup the Sandbox from an empty Zendro project using [Zendros CLI](https://github.com/Zendro-dev/zendro) tool.
+This section describes how to setup the Sandbox from an empty Zendro project using [Zendros CLI](https://github.com/Zendro-dev/zendro) tool. Also use the [CLI README](https://github.com/Zendro-dev/zendro/blob/master/README.md) for further information on the CLI.
 
 ### Download the CLI
 
@@ -230,4 +237,4 @@ The SPA automatically uses [NextJS](https://nextjs.org/) to read from the `data_
 
 ### Start the docker containers
 
-You are now at the stage to start the docker containers. You can go to the top of this `README` and follow the instructions.
+You are now at the stage to start the docker containers. You can go to the [top](https://github.com/Zendro-dev/Sandbox/tree/MIAPPE_biohackathon2021_local#setup-the-local-miappe-instance-from-the-sandbox) of this `README` and follow the instructions.
