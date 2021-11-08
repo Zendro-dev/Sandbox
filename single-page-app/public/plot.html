@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta content="utf-8" http-equiv="encoding" />
+
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1023.0.min.js"></script>
+
+    <script src="https://cdn.plot.ly/plotly-2.4.2.min.js"></script>
+  </head>
+  <body>
+    <h1>EXAMPLE Plots</h1>
+    <div id="myPlot"><!-- Plotly chart will be drawn inside this DIV --></div>
+    <script>
+      var s3 = new AWS.S3({
+        accessKeyId: 'minio',
+        secretAccessKey: 'miniominio',
+        endpoint: `http://localhost:9000`,
+        s3ForcePathStyle: true,
+        signatureVersion: 'v4',
+      });
+
+      var params = {
+        Bucket: 'data',
+        Key: 'E-CURD-1-query-results.tpms.csv',
+        ExpressionType: 'SQL',
+        InputSerialization: {
+          CSV: {
+            FileHeaderInfo: 'USE',
+            RecordDelimiter: '\n',
+            FieldDelimiter: '\t',
+            Comments: '#',
+          },
+          CompressionType: 'NONE',
+        },
+        OutputSerialization: {
+          JSON: {
+            RecordDelimiter: ',',
+          },
+        },
+      };
+
+      // Set up the SQL query to the table.
+      var query = {
+        ...params,
+        // Expression: `SELECT "FL.04 end of flowering stage, long day length regimen, receptacle, E-GEOD-35288" FROM S3Object WHERE "Gene ID" = 'AT1G01010'`,
+        Expression: `SELECT * FROM S3Object WHERE "Gene ID" = 'AT1G01010'`,
+      };
+
+      s3.getObject({ Bucket: 'data', Key: 'E-CURD-1-query-results.tpms.csv' })
+        .promise()
+        .then((x) => {
+          console.log(x);
+        });
+
+      // run the query, parse it and plot the results using plotly.
+      s3.selectObjectContent(query)
+        .promise()
+        // parse the response
+        .then((res) => {
+          var events = res.Payload;
+          let records;
+          events.forEach((event) => {
+            // Check the top-level field to determine which event this is.
+            if (event.Records) {
+              // handle Records event
+              records = JSON.parse(
+                event.Records.Payload.toString().slice(0, -1)
+              );
+            }
+          });
+
+          // The parsed data is available as a javascript object in 'records'.
+          delete records['Gene Name'];
+          delete records['Gene ID'];
+          console.log(records);
+
+          // plot the data via plotly
+          var data = [
+            {
+              x: Object.keys(records),
+              y: Object.values(records),
+              type: 'bar',
+            },
+          ];
+          var layout = {
+            font: { size: 9.5 },
+            xaxis: { automargin: true },
+            height: 900,
+          };
+          var config = { responsive: true };
+          Plotly.newPlot('myPlot', data, layout, config);
+        });
+    </script>
+  </body>
+</html>

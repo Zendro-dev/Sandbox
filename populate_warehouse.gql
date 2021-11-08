@@ -29,7 +29,7 @@ mutation {
   addData_file(
     id: "zendro_local/MIAPPE/v1.1/data_file/1"
     description: "Table of gene expression data, one gene per row. Columns indicate combinations of genotype * sampled tissue * growing conditions (treatment). Cells hold Transcripts Per Million [TPM] values."
-    url: "to do"
+    url: "http://localhost:9000/data/E-CURD-1-query-results.tpms.csv"
     addStudy: "zendro_local/MIAPPE/v1.1/study/1"
   ) {
     id
