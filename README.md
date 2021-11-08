@@ -10,7 +10,7 @@ This document is intended to give step-by-step instructions on how to setup and 
 ### Get the code
 
 ```sh
-git clone git@github.com:Zendro-dev/Sandbox.git MIAPPE_biohackathon2021_local
+git clone https://github.com/Zendro-dev/Sandbox.git MIAPPE_biohackathon2021_local
 cd MIAPPE_biohackathon2021_local
 git checkout MIAPPE_biohackathon2021_local
 ```
