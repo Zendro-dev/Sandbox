@@ -4,7 +4,7 @@
 
 To start the docker containers run
 
-```
+```bash
 docker-compose -f docker-compose-prod.yml up -d --force-recreate --remove-orphans
 ```
 
@@ -24,7 +24,7 @@ After login, create a bucket via the GUI. Name the bucket `data`.
 
 Unzip the csv file located in the root directory of the Sandbox repository
 
-```
+```bash
 bunzip2 E-CURD-1-query-results.tpms.csv.bz2
 ```
 
@@ -85,10 +85,10 @@ The warehouse is now populated with some example MIAPPE metadata. There is also 
 
 In the GraphiQL interface try running a query like
 
-```
+```graphql
 {
-  investigationsConnection(pagination:{first:10}) {
-    investigations{
+  investigationsConnection(pagination: { first: 10 }) {
+    investigations {
       id
       title
       description
@@ -111,3 +111,123 @@ Password: admin
 ```
 
 You should be able to browse your data, as well as the distibuted data from the public MIAPPE endpoint.
+
+### Stop the containers
+
+To stop the containers run
+
+```bash
+docker-compose -f docker-compose-prod.yml up down
+```
+
+# Set up MIAPPE warehouse from empty zendro project
+
+This section describes how to setup the Sandbox from an empty Zendro project using [Zendros CLI](https://github.com/Zendro-dev/zendro) tool.
+
+### Download the CLI
+
+You can download and globally install Zendro's CLI tool via npm using
+
+```bash
+npm install -g Zendro-dev/zendro
+```
+
+### Setup an empty project
+
+To setup an empty zendro skeleton project, that can be populated with your data-models run
+
+```bash
+zendro new -d <my_project>
+```
+
+Exchange `<my_project>` with your desired name. This will create a folder containing the zendro skeleton. Move inside via
+
+```bash
+cd <my_project>
+```
+
+### Define your data-models
+
+Define your data-models in the `data_model_definitions` folder.
+You can find the MIAPPE data-models, already set up as a distributed configuration [here](https://github.com/Zendro-dev/Sandbox/tree/MIAPPE_biohackathon2021_local/data_model_definitions.tar.bz2). Download them and put the models into the `data_model_definitions` folder.
+
+```bash
+> rm -r data_model_definitions (remove the empty default folder)
+> wget https://github.com/Zendro-dev/Sandbox/tree/MIAPPE_biohackathon2021_local/data_model_definitions.tar.bz2
+> bunzip2 data_model_definitions.tar.bz2
+> tar xf data_model_definitions.tar
+
+```
+
+### Configure the environment
+
+#### Storage configuration
+
+For reasons of simplicity it is easiest to run the docker containers in the host network. The MIAPPE data, by default will be saved in a postgres database. Configure the database as follows in `./config/data_models_storage_config.json`
+
+```json
+{
+  "default-sql": {
+    "storageType": "sql",
+    "username": "zendro",
+    "password": "zendro",
+    "database": "zendro_development",
+    "host": "localhost",
+    "dialect": "postgres"
+  }
+}
+```
+
+#### Environment variables
+
+Add a `.env` file to the `graphql-server` folder to configure the graphql-server environment. Mandatory variables are
+
+```
+ALLOW_ORIGIN="*"
+JWT_SECRET="MIAPPE_AND_ZENDRO_ARE_COOL"
+```
+
+To configure the environment of the single-page-application edit the `./single-page-app/.env.production` as follows
+
+```
+# Mandatory
+NEXT_PUBLIC_ZENDRO_GRAPHQL_URL=http://localhost:3000/graphql
+NEXT_PUBLIC_ZENDRO_LOGIN_URL=http://localhost:3000/login
+NEXT_PUBLIC_ZENDRO_EXPORT_URL=http://localhost:3000/export
+NEXT_PUBLIC_ZENDRO_METAQUERY_URL=http://localhost:3000/meta_query
+NEXT_PUBLIC_ZENDRO_MAX_UPLOAD_SIZE=500
+NEXT_PUBLIC_ZENDRO_MAX_RECORD_LIMIT=10000
+# Optional
+NEXT_PUBLIC_REDUX_LOGGER=false
+# Server
+ZENDRO_DATA_MODELS='../data_model_definitions'
+```
+
+#### docker-compose
+
+To configure the docker-compose you can edit the provided `docker-compose-<dev|prod>.yml` files. In this case we need to add a minio container to store our data-table on, for us to access the data later via the amazonS3 javascript sdk and `SQL` statements.
+
+Download the `docker-compose-prod.yml` from github and use it instead of the provided one.
+
+```bash
+> rm docker-compose-prod.yml (remove the old docker-compose)
+> wget https://raw.githubusercontent.com/Zendro-dev/Sandbox/MIAPPE_biohackathon2021_local/docker-compose-prod.yml
+```
+
+### Generate the code
+
+To generate the code needed in the graphql-server backend to handle incoming requests and communicate with the databases we need to generate the backend code via the zendro CLI.
+
+```bash
+zendro generate-gqs -m
+```
+
+The `-m` flag will generate migrations for our postgres database MIAPPE data-models.
+
+If you take a look at the `./graphql-server` folder you will see that for each data-model a `schema`, `resolver` and `model` has been generated. These follow the classic model-view-controller philosophy in separating the logic. All of these files are editable and the user is encouraged to do so, if desired.
+
+The SPA automatically uses [NextJS](https://nextjs.org/) to read from the `data_model_definitions` folder and generate the necessary pages inside the `./single-page-app` folder.
+
+### Start the docker containers
+
+You are now at the stage to start the docker containers. You can go to the top of this `README` and follow the instructions.
