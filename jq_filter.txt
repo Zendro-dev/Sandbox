@@ -1,0 +1,1 @@
+([.rivers[].countriesFilter | .. | .name?] | unique )as $a | ([.cities[].country | .. | .name?] | unique) as $b | [[$a[], $b[]] | group_by(.)[]| select(length > 1)[0]]
