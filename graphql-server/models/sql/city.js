@@ -54,7 +54,7 @@ const definition = {
             reverseAssociation: 'capital',
             target: 'country',
             targetStorageType: 'sql',
-            targetKey: 'city_id',
+            targetKey: 'capital_id',
             keysIn: 'country'
         }
     },
@@ -155,7 +155,7 @@ module.exports = class city extends Sequelize.Model {
         });
         city.hasOne(models.country, {
             as: 'capitalTo',
-            foreignKey: 'city_id'
+            foreignKey: 'capital_id'
         });
     }
 

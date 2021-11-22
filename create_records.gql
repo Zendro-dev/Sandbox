@@ -1,0 +1,141 @@
+mutation {
+  c1: addCity(city_id: "city_1", name: "berlin", population: 3645000) {
+    city_id
+  }
+  c2: addCity(city_id: "city_3", name: "madrid", population: 3223000) {
+    city_id
+  }
+  c3: addCity(city_id: "city_5", name: "mexico city", population: 8855000) {
+    city_id
+  }
+  c4: addCity(city_id: "city_7", name: "beijing", population: 21540000) {
+    city_id
+  }
+  c11: addCity(city_id: "city_9", name: "amsterdam", population: 821752) {
+    city_id
+  }
+  c12: addCity(city_id: "city_11", name: "paris", population: 2161000) {
+    city_id
+  }
+
+  ci1: addCity(city_id: "city_2", name: "cologne", population: 1086000) {
+    city_id
+  }
+  ci2: addCity(city_id: "city_4", name: "barcelona", population: 1636000) {
+    city_id
+  }
+  ci3: addCity(city_id: "city_6", name: "cancun", population: 888797) {
+    city_id
+  }
+  ci4: addCity(city_id: "city_8", name: "shanghai", population: 26320000) {
+    city_id
+  }
+  ci5: addCity(city_id: "city_10", name: "rotterdam", population: 632652) {
+    city_id
+  }
+  ci6: addCity(city_id: "city_12", name: "Lyon", population: 513275) {
+    city_id
+  }
+
+  r1: addRiver(
+    river_id: "river_1"
+    name: "rhine"
+    length: 1230
+    addCities: ["city_2"]
+  ) {
+    river_id
+  }
+  r2: addRiver(river_id: "river_2", name: "danub", length: 2850) {
+    river_id
+  }
+  r3: addRiver(river_id: "river_3", name: "Meuse", length: 925) {
+    river_id
+  }
+  r4: addRiver(river_id: "river_4", name: "guadalquivir", length: 657) {
+    river_id
+  }
+  r5: addRiver(river_id: "river_5", name: "ebro", length: 930) {
+    river_id
+  }
+  r6: addRiver(river_id: "river_6", name: "rio grande", length: 3034) {
+    river_id
+  }
+  r7: addRiver(
+    river_id: "river_7"
+    name: "Yangtze"
+    length: 6300
+    addCities: ["city_8"]
+  ) {
+    river_id
+  }
+  r8: addRiver(river_id: "river_8", name: "Yellow River", length: 5464) {
+    river_id
+  }
+
+  co1: addCountry(
+    country_id: "country_1"
+    name: "germany"
+    population: 83240000
+    size: 357588
+    addCapital: "city_1"
+    addCities: ["city_1", "city_2"]
+    addRivers: ["river_1", "river_2"]
+  ) {
+    country_id
+  }
+  co2: addCountry(
+    country_id: "country_2"
+    name: "spain"
+    population: 47100000
+    size: 505970
+    addCapital: "city_3"
+    addCities: ["city_3", "city_4"]
+    addRivers: ["river_4", "river_5"]
+  ) {
+    country_id
+  }
+  co3: addCountry(
+    country_id: "country_3"
+    name: "mexico"
+    population: 12890000
+    size: 1972550
+    addCapital: "city_5"
+    addCities: ["city_5", "city_6"]
+    addRivers: ["river_6"]
+  ) {
+    country_id
+  }
+  co4: addCountry(
+    country_id: "country_4"
+    name: "china"
+    population: 1411780000
+    size: 9596961
+    addCapital: "city_7"
+    addCities: ["city_7", "city_8"]
+    addRivers: ["river_7", "river_8"]
+  ) {
+    country_id
+  }
+  co5: addCountry(
+    country_id: "country_5"
+    name: "netherlands"
+    population: 17474793
+    size: 41543
+    addCapital: "city_9"
+    addCities: ["city_9", "city_10"]
+    addRivers: ["river_1", "river_3"]
+  ) {
+    country_id
+  }
+  co6: addCountry(
+    country_id: "country_6"
+    name: "france"
+    population: 67422000
+    size: 632733
+    addCapital: "city_11"
+    addCities: ["city_11", "city_12"]
+    addRivers: ["river_1", "river_3"]
+  ) {
+    country_id
+  }
+}

@@ -47,7 +47,7 @@
       "target": "continent",
       "targetKey": "continent_id",
       "keysIn": "country",
-      "targetStorageType" : "sql"
+      "targetStorageType" : "generic"
     }
   },
   "internalId": "country_id"

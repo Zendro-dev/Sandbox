@@ -35,7 +35,7 @@
 			"reverseAssociation": "capital",
       "target": "country",
       "targetStorageType": "sql",
-      "targetKey": "city_id",
+      "targetKey": "capital_id",
       "keysIn": "country"	 
     }
   },

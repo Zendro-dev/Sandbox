@@ -66,7 +66,7 @@ const definition = {
             target: 'continent',
             targetKey: 'continent_id',
             keysIn: 'country',
-            targetStorageType: 'sql'
+            targetStorageType: 'generic'
         }
     },
     internalId: 'country_id',
@@ -169,10 +169,6 @@ module.exports = class country extends Sequelize.Model {
         country.belongsTo(models.city, {
             as: 'capital',
             foreignKey: 'capital_id'
-        });
-        country.belongsTo(models.continent, {
-            as: 'continent',
-            foreignKey: 'continent_id'
         });
         country.hasMany(models.city, {
             as: 'cities',

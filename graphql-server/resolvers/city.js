@@ -72,7 +72,7 @@ city.prototype.capitalTo = async function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "city_id",
+        "field": "capital_id",
         "value": this.getIdValue(),
         "operator": "eq"
     });
@@ -274,7 +274,7 @@ city.prototype.add_country = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 city.prototype.add_capitalTo = async function(input, benignErrorReporter) {
-    await models.country.add_city_id(input.addCapitalTo, this.getIdValue(), benignErrorReporter);
+    await models.country.add_capital_id(input.addCapitalTo, this.getIdValue(), benignErrorReporter);
 }
 
 /**
@@ -310,7 +310,7 @@ city.prototype.remove_country = async function(input, benignErrorReporter) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  */
 city.prototype.remove_capitalTo = async function(input, benignErrorReporter) {
-    await models.country.remove_city_id(input.removeCapitalTo, this.getIdValue(), benignErrorReporter);
+    await models.country.remove_capital_id(input.removeCapitalTo, this.getIdValue(), benignErrorReporter);
 }
 
 
