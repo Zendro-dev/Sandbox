@@ -1,0 +1,43 @@
+{
+  "model": "city",
+  "storageType": "sql",
+  "attributes": {
+    "city_id": "String",
+    "name": "String",
+    "population": "Int",
+
+    "river_ids": "[String]",
+		"country_id": "String"
+  },
+  "associations": {
+    "rivers": {
+      "type": "many_to_many",
+      "implementation": "foreignkeys",
+			"reverseAssociation": "cities",
+      "target": "river",
+      "targetStorageType": "sql",
+      "sourceKey": "river_ids",
+      "targetKey": "city_ids",
+      "keysIn": "city"
+    },
+		"country": {
+			"type": "many_to_one",
+      "implementation": "foreignkeys",
+			"reverseAssociation": "cities",
+      "target": "country",
+      "targetStorageType": "sql",
+      "targetKey": "country_id",
+      "keysIn": "city"	
+		},
+    "capitalTo": {
+     "type": "one_to_one",
+      "implementation": "foreignkeys",
+			"reverseAssociation": "capital",
+      "target": "country",
+      "targetStorageType": "sql",
+      "targetKey": "city_id",
+      "keysIn": "country"	 
+    }
+  },
+  "internalId": "city_id"
+}

@@ -1,0 +1,48 @@
+{
+  "_from": "github:Zendro-dev/ZendroStarterPack#latest-stable",
+  "_id": "zendrostarterpack@0.5.6",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/ZendroStarterPack",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "ZendroStarterPack@github:Zendro-dev/ZendroStarterPack#latest-stable",
+    "name": "ZendroStarterPack",
+    "escapedName": "ZendroStarterPack",
+    "rawSpec": "github:Zendro-dev/ZendroStarterPack#latest-stable",
+    "saveSpec": "github:Zendro-dev/ZendroStarterPack#latest-stable",
+    "fetchSpec": null,
+    "gitCommittish": "latest-stable"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:Zendro-dev/ZendroStarterPack#cdab91fda3a5c30dfa44bd1b94fa71c91720cb4d",
+  "_spec": "ZendroStarterPack@github:Zendro-dev/ZendroStarterPack#latest-stable",
+  "_where": "/home/cons/projects/Zendro/zendro-CLI",
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/Zendro-dev/ZendroStarterPack/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "This is a collection of skeleton projects and code generators used to get a new user started with Zendro.",
+  "homepage": "https://github.com/Zendro-dev/ZendroStarterPack#readme",
+  "license": "ISC",
+  "name": "zendrostarterpack",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zendro-dev/ZendroStarterPack.git"
+  },
+  "scripts": {
+    "codegen:build": "bash ./scripts/codegen-build.sh",
+    "codegen:run": "bash ./scripts/codegen-run.sh",
+    "dev": "bash ./scripts/up.sh dev",
+    "restart": "bash ./scripts/restart.sh",
+    "setup": "bash ./setup.sh",
+    "start": "bash ./scripts/up.sh prod",
+    "stop": "bash ./scripts/down.sh"
+  },
+  "version": "0.5.6"
+}

@@ -1,0 +1,49 @@
+npm ERR! code 1
+npm ERR! path /home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/sqlite3
+npm ERR! command failed
+npm ERR! command sh -c node-gyp rebuild
+npm ERR! gyp info it worked if it ends with ok
+npm ERR! gyp info using node-gyp@3.8.0
+npm ERR! gyp info using node@16.13.0 | linux | x64
+npm ERR! (node:24698) [DEP0150] DeprecationWarning: Setting process.config is deprecated. In the future the property will be read-only.
+npm ERR! (Use `node --trace-deprecation ...` to show where the warning was created)
+npm ERR! gyp info spawn /usr/bin/python2
+npm ERR! gyp info spawn args [
+npm ERR! gyp info spawn args   '/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/node-gyp/gyp/gyp_main.py',
+npm ERR! gyp info spawn args   'binding.gyp',
+npm ERR! gyp info spawn args   '-f',
+npm ERR! gyp info spawn args   'make',
+npm ERR! gyp info spawn args   '-I',
+npm ERR! gyp info spawn args   '/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/sqlite3/build/config.gypi',
+npm ERR! gyp info spawn args   '-I',
+npm ERR! gyp info spawn args   '/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/node-gyp/addon.gypi',
+npm ERR! gyp info spawn args   '-I',
+npm ERR! gyp info spawn args   '/home/cons/.node-gyp/16.13.0/include/node/common.gypi',
+npm ERR! gyp info spawn args   '-Dlibrary=shared_library',
+npm ERR! gyp info spawn args   '-Dvisibility=default',
+npm ERR! gyp info spawn args   '-Dnode_root_dir=/home/cons/.node-gyp/16.13.0',
+npm ERR! gyp info spawn args   '-Dnode_gyp_dir=/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/node-gyp',
+npm ERR! gyp info spawn args   '-Dnode_lib_file=/home/cons/.node-gyp/16.13.0/<(target_arch)/node.lib',
+npm ERR! gyp info spawn args   '-Dmodule_root_dir=/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/sqlite3',
+npm ERR! gyp info spawn args   '-Dnode_engine=v8',
+npm ERR! gyp info spawn args   '--depth=.',
+npm ERR! gyp info spawn args   '--no-parallel',
+npm ERR! gyp info spawn args   '--generator-output',
+npm ERR! gyp info spawn args   'build',
+npm ERR! gyp info spawn args   '-Goutput_dir=.'
+npm ERR! gyp info spawn args ]
+npm ERR! gyp: Undefined variable module_name in binding.gyp while trying to load binding.gyp
+npm ERR! gyp ERR! configure error 
+npm ERR! gyp ERR! stack Error: `gyp` failed with exit code: 1
+npm ERR! gyp ERR! stack     at ChildProcess.onCpExit (/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/node-gyp/lib/configure.js:345:16)
+npm ERR! gyp ERR! stack     at ChildProcess.emit (node:events:390:28)
+npm ERR! gyp ERR! stack     at Process.ChildProcess._handle.onexit (node:internal/child_process:290:12)
+npm ERR! gyp ERR! System Linux 5.13.0-7620-generic
+npm ERR! gyp ERR! command "/usr/local/bin/node" "/home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/.bin/node-gyp" "rebuild"
+npm ERR! gyp ERR! cwd /home/cons/projects/Zendro/Sandbox/Zendro_introduction/graphql-server/node_modules/sqlite3
+npm ERR! gyp ERR! node -v v16.13.0
+npm ERR! gyp ERR! node-gyp -v v3.8.0
+npm ERR! gyp ERR! not ok
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /home/cons/.npm/_logs/2021-11-22T09_39_09_353Z-debug.log
