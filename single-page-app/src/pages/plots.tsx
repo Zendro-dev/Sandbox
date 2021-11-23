@@ -8,8 +8,12 @@ import { QueryVariables } from '@/types/queries';
 import { DataRecord } from '@/types/models';
 import { PageInfo } from '@/types/requests';
 
-import Plot from 'react-plotly.js';
 import { Data, Layout } from 'plotly.js';
+import dynamic from 'next/dynamic';
+
+const PlotlyPlot = dynamic(() => import('@/zendro/plots/plot'), {
+  ssr: false,
+});
 
 const Plots: PageWithLayout = () => {
   const zendro = useZendroClient();
@@ -49,7 +53,7 @@ const Plots: PageWithLayout = () => {
     }
   }, []);
 
-  return <Plot data={data} layout={layout} useResizeHandler={true}></Plot>;
+  return <PlotlyPlot data={data} layout={layout}></PlotlyPlot>;
 };
 
 Plots.layout = ModelLayout;
