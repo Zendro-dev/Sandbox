@@ -1,1 +1,31 @@
+
+{
+  rivers(
+    pagination: {limit: 10}
+    search: {field: length, value: "1000", operator: gt}
+  ) {
+    name
+    length
+    countriesFilter(pagination: {limit: 10}) {
+      population
+      size
+      name
+    }
+  }
+  cities(
+    pagination: {limit: 10}
+    search: {field: population, value: "1000000", operator: gt}
+  ) {
+    name
+    population
+    country {
+      name
+      population
+      size
+    }
+  }
+}
+
 ([.rivers[].countriesFilter | .. | .name?] | unique )as $a | ([.cities[].country | .. | .name?] | unique) as $b | [[$a[], $b[]] | group_by(.)[]| select(length > 1)[0]]
+
+([[.rivers[].countriesFilter] | unique] | flatten )as $a | ([.cities[].country] | unique) as $b | [[$a[], $b[]] | group_by(.)[]| select(length > 1)[0]]

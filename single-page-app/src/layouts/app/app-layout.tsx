@@ -8,6 +8,7 @@ import {
   BubbleChart as ModelsIcon,
   Home as HomeIcon,
   Login as LoginIcon,
+  Equalizer as ChartIcon,
 } from '@mui/icons-material';
 
 import ClientOnly from '@/components/client-only';
@@ -62,6 +63,14 @@ export default function ModelsLayout({
               <SiteLink href="/models" className={classes.navlink}>
                 <ModelsIcon />
                 <span>{t('toolbar.models')}</span>
+              </SiteLink>
+            )}
+          </ClientOnly>
+          <ClientOnly>
+            {auth.user && (
+              <SiteLink className={classes.navlink} href="/plots">
+                <ChartIcon />
+                <span>Plots</span>
               </SiteLink>
             )}
           </ClientOnly>
