@@ -1,0 +1,48 @@
+{
+  "_from": "github:Zendro-dev/ZendroStarterPack#OAuth2",
+  "_id": "zendrostarterpack@0.5.6",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/ZendroStarterPack",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "ZendroStarterPack@github:Zendro-dev/ZendroStarterPack#OAuth2",
+    "name": "ZendroStarterPack",
+    "escapedName": "ZendroStarterPack",
+    "rawSpec": "github:Zendro-dev/ZendroStarterPack#OAuth2",
+    "saveSpec": "github:Zendro-dev/ZendroStarterPack#OAuth2",
+    "fetchSpec": null,
+    "gitCommittish": "OAuth2"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:Zendro-dev/ZendroStarterPack#354fe62393550f390e42fea8c117ff486857910c",
+  "_spec": "ZendroStarterPack@github:Zendro-dev/ZendroStarterPack#OAuth2",
+  "_where": "/var/projects/zendro",
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/Zendro-dev/ZendroStarterPack/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "This is a collection of skeleton projects and code generators used to get a new user started with Zendro.",
+  "homepage": "https://github.com/Zendro-dev/ZendroStarterPack#readme",
+  "license": "ISC",
+  "name": "zendrostarterpack",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zendro-dev/ZendroStarterPack.git"
+  },
+  "scripts": {
+    "codegen:build": "bash ./scripts/codegen-build.sh",
+    "codegen:run": "bash ./scripts/codegen-run.sh",
+    "dev": "bash ./scripts/up.sh dev",
+    "restart": "bash ./scripts/restart.sh",
+    "setup": "bash ./setup.sh",
+    "start": "bash ./scripts/up.sh prod",
+    "stop": "bash ./scripts/down.sh"
+  },
+  "version": "0.5.6"
+}

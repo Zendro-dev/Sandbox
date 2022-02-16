@@ -1,0 +1,63 @@
+{
+  "model": "investigation",
+  "storageType": "sql",
+  "internalId": "id",
+  "attributes": {
+    "filename": "String",
+    "identifier": "String",
+    "title": "String",
+    "description": "String",
+    "submissionDate": "DateTime",
+    "publicReleaseDate": "DateTime",
+    "people_fk": "[String]",
+    "id": "String"
+  },
+  "associations": {
+    "ontologySourceReferences": {
+      "type": "one_to_many",
+      "target": "ontology_source_reference",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation_ontologySourceReferences",
+      "targetKey": "investigation_ontologySourceReferences_fk",
+      "keysIn": "ontology_source_reference"
+    },
+    "publications": {
+      "type": "one_to_many",
+      "target": "publication",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation_publications",
+      "targetKey": "investigation_publications_fk",
+      "keysIn": "publication"
+    },
+    "people": {
+      "type": "many_to_many",
+      "sourceKey": "people_fk",
+      "target": "person",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation_people",
+      "targetKey": "investigation_people_fk",
+      "keysIn": "investigation"
+    },
+    "studies": {
+      "type": "one_to_many",
+      "target": "study",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation_studies",
+      "targetKey": "investigation_studies_fk",
+      "keysIn": "study"
+    },
+    "comments": {
+      "type": "one_to_many",
+      "target": "comment",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "investigation_comments",
+      "targetKey": "investigation_comments_fk",
+      "keysIn": "comment"
+    }
+  }
+}

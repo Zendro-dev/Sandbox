@@ -1,0 +1,30 @@
+npm notice created a lockfile as package-lock.json. You should commit this file.
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-android-arm64@12.0.10 (node_modules/next/node_modules/@next/swc-android-arm64):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-android-arm64@12.0.10: wanted {"os":"android","arch":"arm64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-darwin-arm64@12.0.10 (node_modules/next/node_modules/@next/swc-darwin-arm64):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-darwin-arm64@12.0.10: wanted {"os":"darwin","arch":"arm64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-darwin-x64@12.0.10 (node_modules/next/node_modules/@next/swc-darwin-x64):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-darwin-x64@12.0.10: wanted {"os":"darwin","arch":"x64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-linux-arm-gnueabihf@12.0.10 (node_modules/next/node_modules/@next/swc-linux-arm-gnueabihf):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-linux-arm-gnueabihf@12.0.10: wanted {"os":"linux","arch":"arm"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-linux-arm64-gnu@12.0.10 (node_modules/next/node_modules/@next/swc-linux-arm64-gnu):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-linux-arm64-gnu@12.0.10: wanted {"os":"linux","arch":"arm64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-linux-arm64-musl@12.0.10 (node_modules/next/node_modules/@next/swc-linux-arm64-musl):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-linux-arm64-musl@12.0.10: wanted {"os":"linux","arch":"arm64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-win32-arm64-msvc@12.0.10 (node_modules/next/node_modules/@next/swc-win32-arm64-msvc):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-win32-arm64-msvc@12.0.10: wanted {"os":"win32","arch":"arm64"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-win32-ia32-msvc@12.0.10 (node_modules/next/node_modules/@next/swc-win32-ia32-msvc):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-win32-ia32-msvc@12.0.10: wanted {"os":"win32","arch":"ia32"} (current: {"os":"linux","arch":"x64"})
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: @next/swc-win32-x64-msvc@12.0.10 (node_modules/next/node_modules/@next/swc-win32-x64-msvc):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for @next/swc-win32-x64-msvc@12.0.10: wanted {"os":"win32","arch":"x64"} (current: {"os":"linux","arch":"x64"})
+npm WARN @emotion/babel-plugin@11.7.2 requires a peer of @babel/core@^7.0.0 but none is installed. You must install peer dependencies yourself.
+npm WARN @babel/plugin-syntax-jsx@7.16.7 requires a peer of @babel/core@^7.0.0-0 but none is installed. You must install peer dependencies yourself.
+npm WARN ts-node@9.1.1 requires a peer of typescript@>=2.7 but none is installed. You must install peer dependencies yourself.
+
+added 259 packages from 1239 contributors and audited 268 packages in 36.017s
+
+36 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+

@@ -1,0 +1,44 @@
+npm WARN read-shrinkwrap This version of npm is compatible with lockfileVersion@1, but package-lock.json was generated for lockfileVersion@2. I'll try to do my best with it!
+
+> bcrypt@5.0.1 install /var/projects/ISA-warehouse/graphql-server/node_modules/bcrypt
+> node-pre-gyp install --fallback-to-build
+
+[bcrypt] Success: "/var/projects/ISA-warehouse/graphql-server/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node" is installed via remote
+
+> sqlite3@5.0.2 install /var/projects/ISA-warehouse/graphql-server/node_modules/sqlite3
+> node-pre-gyp install --fallback-to-build
+
+node-pre-gyp WARN Using request for node-pre-gyp https download 
+[sqlite3] Success: "/var/projects/ISA-warehouse/graphql-server/node_modules/sqlite3/lib/binding/napi-v3-linux-x64/node_sqlite3.node" is installed via remote
+
+> aws-sdk@2.897.0 postinstall /var/projects/ISA-warehouse/graphql-server/node_modules/aws-sdk
+> node scripts/check-node-version.js
+
+
+> node-jq@1.12.0 postinstall /var/projects/ISA-warehouse/graphql-server/node_modules/node-jq
+> npm run install-binary
+
+
+> node-jq@1.12.0 install-binary /var/projects/ISA-warehouse/graphql-server/node_modules/node-jq
+> node scripts/install-binary.js
+
+Downloading jq from https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+Downloaded in /var/projects/ISA-warehouse/graphql-server/node_modules/node-jq/bin
+
+> nodemon@2.0.12 postinstall /var/projects/ISA-warehouse/graphql-server/node_modules/nodemon
+> node bin/postinstall || exit 0
+
+[32mLove nodemon? You can now support the project via the open collective:[22m[39m
+ > [96m[1mhttps://opencollective.com/nodemon/donate[0m
+
+npm WARN second-server-graphql@0.5.6 No repository field.
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@2.1.3 (node_modules/fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@2.1.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+
+added 917 packages from 723 contributors and audited 922 packages in 32.144s
+
+61 packages are looking for funding
+  run `npm fund` for details
+
+found 49 vulnerabilities (1 low, 25 moderate, 23 high)
+  run `npm audit fix` to fix them, or `npm audit` for details

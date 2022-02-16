@@ -1,0 +1,60 @@
+{
+  "model": "person",
+  "storageType": "sql",
+  "internalId": "id",
+  "attributes": {
+    "lastName": "String",
+    "firstName": "String",
+    "midInitials": "String",
+    "email": "String",
+    "phone": "String",
+    "fax": "String",
+    "address": "String",
+    "affiliation": "String",
+    "roles_fk": "[String]",
+    "study_people_fk": "[String]",
+    "investigation_people_fk": "[String]",
+    "id": "String"
+  },
+  "associations": {
+    "roles": {
+      "type": "many_to_many",
+      "sourceKey": "roles_fk",
+      "target": "ontology_annotation",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "person_roles",
+      "targetKey": "person_roles_fk",
+      "keysIn": "person"
+    },
+    "comments": {
+      "type": "one_to_many",
+      "target": "comment",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "person_comments",
+      "targetKey": "person_comments_fk",
+      "keysIn": "comment"
+    },
+    "investigation_people": {
+      "type": "many_to_many",
+      "sourceKey": "investigation_people_fk",
+      "target": "investigation",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "people",
+      "targetKey": "people_fk",
+      "keysIn": "person"
+    },
+    "study_people": {
+      "type": "many_to_many",
+      "sourceKey": "study_people_fk",
+      "target": "study",
+      "targetStorageType": "sql",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "people",
+      "targetKey": "people_fk",
+      "keysIn": "person"
+    }
+  }
+}
