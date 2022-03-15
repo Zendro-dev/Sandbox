@@ -33,7 +33,7 @@ module.exports = {
    */
   up: async (zendro) => {
     function writeEnvFile(file, env) {
-      parsedEnvString = Object.entries(env.parsed)
+      const parsedEnvString = Object.entries(env)
         .map((entry) => `${entry[0]}='${entry[1]}'`)
         .reduce((a, c) => {
           a += c + "\n";
@@ -42,9 +42,9 @@ module.exports = {
       fs.writeFileSync(file, parsedEnvString);
     }
     // wait for keycloak service to be available
-    await waitOn({ resources: [KEYCLOAK_BASEURL], timeout: 6000 });
     // setup default keycloak instance
     try {
+      await waitOn({ resources: [KEYCLOAK_BASEURL], timeout: 60000 });
       const {
         KEYCLOAK_PUBLIC_KEY,
         KEYCLOAK_GIQL_CLIENT_SECRET,
@@ -60,31 +60,37 @@ module.exports = {
 
       // write ENV variables
       // graphql-server
-      fs.appendFileSync(
-        path.resolve(__dirname, "../.env"),
-        `\nOAUTH2_PUBLIC_KEY="${KEYCLOAK_PUBLIC_KEY}"\nOAUTH2_CLIENT_ID=${KEYCLOAK_GQL_CLIENT}`
-      );
+      // fs.appendFileSync(
+      //   path.resolve(__dirname, "../.env"),
+      //   `\nOAUTH2_PUBLIC_KEY="${KEYCLOAK_PUBLIC_KEY}"\nOAUTH2_CLIENT_ID=${KEYCLOAK_GQL_CLIENT}`
+      // );
 
-      try {
-        if (GQL_ENV.error || GIQL_PRD_ENV.error || SPA_PRD_ENV.error) {
-          throw new Error("Error when reading .env files", {
-            "graphql-server .env": GQL_ENV.error,
-            "graphiql-auth .env.production": GIQL_PRD_ENV.error,
-            "spa .env.production": SPA_PRD_ENV.error,
-          });
-        }
-        // graphql-server
-        let envPath = path.resolve(__dirname, "../.env");
-        let parsedEnv = GQL_ENV.parsed;
-        parsedEnv.OAUTH2_PUBLIC_KEY === undefined
-          ? (parsedEnv.OAUTH2_PUBLIC_KEY = KEYCLOAK_PUBLIC_KEY)
-          : console.warn(`OAUTH2_PUBLIC_KEY was already defined in ${envPath}`);
-        parsedEnv.KEYCLOAK_GQL_CLIENT === undefined
-          ? (parsedEnv.OAUTH2_CLIENT_ID = KEYCLOAK_GQL_CLIENT)
-          : console.warn(`OAUTH2_CLIENT_ID was already defined in ${envPath}`);
-        writeEnvFile(envPath, parsedEnv);
+      if (GQL_ENV.error || GIQL_PRD_ENV.error || SPA_PRD_ENV.error) {
+        console.warn(
+          `Error when reading .env files ${JSON.stringify(
+            {
+              "graphql-server .env": GQL_ENV.error,
+              "graphiql-auth .env.production": GIQL_PRD_ENV.error,
+              "spa .env.production": SPA_PRD_ENV.error,
+            },
+            null,
+            2
+          )}`
+        );
+      }
+      // graphql-server
+      let envPath = path.resolve(__dirname, "../.env");
+      let parsedEnv = GQL_ENV.parsed;
+      parsedEnv.OAUTH2_PUBLIC_KEY === undefined
+        ? (parsedEnv.OAUTH2_PUBLIC_KEY = KEYCLOAK_PUBLIC_KEY)
+        : console.warn(`OAUTH2_PUBLIC_KEY was already defined in ${envPath}`);
+      parsedEnv.KEYCLOAK_GQL_CLIENT === undefined
+        ? (parsedEnv.OAUTH2_CLIENT_ID = KEYCLOAK_GQL_CLIENT)
+        : console.warn(`OAUTH2_CLIENT_ID was already defined in ${envPath}`);
+      writeEnvFile(envPath, parsedEnv);
 
-        // graphiql-auth
+      // graphiql-auth
+      if (GIQL_PRD_ENV.parsed) {
         envPath = path.resolve(
           __dirname,
           "../../graphiql-auth/.env.production"
@@ -99,8 +105,10 @@ module.exports = {
               `OAUTH2_CLIENT_SECRET was already defined in ${envPath}`
             );
         writeEnvFile(envPath, parsedEnv);
+      }
 
-        // single-page-app
+      // single-page-app
+      if (SPA_PRD_ENV.parsed) {
         envPath = path.resolve(
           __dirname,
           "../../single-page-app/.env.production"
@@ -115,11 +123,6 @@ module.exports = {
               `OAUTH2_CLIENT_SECRET was already defined in ${envPath}`
             );
         writeEnvFile(envPath, parsedEnv);
-      } catch (error) {
-        console.error(
-          "Writing .env production files failed due to errors. Make sure you include the necessary environment variables. Continuing with unchanged .env files",
-          { error }
-        );
       }
 
       // // graphiql-auth
@@ -148,7 +151,7 @@ module.exports = {
         "Successfully added OAuth2 keycloak PUBLIC_KEY, CLIENT_ID and CLIENT_SECRET environment variables."
       );
     } catch (error) {
-      throw new Error(error);
+      console.error(error);
     }
   },
 

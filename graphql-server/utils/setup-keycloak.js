@@ -29,19 +29,15 @@ const KEYCLOAK_BASEURL = `${new URL(OAUTH2_TOKEN_URI).protocol}//${
  * @returns axios response
  */
 async function keycloakPostRequest(token, url, data) {
-  try {
-    return await axios({
-      method: "post",
-      url: `${KEYCLOAK_BASEURL}/${url}`,
-      data: data,
-      headers: {
-        "content-type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-  }
+  return await axios({
+    method: "post",
+    url: `${KEYCLOAK_BASEURL}/${url}`,
+    data: data,
+    headers: {
+      "content-type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+  });
 }
 
 /**
@@ -52,17 +48,13 @@ async function keycloakPostRequest(token, url, data) {
  * @returns axios response
  */
 async function keycloakGetRequest(token, url) {
-  try {
-    return await axios({
-      method: "get",
-      url: `${KEYCLOAK_BASEURL}/${url}`,
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-  }
+  return await axios({
+    method: "get",
+    url: `${KEYCLOAK_BASEURL}/${url}`,
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
 }
 
 /**
@@ -73,39 +65,31 @@ async function keycloakGetRequest(token, url) {
  * @returns axios response
  */
 async function keycloakDeleteRequest(token, url) {
-  try {
-    return await axios({
-      method: "delete",
-      url: `${KEYCLOAK_BASEURL}/${url}`,
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-  }
+  return await axios({
+    method: "delete",
+    url: `${KEYCLOAK_BASEURL}/${url}`,
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
 }
 
 /**
  * getMasterToken - get Accesstoken for keycloak rest API
  */
 async function getMasterToken() {
-  try {
-    const res = await axios({
-      method: "post",
-      url: `${KEYCLOAK_BASEURL}/auth/realms/master/protocol/openid-connect/token`,
-      data: `username=${KEYCLOAK_USER}&password=${KEYCLOAK_PASSWORD}&grant_type=password&client_id=admin-cli`,
-      headers: {
-        "content-type": "application/x-www-form-urlencoded;charset=utf-8",
-      },
-    });
-    if (res && res.data) {
-      return res.data.access_token;
-    } else {
-      console.error("No api token found");
-    }
-  } catch (error) {
-    console.error(error);
+  const res = await axios({
+    method: "post",
+    url: `${KEYCLOAK_BASEURL}/auth/realms/master/protocol/openid-connect/token`,
+    data: `username=${KEYCLOAK_USER}&password=${KEYCLOAK_PASSWORD}&grant_type=password&client_id=admin-cli`,
+    headers: {
+      "content-type": "application/x-www-form-urlencoded;charset=utf-8",
+    },
+  });
+  if (res && res.data) {
+    return res.data.access_token;
+  } else {
+    throw new Error("Failed requesting an API token");
   }
 }
 
@@ -121,8 +105,6 @@ async function createDefaultRealm(token) {
   });
   if (res && res.status === 201) {
     console.log(`Keycloak realm ${KEYCLOAK_REALM} created`);
-  } else {
-    throw new Error(`Error when creating realm "${KEYCLOAK_REALM}"`);
   }
 }
 
@@ -349,12 +331,7 @@ async function createDefaultUser(token) {
 async function setupKeyCloak() {
   console.log("Setting up keycloak...");
   const token = await getMasterToken();
-  try {
-    await createDefaultRealm(token);
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  await createDefaultRealm(token);
   await registerClient(token, {
     clientId: KEYCLOAK_GQL_CLIENT,
     publicClient: true,
@@ -381,11 +358,6 @@ async function setupKeyCloak() {
     token,
     "auth/realms/zendro"
   );
-  console.log({
-    KEYCLOAK_PUBLIC_KEY,
-    KEYCLOAK_GIQL_CLIENT_SECRET,
-    KEYCLOAK_SPA_CLIENT_SECRET,
-  });
 
   KEYCLOAK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----\\n${KEYCLOAK_PUBLIC_KEY.data.public_key}\\n-----END PUBLIC KEY-----`;
 
