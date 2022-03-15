@@ -40,7 +40,7 @@ async function keycloakPostRequest(token, url, data) {
       },
     });
   } catch (error) {
-    throw new Error(error);
+    console.error(error);
   }
 }
 
@@ -61,7 +61,7 @@ async function keycloakGetRequest(token, url) {
       },
     });
   } catch (error) {
-    throw new Error(error);
+    console.error(error);
   }
 }
 
@@ -82,7 +82,7 @@ async function keycloakDeleteRequest(token, url) {
       },
     });
   } catch (error) {
-    throw new Error(error);
+    console.error(error);
   }
 }
 
@@ -102,10 +102,10 @@ async function getMasterToken() {
     if (res && res.data) {
       return res.data.access_token;
     } else {
-      throw new Error("No api token found");
+      console.error("No api token found");
     }
   } catch (error) {
-    throw new Error(error);
+    console.error(error);
   }
 }
 
@@ -121,6 +121,8 @@ async function createDefaultRealm(token) {
   });
   if (res && res.status === 201) {
     console.log(`Keycloak realm ${KEYCLOAK_REALM} created`);
+  } else {
+    throw new Error(`Error when creating realm "${KEYCLOAK_REALM}"`);
   }
 }
 
@@ -347,7 +349,12 @@ async function createDefaultUser(token) {
 async function setupKeyCloak() {
   console.log("Setting up keycloak...");
   const token = await getMasterToken();
-  await createDefaultRealm(token);
+  try {
+    await createDefaultRealm(token);
+  } catch (error) {
+    console.error(error);
+    return;
+  }
   await registerClient(token, {
     clientId: KEYCLOAK_GQL_CLIENT,
     publicClient: true,
