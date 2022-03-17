@@ -1,0 +1,27 @@
+{
+    "model": "study",
+    "storageType": "presto",
+    "attributes": {
+      "id": "Int",
+      "description": "String",
+      "start_date": "DateTime",
+      "end_date ": "DateTime",
+      "experiment_id": "String",
+      "experimental_site_name": "String",
+      "experimental_design_type": "String",
+      "institute_code": "String"
+    },
+    "associations": {
+      "study": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "person",
+        "targetKey": "study_id",
+        "keysIn": "person",
+        "targetStorageType": "presto",
+        "reverseAssociation":"study"
+      }
+    },
+    "internalId" : "id",
+    "useDataLoader": true
+}

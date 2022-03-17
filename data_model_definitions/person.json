@@ -1,0 +1,25 @@
+{
+    "model": "person",
+    "storageType": "presto",
+    "attributes": {
+      "id": "Int",
+      "name": "String",
+      "email": "String",
+      "role": "String",
+      "affiliation": "String",
+      "study_id": "Int"
+    },
+    "associations": {
+      "person": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "study",
+        "targetKey": "study_id",
+        "keysIn": "person",
+        "targetStorageType": "presto",
+        "reverseAssociation":"person"
+      }
+    },
+    "internalId" : "id",
+    "useDataLoader": true
+}

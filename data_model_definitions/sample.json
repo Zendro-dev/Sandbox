@@ -1,0 +1,26 @@
+{
+    "model": "samples",
+    "storageType": "presto",
+    "attributes": {
+      "id": "Int",
+      "experiment_id": "String",
+      "observation_unit_id ": "String",
+      "plant_anatomical_entity": "String",
+      "value": "String",
+      "collection_time": "DateTime"
+    },
+    "associations": {
+
+      "samples": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "observation_unit",
+        "targetKey": "observation_unit_id",
+        "keysIn": "samples",
+        "targetStorageType": "presto",
+        "reverseAssociation":"samples"
+      }
+    },
+    "internalId" : "id",
+    "useDataLoader": true
+}
