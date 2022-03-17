@@ -12,7 +12,7 @@
       "institute_code": "String"
     },
     "associations": {
-      "study": {
+      "people": {
         "type": "one_to_many",
         "implementation": "foreignkeys",
         "target": "person",

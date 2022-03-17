@@ -10,15 +10,23 @@
       "collection_time": "DateTime"
     },
     "associations": {
-
-      "samples": {
-        "type": "one_to_many",
+      "observation_unit": {
+        "type": "many_to_one",
         "implementation": "foreignkeys",
         "target": "observation_unit",
         "targetKey": "observation_unit_id",
         "keysIn": "samples",
         "targetStorageType": "presto",
         "reverseAssociation":"samples"
+      },
+      "observed_variables": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "observed_variable",
+        "targetKey": "sample_id",
+        "keysIn": "observed_variable",
+        "targetStorageType": "presto",
+        "reverseAssociation":"sample"
       }
     },
     "internalId" : "id",

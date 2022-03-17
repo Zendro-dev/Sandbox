@@ -1,0 +1,14 @@
+{
+  "model": "biological_material",
+  "storageType": "presto",
+  "attributes": {
+    "id": "Int",
+		"species": "String",
+		"genus": "String",
+		"infraspecific_name": "String",
+		"institute_code": "String",
+		"experiment_id": "String"
+  },
+  "internalId": "id",
+	"useDataLoader": true
+}

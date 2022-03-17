@@ -1,0 +1,37 @@
+{
+  "model": "observed_variable",
+  "storageType": "presto",
+  "attributes": {
+    "trait": "String",
+		"method": "String",
+		"scale": "String",
+		"method_description": "String",
+		"time_scale": "DateTime",
+		"external_data_file": "String",
+		"experiment_id": "String",
+		"sample_id": "String",
+		"observation_unit_id": "String"
+  },
+	"associations": {
+		"sample": {
+			"type": "many_to_one",
+			"reverseAssociation": "observed_variables",
+      "implementation": "foreignkeys",
+      "targetStorageType": "presto",
+      "target": "samples",
+      "targetKey": "sample_id",
+      "keysIn": "observed_variable"
+		},
+		"observation_unit": {
+			"type": "many_to_one",
+			"reverseAssociation": "observed_variables",
+      "implementation": "foreignkeys",
+      "targetStorageType": "presto",
+      "target": "observation_unit",
+      "targetKey": "observation_unit_id",
+      "keysIn": "observed_variable"
+		}
+	},
+	"internalId": "",
+	"useDataLoader": true
+}

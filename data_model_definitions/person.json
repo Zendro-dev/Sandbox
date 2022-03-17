@@ -10,14 +10,14 @@
       "study_id": "Int"
     },
     "associations": {
-      "person": {
-        "type": "one_to_many",
+      "study": {
+        "type": "many_to_one",
         "implementation": "foreignkeys",
         "target": "study",
         "targetKey": "study_id",
         "keysIn": "person",
         "targetStorageType": "presto",
-        "reverseAssociation":"person"
+        "reverseAssociation":"people"
       }
     },
     "internalId" : "id",

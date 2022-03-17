@@ -1,0 +1,13 @@
+{
+  "model": "investigation",
+  "storageType": "presto",
+  "attributes": {
+    "id": "Int",
+		"title": "String",
+		"author_list": "String",
+		"doi": "String",
+		"experiment_id": "String"
+  },
+  "internalId": "id",
+	"useDataLoader": true
+}
