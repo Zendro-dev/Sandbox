@@ -1,0 +1,23 @@
+digraph hierarchy {
+ node[shape=record,style=filled,fillcolor=gray95, fontname=Courier, fontsize=15]
+ graph [splines=ortho]
+ edge[arrowsize=1.5, style=bold]
+ ranksep=0.5
+ nodesep=1
+ esep=0.1
+ biological_material [label = < {<B>Biological_material</B>|<font color="red">biological_material_id    <i>Int</i></font><br ALIGN="LEFT"/>species                <i>String</i><br ALIGN="LEFT"/>genus                  <i>String</i><br ALIGN="LEFT"/>infraspecific_name     <i>String</i><br ALIGN="LEFT"/><font color="darkgreen">study_id                  <i>Int</i></font><br ALIGN="LEFT"/>}>]
+ investigation [label = < {<B>Investigation</B>|<font color="red">investigation_unique_id      <i>Int</i></font><br ALIGN="LEFT"/>investigation_title       <i>String</i><br ALIGN="LEFT"/>public_release_date       <i>String</i><br ALIGN="LEFT"/>associated_publication    <i>String</i><br ALIGN="LEFT"/>}>]
+ observation_unit [label = < {<B>Observation_unit</B>|<font color="red">observation_unit_id      <i>String</i></font><br ALIGN="LEFT"/>observation_unit_type    <i>String</i><br ALIGN="LEFT"/><font color="darkgreen">study_id                    <i>Int</i></font><br ALIGN="LEFT"/>}>]
+ observed_variable [label = < {<B>Observed_variable</B>|<font color="red">observation_variable_id    <i>Int</i></font><br ALIGN="LEFT"/>trait                   <i>String</i><br ALIGN="LEFT"/>method                  <i>String</i><br ALIGN="LEFT"/>scale                   <i>String</i><br ALIGN="LEFT"/>method_description      <i>String</i><br ALIGN="LEFT"/>time_scale            <i>DateTime</i><br ALIGN="LEFT"/>external_data_file      <i>String</i><br ALIGN="LEFT"/><font color="darkgreen">observation_unit_id     <i>String</i></font><br ALIGN="LEFT"/><font color="darkgreen">study_id                   <i>Int</i></font><br ALIGN="LEFT"/>}>]
+ person [label = < {<B>Person</B>|<font color="red">person_id                <i>Int</i></font><br ALIGN="LEFT"/>person_name           <i>String</i><br ALIGN="LEFT"/>person_email          <i>String</i><br ALIGN="LEFT"/>person_role           <i>String</i><br ALIGN="LEFT"/>person_affiliation    <i>String</i><br ALIGN="LEFT"/><font color="darkgreen">study_id                 <i>Int</i></font><br ALIGN="LEFT"/>}>]
+ samples [label = < {<B>Samples</B>|<font color="red">sample_id                     <i>Int</i></font><br ALIGN="LEFT"/>plant_anatomical_entity    <i>String</i><br ALIGN="LEFT"/>collection_time          <i>DateTime</i><br ALIGN="LEFT"/><font color="darkgreen">observation_unit_id        <i>String</i></font><br ALIGN="LEFT"/><font color="darkgreen">study_id                      <i>Int</i></font><br ALIGN="LEFT"/>}>]
+ study [label = < {<B>Study</B>|<font color="red">study_unique_id                <i>Int</i></font><br ALIGN="LEFT"/>study_title                 <i>String</i><br ALIGN="LEFT"/>study_start_date          <i>DateTime</i><br ALIGN="LEFT"/>study_end_date            <i>DateTime</i><br ALIGN="LEFT"/>experimental_site_name      <i>String</i><br ALIGN="LEFT"/>experimental_design_type    <i>String</i><br ALIGN="LEFT"/>contact_institution         <i>String</i><br ALIGN="LEFT"/><font color="darkgreen">investigation_id            <i>String</i></font><br ALIGN="LEFT"/>}>]
+  biological_material -> study [minlen=2 color=navy headlabel=1 taillabel=n labeldistance=2 arrowhead=none lp=5]
+  investigation -> study [minlen=2 color=navy headlabel=n taillabel=1 labeldistance=2 arrowhead=none lp=5]
+  observation_unit -> observed_variable [minlen=2 color=navy headlabel=n taillabel=1 labeldistance=2 arrowhead=none lp=5]
+  observation_unit -> study [minlen=2 color=navy headlabel=1 taillabel=n labeldistance=2 arrowhead=none lp=5]
+  observation_unit -> samples [minlen=2 color=navy headlabel=n taillabel=1 labeldistance=2 arrowhead=none lp=5]
+  observed_variable -> study [minlen=2 color=navy headlabel=1 taillabel=n labeldistance=2 arrowhead=none lp=5]
+  person -> study [minlen=2 color=navy headlabel=1 taillabel=n labeldistance=2 arrowhead=none lp=5]
+  samples -> study [minlen=2 color=navy headlabel=1 taillabel=n labeldistance=2 arrowhead=none lp=5]
+}
