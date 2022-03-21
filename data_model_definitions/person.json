@@ -2,11 +2,11 @@
     "model": "person",
     "storageType": "presto",
     "attributes": {
-      "id": "Int",
-      "name": "String",
-      "email": "String",
-      "role": "String",
-      "affiliation": "String",
+      "person_id": "Int",
+      "person_name": "String",
+      "person_email": "String",
+      "person_role": "String",
+      "person_affiliation": "String",
       "study_id": "Int"
     },
     "associations": {
@@ -20,6 +20,6 @@
         "reverseAssociation":"people"
       }
     },
-    "internalId" : "id",
+    "internalId" : "person_id",
     "useDataLoader": true
 }

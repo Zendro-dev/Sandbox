@@ -2,13 +2,23 @@
   "model": "biological_material",
   "storageType": "presto",
   "attributes": {
-    "id": "Int",
+    "biological_material_id": "Int",
 		"species": "String",
 		"genus": "String",
 		"infraspecific_name": "String",
-		"institute_code": "String",
-		"experiment_id": "String"
+		"study_id": "Int"
   },
-  "internalId": "id",
+	"associations": {
+		"study": {
+			"type": "many_to_one",
+			"implementation": "foreignkeys",
+			"target": "study",
+			"targetKey": "study_id",
+			"keysIn": "biological_material",
+			"targetStorageType": "presto",
+			"reverseAssociation":"biological_materials"
+		}
+	},
+  "internalId": "biological_material_id",
 	"useDataLoader": true
 }

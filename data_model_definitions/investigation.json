@@ -2,12 +2,22 @@
   "model": "investigation",
   "storageType": "presto",
   "attributes": {
-    "id": "Int",
-		"title": "String",
-		"author_list": "String",
-		"doi": "String",
-		"experiment_id": "String"
+    "investigation_unique_id": "Int",
+		"investigation_title": "String",
+		"public_release_date": "String",
+		"associated_publication": "String"
   },
-  "internalId": "id",
+  "associations": {
+    "studies": {
+			"type": "one_to_many",
+			"implementation": "foreignkeys",
+			"target": "study",
+			"targetKey": "investigation_id",
+			"keysIn": "study",
+			"targetStorageType": "presto",
+			"reverseAssociation":"investigation"
+		}
+  },
+  "internalId": "investigation_unique_id",
 	"useDataLoader": true
 }

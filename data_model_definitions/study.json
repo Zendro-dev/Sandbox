@@ -2,14 +2,14 @@
     "model": "study",
     "storageType": "presto",
     "attributes": {
-      "id": "Int",
-      "description": "String",
-      "start_date": "DateTime",
-      "end_date ": "DateTime",
-      "experiment_id": "String",
+      "study_unique_id": "Int",
+      "study_title": "String",
+      "study_start_date": "DateTime",
+      "study_end_date ": "DateTime",
       "experimental_site_name": "String",
       "experimental_design_type": "String",
-      "institute_code": "String"
+      "contact_institution": "String",
+      "investigation_id": "String"
     },
     "associations": {
       "people": {
@@ -20,8 +20,54 @@
         "keysIn": "person",
         "targetStorageType": "presto",
         "reverseAssociation":"study"
+      },
+      "investigation": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "target": "investigation",
+        "targetKey": "investigation_id",
+        "keysIn": "study",
+        "targetStorageType": "presto",
+        "reverseAssociation":"studies"
+      },
+      "biological_materials": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "biological_material",
+        "targetKey": "study_id",
+        "keysIn": "biological_material",
+        "targetStorageType": "presto",
+        "reverseAssociation":"study"
+      },
+      "observation_units": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "observation_unit",
+        "targetKey": "study_id",
+        "keysIn": "observation_unit",
+        "targetStorageType": "presto",
+        "reverseAssociation":"study"
+      },
+      "observed_variables": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "observed_variable",
+        "targetKey": "study_id",
+        "keysIn": "observed_variable",
+        "targetStorageType": "presto",
+        "reverseAssociation":"study"
+      },
+      "samples": {
+        "type": "one_to_many",
+        "implementation": "foreignkeys",
+        "target": "samples",
+        "targetKey": "study_id",
+        "keysIn": "samples",
+        "targetStorageType": "presto",
+        "reverseAssociation":"study"
       }
+
     },
-    "internalId" : "id",
+    "internalId" : "study_unique_id",
     "useDataLoader": true
 }

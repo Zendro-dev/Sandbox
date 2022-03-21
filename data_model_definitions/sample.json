@@ -2,11 +2,10 @@
     "model": "samples",
     "storageType": "presto",
     "attributes": {
-      "id": "Int",
-      "experiment_id": "String",
-      "observation_unit_id ": "String",
+      "sample_id": "Int",
+      "study_id": "Int",
+      "observation_unit_id": "String",
       "plant_anatomical_entity": "String",
-      "value": "String",
       "collection_time": "DateTime"
     },
     "associations": {
@@ -19,16 +18,16 @@
         "targetStorageType": "presto",
         "reverseAssociation":"samples"
       },
-      "observed_variables": {
-        "type": "one_to_many",
+      "study": {
+        "type": "many_to_one",
         "implementation": "foreignkeys",
-        "target": "observed_variable",
-        "targetKey": "sample_id",
-        "keysIn": "observed_variable",
+        "target": "study",
+        "targetKey": "study_id",
+        "keysIn": "samples",
         "targetStorageType": "presto",
-        "reverseAssociation":"sample"
+        "reverseAssociation":"samples"
       }
     },
-    "internalId" : "id",
+    "internalId" : "sample_id",
     "useDataLoader": true
 }
