@@ -6,5 +6,12 @@
     "database": "zendro_development",
     "host": "zendro_postgres",
     "dialect": "postgres"
+  },
+  "default-presto": {
+    "storageType": "presto",
+    "catalog": "oracle",
+    "schema": "dppn_read",
+    "presto_host": "gql_presto",
+    "presto_port": "8080"
   }
 }

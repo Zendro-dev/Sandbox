@@ -36,23 +36,22 @@ services:
       zendro:
         ipv4_address: 10.5.0.11
 
-  zendro_postgres:
-    container_name: zendroStarterPack_postgres
-    build:
-      context: ./contexts
-      dockerfile: Dockerfile.postgres
-    environment: 
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - zendro_db_data:/var/lib/postgresql/data
+  zendro_presto:
+    image: ahanaio/prestodb-sandbox
+    container_name: presto
+    depends_on:
+      - gql_postgres2
+    volumes: 
+      - ./config//postgresql.properties:/opt/presto-server/etc/catalog/postgresql.properties
+    ports:
+      - 8080:8080
     networks:
-      datastores:
+      zendro:
 
   zendro_graphql_server:
     container_name: zendroStarterPack_graphql-server
     depends_on:
-      - zendro_postgres
+      - zendro_presto
       - zendro_keycloak 
     build:
       context: ./contexts
@@ -98,10 +97,10 @@ services:
       dockerfile: Dockerfile.spa
     # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
     ports:
-      - 8080:8080
+      - 8082:8082
     environment:
       # Set your production environment variables here or in ./single-page-app/.env.production
-      PORT: "8080"
+      PORT: "8082"
     volumes:
       - ./single-page-app:/usr/single-page-app
       - ./data_model_definitions:/usr/data_model_definitions
