@@ -1,0 +1,36 @@
+{
+  "model": "person",
+  "storageType": "sql",
+  "attributes": {
+    "id": "String",
+    "name": "String",
+    "email": "String",
+    "role": "String",
+    "affiliation": "String",
+    "investigation_ids": "[String]",
+    "study_ids": "[String]"
+  },
+  "associations": {
+    "investigations": {
+      "type": "many_to_many",
+      "reverseAssociation": "people",
+      "implementation": "foreignkeys",
+      "target": "investigation",
+      "targetStorageType": "sql",
+      "targetKey": "person_ids",
+      "sourceKey": "investigation_ids",
+      "keysIn": "person"
+    },
+    "studies": {
+      "type": "many_to_many",
+      "reverseAssociation": "people",
+      "implementation": "foreignkeys",
+      "target": "study",
+      "targetStorageType": "sql",
+      "targetKey": "person_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "person"
+    }
+  },
+  "internalId": "id"
+}
