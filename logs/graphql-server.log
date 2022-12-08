@@ -1,0 +1,38 @@
+npm WARN deprecated querystring@0.2.0: The querystring API is considered Legacy. new code should use the URLSearchParams API instead.
+npm WARN deprecated bson@1.0.9: Fixed a critical issue with BSON serialization documented in CVE-2019-2391, see https://bit.ly/2KcpXdo for more details
+
+> bcrypt@5.1.0 install /home/dan/workspace/experiment/storage/graphql-server/node_modules/bcrypt
+> node-pre-gyp install --fallback-to-build
+
+[bcrypt] Success: "/home/dan/workspace/experiment/storage/graphql-server/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node" is installed via remote
+
+> sqlite3@5.1.2 install /home/dan/workspace/experiment/storage/graphql-server/node_modules/sqlite3
+> node-pre-gyp install --fallback-to-build
+
+[sqlite3] Success: "/home/dan/workspace/experiment/storage/graphql-server/node_modules/sqlite3/lib/binding/napi-v6-linux-glibc-x64/node_sqlite3.node" is installed via remote
+
+> es5-ext@0.10.62 postinstall /home/dan/workspace/experiment/storage/graphql-server/node_modules/es5-ext
+>  node -e "try{require('./_postinstall')}catch(e){}" || exit 0
+
+
+> node-jq@2.3.4 postinstall /home/dan/workspace/experiment/storage/graphql-server/node_modules/node-jq
+> npm run install-binary
+
+
+> node-jq@2.3.4 install-binary /home/dan/workspace/experiment/storage/graphql-server/node_modules/node-jq
+> node scripts/install-binary.js
+
+Downloading jq from https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+Downloaded in /home/dan/workspace/experiment/storage/graphql-server/node_modules/node-jq/bin
+npm notice created a lockfile as package-lock.json. You should commit this file.
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@~2.3.2 (node_modules/chokidar/node_modules/fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@2.3.2: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+npm WARN second-server-graphql@0.5.6 No repository field.
+
+added 848 packages from 707 contributors and audited 853 packages in 22.761s
+
+69 packages are looking for funding
+  run `npm fund` for details
+
+found 8 vulnerabilities (3 moderate, 4 high, 1 critical)
+  run `npm audit fix` to fix them, or `npm audit` for details
