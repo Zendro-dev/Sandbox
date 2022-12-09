@@ -12,14 +12,12 @@ services:
       POSTGRES_USER: ${KEYCLOAK_DATABASE_USER}
       POSTGRES_PASSWORD: ${KEYCLOAK_DATABASE_PASSWORD}
     networks:
-      zendro:
+      - backend
 
   zendro-keycloak:
     container_name: zendro-keycloak
     image: quay.io/keycloak/keycloak:19.0.1
     entrypoint: ["/opt/keycloak/bin/kc.sh", "start"]
-    ports:
-      - 8081:8080
     environment:
       KC_DB: ${KEYCLOAK_DATABASE_VENDOR}
       KC_DB_URL_HOST: ${KEYCLOAK_DATABASE_HOST}
@@ -43,7 +41,7 @@ services:
     depends_on:
       - zendro-keycloak-postgres
     networks:
-      zendro:
+      - backend
 
   zendro-postgres:
     container_name: zendro-postgres
@@ -55,9 +53,7 @@ services:
     volumes:
       - zendro_db_data:/var/lib/postgresql/data
     networks:
-      datastores:
-    ports:
-      - 1234:5432
+      - backend
 
   zendro-graphql-server:
     container_name: zendro-graphql-server
@@ -67,9 +63,17 @@ services:
     build:
       context: ./contexts
       dockerfile: Dockerfile.graphql_server
-    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 3000:3000
+    environment:
+      PORT: "3000"
+      JQ_PATH: /usr/bin/jq
+      NODE_JQ_SKIP_INSTALL_BINARY: "true"
+      REQUIRE_SIGN_IN: "true"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "zendro-graphql-server"
+      traefik.frontend.rule: "Host:graphql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "3000"
     volumes:
       - ./graphql-server:/usr/graphql-server
       # override default default config with Starterpack config
@@ -81,8 +85,8 @@ services:
     # Await POSTGRES role and DB creation, migrate schema, then start web
     # server:
     networks:
-      zendro:
-      datastores:
+      - backend
+      - reverseproxy
     command:
       - /bin/sh
       - -c
@@ -100,13 +104,20 @@ services:
       context: ./contexts
       dockerfile: Dockerfile.spa
     # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 8080:8080
+    environment:
+      # Set your production environment variables here or in ./single-page-app/.env.production
+      PORT: "8080"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "zendro-spa"
+      traefik.frontend.rule: "Host:spa.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "8080"
     volumes:
       - ./single-page-app:/usr/single-page-app
       - ./data_model_definitions:/usr/data_model_definitions
     networks:
-      zendro:
+      - reverseproxy
     # Install dependencies and start single-page-app-server in development
     # mode.
     command:
@@ -128,15 +139,23 @@ services:
     build:
       context: ./contexts
       dockerfile: Dockerfile.graphiql
-    # Using ports in this way is a security concern. Please consider using e.g. a reverseproxy
-    ports:
-      - 7000:7000
+    environment:
+      REACT_APP_SERVER_URL: "https://graphql.zendro-dev.org/graphql"
+      REACT_APP_LOGIN_URL: "https://graphql.zendro-dev.org/login"
+      REACT_APP_SERVER_METAQUERY_URL: "https://graphql.zendro-dev.org/meta_query"
+      PORT: "7000"
+    labels:
+      traefik.enable: "true"
+      traefik.backend: "zendro-graphiql"
+      traefik.frontend.rule: "Host:graphiql.zendro-dev.org"
+      traefik.docker.network: "reverseproxy"
+      traefik.port: "7000"
     volumes:
       - ./graphiql-auth:/usr/graphiql-auth
     # Install dependencies and start single-page-app-server in development
     # mode.
     networks:
-      zendro:
+      - reverseproxy
     command:
       - /bin/sh
       - -c
@@ -152,5 +171,6 @@ volumes:
   keycloak_pg_data:
 
 networks:
-  zendro:
-  datastores:
+  backend:
+  reverseproxy:
+    external: true
