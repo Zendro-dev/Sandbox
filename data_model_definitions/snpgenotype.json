@@ -1,0 +1,20 @@
+{
+  "model": "snpgenotype",
+  "storageType": "sql",
+  "attributes": {
+    "snp_matrix_id": "Int",
+    "material_id": "String",
+    "row_number": "Int"
+  },
+  "associations": {
+    "snpmatrix": {
+      "type": "many_to_one",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "snpgenotype",
+      "target": "snpmatrix",
+      "targetKey": "snp_matrix_id",
+      "keysIn": "snpgenotype",
+      "targetStorageType": "sql"
+    }
+  }
+}

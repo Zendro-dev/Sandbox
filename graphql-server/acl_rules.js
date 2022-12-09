@@ -15,6 +15,9 @@ module.exports = {
                     'observed_variable',
                     'person',
                     'sample',
+                    'snpgenotype',
+                    'snplocus',
+                    'snpmatrix',
                     'study',
                 ],
                 permissions: ['create', 'update', 'delete', 'search']
@@ -35,6 +38,9 @@ module.exports = {
                     'observed_variable',
                     'person',
                     'sample',
+                    'snpgenotype',
+                    'snplocus',
+                    'snpmatrix',
                     'study',
                 ],
                 permissions: ['read']
