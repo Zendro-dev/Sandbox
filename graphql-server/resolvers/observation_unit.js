@@ -13,6 +13,7 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
+
 const associationArgsDef = {
     'addStudy': 'study',
     'addBiological_materials': 'biological_material',
@@ -21,8 +22,6 @@ const associationArgsDef = {
     'addFactors': 'factor',
     'addSamples': 'sample'
 }
-
-
 
 /**
  * observation_unit.prototype.study - Return associated record
@@ -41,7 +40,6 @@ observation_unit.prototype.study = async function({
                 [models.study.idAttribute()]: this.study_id
             }, context)
         } else {
-
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -63,40 +61,6 @@ observation_unit.prototype.study = async function({
     }
 }
 
-/**
- * observation_unit.prototype.biological_materialsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-observation_unit.prototype.biological_materialsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.biological_material_ids) || this.biological_material_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.biological_material.idAttribute(),
-        "value": this.biological_material_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.biological_materials({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * observation_unit.prototype.countFilteredBiological_materials - Count number of associated records that holds the conditions specified in the search argument
@@ -113,7 +77,6 @@ observation_unit.prototype.countFilteredBiological_materials = function({
     if (!Array.isArray(this.biological_material_ids) || this.biological_material_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.biological_material.idAttribute(),
@@ -125,6 +88,7 @@ observation_unit.prototype.countFilteredBiological_materials = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * observation_unit.prototype.biological_materialsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -156,7 +120,6 @@ observation_unit.prototype.biological_materialsConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.biological_material.idAttribute(),
@@ -165,40 +128,6 @@ observation_unit.prototype.biological_materialsConnection = function({
         "operator": "in"
     });
     return resolvers.biological_materialsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * observation_unit.prototype.data_filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-observation_unit.prototype.data_filesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.data_file_ids) || this.data_file_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.data_file.idAttribute(),
-        "value": this.data_file_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.data_files({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -220,7 +149,6 @@ observation_unit.prototype.countFilteredData_files = function({
     if (!Array.isArray(this.data_file_ids) || this.data_file_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.data_file.idAttribute(),
@@ -232,6 +160,7 @@ observation_unit.prototype.countFilteredData_files = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * observation_unit.prototype.data_filesConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -263,7 +192,6 @@ observation_unit.prototype.data_filesConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.data_file.idAttribute(),
@@ -272,40 +200,6 @@ observation_unit.prototype.data_filesConnection = function({
         "operator": "in"
     });
     return resolvers.data_filesConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * observation_unit.prototype.eventsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-observation_unit.prototype.eventsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.event_ids) || this.event_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.event.idAttribute(),
-        "value": this.event_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.events({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -327,7 +221,6 @@ observation_unit.prototype.countFilteredEvents = function({
     if (!Array.isArray(this.event_ids) || this.event_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.event.idAttribute(),
@@ -339,6 +232,7 @@ observation_unit.prototype.countFilteredEvents = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * observation_unit.prototype.eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -370,7 +264,6 @@ observation_unit.prototype.eventsConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.event.idAttribute(),
@@ -379,40 +272,6 @@ observation_unit.prototype.eventsConnection = function({
         "operator": "in"
     });
     return resolvers.eventsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * observation_unit.prototype.factorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-observation_unit.prototype.factorsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.factor.idAttribute(),
-        "value": this.factor_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.factors({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -434,7 +293,6 @@ observation_unit.prototype.countFilteredFactors = function({
     if (!Array.isArray(this.factor_ids) || this.factor_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -446,6 +304,7 @@ observation_unit.prototype.countFilteredFactors = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * observation_unit.prototype.factorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -477,7 +336,6 @@ observation_unit.prototype.factorsConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.factor.idAttribute(),
@@ -486,35 +344,6 @@ observation_unit.prototype.factorsConnection = function({
         "operator": "in"
     });
     return resolvers.factorsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * observation_unit.prototype.samplesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-observation_unit.prototype.samplesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "observation_unit_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.samples({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -542,6 +371,7 @@ observation_unit.prototype.countFilteredSamples = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * observation_unit.prototype.samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -806,7 +636,6 @@ observation_unit.prototype.remove_study = async function(input, benignErrorRepor
 }
 
 
-
 /**
  * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
@@ -826,6 +655,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
 
+
     get_to_many_associated_fk += Array.isArray(observation_unit.biological_material_ids) ? observation_unit.biological_material_ids.length : 0;
 
     get_to_many_associated_fk += Array.isArray(observation_unit.data_file_ids) ? observation_unit.data_file_ids.length : 0;
@@ -835,7 +665,6 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     get_to_many_associated_fk += Array.isArray(observation_unit.factor_ids) ? observation_unit.factor_ids.length : 0;
     promises_to_many.push(observation_unit.countFilteredSamples({}, context));
     promises_to_one.push(observation_unit.study({}, context));
-
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -855,8 +684,9 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`observation_unit with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`observation_unit with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
+
     return true;
 }
 
@@ -875,36 +705,9 @@ const updateAssociations = async (id, context) => {
     const pagi_first = globals.LIMIT_RECORDS;
 
 
-
 }
+
 module.exports = {
-    /**
-     * observation_units - Check user authorization and return certain number, specified in pagination argument, of records that
-     * holds the condition of search argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search     Search argument for filtering records
-     * @param  {array} order       Type of sorting (ASC, DESC) for each field
-     * @param  {object} pagination Offset and limit to get the records from and to respectively
-     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
-     */
-    observation_units: async function({
-        search,
-        order,
-        pagination
-    }, context) {
-        if (await checkAuthorization(context, 'observation_unit', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "observation_units");
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await observation_unit.readAll(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
 
     /**
      * observation_unitsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -921,20 +724,48 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'observation_unit', 'read') === true) {
-            helper.checkCursorBasedPaginationArgument(pagination);
-            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "observation_unitsConnection");
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "observation_unitsConnection");
+
+        //check: adapters
+        let registeredAdapters = Object.values(observation_unit.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "observation_unit"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "observation_unit"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observation_unit.readAllCursor(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return await observation_unit.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "observation_unit" ');
+            }
         }
     },
+
 
     /**
      * readOneObservation_unit - Check user authorization and return one record with the specified id in the id argument.
@@ -946,189 +777,39 @@ module.exports = {
     readOneObservation_unit: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'observation_unit', 'read') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, observation_unit.adapterForIri(id), 'read');
+        if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneObservation_unit");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observation_unit.readById(id, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return observation_unit.readById(id, context.benignErrors, token);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * countObservation_units - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countObservation_units: async function({
-        search
-    }, context) {
-        if (await checkAuthorization(context, 'observation_unit', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await observation_unit.countRecords(search, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateObservation_unitForCreation - Check user authorization and validate input argument for creation.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateObservation_unitForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'observation_unit', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForCreate",
-                    observation_unit,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateObservation_unitForUpdating - Check user authorization and validate input argument for updating.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateObservation_unitForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'observation_unit', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForUpdate",
-                    observation_unit,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateObservation_unitForDeletion - Check user authorization and validate record by ID for deletion.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateObservation_unitForDeletion: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'observation_unit', 'read')) === true) {
-            try {
-                await validForDeletion(id, context);
-                await validatorUtil.validateData(
-                    "validateForDelete",
-                    observation_unit,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateObservation_unitAfterReading - Check user authorization and validate record by ID after reading.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateObservation_unitAfterReading: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'observation_unit', 'read')) === true) {
-            try {
-                await validatorUtil.validateData(
-                    "validateAfterRead",
-                    observation_unit,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-    /**
-     * addObservation_unit - Check user authorization and creates a new record with data specified in the input argument.
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
+     * addObservation_unit - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addObservation_unit: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'observation_unit', 'create');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, observation_unit.adapterForIri(input.id), 'create');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -1138,11 +819,11 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdObservation_unit = await observation_unit.addOne(inputSanitized, context.benignErrors, token);
-            await createdObservation_unit.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdObservation_unit;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let createdRecord = await observation_unit.addOne(inputSanitized, context.benignErrors, token);
+            await createdRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -1156,7 +837,9 @@ module.exports = {
     deleteObservation_unit: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'observation_unit', 'delete') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, observation_unit.adapterForIri(id), 'delete');
+        if (authorizationCheck === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
                 let token = context.request ?
@@ -1166,25 +849,29 @@ module.exports = {
                     undefined;
                 return observation_unit.deleteOne(id, context.benignErrors, token);
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
      * updateObservation_unit - Check user authorization and update the record specified in the input argument
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateObservation_unit: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'observation_unit', 'update');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, observation_unit.adapterForIri(input.id), 'update');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -1194,11 +881,59 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedObservation_unit = await observation_unit.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedObservation_unit.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedObservation_unit;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let updatedRecord = await observation_unit.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
+        }
+    },
+
+    /**
+     * countObservation_units - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+
+    countObservation_units: async function({
+        search
+    }, context) {
+
+        //check: adapters
+        let registeredAdapters = Object.values(observation_unit.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "observation_unit"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "observation_unit"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            let token = context.request ?
+                context.request.headers ?
+                context.request.headers.authorization :
+                undefined :
+                undefined;
+            return await observation_unit.countRecords(search, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "observation_unit"');
+            }
         }
     },
 
@@ -1260,12 +995,7 @@ module.exports = {
      */
     csvTableTemplateObservation_unit: async function(_, context) {
         if (await checkAuthorization(context, 'observation_unit', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return observation_unit.csvTableTemplate(context.benignErrors, token);
+            return observation_unit.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1286,4 +1016,161 @@ module.exports = {
         }
     },
 
+    /**
+     * observation_unitsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    observation_unitsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "observation_unit", "read")) === true) {
+            return observation_unit.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateObservation_unitForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateObservation_unitForCreation: async (input, context) => {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+        let authorization = await checkAuthorization(context, observation_unit.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    observation_unit,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateObservation_unitForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateObservation_unitForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, observation_unit.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    observation_unit,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateObservation_unitForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateObservation_unitForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, observation_unit.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    observation_unit,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateObservation_unitAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateObservation_unitAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, observation_unit.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    observation_unit,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 }

@@ -1,0 +1,120 @@
+{
+  "model": "study",
+  "storageType": "sql-adapter",
+  "adapterName": "study_local",
+  "regex": "zendro_local",
+  "attributes": {
+    "id": "String",
+    "title": "String",
+    "description": "String",
+    "startDate": "Date",
+    "endDate": "Date",
+		"institution": "String",
+		"location_country": "String",
+		"location_latitude": "String",
+		"location_longitude": "String",
+		"location_altitude":"String",
+		"experimental_site_name": "String",
+		"experimental_design_type": "String",
+		"experimental_design_description": "String",
+    "experimental_design_map": "String",
+		"observation_unit_level_hirarchy": "String",
+		"observation_unit_description": "String",
+		"growth_facility": "String",
+		"growth_facility_description": "String",
+		"cultural_practices": "String",
+
+
+    "investigation_id": "String",
+    "person_ids": "[String]",
+    "observed_variable_ids": "[String]",
+    "biological_material_ids": "[String]"
+  },
+  "associations": {
+    "investigation": {
+      "type": "many_to_one",
+      "reverseAssociation": "studies",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "investigation",
+      "targetKey": "investigation_id",
+      "keysIn": "study"
+    },
+    "people": {
+      "type": "many_to_many",
+      "reverseAssociation": "studies",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "person",
+      "targetKey": "study_ids",
+      "sourceKey": "person_ids",
+      "keysIn": "study"
+    },
+    "environment_parameters": {
+      "type": "one_to_many",
+      "reverseAssociation": "study",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "environment",
+      "targetKey": "study_id",
+      "keysIn": "environment"
+    },
+    "events": {
+      "type": "one_to_many",
+      "reverseAssociation": "study",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "event",
+      "targetKey": "study_id",
+      "keysIn": "event"
+    },
+    "observation_units": {
+      "type": "one_to_many",
+      "reverseAssociation": "study",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "observation_unit",
+      "targetKey": "study_id",
+      "keysIn": "observation_unit"
+    },
+    "observed_variables": {
+      "type": "many_to_many",
+      "reverseAssociation": "studies",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "observed_variable",
+      "targetKey": "study_ids",
+      "sourceKey": "observed_variable_ids",
+      "keysIn": "study"
+    },
+    "biological_materials": {
+      "type": "many_to_many",
+      "reverseAssociation": "studies",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "biological_material",
+      "targetKey": "study_ids",
+      "sourceKey": "biological_material_ids",
+      "keysIn": "study"
+    },
+    "factors": {
+      "type": "one_to_many",
+      "reverseAssociation": "study",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "factor",
+      "targetKey": "study_id",
+      "keysIn": "factor"
+    },
+    "data_files": {
+      "type":"one_to_many",
+      "reverseAssociation": "study",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "data_file",
+      "targetKey": "study_id",
+      "keysIn": "data_file"
+    }
+  },
+  "internalId": "id"
+}

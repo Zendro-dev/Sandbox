@@ -1,6 +1,7 @@
 {
   "model": "study",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["study_local","study_public"],
   "attributes": {
     "id": "String",
     "title": "String",
@@ -33,7 +34,7 @@
       "type": "many_to_one",
       "reverseAssociation": "studies",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "investigation",
       "targetKey": "investigation_id",
       "keysIn": "study"
@@ -42,7 +43,7 @@
       "type": "many_to_many",
       "reverseAssociation": "studies",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "person",
       "targetKey": "study_ids",
       "sourceKey": "person_ids",
@@ -52,7 +53,7 @@
       "type": "one_to_many",
       "reverseAssociation": "study",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "environment",
       "targetKey": "study_id",
       "keysIn": "environment"
@@ -61,7 +62,7 @@
       "type": "one_to_many",
       "reverseAssociation": "study",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "event",
       "targetKey": "study_id",
       "keysIn": "event"
@@ -70,7 +71,7 @@
       "type": "one_to_many",
       "reverseAssociation": "study",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "observation_unit",
       "targetKey": "study_id",
       "keysIn": "observation_unit"
@@ -79,7 +80,7 @@
       "type": "many_to_many",
       "reverseAssociation": "studies",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "observed_variable",
       "targetKey": "study_ids",
       "sourceKey": "observed_variable_ids",
@@ -89,7 +90,7 @@
       "type": "many_to_many",
       "reverseAssociation": "studies",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "biological_material",
       "targetKey": "study_ids",
       "sourceKey": "biological_material_ids",
@@ -99,7 +100,7 @@
       "type": "one_to_many",
       "reverseAssociation": "study",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "factor",
       "targetKey": "study_id",
       "keysIn": "factor"
@@ -108,7 +109,7 @@
       "type":"one_to_many",
       "reverseAssociation": "study",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "data_file",
       "targetKey": "study_id",
       "keysIn": "data_file"

@@ -1,6 +1,7 @@
 {
   "model": "observed_variable",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["observed_variable_local","observed_variable_public"],
   "attributes": {
 		"id": "String",
 		"name": "String",
@@ -23,7 +24,7 @@
 			"reverseAssociation": "observed_variables",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observed_variable_ids",
       "sourceKey": "study_ids",
       "keysIn": "observed_variable"
@@ -33,7 +34,7 @@
 			"reverseAssociation": "observed_variables",
 			"implementation": "foreignkeys",
       "target": "data_file",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observed_variable_ids",
       "sourceKey": "data_file_ids",
       "keysIn": "observed_variable"

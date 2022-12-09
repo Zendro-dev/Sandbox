@@ -1,6 +1,7 @@
 {
   "model": "observation_unit",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["observation_unit_local","observation_unit_public"],
   "attributes": {
 		"id": "String",
 		"type": "String",
@@ -19,7 +20,7 @@
 			"reverseAssociation": "observation_units",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "study_id",
       "keysIn": "observation_unit"
 		},
@@ -28,7 +29,7 @@
 			"reverseAssociation": "observation_units",
 			"implementation": "foreignkeys",
       "target": "biological_material",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_ids",
       "sourceKey": "biological_material_ids",
       "keysIn": "observation_unit"
@@ -38,7 +39,7 @@
 			"reverseAssociation": "observation_units",
 			"implementation": "foreignkeys",
       "target": "data_file",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_ids",
       "sourceKey": "data_file_ids",
       "keysIn": "observation_unit"
@@ -48,7 +49,7 @@
 			"reverseAssociation": "observation_units",
 			"implementation": "foreignkeys",
       "target": "event",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_ids",
       "sourceKey": "event_ids",
       "keysIn": "observation_unit"
@@ -58,7 +59,7 @@
 			"reverseAssociation": "observation_units",
 			"implementation": "foreignkeys",
       "target": "factor",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_ids",
       "sourceKey": "factor_ids",
       "keysIn": "observation_unit"
@@ -68,7 +69,7 @@
 			"reverseAssociation": "observation_unit",
 			"implementation": "foreignkeys",
       "target": "sample",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_id",
       "keysIn": "sample"
 		}

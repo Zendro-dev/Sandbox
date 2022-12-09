@@ -13,12 +13,11 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
+
 const associationArgsDef = {
     'addObservation_unit': 'observation_unit',
     'addData_files': 'data_file'
 }
-
-
 
 /**
  * sample.prototype.observation_unit - Return associated record
@@ -37,7 +36,6 @@ sample.prototype.observation_unit = async function({
                 [models.observation_unit.idAttribute()]: this.observation_unit_id
             }, context)
         } else {
-
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -59,40 +57,6 @@ sample.prototype.observation_unit = async function({
     }
 }
 
-/**
- * sample.prototype.data_filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-sample.prototype.data_filesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.data_file_ids) || this.data_file_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.data_file.idAttribute(),
-        "value": this.data_file_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.data_files({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * sample.prototype.countFilteredData_files - Count number of associated records that holds the conditions specified in the search argument
@@ -109,7 +73,6 @@ sample.prototype.countFilteredData_files = function({
     if (!Array.isArray(this.data_file_ids) || this.data_file_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.data_file.idAttribute(),
@@ -121,6 +84,7 @@ sample.prototype.countFilteredData_files = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * sample.prototype.data_filesConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -152,7 +116,6 @@ sample.prototype.data_filesConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.data_file.idAttribute(),
@@ -254,7 +217,6 @@ sample.prototype.remove_observation_unit = async function(input, benignErrorRepo
 }
 
 
-
 /**
  * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
@@ -274,9 +236,9 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
 
+
     get_to_many_associated_fk += Array.isArray(sample.data_file_ids) ? sample.data_file_ids.length : 0;
     promises_to_one.push(sample.observation_unit({}, context));
-
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -296,8 +258,9 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`sample with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`sample with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
+
     return true;
 }
 
@@ -316,36 +279,9 @@ const updateAssociations = async (id, context) => {
     const pagi_first = globals.LIMIT_RECORDS;
 
 
-
 }
+
 module.exports = {
-    /**
-     * samples - Check user authorization and return certain number, specified in pagination argument, of records that
-     * holds the condition of search argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search     Search argument for filtering records
-     * @param  {array} order       Type of sorting (ASC, DESC) for each field
-     * @param  {object} pagination Offset and limit to get the records from and to respectively
-     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
-     */
-    samples: async function({
-        search,
-        order,
-        pagination
-    }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "samples");
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await sample.readAll(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
 
     /**
      * samplesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -362,20 +298,48 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
-            helper.checkCursorBasedPaginationArgument(pagination);
-            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "samplesConnection");
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "samplesConnection");
+
+        //check: adapters
+        let registeredAdapters = Object.values(sample.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "sample"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "sample"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await sample.readAllCursor(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return await sample.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "sample" ');
+            }
         }
     },
+
 
     /**
      * readOneSample - Check user authorization and return one record with the specified id in the id argument.
@@ -387,189 +351,39 @@ module.exports = {
     readOneSample: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, sample.adapterForIri(id), 'read');
+        if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneSample");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await sample.readById(id, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return sample.readById(id, context.benignErrors, token);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * countSamples - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countSamples: async function({
-        search
-    }, context) {
-        if (await checkAuthorization(context, 'sample', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await sample.countRecords(search, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateSampleForCreation - Check user authorization and validate input argument for creation.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateSampleForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'sample', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForCreate",
-                    sample,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateSampleForUpdating - Check user authorization and validate input argument for updating.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateSampleForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'sample', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForUpdate",
-                    sample,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateSampleForDeletion - Check user authorization and validate record by ID for deletion.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateSampleForDeletion: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'sample', 'read')) === true) {
-            try {
-                await validForDeletion(id, context);
-                await validatorUtil.validateData(
-                    "validateForDelete",
-                    sample,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateSampleAfterReading - Check user authorization and validate record by ID after reading.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateSampleAfterReading: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'sample', 'read')) === true) {
-            try {
-                await validatorUtil.validateData(
-                    "validateAfterRead",
-                    sample,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-    /**
-     * addSample - Check user authorization and creates a new record with data specified in the input argument.
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
+     * addSample - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addSample: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'sample', 'create');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, sample.adapterForIri(input.id), 'create');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -579,11 +393,11 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdSample = await sample.addOne(inputSanitized, context.benignErrors, token);
-            await createdSample.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdSample;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let createdRecord = await sample.addOne(inputSanitized, context.benignErrors, token);
+            await createdRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -597,7 +411,9 @@ module.exports = {
     deleteSample: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'sample', 'delete') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, sample.adapterForIri(id), 'delete');
+        if (authorizationCheck === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
                 let token = context.request ?
@@ -607,25 +423,29 @@ module.exports = {
                     undefined;
                 return sample.deleteOne(id, context.benignErrors, token);
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
      * updateSample - Check user authorization and update the record specified in the input argument
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateSample: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'sample', 'update');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, sample.adapterForIri(input.id), 'update');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -635,11 +455,59 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedSample = await sample.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedSample.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedSample;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let updatedRecord = await sample.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
+        }
+    },
+
+    /**
+     * countSamples - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+
+    countSamples: async function({
+        search
+    }, context) {
+
+        //check: adapters
+        let registeredAdapters = Object.values(sample.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "sample"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "sample"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            let token = context.request ?
+                context.request.headers ?
+                context.request.headers.authorization :
+                undefined :
+                undefined;
+            return await sample.countRecords(search, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "sample"');
+            }
         }
     },
 
@@ -701,12 +569,7 @@ module.exports = {
      */
     csvTableTemplateSample: async function(_, context) {
         if (await checkAuthorization(context, 'sample', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return sample.csvTableTemplate(context.benignErrors, token);
+            return sample.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -727,4 +590,161 @@ module.exports = {
         }
     },
 
+    /**
+     * samplesZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    samplesZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "sample", "read")) === true) {
+            return sample.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateSampleForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateSampleForCreation: async (input, context) => {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+        let authorization = await checkAuthorization(context, sample.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    sample,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateSampleForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateSampleForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, sample.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    sample,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateSampleForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateSampleForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, sample.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    sample,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateSampleAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateSampleAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, sample.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    sample,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 }

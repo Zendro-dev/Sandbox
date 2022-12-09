@@ -1,6 +1,7 @@
 {
   "model": "data_file",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["data_file_local","data_file_public"],
   "attributes": {
 		"id": "String",
 		"url": "String",
@@ -18,7 +19,7 @@
 			"reverseAssociation": "data_files",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "study_id",
       "keysIn": "data_file"
 		},
@@ -27,7 +28,7 @@
 			"reverseAssociation": "data_files",
 			"implementation": "foreignkeys",
       "target": "observation_unit",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "data_file_ids",
       "sourceKey": "observation_unit_ids",
       "keysIn": "data_file"
@@ -37,7 +38,7 @@
 			"reverseAssociation": "data_files",
 			"implementation": "foreignkeys",
       "target": "observed_variable",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "data_file_ids",
       "sourceKey": "observed_variable_ids",
       "keysIn": "data_file"
@@ -47,7 +48,7 @@
 			"reverseAssociation": "data_files",
 			"implementation": "foreignkeys",
       "target": "sample",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "data_file_ids",
       "sourceKey": "sample_ids",
       "keysIn": "data_file"

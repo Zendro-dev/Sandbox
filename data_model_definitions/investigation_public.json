@@ -1,0 +1,40 @@
+{
+  "model": "investigation",
+  "storageType": "zendro-webservice-adapter",
+  "adapterName": "investigation_public",
+  "regex": "zendro_public",
+  "url": "http://graphql.zendro-dev.org/graphql",
+  "attributes": {
+    "id": "String",
+    "title": "String",
+    "description": "String",
+    "startDate": "Date",
+    "endDate": "Date",
+		"license": "String",
+		"MIAPPE_version": "String",
+
+    "person_ids": "[String]"
+  },
+  "associations": {
+    "studies": {
+      "type": "one_to_many",
+      "reverseAssociation": "investigation",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "study",
+      "targetKey": "investigation_id",
+      "keysIn": "study"
+    },
+    "people": {
+      "type": "many_to_many",
+      "reverseAssociation": "investigations",
+      "implementation": "foreignkeys",
+      "targetStorageType": "distributed-data-model",
+      "target": "person",
+      "targetKey": "investigation_ids",
+      "sourceKey": "person_ids",
+      "keysIn": "investigation"
+    }
+  },
+  "internalId": "id"
+}

@@ -1,6 +1,7 @@
 {
   "model": "sample",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["sample_local","sample_public"],
   "attributes": {
 		"id": "String",
 		"value": "String",
@@ -19,7 +20,7 @@
 			"reverseAssociation": "samples",
 			"implementation": "foreignkeys",
       "target": "data_file",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "sample_ids",
       "sourceKey": "data_file_ids",
       "keysIn": "sample"
@@ -29,7 +30,7 @@
 			"reverseAssociation": "samples",
 			"implementation": "foreignkeys",
       "target": "observation_unit",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "observation_unit_id",
       "keysIn": "sample"
 		}

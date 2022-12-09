@@ -1,6 +1,7 @@
 {
   "model": "investigation",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["investigation_local","investigation_public"],
   "attributes": {
     "id": "String",
     "title": "String",
@@ -9,6 +10,7 @@
     "endDate": "Date",
 		"license": "String",
 		"MIAPPE_version": "String",
+
     "person_ids": "[String]"
   },
   "associations": {
@@ -16,7 +18,7 @@
       "type": "one_to_many",
       "reverseAssociation": "investigation",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "study",
       "targetKey": "investigation_id",
       "keysIn": "study"
@@ -25,7 +27,7 @@
       "type": "many_to_many",
       "reverseAssociation": "investigations",
       "implementation": "foreignkeys",
-      "targetStorageType": "sql",
+      "targetStorageType": "distributed-data-model",
       "target": "person",
       "targetKey": "investigation_ids",
       "sourceKey": "person_ids",

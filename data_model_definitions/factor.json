@@ -1,6 +1,7 @@
 {
   "model": "factor",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["factor_local","factor_public"],
   "attributes": {
 		"id": "String",
 		"type": "String",
@@ -16,7 +17,7 @@
 			"reverseAssociation": "factors",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "study_id",
       "keysIn": "factor"
 		},
@@ -25,7 +26,7 @@
 			"reverseAssociation": "factors",
 			"implementation": "foreignkeys",
       "target": "observation_unit",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "factor_ids",
       "sourceKey": "observation_unit_ids",
       "keysIn": "factor"

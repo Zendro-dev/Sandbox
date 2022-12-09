@@ -13,6 +13,7 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
+
 const associationArgsDef = {
     'addInvestigation': 'investigation',
     'addPeople': 'person',
@@ -24,8 +25,6 @@ const associationArgsDef = {
     'addFactors': 'factor',
     'addData_files': 'data_file'
 }
-
-
 
 /**
  * study.prototype.investigation - Return associated record
@@ -44,7 +43,6 @@ study.prototype.investigation = async function({
                 [models.investigation.idAttribute()]: this.investigation_id
             }, context)
         } else {
-
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -66,40 +64,6 @@ study.prototype.investigation = async function({
     }
 }
 
-/**
- * study.prototype.peopleFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.peopleFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.person_ids) || this.person_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.person.idAttribute(),
-        "value": this.person_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.people({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * study.prototype.countFilteredPeople - Count number of associated records that holds the conditions specified in the search argument
@@ -116,7 +80,6 @@ study.prototype.countFilteredPeople = function({
     if (!Array.isArray(this.person_ids) || this.person_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.person.idAttribute(),
@@ -128,6 +91,7 @@ study.prototype.countFilteredPeople = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.peopleConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -159,7 +123,6 @@ study.prototype.peopleConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.person.idAttribute(),
@@ -168,35 +131,6 @@ study.prototype.peopleConnection = function({
         "operator": "in"
     });
     return resolvers.peopleConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * study.prototype.environment_parametersFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.environment_parametersFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "study_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.environments({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -224,6 +158,7 @@ study.prototype.countFilteredEnvironment_parameters = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.environment_parametersConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -254,35 +189,6 @@ study.prototype.environment_parametersConnection = function({
         pagination: pagination
     }, context);
 }
-/**
- * study.prototype.eventsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.eventsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "study_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.events({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * study.prototype.countFilteredEvents - Count number of associated records that holds the conditions specified in the search argument
@@ -305,6 +211,7 @@ study.prototype.countFilteredEvents = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -335,35 +242,6 @@ study.prototype.eventsConnection = function({
         pagination: pagination
     }, context);
 }
-/**
- * study.prototype.observation_unitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.observation_unitsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "study_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.observation_units({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * study.prototype.countFilteredObservation_units - Count number of associated records that holds the conditions specified in the search argument
@@ -386,6 +264,7 @@ study.prototype.countFilteredObservation_units = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.observation_unitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -416,40 +295,6 @@ study.prototype.observation_unitsConnection = function({
         pagination: pagination
     }, context);
 }
-/**
- * study.prototype.observed_variablesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.observed_variablesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observed_variable_ids) || this.observed_variable_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.observed_variable.idAttribute(),
-        "value": this.observed_variable_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.observed_variables({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * study.prototype.countFilteredObserved_variables - Count number of associated records that holds the conditions specified in the search argument
@@ -466,7 +311,6 @@ study.prototype.countFilteredObserved_variables = function({
     if (!Array.isArray(this.observed_variable_ids) || this.observed_variable_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.observed_variable.idAttribute(),
@@ -478,6 +322,7 @@ study.prototype.countFilteredObserved_variables = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.observed_variablesConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -509,7 +354,6 @@ study.prototype.observed_variablesConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.observed_variable.idAttribute(),
@@ -518,40 +362,6 @@ study.prototype.observed_variablesConnection = function({
         "operator": "in"
     });
     return resolvers.observed_variablesConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * study.prototype.biological_materialsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.biological_materialsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.biological_material_ids) || this.biological_material_ids.length === 0) {
-        return [];
-    }
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": models.biological_material.idAttribute(),
-        "value": this.biological_material_ids.join(','),
-        "valueType": "Array",
-        "operator": "in"
-    });
-    return resolvers.biological_materials({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -573,7 +383,6 @@ study.prototype.countFilteredBiological_materials = function({
     if (!Array.isArray(this.biological_material_ids) || this.biological_material_ids.length === 0) {
         return 0;
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.biological_material.idAttribute(),
@@ -585,6 +394,7 @@ study.prototype.countFilteredBiological_materials = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.biological_materialsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -616,7 +426,6 @@ study.prototype.biological_materialsConnection = function({
             }
         };
     }
-
     let nsearch = helper.addSearchField({
         "search": search,
         "field": models.biological_material.idAttribute(),
@@ -625,35 +434,6 @@ study.prototype.biological_materialsConnection = function({
         "operator": "in"
     });
     return resolvers.biological_materialsConnection({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
-/**
- * study.prototype.factorsFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.factorsFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "study_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.factors({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -681,6 +461,7 @@ study.prototype.countFilteredFactors = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.factorsConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -711,35 +492,6 @@ study.prototype.factorsConnection = function({
         pagination: pagination
     }, context);
 }
-/**
- * study.prototype.data_filesFilter - Check user authorization and return certain number, specified in pagination argument, of records
- * associated with the current instance, this records should also
- * holds the condition of search argument, all of them sorted as specified by the order argument.
- *
- * @param  {object} search     Search argument for filtering associated records
- * @param  {array} order       Type of sorting (ASC, DESC) for each field
- * @param  {object} pagination Offset and limit to get the records from and to respectively
- * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
- */
-study.prototype.data_filesFilter = function({
-    search,
-    order,
-    pagination
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "study_id",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-    return resolvers.data_files({
-        search: nsearch,
-        order: order,
-        pagination: pagination
-    }, context);
-}
 
 /**
  * study.prototype.countFilteredData_files - Count number of associated records that holds the conditions specified in the search argument
@@ -762,6 +514,7 @@ study.prototype.countFilteredData_files = function({
         search: nsearch
     }, context);
 }
+
 
 /**
  * study.prototype.data_filesConnection - Check user authorization and return certain number, specified in pagination argument, of records
@@ -1168,7 +921,6 @@ study.prototype.remove_investigation = async function(input, benignErrorReporter
 }
 
 
-
 /**
  * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
@@ -1188,6 +940,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
 
+
     get_to_many_associated_fk += Array.isArray(study.person_ids) ? study.person_ids.length : 0;
     promises_to_many.push(study.countFilteredEnvironment_parameters({}, context));
     promises_to_many.push(study.countFilteredEvents({}, context));
@@ -1199,7 +952,6 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     promises_to_many.push(study.countFilteredFactors({}, context));
     promises_to_many.push(study.countFilteredData_files({}, context));
     promises_to_one.push(study.investigation({}, context));
-
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -1219,8 +971,9 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`study with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`study with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
+
     return true;
 }
 
@@ -1239,36 +992,9 @@ const updateAssociations = async (id, context) => {
     const pagi_first = globals.LIMIT_RECORDS;
 
 
-
 }
+
 module.exports = {
-    /**
-     * studies - Check user authorization and return certain number, specified in pagination argument, of records that
-     * holds the condition of search argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search     Search argument for filtering records
-     * @param  {array} order       Type of sorting (ASC, DESC) for each field
-     * @param  {object} pagination Offset and limit to get the records from and to respectively
-     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
-     */
-    studies: async function({
-        search,
-        order,
-        pagination
-    }, context) {
-        if (await checkAuthorization(context, 'study', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "studies");
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await study.readAll(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
 
     /**
      * studiesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -1285,20 +1011,48 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'study', 'read') === true) {
-            helper.checkCursorBasedPaginationArgument(pagination);
-            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "studiesConnection");
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "studiesConnection");
+
+        //check: adapters
+        let registeredAdapters = Object.values(study.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "study"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "study"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await study.readAllCursor(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return await study.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "study" ');
+            }
         }
     },
+
 
     /**
      * readOneStudy - Check user authorization and return one record with the specified id in the id argument.
@@ -1310,189 +1064,39 @@ module.exports = {
     readOneStudy: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'study', 'read') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, study.adapterForIri(id), 'read');
+        if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneStudy");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await study.readById(id, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return study.readById(id, context.benignErrors, token);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * countStudies - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countStudies: async function({
-        search
-    }, context) {
-        if (await checkAuthorization(context, 'study', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await study.countRecords(search, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateStudyForCreation - Check user authorization and validate input argument for creation.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateStudyForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'study', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForCreate",
-                    study,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateStudyForUpdating - Check user authorization and validate input argument for updating.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateStudyForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'study', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForUpdate",
-                    study,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateStudyForDeletion - Check user authorization and validate record by ID for deletion.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateStudyForDeletion: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'study', 'read')) === true) {
-            try {
-                await validForDeletion(id, context);
-                await validatorUtil.validateData(
-                    "validateForDelete",
-                    study,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateStudyAfterReading - Check user authorization and validate record by ID after reading.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateStudyAfterReading: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'study', 'read')) === true) {
-            try {
-                await validatorUtil.validateData(
-                    "validateAfterRead",
-                    study,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-    /**
-     * addStudy - Check user authorization and creates a new record with data specified in the input argument.
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
+     * addStudy - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addStudy: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'study', 'create');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, study.adapterForIri(input.id), 'create');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -1502,11 +1106,11 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdStudy = await study.addOne(inputSanitized, context.benignErrors, token);
-            await createdStudy.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdStudy;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let createdRecord = await study.addOne(inputSanitized, context.benignErrors, token);
+            await createdRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -1520,7 +1124,9 @@ module.exports = {
     deleteStudy: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'study', 'delete') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, study.adapterForIri(id), 'delete');
+        if (authorizationCheck === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
                 let token = context.request ?
@@ -1530,25 +1136,29 @@ module.exports = {
                     undefined;
                 return study.deleteOne(id, context.benignErrors, token);
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
      * updateStudy - Check user authorization and update the record specified in the input argument
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateStudy: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'study', 'update');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, study.adapterForIri(input.id), 'update');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -1558,11 +1168,59 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedStudy = await study.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedStudy.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedStudy;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let updatedRecord = await study.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
+        }
+    },
+
+    /**
+     * countStudies - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+
+    countStudies: async function({
+        search
+    }, context) {
+
+        //check: adapters
+        let registeredAdapters = Object.values(study.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "study"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "study"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            let token = context.request ?
+                context.request.headers ?
+                context.request.headers.authorization :
+                undefined :
+                undefined;
+            return await study.countRecords(search, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "study"');
+            }
         }
     },
 
@@ -1624,12 +1282,7 @@ module.exports = {
      */
     csvTableTemplateStudy: async function(_, context) {
         if (await checkAuthorization(context, 'study', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return study.csvTableTemplate(context.benignErrors, token);
+            return study.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -1650,4 +1303,161 @@ module.exports = {
         }
     },
 
+    /**
+     * studiesZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    studiesZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "study", "read")) === true) {
+            return study.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateStudyForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateStudyForCreation: async (input, context) => {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+        let authorization = await checkAuthorization(context, study.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    study,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateStudyForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateStudyForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, study.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    study,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateStudyForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateStudyForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, study.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    study,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateStudyAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateStudyAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, study.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    study,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 }

@@ -1,0 +1,45 @@
+{
+  "model": "observed_variable",
+  "storageType": "sql-adapter",
+  "adapterName": "observed_variable_local",
+  "regex": "zendro_local",
+  "attributes": {
+		"id": "String",
+		"name": "String",
+		"accession_number": "String",
+		"trait": "String",
+		"trait_accession_number": "String",
+		"method": "String",
+		"method_accession_number": "String",
+		"method_description": "String",
+		"scale": "String",
+		"scale_accession_number": "String",
+		"time_scale": "String",
+
+		"study_ids": "[String]",
+		"data_file_ids": "[Int]"
+  },
+  "associations": {
+		"studies": {
+			"type": "many_to_many",
+			"reverseAssociation": "observed_variables",
+			"implementation": "foreignkeys",
+      "target": "study",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "observed_variable_ids",
+      "sourceKey": "study_ids",
+      "keysIn": "observed_variable"
+		},
+		"data_files": {
+			"type": "many_to_many",
+			"reverseAssociation": "observed_variables",
+			"implementation": "foreignkeys",
+      "target": "data_file",
+			"targetStorageType": "distributed-data-model",
+      "targetKey": "observed_variable_ids",
+      "sourceKey": "data_file_ids",
+      "keysIn": "observed_variable"
+		}
+  },
+	"internalId": "id"
+}

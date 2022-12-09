@@ -13,11 +13,10 @@ const models = require(path.join(__dirname, '..', 'models', 'index.js'));
 const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
+
 const associationArgsDef = {
     'addStudy': 'study'
 }
-
-
 
 /**
  * environment.prototype.study - Return associated record
@@ -36,7 +35,6 @@ environment.prototype.study = async function({
                 [models.study.idAttribute()]: this.study_id
             }, context)
         } else {
-
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
@@ -114,7 +112,6 @@ environment.prototype.remove_study = async function(input, benignErrorReporter, 
 }
 
 
-
 /**
  * countAssociatedRecordsWithRejectReaction - Count associated records with reject deletion action
  *
@@ -133,8 +130,8 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
-    promises_to_one.push(environment.study({}, context));
 
+    promises_to_one.push(environment.study({}, context));
 
     let result_to_many = await Promise.all(promises_to_many);
     let result_to_one = await Promise.all(promises_to_one);
@@ -154,8 +151,9 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`environment with id ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`environment with id ${id} has associated records and is NOT valid for deletion. Please clean up before you delete.`);
     }
+
     return true;
 }
 
@@ -174,36 +172,9 @@ const updateAssociations = async (id, context) => {
     const pagi_first = globals.LIMIT_RECORDS;
 
 
-
 }
+
 module.exports = {
-    /**
-     * environments - Check user authorization and return certain number, specified in pagination argument, of records that
-     * holds the condition of search argument, all of them sorted as specified by the order argument.
-     *
-     * @param  {object} search     Search argument for filtering records
-     * @param  {array} order       Type of sorting (ASC, DESC) for each field
-     * @param  {object} pagination Offset and limit to get the records from and to respectively
-     * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {array}             Array of records holding conditions specified by search, order and pagination argument
-     */
-    environments: async function({
-        search,
-        order,
-        pagination
-    }, context) {
-        if (await checkAuthorization(context, 'environment', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "environments");
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await environment.readAll(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
 
     /**
      * environmentsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
@@ -220,20 +191,48 @@ module.exports = {
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'environment', 'read') === true) {
-            helper.checkCursorBasedPaginationArgument(pagination);
-            let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "environmentsConnection");
+        // check valid pagination arguments
+        helper.checkCursorBasedPaginationArgument(pagination);
+        // reduce recordsLimit and check if exceeded
+        let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
+        helper.checkCountAndReduceRecordsLimit(limit, context, "environmentsConnection");
+
+        //check: adapters
+        let registeredAdapters = Object.values(environment.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "environment"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "environment"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await environment.readAllCursor(search, order, pagination, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return await environment.readAllCursor(search, order, pagination, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "environment" ');
+            }
         }
     },
+
 
     /**
      * readOneEnvironment - Check user authorization and return one record with the specified id in the id argument.
@@ -245,189 +244,39 @@ module.exports = {
     readOneEnvironment: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'environment', 'read') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, environment.adapterForIri(id), 'read');
+        if (authorizationCheck === true) {
             helper.checkCountAndReduceRecordsLimit(1, context, "readOneEnvironment");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await environment.readById(id, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            return environment.readById(id, context.benignErrors, token);
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
-     * countEnvironments - Counts number of records that holds the conditions specified in the search argument
-     *
-     * @param  {object} {search} Search argument for filtering records
-     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {number}          Number of records that holds the conditions specified in the search argument
-     */
-    countEnvironments: async function({
-        search
-    }, context) {
-        if (await checkAuthorization(context, 'environment', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return await environment.countRecords(search, context.benignErrors, token);
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateEnvironmentForCreation - Check user authorization and validate input argument for creation.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateEnvironmentForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'environment', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForCreate",
-                    environment,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateEnvironmentForUpdating - Check user authorization and validate input argument for updating.
-     *
-     * @param  {object} input   Info of each field to create the new record
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateEnvironmentForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'environment', 'read');
-        if (authorization === true) {
-            let inputSanitized = helper.sanitizeAssociationArguments(input, [
-                Object.keys(associationArgsDef),
-            ]);
-            try {
-                if (!input.skipAssociationsExistenceChecks) {
-                    await helper.validateAssociationArgsExistence(
-                        inputSanitized,
-                        context,
-                        associationArgsDef
-                    );
-                }
-                await validatorUtil.validateData(
-                    "validateForUpdate",
-                    environment,
-                    inputSanitized
-                );
-                return true;
-            } catch (error) {
-                delete input.skipAssociationsExistenceChecks;
-                error.input = input;
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateEnvironmentForDeletion - Check user authorization and validate record by ID for deletion.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateEnvironmentForDeletion: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'environment', 'read')) === true) {
-            try {
-                await validForDeletion(id, context);
-                await validatorUtil.validateData(
-                    "validateForDelete",
-                    environment,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-
-    /**
-     * validateEnvironmentAfterReading - Check user authorization and validate record by ID after reading.
-     *
-     * @param  {string} {id} id of the record to be validated
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
-     * @return {boolean}        Validation result
-     */
-    validateEnvironmentAfterReading: async ({
-        id
-    }, context) => {
-        if ((await checkAuthorization(context, 'environment', 'read')) === true) {
-            try {
-                await validatorUtil.validateData(
-                    "validateAfterRead",
-                    environment,
-                    id);
-                return true;
-            } catch (error) {
-                error.input = {
-                    id: id
-                };
-                context.benignErrors.push(error);
-                return false;
-            }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
-        }
-    },
-    /**
-     * addEnvironment - Check user authorization and creates a new record with data specified in the input argument.
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
+     * addEnvironment - Check user authorization and creates a new record with data specified in the input argument
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
     addEnvironment: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'environment', 'create');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, environment.adapterForIri(input.id), 'create');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -437,11 +286,11 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdEnvironment = await environment.addOne(inputSanitized, context.benignErrors, token);
-            await createdEnvironment.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdEnvironment;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let createdRecord = await environment.addOne(inputSanitized, context.benignErrors, token);
+            await createdRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
@@ -455,7 +304,9 @@ module.exports = {
     deleteEnvironment: async function({
         id
     }, context) {
-        if (await checkAuthorization(context, 'environment', 'delete') === true) {
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, environment.adapterForIri(id), 'delete');
+        if (authorizationCheck === true) {
             if (await validForDeletion(id, context)) {
                 await updateAssociations(id, context);
                 let token = context.request ?
@@ -465,25 +316,29 @@ module.exports = {
                     undefined;
                 return environment.deleteOne(id, context.benignErrors, token);
             }
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
         }
     },
 
     /**
      * updateEnvironment - Check user authorization and update the record specified in the input argument
-     * This function only handles attributes, not associations.
-     * @see handleAssociations for further information.
      *
      * @param  {object} input   record to update and new info to update
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
     updateEnvironment: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'environment', 'update');
-        if (authorization === true) {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+
+        //check: adapters auth
+        let authorizationCheck = await checkAuthorization(context, environment.adapterForIri(input.id), 'update');
+        if (authorizationCheck === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
-            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
+            await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'update'], models);
             await helper.checkAndAdjustRecordLimitForCreateUpdate(inputSanitized, context, associationArgsDef);
             if (!input.skipAssociationsExistenceChecks) {
                 await helper.validateAssociationArgsExistence(inputSanitized, context, associationArgsDef);
@@ -493,11 +348,59 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedEnvironment = await environment.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedEnvironment.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedEnvironment;
-        } else {
-            throw new Error("You don't have authorization to perform this action");
+            let updatedRecord = await environment.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedRecord.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedRecord;
+        } else { //adapter not auth
+            throw new Error("You don't have authorization to perform this action on adapter");
+        }
+    },
+
+    /**
+     * countEnvironments - Counts number of records that holds the conditions specified in the search argument
+     *
+     * @param  {object} {search} Search argument for filtering records
+     * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {number}          Number of records that holds the conditions specified in the search argument
+     */
+
+    countEnvironments: async function({
+        search
+    }, context) {
+
+        //check: adapters
+        let registeredAdapters = Object.values(environment.registeredAdapters);
+        if (registeredAdapters.length === 0) {
+            throw new Error('No adapters registered for data model "environment"');
+        } //else
+
+        //exclude adapters
+        let adapters = helper.removeExcludedAdapters(search, registeredAdapters);
+        if (adapters.length === 0) {
+            throw new Error('All adapters was excluded for data model "environment"');
+        } //else
+
+        //check: auth adapters
+        let authorizationCheck = await helper.authorizedAdapters(context, adapters, 'read');
+        if (authorizationCheck.authorizedAdapters.length > 0) {
+            //check adapter authorization Errors
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                context.benignErrors.push(authorizationCheck.authorizationErrors);
+            }
+            let searchAuthorizationCheck = await helper.authorizedAdapters(context, adapters, 'search');
+            let token = context.request ?
+                context.request.headers ?
+                context.request.headers.authorization :
+                undefined :
+                undefined;
+            return await environment.countRecords(search, authorizationCheck.authorizedAdapters, context.benignErrors, searchAuthorizationCheck.authorizedAdapters, token);
+        } else { //adapters not auth || errors
+            // else new Error
+            if (authorizationCheck.authorizationErrors.length > 0) {
+                throw new Error(authorizationCheck.authorizationErrors.reduce((a, c) => `${a}, ${c.message}`));
+            } else {
+                throw new Error('No available adapters for data model "environment"');
+            }
         }
     },
 
@@ -559,12 +462,7 @@ module.exports = {
      */
     csvTableTemplateEnvironment: async function(_, context) {
         if (await checkAuthorization(context, 'environment', 'read') === true) {
-            let token = context.request ?
-                context.request.headers ?
-                context.request.headers.authorization :
-                undefined :
-                undefined;
-            return environment.csvTableTemplate(context.benignErrors, token);
+            return environment.csvTableTemplate(context.benignErrors);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
@@ -585,4 +483,161 @@ module.exports = {
         }
     },
 
+    /**
+     * environmentsZendroDefinition - Return data model definition
+     *
+     * @param  {string} _       First parameter is not used
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {GraphQLJSONObject}        Data model definition
+     */
+    environmentsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "environment", "read")) === true) {
+            return environment.definition;
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEnvironmentForCreation - Check user authorization and validate input argument for creation.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEnvironmentForCreation: async (input, context) => {
+        //check: input has idAttribute
+        if (!input.id) {
+            throw new Error(`Illegal argument. Provided input requires attribute 'id'.`);
+        }
+        let authorization = await checkAuthorization(context, environment.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForCreate",
+                    environment,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEnvironmentForUpdating - Check user authorization and validate input argument for updating.
+     *
+     * @param  {object} input   Info of each field to create the new record
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEnvironmentForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, environment.adapterForIri(input.id), 'read');
+        if (authorization === true) {
+            let inputSanitized = helper.sanitizeAssociationArguments(input, [
+                Object.keys(associationArgsDef),
+            ]);
+
+            try {
+                if (!input.skipAssociationsExistenceChecks) {
+                    await helper.validateAssociationArgsExistence(
+                        inputSanitized,
+                        context,
+                        associationArgsDef
+                    );
+                }
+                await validatorUtil.validateData(
+                    "validateForUpdate",
+                    environment,
+                    inputSanitized
+                );
+                return true;
+            } catch (error) {
+                delete input.skipAssociationsExistenceChecks;
+                error.input = input;
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEnvironmentForDeletion - Check user authorization and validate record by ID for deletion.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEnvironmentForDeletion: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, environment.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validForDeletion(id, context);
+                await validatorUtil.validateData(
+                    "validateForDelete",
+                    environment,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
+
+    /**
+     * validateEnvironmentAfterReading - Check user authorization and validate record by ID after reading.
+     *
+     * @param  {string} {id} id of the record to be validated
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
+     * @return {boolean}        Validation result
+     */
+    validateEnvironmentAfterReading: async ({
+        id
+    }, context) => {
+        if ((await checkAuthorization(context, environment.adapterForIri(id), 'read')) === true) {
+
+            try {
+                await validatorUtil.validateData(
+                    "validateAfterRead",
+                    environment,
+                    id);
+                return true;
+            } catch (error) {
+                error.input = {
+                    id: id
+                };
+                context.benignErrors.push(error);
+                return false;
+            }
+        } else {
+            throw new Error("You don't have authorization to perform this action");
+        }
+    },
 }

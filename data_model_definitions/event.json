@@ -1,6 +1,7 @@
 {
   "model": "event",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["event_local","event_public"],
   "attributes": {
 		"id": "String",
 		"type": "String",
@@ -17,7 +18,7 @@
 			"reverseAssociation": "events",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "study_id",
       "keysIn": "event"
 		},
@@ -26,7 +27,7 @@
 			"reverseAssociation": "events",
 			"implementation": "foreignkeys",
       "target": "observation_unit",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "event_ids",
       "sourceKey": "observation_unit_ids",
       "keysIn": "event"

@@ -1,6 +1,7 @@
 {
   "model": "biological_material",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["biological_material_local","biological_material_public"],
   "attributes": {
 		"id": "String",
 		"organism": "String",
@@ -29,7 +30,7 @@
 			"reverseAssociation": "biological_materials",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "biological_material_ids",
       "sourceKey": "study_ids",
       "keysIn": "biological_material"
@@ -40,7 +41,7 @@
 			"reverseAssociation": "biological_materials",
 			"implementation": "foreignkeys",
       "target": "observation_unit",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "biological_material_ids",
       "sourceKey": "observation_unit_ids",
       "keysIn": "biological_material"

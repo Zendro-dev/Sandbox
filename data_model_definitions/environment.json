@@ -1,6 +1,7 @@
 {
   "model": "environment",
-  "storageType": "sql",
+  "storageType": "distributed-data-model",
+  "registry": ["environment_local","environment_public"],
   "attributes": {
 		"id": "String",
 		"parameter": "String",
@@ -14,7 +15,7 @@
 			"reverseAssociation": "environment_parameters",
 			"implementation": "foreignkeys",
       "target": "study",
-			"targetStorageType": "sql",
+			"targetStorageType": "distributed-data-model",
       "targetKey": "study_id",
       "keysIn": "environment"
 		}
