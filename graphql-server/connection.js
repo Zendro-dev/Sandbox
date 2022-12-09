@@ -108,7 +108,7 @@ const setupAmazonS3 = async () => {
  */
 const addConnectionInstances = async () => {
   let connectionInstances = new Map();
-  const user = os.userInfo().username;
+  const user = 'dan';
   for (let key of Object.keys(storageConfig)) {
     let storageType = storageConfig[key].storageType;
     if (

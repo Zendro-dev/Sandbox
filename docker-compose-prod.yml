@@ -51,7 +51,7 @@ services:
       POSTGRES_USER: zendro
       POSTGRES_PASSWORD: zendro
     volumes:
-      - zendro_db_data:/var/lib/postgresql/data
+      - ./data_files:/var/lib/postgresql/data_files
     networks:
       - backend
 
@@ -167,7 +167,6 @@ services:
         yarn start
         
 volumes:
-  zendro_db_data:
   keycloak_pg_data:
 
 networks:
