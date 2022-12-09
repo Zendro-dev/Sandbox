@@ -1,0 +1,23 @@
+{
+  "model": "snpgenotype",
+  "storageType": "zendro-webservice-adapter",
+  "adapterName": "snpgenotype_public",
+  "regex": "zendro_public",
+  "url": "http://graphql.zendro-dev.org/graphql",
+  "attributes": {
+    "snp_matrix_id": "Int",
+    "material_id": "String",
+    "row_number": "Int"
+  },
+  "associations": {
+    "snpmatrix": {
+      "type": "many_to_one",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "snpgenotype",
+      "target": "snpmatrix",
+      "targetKey": "snp_matrix_id",
+      "keysIn": "snpgenotype",
+      "targetStorageType": "distributed-data-model"
+    }
+  }
+}

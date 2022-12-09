@@ -1,0 +1,31 @@
+{
+  "model": "snpmatrix",
+  "storageType": "zendro-webservice-adapter",
+  "adapterName": "snpmatrix_public",
+  "regex": "zendro_public",
+  "url": "http://graphql.zendro-dev.org/graphql",
+  "attributes": {
+    "snp_matrix_id": "Int",
+    "int_array": "[Int]"
+  },
+  "associations": {
+    "snplocus": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "snpmatrix",
+      "target": "snplocus",
+      "targetKey": "snp_matrix_id",
+      "keysIn": "snplocus",
+      "targetStorageType": "distributed-data-model"
+    },
+    "snpgenotype": {
+      "type": "one_to_many",
+      "implementation": "foreignkeys",
+      "reverseAssociation": "snpmatrix",
+      "target": "snpgenotype",
+      "targetKey": "snp_matrix_id",
+      "keysIn": "snpgenotype",
+      "targetStorageType": "distributed-data-model"
+    }
+  }
+}

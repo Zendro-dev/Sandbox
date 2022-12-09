@@ -1,0 +1,24 @@
+{
+    "model": "snplocus",
+    "storageType": "sql-adapter",
+    "adapterName": "snplocus_local",
+    "regex": "zendro_local",
+    "attributes": {
+      "snp_matrix_id": "Int",
+      "chromsome": "String",
+      "pos": "Int",
+      "col_number": "Int"
+    },
+    "associations": {
+      "snpmatrix": {
+        "type": "many_to_one",
+        "implementation": "foreignkeys",
+        "reverseAssociation": "snplocus",
+        "target": "snpmatrix",
+        "targetKey": "snp_matrix_id",
+        "keysIn": "snplocus",
+        "targetStorageType": "distributed-data-model"
+      }
+    }
+}
+  
