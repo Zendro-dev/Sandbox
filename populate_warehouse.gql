@@ -1,0 +1,24 @@
+mutation {
+  addInvestigation(
+    id:"zendro_public/MIAPPE/v1.1/investigation/1"
+    title: "Araport 11 - RNA-seq of Arabidopsis thaliana Col-0 plants under different growth conditions from multiple studies"
+    description: "public Araport 11 data https://www.ebi.ac.uk/gxa/experiments/E-CURD-1/Results"
+    
+  ){id}
+  addStudy(
+    id: "zendro_public/MIAPPE/v1.1/study/1"
+    title: "Assessment of Gene Expression in Arabidopsis thaliana Col-0 under different growth conditions"
+    description: "public Araport 11 data https://www.ebi.ac.uk/gxa/experiments/E-CURD-1/Results"
+    institution: "Hosted at EBI"
+    addInvestigation: "zendro_public/MIAPPE/v1.1/investigation/1"
+  ){id}
+  
+  addBiological_material(
+    id:"zendro_public/MIAPPE/v1.1/biological_material/1"
+    organism:"Arabidopsis Thaliana Col-0"
+    genus: "Arabidopsis"
+    species: "Arabidopsis Thaliana"
+    infraspecific_name:"columbia 0"
+    addStudies: ["zendro_public/MIAPPE/v1.1/study/1"]
+  ){id}   
+}
