@@ -1,0 +1,24 @@
+{
+    "model": "event",
+    "storageType": "sql",
+    "attributes": {
+        "eventDbId": "String",
+        "eventDescription": "String",
+        "eventType": "String",
+        "date": "DateTime",
+        "observationUnitDbIds": "[String]"
+    },
+    "associations": {
+        "observationUnits": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "events",
+            "target": "observationUnit",
+            "targetKey": "eventDbIds",
+            "sourceKey": "observationUnitDbIds",
+            "keysIn": "event",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "eventType"
+}

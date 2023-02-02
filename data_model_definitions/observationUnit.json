@@ -1,0 +1,43 @@
+{
+    "model": "observationUnit",
+    "storageType": "sql",
+    "attributes": {
+        "observationLevel": "String",
+        "observationUnitName": "String",
+        "observationUnitPUI": "String",
+        "plantNumber": "String",
+        "observationUnitDbId": "String",
+        "eventDbIds": "[String]"
+    },
+    "associations": {
+        "observationUnitPosition": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnit",
+            "target": "observationUnitPosition",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observationUnitPosition",
+            "targetStorageType": "sql"
+        },
+        "observations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnit",
+            "target": "observation",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
+        "events": {
+            "type": "many_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "event",
+            "targetKey": "observationUnitDbIds",
+            "sourceKey": "eventDbIds",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "observationUnitDbId"
+}

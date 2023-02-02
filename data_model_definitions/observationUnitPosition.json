@@ -1,0 +1,25 @@
+{
+    "model": "observationUnitPosition",
+    "storageType": "sql",
+    "attributes": {
+        "blockNumber": "String",
+        "entryNumber": "String",
+        "positionCoordinateX": "String",
+        "positionCoordinateY": "String",
+        "replicate": "String",
+        "observationUnitDbId": "String",
+        "observationUnitPositionDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "one_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnitPosition",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observationUnitPosition",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "observationUnitPositionDbId"
+}

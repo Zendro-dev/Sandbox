@@ -1,0 +1,24 @@
+{
+    "model": "observation",
+    "storageType": "sql",
+    "attributes": {
+        "collector": "String",
+        "observationTimeStamp": "DateTime",
+        "observationUnitDbId": "String",
+        "uploadedBy": "String",
+        "value": "String",
+        "observationDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observations",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "observationDbId"
+}
