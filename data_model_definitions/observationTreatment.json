@@ -1,0 +1,22 @@
+{
+    "model": "observationTreatment",
+    "storageType": "sql",
+    "attributes": {
+        "factor": "String",
+        "modality": "String",
+        "observationUnitDbId": "String",
+        "observationTreatmentDbId": "String"
+    },
+    "associations": {
+        "observationUnit": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationTreatments",
+            "target": "observationUnit",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observationTreatment",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "observationTreatmentDbId"
+}

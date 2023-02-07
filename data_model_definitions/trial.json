@@ -1,0 +1,36 @@
+{
+    "model": "trial",
+    "storageType": "sql",
+    "attributes": {
+        "trialDbId": "String",
+        "active": "Boolean",
+        "commonCropName": "String",
+        "documentationURL": "String",
+        "endDate": "DateTime",
+        "startDate": "DateTime",
+        "trialDescription": "String",
+        "trialName": "String",
+        "trialPUI": "String"
+    },
+    "associations": {
+        "observationUnits": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "trial",
+            "target": "observationUnit",
+            "targetKey": "trialDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "studies": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "trial",
+            "target": "study",
+            "targetKey": "trialDbId",
+            "keysIn": "study",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "trialDbId"
+}

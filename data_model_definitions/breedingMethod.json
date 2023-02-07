@@ -1,0 +1,22 @@
+{
+    "model": "breedingMethod",
+    "storageType": "sql",
+    "attributes": {
+        "abbreviation": "String",
+        "breedingMethodDbId": "String",
+        "breedingMethodName": "String",
+        "description": "String"
+    },
+    "associations": {
+        "germplasm": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "breedingMethod",
+            "target": "germplasm",
+            "targetKey": "breedingMethodDbId",
+            "keysIn": "germplasm",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "breedingMethodDbId"
+}

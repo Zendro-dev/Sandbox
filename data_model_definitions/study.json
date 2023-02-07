@@ -1,0 +1,68 @@
+{
+    "model": "study",
+    "storageType": "sql",
+    "attributes": {
+        "studyDbId": "String",
+        "active": "Boolean",
+        "commonCropName": "String",
+        "culturalPractices": "String",
+        "documentationURL": "String",
+        "endDate": "DateTime",
+        "license": "String",
+        "observationUnitsDescription": "String",
+        "startDate": "DateTime",
+        "studyDescription": "String",
+        "studyName": "String",
+        "studyType": "String",
+        "trialDbId": "String",
+        "locationDbId": "String"
+    },
+    "associations": {
+        "location": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "studies",
+            "target": "location",
+            "targetKey": "locationDbId",
+            "keysIn": "study",
+            "targetStorageType": "sql"
+        },
+        "trial": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "studies",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keysIn": "study",
+            "targetStorageType": "sql"
+        },
+        "observationUnits": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "study",
+            "target": "observationUnit",
+            "targetKey": "studyDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "observations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "study",
+            "target": "observation",
+            "targetKey": "studyDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
+        "events": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "study",
+            "target": "event",
+            "targetKey": "studyDbId",
+            "keysIn": "event",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "studyDbId"
+}

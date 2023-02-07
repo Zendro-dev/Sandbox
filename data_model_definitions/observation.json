@@ -3,6 +3,8 @@
     "storageType": "sql",
     "attributes": {
         "collector": "String",
+        "germplasmDbId": "String",
+        "studyDbId": "String",
         "observationTimeStamp": "DateTime",
         "observationUnitDbId": "String",
         "uploadedBy": "String",
@@ -10,6 +12,24 @@
         "observationDbId": "String"
     },
     "associations": {
+        "germplasm": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observations",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
+        "study": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observations",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
         "observationUnit": {
             "type": "many_to_one",
             "implementation": "foreignkeys",

@@ -1,0 +1,59 @@
+{
+    "model": "germplasm",
+    "storageType": "sql",
+    "attributes": {
+        "accessionNumber": "String",
+        "acquisitionDate": "Date",
+        "breedingMethodDbId": "String",
+        "commonCropName": "String",
+        "countryOfOriginCode": "String",
+        "defaultDisplayName": "String",
+        "documentationURL": "String",
+        "germplasmGenus": "String",
+        "germplasmName": "String",
+        "germplasmPUI": "String",
+        "germplasmPreprocessing": "String",
+        "germplasmSpecies": "String",
+        "germplasmSubtaxa": "String",
+        "instituteCode": "String",
+        "instituteName": "String",
+        "pedigree": "String",
+        "seedSource": "String",
+        "seedSourceDescription": "String",
+        "speciesAuthority": "String",
+        "subtaxaAuthority": "String",
+        "xref": "String",
+        "germplasmDbId": "String",
+        "biologicalStatusOfAccessionCode": "String"
+    },
+    "associations": {
+        "breedingMethod": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "germplasm",
+            "target": "breedingMethod",
+            "targetKey": "breedingMethodDbId",
+            "keysIn": "germplasm",
+            "targetStorageType": "sql"
+        },
+        "observationUnits": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "germplasm",
+            "target": "observationUnit",
+            "targetKey": "germplasmDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "observations": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "germplasm",
+            "target": "observation",
+            "targetKey": "germplasmDbId",
+            "keysIn": "observation",
+            "targetStorageType": "sql"
+        }
+    },
+    "internalId": "germplasmDbId"
+}

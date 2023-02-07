@@ -6,7 +6,8 @@
         "eventDescription": "String",
         "eventType": "String",
         "date": "DateTime",
-        "observationUnitDbIds": "[String]"
+        "observationUnitDbIds": "[String]",
+        "studyDbId": "String"
     },
     "associations": {
         "observationUnits": {
@@ -16,6 +17,15 @@
             "target": "observationUnit",
             "targetKey": "eventDbIds",
             "sourceKey": "observationUnitDbIds",
+            "keysIn": "event",
+            "targetStorageType": "sql"
+        },
+        "study": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "events",
+            "target": "study",
+            "targetKey": "studyDbId",
             "keysIn": "event",
             "targetStorageType": "sql"
         }

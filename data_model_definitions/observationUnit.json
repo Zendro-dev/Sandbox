@@ -7,6 +7,10 @@
         "observationUnitPUI": "String",
         "plantNumber": "String",
         "observationUnitDbId": "String",
+        "germplasmDbId": "String",
+        "locationDbId": "String",
+        "studyDbId": "String",
+        "trialDbId": "String",
         "eventDbIds": "[String]"
     },
     "associations": {
@@ -19,6 +23,24 @@
             "keysIn": "observationUnitPosition",
             "targetStorageType": "sql"
         },
+        "observationTreatments": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnit",
+            "target": "observationTreatment",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observationTreatment",
+            "targetStorageType": "sql"
+        },
+        "location": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "location",
+            "targetKey": "locationDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
         "observations": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
@@ -26,6 +48,33 @@
             "target": "observation",
             "targetKey": "observationUnitDbId",
             "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
+        "germplasm": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "study": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "trial": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keysIn": "observationUnit",
             "targetStorageType": "sql"
         },
         "events": {
