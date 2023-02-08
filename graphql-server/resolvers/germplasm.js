@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const event = require(path.join(__dirname, '..', 'models', 'index.js')).event;
+const germplasm = require(path.join(__dirname, '..', 'models', 'index.js')).germplasm;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,38 +14,39 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addStudy': 'study',
-    'addObservationUnits': 'observationUnit'
+    'addBreedingMethod': 'breedingMethod',
+    'addObservationUnits': 'observationUnit',
+    'addObservations': 'observation'
 }
 
 
 
 /**
- * event.prototype.study - Return associated record
+ * germplasm.prototype.breedingMethod - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-event.prototype.study = async function({
+germplasm.prototype.breedingMethod = async function({
     search
 }, context) {
 
-    if (helper.isNotUndefinedAndNotNull(this.studyDbId)) {
+    if (helper.isNotUndefinedAndNotNull(this.breedingMethodDbId)) {
         if (search === undefined || search === null) {
-            return resolvers.readOneStudy({
-                [models.study.idAttribute()]: this.studyDbId
+            return resolvers.readOneBreedingMethod({
+                [models.breedingMethod.idAttribute()]: this.breedingMethodDbId
             }, context)
         } else {
 
             //build new search filter
             let nsearch = helper.addSearchField({
                 "search": search,
-                "field": models.study.idAttribute(),
-                "value": this.studyDbId,
+                "field": models.breedingMethod.idAttribute(),
+                "value": this.breedingMethodDbId,
                 "operator": "eq"
             });
-            let found = (await resolvers.studiesConnection({
+            let found = (await resolvers.breedingMethodsConnection({
                 search: nsearch,
                 pagination: {
                     first: 1
@@ -60,7 +61,7 @@ event.prototype.study = async function({
 }
 
 /**
- * event.prototype.observationUnitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * germplasm.prototype.observationUnitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -70,22 +71,17 @@ event.prototype.study = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-event.prototype.observationUnitsFilter = function({
+germplasm.prototype.observationUnitsFilter = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return [];
-    }
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.observationUnits({
         search: nsearch,
@@ -95,27 +91,21 @@ event.prototype.observationUnitsFilter = function({
 }
 
 /**
- * event.prototype.countFilteredObservationUnits - Count number of associated records that holds the conditions specified in the search argument
+ * germplasm.prototype.countFilteredObservationUnits - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-event.prototype.countFilteredObservationUnits = function({
+germplasm.prototype.countFilteredObservationUnits = function({
     search
 }, context) {
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return 0;
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.countObservationUnits({
         search: nsearch
@@ -123,7 +113,7 @@ event.prototype.countFilteredObservationUnits = function({
 }
 
 /**
- * event.prototype.observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * germplasm.prototype.observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -133,34 +123,100 @@ event.prototype.countFilteredObservationUnits = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-event.prototype.observationUnitsConnection = function({
+germplasm.prototype.observationUnitsConnection = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return {
-            edges: [],
-            observationUnits: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.observationUnitsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * germplasm.prototype.observationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+germplasm.prototype.observationsFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.observations({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * germplasm.prototype.countFilteredObservations - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+germplasm.prototype.countFilteredObservations = function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countObservations({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * germplasm.prototype.observationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+germplasm.prototype.observationsConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "germplasmDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.observationsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -177,14 +233,17 @@ event.prototype.observationUnitsConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
+germplasm.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
 
     let promises_add = [];
     if (helper.isNonEmptyArray(input.addObservationUnits)) {
         promises_add.push(this.add_observationUnits(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addStudy)) {
-        promises_add.push(this.add_study(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.addObservations)) {
+        promises_add.push(this.add_observations(input, benignErrorReporter, token));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addBreedingMethod)) {
+        promises_add.push(this.add_breedingMethod(input, benignErrorReporter, token));
     }
 
     await Promise.all(promises_add);
@@ -192,8 +251,11 @@ event.prototype.handleAssociations = async function(input, benignErrorReporter, 
     if (helper.isNonEmptyArray(input.removeObservationUnits)) {
         promises_remove.push(this.remove_observationUnits(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeStudy)) {
-        promises_remove.push(this.remove_study(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.removeObservations)) {
+        promises_remove.push(this.remove_observations(input, benignErrorReporter, token));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeBreedingMethod)) {
+        promises_remove.push(this.remove_breedingMethod(input, benignErrorReporter, token));
     }
 
     await Promise.all(promises_remove);
@@ -207,22 +269,46 @@ event.prototype.handleAssociations = async function(input, benignErrorReporter, 
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.add_observationUnits = async function(input, benignErrorReporter, token) {
+germplasm.prototype.add_observationUnits = async function(input, benignErrorReporter, token) {
 
-    await event.add_observationUnitDbIds(this.getIdValue(), input.addObservationUnits, benignErrorReporter, token);
-    this.observationUnitDbIds = helper.unionIds(this.observationUnitDbIds, input.addObservationUnits);
+    let bulkAssociationInput = input.addObservationUnits.map(associatedRecordId => {
+        return {
+            germplasmDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observationUnit.bulkAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
- * add_study - field Mutation for to_one associations to add
+ * add_observations - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.add_study = async function(input, benignErrorReporter, token) {
-    await event.add_studyDbId(this.getIdValue(), input.addStudy, benignErrorReporter, token);
-    this.studyDbId = input.addStudy;
+germplasm.prototype.add_observations = async function(input, benignErrorReporter, token) {
+
+    let bulkAssociationInput = input.addObservations.map(associatedRecordId => {
+        return {
+            germplasmDbId: this.getIdValue(),
+            [models.observation.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observation.bulkAssociateObservationWithGermplasmDbId(bulkAssociationInput, benignErrorReporter, token);
+}
+
+/**
+ * add_breedingMethod - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+germplasm.prototype.add_breedingMethod = async function(input, benignErrorReporter, token) {
+    await germplasm.add_breedingMethodDbId(this.getIdValue(), input.addBreedingMethod, benignErrorReporter, token);
+    this.breedingMethodDbId = input.addBreedingMethod;
 }
 
 /**
@@ -233,23 +319,47 @@ event.prototype.add_study = async function(input, benignErrorReporter, token) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.remove_observationUnits = async function(input, benignErrorReporter, token) {
+germplasm.prototype.remove_observationUnits = async function(input, benignErrorReporter, token) {
 
-    await event.remove_observationUnitDbIds(this.getIdValue(), input.removeObservationUnits, benignErrorReporter, token);
-    this.observationUnitDbIds = helper.differenceIds(this.observationUnitDbIds, input.removeObservationUnits);
+    let bulkAssociationInput = input.removeObservationUnits.map(associatedRecordId => {
+        return {
+            germplasmDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observationUnit.bulkDisAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
- * remove_study - field Mutation for to_one associations to remove
+ * remove_observations - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.remove_study = async function(input, benignErrorReporter, token) {
-    if (input.removeStudy == this.studyDbId) {
-        await event.remove_studyDbId(this.getIdValue(), input.removeStudy, benignErrorReporter, token);
-        this.studyDbId = null;
+germplasm.prototype.remove_observations = async function(input, benignErrorReporter, token) {
+
+    let bulkAssociationInput = input.removeObservations.map(associatedRecordId => {
+        return {
+            germplasmDbId: this.getIdValue(),
+            [models.observation.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observation.bulkDisAssociateObservationWithGermplasmDbId(bulkAssociationInput, benignErrorReporter, token);
+}
+
+/**
+ * remove_breedingMethod - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+germplasm.prototype.remove_breedingMethod = async function(input, benignErrorReporter, token) {
+    if (input.removeBreedingMethod == this.breedingMethodDbId) {
+        await germplasm.remove_breedingMethodDbId(this.getIdValue(), input.removeBreedingMethod, benignErrorReporter, token);
+        this.breedingMethodDbId = null;
     }
 }
 
@@ -264,18 +374,18 @@ event.prototype.remove_study = async function(input, benignErrorReporter, token)
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let event = await resolvers.readOneEvent({
-        eventType: id
+    let germplasm = await resolvers.readOneGermplasm({
+        germplasmDbId: id
     }, context);
     //check that record actually exists
-    if (event === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (germplasm === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
-
-    get_to_many_associated_fk += Array.isArray(event.observationUnitDbIds) ? event.observationUnitDbIds.length : 0;
-    promises_to_one.push(event.study({}, context));
+    promises_to_many.push(germplasm.countFilteredObservationUnits({}, context));
+    promises_to_many.push(germplasm.countFilteredObservations({}, context));
+    promises_to_one.push(germplasm.breedingMethod({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -296,7 +406,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`event with eventType ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`germplasm with germplasmDbId ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -308,8 +418,8 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const event_record = await resolvers.readOneEvent({
-            eventType: id
+    const germplasm_record = await resolvers.readOneGermplasm({
+            germplasmDbId: id
         },
         context
     );
@@ -320,7 +430,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * events - Check user authorization and return certain number, specified in pagination argument, of records that
+     * germplasms - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -329,26 +439,26 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    events: async function({
+    germplasms: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "events");
+        if (await checkAuthorization(context, 'germplasm', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "germplasms");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readAll(search, order, pagination, context.benignErrors, token);
+            return await germplasm.readAll(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * germplasmsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -357,80 +467,80 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    eventsConnection: async function({
+    germplasmsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+        if (await checkAuthorization(context, 'germplasm', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "eventsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "germplasmsConnection");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readAllCursor(search, order, pagination, context.benignErrors, token);
+            return await germplasm.readAllCursor(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneEvent - Check user authorization and return one record with the specified eventType in the eventType argument.
+     * readOneGermplasm - Check user authorization and return one record with the specified germplasmDbId in the germplasmDbId argument.
      *
-     * @param  {number} {eventType}    eventType of the record to retrieve
+     * @param  {number} {germplasmDbId}    germplasmDbId of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with eventType requested
+     * @return {object}         Record with germplasmDbId requested
      */
-    readOneEvent: async function({
-        eventType
+    readOneGermplasm: async function({
+        germplasmDbId
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneEvent");
+        if (await checkAuthorization(context, 'germplasm', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneGermplasm");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readById(eventType, context.benignErrors, token);
+            return await germplasm.readById(germplasmDbId, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countEvents - Counts number of records that holds the conditions specified in the search argument
+     * countGermplasms - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countEvents: async function({
+    countGermplasms: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+        if (await checkAuthorization(context, 'germplasm', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.countRecords(search, context.benignErrors, token);
+            return await germplasm.countRecords(search, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateEventForCreation - Check user authorization and validate input argument for creation.
+     * validateGermplasmForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'event', 'read');
+    validateGermplasmForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'germplasm', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -445,7 +555,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    event,
+                    germplasm,
                     inputSanitized
                 );
                 return true;
@@ -461,14 +571,14 @@ module.exports = {
     },
 
     /**
-     * validateEventForUpdating - Check user authorization and validate input argument for updating.
+     * validateGermplasmForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'event', 'read');
+    validateGermplasmForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'germplasm', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -483,7 +593,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    event,
+                    germplasm,
                     inputSanitized
                 );
                 return true;
@@ -499,26 +609,26 @@ module.exports = {
     },
 
     /**
-     * validateEventForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateGermplasmForDeletion - Check user authorization and validate record by ID for deletion.
      *
-     * @param  {string} {eventType} eventType of the record to be validated
+     * @param  {string} {germplasmDbId} germplasmDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForDeletion: async ({
-        eventType
+    validateGermplasmForDeletion: async ({
+        germplasmDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'event', 'read')) === true) {
+        if ((await checkAuthorization(context, 'germplasm', 'read')) === true) {
             try {
-                await validForDeletion(eventType, context);
+                await validForDeletion(germplasmDbId, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    event,
-                    eventType);
+                    germplasm,
+                    germplasmDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    eventType: eventType
+                    germplasmDbId: germplasmDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -529,25 +639,25 @@ module.exports = {
     },
 
     /**
-     * validateEventAfterReading - Check user authorization and validate record by ID after reading.
+     * validateGermplasmAfterReading - Check user authorization and validate record by ID after reading.
      *
-     * @param  {string} {eventType} eventType of the record to be validated
+     * @param  {string} {germplasmDbId} germplasmDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventAfterReading: async ({
-        eventType
+    validateGermplasmAfterReading: async ({
+        germplasmDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'event', 'read')) === true) {
+        if ((await checkAuthorization(context, 'germplasm', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    event,
-                    eventType);
+                    germplasm,
+                    germplasmDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    eventType: eventType
+                    germplasmDbId: germplasmDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -557,7 +667,7 @@ module.exports = {
         }
     },
     /**
-     * addEvent - Check user authorization and creates a new record with data specified in the input argument.
+     * addGermplasm - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -565,8 +675,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addEvent: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'event', 'create');
+    addGermplasm: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'germplasm', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -579,33 +689,33 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdEvent = await event.addOne(inputSanitized, context.benignErrors, token);
-            await createdEvent.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdEvent;
+            let createdGermplasm = await germplasm.addOne(inputSanitized, context.benignErrors, token);
+            await createdGermplasm.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdGermplasm;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteEvent - Check user authorization and delete a record with the specified eventType in the eventType argument.
+     * deleteGermplasm - Check user authorization and delete a record with the specified germplasmDbId in the germplasmDbId argument.
      *
-     * @param  {number} {eventType}    eventType of the record to delete
+     * @param  {number} {germplasmDbId}    germplasmDbId of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteEvent: async function({
-        eventType
+    deleteGermplasm: async function({
+        germplasmDbId
     }, context) {
-        if (await checkAuthorization(context, 'event', 'delete') === true) {
-            if (await validForDeletion(eventType, context)) {
-                await updateAssociations(eventType, context);
+        if (await checkAuthorization(context, 'germplasm', 'delete') === true) {
+            if (await validForDeletion(germplasmDbId, context)) {
+                await updateAssociations(germplasmDbId, context);
                 let token = context.request ?
                     context.request.headers ?
                     context.request.headers.authorization :
                     undefined :
                     undefined;
-                return event.deleteOne(eventType, context.benignErrors, token);
+                return germplasm.deleteOne(germplasmDbId, context.benignErrors, token);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -613,7 +723,7 @@ module.exports = {
     },
 
     /**
-     * updateEvent - Check user authorization and update the record specified in the input argument
+     * updateGermplasm - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -621,8 +731,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateEvent: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'event', 'update');
+    updateGermplasm: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'germplasm', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -635,22 +745,22 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedEvent = await event.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedEvent.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedEvent;
+            let updatedGermplasm = await germplasm.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedGermplasm.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedGermplasm;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAssociateEventWithStudyDbId - bulkAssociaton resolver of given ids
+     * bulkAssociateGermplasmWithBreedingMethodDbId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateEventWithStudyDbId: async function(bulkAssociationInput, context) {
+    bulkAssociateGermplasmWithBreedingMethodDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -659,22 +769,22 @@ module.exports = {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                studyDbId
-            }) => studyDbId)), models.study, token);
+                breedingMethodDbId
+            }) => breedingMethodDbId)), models.breedingMethod, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                eventType
-            }) => eventType)), event, token);
+                germplasmDbId
+            }) => germplasmDbId)), germplasm, token);
         }
-        return await event.bulkAssociateEventWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await germplasm.bulkAssociateGermplasmWithBreedingMethodDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
     /**
-     * bulkDisAssociateEventWithStudyDbId - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateGermplasmWithBreedingMethodDbId - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateEventWithStudyDbId: async function(bulkAssociationInput, context) {
+    bulkDisAssociateGermplasmWithBreedingMethodDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -683,45 +793,45 @@ module.exports = {
         // if specified, check existence of the unique given ids
         if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                studyDbId
-            }) => studyDbId)), models.study, token);
+                breedingMethodDbId
+            }) => breedingMethodDbId)), models.breedingMethod, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                eventType
-            }) => eventType)), event, token);
+                germplasmDbId
+            }) => germplasmDbId)), germplasm, token);
         }
-        return await event.bulkDisAssociateEventWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await germplasm.bulkDisAssociateGermplasmWithBreedingMethodDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
 
     /**
-     * csvTableTemplateEvent - Returns table's template
+     * csvTableTemplateGermplasm - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateEvent: async function(_, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+    csvTableTemplateGermplasm: async function(_, context) {
+        if (await checkAuthorization(context, 'germplasm', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return event.csvTableTemplate(context.benignErrors, token);
+            return germplasm.csvTableTemplate(context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * eventsZendroDefinition - Return data model definition
+     * germplasmsZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    eventsZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "event", "read")) === true) {
-            return event.definition;
+    germplasmsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "germplasm", "read")) === true) {
+            return germplasm.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

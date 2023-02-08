@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const event = require(path.join(__dirname, '..', 'models', 'index.js')).event;
+const location = require(path.join(__dirname, '..', 'models', 'index.js')).location;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,53 +14,15 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addStudy': 'study',
-    'addObservationUnits': 'observationUnit'
+    'addObservationUnits': 'observationUnit',
+    'addStudies': 'study'
 }
 
 
 
-/**
- * event.prototype.study - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-event.prototype.study = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.studyDbId)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneStudy({
-                [models.study.idAttribute()]: this.studyDbId
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.study.idAttribute(),
-                "value": this.studyDbId,
-                "operator": "eq"
-            });
-            let found = (await resolvers.studiesConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
 
 /**
- * event.prototype.observationUnitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * location.prototype.observationUnitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -70,22 +32,17 @@ event.prototype.study = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-event.prototype.observationUnitsFilter = function({
+location.prototype.observationUnitsFilter = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return [];
-    }
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.observationUnits({
         search: nsearch,
@@ -95,27 +52,21 @@ event.prototype.observationUnitsFilter = function({
 }
 
 /**
- * event.prototype.countFilteredObservationUnits - Count number of associated records that holds the conditions specified in the search argument
+ * location.prototype.countFilteredObservationUnits - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-event.prototype.countFilteredObservationUnits = function({
+location.prototype.countFilteredObservationUnits = function({
     search
 }, context) {
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return 0;
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.countObservationUnits({
         search: nsearch
@@ -123,7 +74,7 @@ event.prototype.countFilteredObservationUnits = function({
 }
 
 /**
- * event.prototype.observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * location.prototype.observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -133,34 +84,100 @@ event.prototype.countFilteredObservationUnits = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-event.prototype.observationUnitsConnection = function({
+location.prototype.observationUnitsConnection = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.observationUnitDbIds) || this.observationUnitDbIds.length === 0) {
-        return {
-            edges: [],
-            observationUnits: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.observationUnit.idAttribute(),
-        "value": this.observationUnitDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.observationUnitsConnection({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+/**
+ * location.prototype.studiesFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Offset and limit to get the records from and to respectively
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
+ */
+location.prototype.studiesFilter = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.studies({
+        search: nsearch,
+        order: order,
+        pagination: pagination
+    }, context);
+}
+
+/**
+ * location.prototype.countFilteredStudies - Count number of associated records that holds the conditions specified in the search argument
+ *
+ * @param  {object} {search} description
+ * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}          Number of associated records that holds the conditions specified in the search argument
+ */
+location.prototype.countFilteredStudies = function({
+    search
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.countStudies({
+        search: nsearch
+    }, context);
+}
+
+/**
+ * location.prototype.studiesConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * associated with the current instance, this records should also
+ * holds the condition of search argument, all of them sorted as specified by the order argument.
+ *
+ * @param  {object} search     Search argument for filtering associated records
+ * @param  {array} order       Type of sorting (ASC, DESC) for each field
+ * @param  {object} pagination Cursor and first(indicatig the number of records to retrieve) arguments to apply cursor-based pagination.
+ * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
+ */
+location.prototype.studiesConnection = function({
+    search,
+    order,
+    pagination
+}, context) {
+    //build new search filter
+    let nsearch = helper.addSearchField({
+        "search": search,
+        "field": "locationDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
+    });
+    return resolvers.studiesConnection({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -177,14 +194,14 @@ event.prototype.observationUnitsConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
+location.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
 
     let promises_add = [];
     if (helper.isNonEmptyArray(input.addObservationUnits)) {
         promises_add.push(this.add_observationUnits(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addStudy)) {
-        promises_add.push(this.add_study(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.addStudies)) {
+        promises_add.push(this.add_studies(input, benignErrorReporter, token));
     }
 
     await Promise.all(promises_add);
@@ -192,8 +209,8 @@ event.prototype.handleAssociations = async function(input, benignErrorReporter, 
     if (helper.isNonEmptyArray(input.removeObservationUnits)) {
         promises_remove.push(this.remove_observationUnits(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeStudy)) {
-        promises_remove.push(this.remove_study(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.removeStudies)) {
+        promises_remove.push(this.remove_studies(input, benignErrorReporter, token));
     }
 
     await Promise.all(promises_remove);
@@ -207,22 +224,34 @@ event.prototype.handleAssociations = async function(input, benignErrorReporter, 
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.add_observationUnits = async function(input, benignErrorReporter, token) {
+location.prototype.add_observationUnits = async function(input, benignErrorReporter, token) {
 
-    await event.add_observationUnitDbIds(this.getIdValue(), input.addObservationUnits, benignErrorReporter, token);
-    this.observationUnitDbIds = helper.unionIds(this.observationUnitDbIds, input.addObservationUnits);
+    let bulkAssociationInput = input.addObservationUnits.map(associatedRecordId => {
+        return {
+            locationDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observationUnit.bulkAssociateObservationUnitWithLocationDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
- * add_study - field Mutation for to_one associations to add
+ * add_studies - field Mutation for to_many associations to add
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.add_study = async function(input, benignErrorReporter, token) {
-    await event.add_studyDbId(this.getIdValue(), input.addStudy, benignErrorReporter, token);
-    this.studyDbId = input.addStudy;
+location.prototype.add_studies = async function(input, benignErrorReporter, token) {
+
+    let bulkAssociationInput = input.addStudies.map(associatedRecordId => {
+        return {
+            locationDbId: this.getIdValue(),
+            [models.study.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.study.bulkAssociateStudyWithLocationDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -233,24 +262,34 @@ event.prototype.add_study = async function(input, benignErrorReporter, token) {
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.remove_observationUnits = async function(input, benignErrorReporter, token) {
+location.prototype.remove_observationUnits = async function(input, benignErrorReporter, token) {
 
-    await event.remove_observationUnitDbIds(this.getIdValue(), input.removeObservationUnits, benignErrorReporter, token);
-    this.observationUnitDbIds = helper.differenceIds(this.observationUnitDbIds, input.removeObservationUnits);
+    let bulkAssociationInput = input.removeObservationUnits.map(associatedRecordId => {
+        return {
+            locationDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.observationUnit.bulkDisAssociateObservationUnitWithLocationDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
- * remove_study - field Mutation for to_one associations to remove
+ * remove_studies - field Mutation for to_many associations to remove
+ * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-event.prototype.remove_study = async function(input, benignErrorReporter, token) {
-    if (input.removeStudy == this.studyDbId) {
-        await event.remove_studyDbId(this.getIdValue(), input.removeStudy, benignErrorReporter, token);
-        this.studyDbId = null;
-    }
+location.prototype.remove_studies = async function(input, benignErrorReporter, token) {
+
+    let bulkAssociationInput = input.removeStudies.map(associatedRecordId => {
+        return {
+            locationDbId: this.getIdValue(),
+            [models.study.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.study.bulkDisAssociateStudyWithLocationDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 
@@ -264,18 +303,17 @@ event.prototype.remove_study = async function(input, benignErrorReporter, token)
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let event = await resolvers.readOneEvent({
-        eventType: id
+    let location = await resolvers.readOneLocation({
+        locationDbId: id
     }, context);
     //check that record actually exists
-    if (event === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (location === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
-
-    get_to_many_associated_fk += Array.isArray(event.observationUnitDbIds) ? event.observationUnitDbIds.length : 0;
-    promises_to_one.push(event.study({}, context));
+    promises_to_many.push(location.countFilteredObservationUnits({}, context));
+    promises_to_many.push(location.countFilteredStudies({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -296,7 +334,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`event with eventType ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`location with locationDbId ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -308,8 +346,8 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const event_record = await resolvers.readOneEvent({
-            eventType: id
+    const location_record = await resolvers.readOneLocation({
+            locationDbId: id
         },
         context
     );
@@ -320,7 +358,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * events - Check user authorization and return certain number, specified in pagination argument, of records that
+     * locations - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -329,26 +367,26 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    events: async function({
+    locations: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "events");
+        if (await checkAuthorization(context, 'location', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "locations");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readAll(search, order, pagination, context.benignErrors, token);
+            return await location.readAll(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * locationsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -357,80 +395,80 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    eventsConnection: async function({
+    locationsConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+        if (await checkAuthorization(context, 'location', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "eventsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "locationsConnection");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readAllCursor(search, order, pagination, context.benignErrors, token);
+            return await location.readAllCursor(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneEvent - Check user authorization and return one record with the specified eventType in the eventType argument.
+     * readOneLocation - Check user authorization and return one record with the specified locationDbId in the locationDbId argument.
      *
-     * @param  {number} {eventType}    eventType of the record to retrieve
+     * @param  {number} {locationDbId}    locationDbId of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with eventType requested
+     * @return {object}         Record with locationDbId requested
      */
-    readOneEvent: async function({
-        eventType
+    readOneLocation: async function({
+        locationDbId
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneEvent");
+        if (await checkAuthorization(context, 'location', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneLocation");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.readById(eventType, context.benignErrors, token);
+            return await location.readById(locationDbId, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countEvents - Counts number of records that holds the conditions specified in the search argument
+     * countLocations - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countEvents: async function({
+    countLocations: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+        if (await checkAuthorization(context, 'location', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await event.countRecords(search, context.benignErrors, token);
+            return await location.countRecords(search, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateEventForCreation - Check user authorization and validate input argument for creation.
+     * validateLocationForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'event', 'read');
+    validateLocationForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'location', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -445,7 +483,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    event,
+                    location,
                     inputSanitized
                 );
                 return true;
@@ -461,14 +499,14 @@ module.exports = {
     },
 
     /**
-     * validateEventForUpdating - Check user authorization and validate input argument for updating.
+     * validateLocationForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'event', 'read');
+    validateLocationForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'location', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -483,7 +521,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    event,
+                    location,
                     inputSanitized
                 );
                 return true;
@@ -499,26 +537,26 @@ module.exports = {
     },
 
     /**
-     * validateEventForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateLocationForDeletion - Check user authorization and validate record by ID for deletion.
      *
-     * @param  {string} {eventType} eventType of the record to be validated
+     * @param  {string} {locationDbId} locationDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventForDeletion: async ({
-        eventType
+    validateLocationForDeletion: async ({
+        locationDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'event', 'read')) === true) {
+        if ((await checkAuthorization(context, 'location', 'read')) === true) {
             try {
-                await validForDeletion(eventType, context);
+                await validForDeletion(locationDbId, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    event,
-                    eventType);
+                    location,
+                    locationDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    eventType: eventType
+                    locationDbId: locationDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -529,25 +567,25 @@ module.exports = {
     },
 
     /**
-     * validateEventAfterReading - Check user authorization and validate record by ID after reading.
+     * validateLocationAfterReading - Check user authorization and validate record by ID after reading.
      *
-     * @param  {string} {eventType} eventType of the record to be validated
+     * @param  {string} {locationDbId} locationDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateEventAfterReading: async ({
-        eventType
+    validateLocationAfterReading: async ({
+        locationDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'event', 'read')) === true) {
+        if ((await checkAuthorization(context, 'location', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    event,
-                    eventType);
+                    location,
+                    locationDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    eventType: eventType
+                    locationDbId: locationDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -557,7 +595,7 @@ module.exports = {
         }
     },
     /**
-     * addEvent - Check user authorization and creates a new record with data specified in the input argument.
+     * addLocation - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -565,8 +603,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addEvent: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'event', 'create');
+    addLocation: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'location', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -579,33 +617,33 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdEvent = await event.addOne(inputSanitized, context.benignErrors, token);
-            await createdEvent.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdEvent;
+            let createdLocation = await location.addOne(inputSanitized, context.benignErrors, token);
+            await createdLocation.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdLocation;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteEvent - Check user authorization and delete a record with the specified eventType in the eventType argument.
+     * deleteLocation - Check user authorization and delete a record with the specified locationDbId in the locationDbId argument.
      *
-     * @param  {number} {eventType}    eventType of the record to delete
+     * @param  {number} {locationDbId}    locationDbId of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteEvent: async function({
-        eventType
+    deleteLocation: async function({
+        locationDbId
     }, context) {
-        if (await checkAuthorization(context, 'event', 'delete') === true) {
-            if (await validForDeletion(eventType, context)) {
-                await updateAssociations(eventType, context);
+        if (await checkAuthorization(context, 'location', 'delete') === true) {
+            if (await validForDeletion(locationDbId, context)) {
+                await updateAssociations(locationDbId, context);
                 let token = context.request ?
                     context.request.headers ?
                     context.request.headers.authorization :
                     undefined :
                     undefined;
-                return event.deleteOne(eventType, context.benignErrors, token);
+                return location.deleteOne(locationDbId, context.benignErrors, token);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -613,7 +651,7 @@ module.exports = {
     },
 
     /**
-     * updateEvent - Check user authorization and update the record specified in the input argument
+     * updateLocation - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -621,8 +659,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateEvent: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'event', 'update');
+    updateLocation: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'location', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -635,93 +673,45 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedEvent = await event.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedEvent.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedEvent;
+            let updatedLocation = await location.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedLocation.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedLocation;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
-    /**
-     * bulkAssociateEventWithStudyDbId - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateEventWithStudyDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                studyDbId
-            }) => studyDbId)), models.study, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                eventType
-            }) => eventType)), event, token);
-        }
-        return await event.bulkAssociateEventWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
-    /**
-     * bulkDisAssociateEventWithStudyDbId - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateEventWithStudyDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                studyDbId
-            }) => studyDbId)), models.study, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                eventType
-            }) => eventType)), event, token);
-        }
-        return await event.bulkDisAssociateEventWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
 
     /**
-     * csvTableTemplateEvent - Returns table's template
+     * csvTableTemplateLocation - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateEvent: async function(_, context) {
-        if (await checkAuthorization(context, 'event', 'read') === true) {
+    csvTableTemplateLocation: async function(_, context) {
+        if (await checkAuthorization(context, 'location', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return event.csvTableTemplate(context.benignErrors, token);
+            return location.csvTableTemplate(context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * eventsZendroDefinition - Return data model definition
+     * locationsZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    eventsZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "event", "read")) === true) {
-            return event.definition;
+    locationsZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "location", "read")) === true) {
+            return location.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

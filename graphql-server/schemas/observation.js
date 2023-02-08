@@ -14,6 +14,18 @@ module.exports = `
     @original-field
     
     """
+    germplasmDbId: String
+
+    """
+    @original-field
+    
+    """
+    studyDbId: String
+
+    """
+    @original-field
+    
+    """
     observationTimeStamp: DateTime
 
     """
@@ -34,7 +46,9 @@ module.exports = `
     """
     value: String
 
-    observationUnit(search: searchObservationUnitInput): observationUnit
+    germplasm(search: searchGermplasmInput): germplasm
+  study(search: searchStudyInput): study
+  observationUnit(search: searchObservationUnitInput): observationUnit
     
     
     """
@@ -56,6 +70,8 @@ type ObservationEdge{
   enum observationField {
     observationDbId
     collector
+    germplasmDbId
+    studyDbId
     observationTimeStamp
     observationUnitDbId
     uploadedBy
@@ -75,7 +91,13 @@ type ObservationEdge{
     order: Order
   }
 
-  input bulkAssociationObservationWithObservationUnitDbIdInput{
+  input bulkAssociationObservationWithGermplasmDbIdInput{
+    observationDbId: ID!
+    germplasmDbId: ID!
+  }  input bulkAssociationObservationWithStudyDbIdInput{
+    observationDbId: ID!
+    studyDbId: ID!
+  }  input bulkAssociationObservationWithObservationUnitDbIdInput{
     observationDbId: ID!
     observationUnitDbId: ID!
   }
@@ -86,8 +108,8 @@ type ObservationEdge{
     countObservations(search: searchObservationInput ): Int
     csvTableTemplateObservation: [String]
     observationsConnection(search:searchObservationInput, order: [ orderObservationInput ], pagination: paginationCursorInput! ): ObservationConnection
-    validateObservationForCreation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addObservationUnit:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateObservationForUpdating(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addObservationUnit:ID, removeObservationUnit:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateObservationForCreation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addGermplasm:ID, addStudy:ID, addObservationUnit:ID   , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateObservationForUpdating(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addGermplasm:ID, removeGermplasm:ID , addStudy:ID, removeStudy:ID , addObservationUnit:ID, removeObservationUnit:ID    , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateObservationForDeletion(observationDbId: ID!): Boolean!
     validateObservationAfterReading(observationDbId: ID!): Boolean!
     """
@@ -97,10 +119,14 @@ type ObservationEdge{
   }
 
   type Mutation {
-    addObservation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addObservationUnit:ID   , skipAssociationsExistenceChecks:Boolean = false): observation!
-    updateObservation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addObservationUnit:ID, removeObservationUnit:ID    , skipAssociationsExistenceChecks:Boolean = false): observation!
+    addObservation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addGermplasm:ID, addStudy:ID, addObservationUnit:ID   , skipAssociationsExistenceChecks:Boolean = false): observation!
+    updateObservation(observationDbId: ID!, collector: String, observationTimeStamp: DateTime, uploadedBy: String, value: String , addGermplasm:ID, removeGermplasm:ID , addStudy:ID, removeStudy:ID , addObservationUnit:ID, removeObservationUnit:ID    , skipAssociationsExistenceChecks:Boolean = false): observation!
     deleteObservation(observationDbId: ID!): String!
-        bulkAssociateObservationWithObservationUnitDbId(bulkAssociationInput: [bulkAssociationObservationWithObservationUnitDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+        bulkAssociateObservationWithGermplasmDbId(bulkAssociationInput: [bulkAssociationObservationWithGermplasmDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateObservationWithGermplasmDbId(bulkAssociationInput: [bulkAssociationObservationWithGermplasmDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkAssociateObservationWithStudyDbId(bulkAssociationInput: [bulkAssociationObservationWithStudyDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateObservationWithStudyDbId(bulkAssociationInput: [bulkAssociationObservationWithStudyDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkAssociateObservationWithObservationUnitDbId(bulkAssociationInput: [bulkAssociationObservationWithObservationUnitDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
     bulkDisAssociateObservationWithObservationUnitDbId(bulkAssociationInput: [bulkAssociationObservationWithObservationUnitDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
   }
 `;

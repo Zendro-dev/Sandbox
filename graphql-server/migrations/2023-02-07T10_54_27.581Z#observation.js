@@ -19,10 +19,10 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.event.storageHandler;
+            const storageHandler = await zendro.models.observation.storageHandler;
             await storageHandler.getQueryInterface()
-                .createTable('events', {
-                    eventType: {
+                .createTable('observations', {
+                    observationDbId: {
                         type: Sequelize.STRING,
                         primaryKey: true
                     },
@@ -35,18 +35,26 @@ module.exports = {
                         type: Sequelize.DATE
                     },
 
-                    eventDbId: {
+                    collector: {
                         type: Sequelize[dict['String']]
                     },
-                    eventDescription: {
+                    germplasmDbId: {
                         type: Sequelize[dict['String']]
                     },
-                    date: {
+                    studyDbId: {
+                        type: Sequelize[dict['String']]
+                    },
+                    observationTimeStamp: {
                         type: Sequelize[dict['DateTime']]
                     },
-                    observationUnitDbIds: {
-                        type: Sequelize[dict['[String]']],
-                        defaultValue: '[]'
+                    observationUnitDbId: {
+                        type: Sequelize[dict['String']]
+                    },
+                    uploadedBy: {
+                        type: Sequelize[dict['String']]
+                    },
+                    value: {
+                        type: Sequelize[dict['String']]
                     }
 
                 });
@@ -63,14 +71,14 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.event.storageHandler;
-            const recordsExists = await zendro.models.event.count();
+            const storageHandler = await zendro.models.observation.storageHandler;
+            const recordsExists = await zendro.models.observation.count();
             if (recordsExists && !DOWN_MIGRATION) {
-                throw new Error(`You are trying to delete all records of event and its associations. 
+                throw new Error(`You are trying to delete all records of observation and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 
             and re-execute this down-migration.`);
             }
-            await storageHandler.getQueryInterface().dropTable('events');
+            await storageHandler.getQueryInterface().dropTable('observations');
         } catch (error) {
             throw new Error(error);
         }

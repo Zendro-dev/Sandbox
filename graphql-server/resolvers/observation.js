@@ -14,11 +14,89 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
+    'addGermplasm': 'germplasm',
+    'addStudy': 'study',
     'addObservationUnit': 'observationUnit'
 }
 
 
 
+/**
+ * observation.prototype.germplasm - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+observation.prototype.germplasm = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.germplasmDbId)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneGermplasm({
+                [models.germplasm.idAttribute()]: this.germplasmDbId
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.germplasm.idAttribute(),
+                "value": this.germplasmDbId,
+                "operator": "eq"
+            });
+            let found = (await resolvers.germplasmsConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
+/**
+ * observation.prototype.study - Return associated record
+ *
+ * @param  {object} search       Search argument to match the associated record
+ * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+ * @return {type}         Associated record
+ */
+observation.prototype.study = async function({
+    search
+}, context) {
+
+    if (helper.isNotUndefinedAndNotNull(this.studyDbId)) {
+        if (search === undefined || search === null) {
+            return resolvers.readOneStudy({
+                [models.study.idAttribute()]: this.studyDbId
+            }, context)
+        } else {
+
+            //build new search filter
+            let nsearch = helper.addSearchField({
+                "search": search,
+                "field": models.study.idAttribute(),
+                "value": this.studyDbId,
+                "operator": "eq"
+            });
+            let found = (await resolvers.studiesConnection({
+                search: nsearch,
+                pagination: {
+                    first: 1
+                }
+            }, context)).edges;
+            if (found.length > 0) {
+                return found[0].node
+            }
+            return found;
+        }
+    }
+}
 /**
  * observation.prototype.observationUnit - Return associated record
  *
@@ -73,6 +151,12 @@ observation.prototype.handleAssociations = async function(input, benignErrorRepo
 
     let promises_add = [];
 
+    if (helper.isNotUndefinedAndNotNull(input.addGermplasm)) {
+        promises_add.push(this.add_germplasm(input, benignErrorReporter, token));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.addStudy)) {
+        promises_add.push(this.add_study(input, benignErrorReporter, token));
+    }
     if (helper.isNotUndefinedAndNotNull(input.addObservationUnit)) {
         promises_add.push(this.add_observationUnit(input, benignErrorReporter, token));
     }
@@ -80,6 +164,12 @@ observation.prototype.handleAssociations = async function(input, benignErrorRepo
     await Promise.all(promises_add);
     let promises_remove = [];
 
+    if (helper.isNotUndefinedAndNotNull(input.removeGermplasm)) {
+        promises_remove.push(this.remove_germplasm(input, benignErrorReporter, token));
+    }
+    if (helper.isNotUndefinedAndNotNull(input.removeStudy)) {
+        promises_remove.push(this.remove_study(input, benignErrorReporter, token));
+    }
     if (helper.isNotUndefinedAndNotNull(input.removeObservationUnit)) {
         promises_remove.push(this.remove_observationUnit(input, benignErrorReporter, token));
     }
@@ -87,6 +177,30 @@ observation.prototype.handleAssociations = async function(input, benignErrorRepo
     await Promise.all(promises_remove);
 
 }
+/**
+ * add_germplasm - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+observation.prototype.add_germplasm = async function(input, benignErrorReporter, token) {
+    await observation.add_germplasmDbId(this.getIdValue(), input.addGermplasm, benignErrorReporter, token);
+    this.germplasmDbId = input.addGermplasm;
+}
+
+/**
+ * add_study - field Mutation for to_one associations to add
+ *
+ * @param {object} input   Info of input Ids to add  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+observation.prototype.add_study = async function(input, benignErrorReporter, token) {
+    await observation.add_studyDbId(this.getIdValue(), input.addStudy, benignErrorReporter, token);
+    this.studyDbId = input.addStudy;
+}
+
 /**
  * add_observationUnit - field Mutation for to_one associations to add
  *
@@ -97,6 +211,34 @@ observation.prototype.handleAssociations = async function(input, benignErrorRepo
 observation.prototype.add_observationUnit = async function(input, benignErrorReporter, token) {
     await observation.add_observationUnitDbId(this.getIdValue(), input.addObservationUnit, benignErrorReporter, token);
     this.observationUnitDbId = input.addObservationUnit;
+}
+
+/**
+ * remove_germplasm - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+observation.prototype.remove_germplasm = async function(input, benignErrorReporter, token) {
+    if (input.removeGermplasm == this.germplasmDbId) {
+        await observation.remove_germplasmDbId(this.getIdValue(), input.removeGermplasm, benignErrorReporter, token);
+        this.germplasmDbId = null;
+    }
+}
+
+/**
+ * remove_study - field Mutation for to_one associations to remove
+ *
+ * @param {object} input   Info of input Ids to remove  the association
+ * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+ * @param {string} token The token used for authorization
+ */
+observation.prototype.remove_study = async function(input, benignErrorReporter, token) {
+    if (input.removeStudy == this.studyDbId) {
+        await observation.remove_studyDbId(this.getIdValue(), input.removeStudy, benignErrorReporter, token);
+        this.studyDbId = null;
+    }
 }
 
 /**
@@ -133,6 +275,8 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
+    promises_to_one.push(observation.germplasm({}, context));
+    promises_to_one.push(observation.study({}, context));
     promises_to_one.push(observation.observationUnit({}, context));
 
 
@@ -502,6 +646,54 @@ module.exports = {
     },
 
     /**
+     * bulkAssociateObservationWithGermplasmDbId - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateObservationWithGermplasmDbId: async function(bulkAssociationInput, context) {
+        let token = context.request ?
+            context.request.headers ?
+            context.request.headers.authorization :
+            undefined :
+            undefined;
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                germplasmDbId
+            }) => germplasmDbId)), models.germplasm, token);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                observationDbId
+            }) => observationDbId)), observation, token);
+        }
+        return await observation.bulkAssociateObservationWithGermplasmDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+    },
+    /**
+     * bulkAssociateObservationWithStudyDbId - bulkAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkAssociateObservationWithStudyDbId: async function(bulkAssociationInput, context) {
+        let token = context.request ?
+            context.request.headers ?
+            context.request.headers.authorization :
+            undefined :
+            undefined;
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                studyDbId
+            }) => studyDbId)), models.study, token);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                observationDbId
+            }) => observationDbId)), observation, token);
+        }
+        return await observation.bulkAssociateObservationWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+    },
+    /**
      * bulkAssociateObservationWithObservationUnitDbId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
@@ -524,6 +716,54 @@ module.exports = {
             }) => observationDbId)), observation, token);
         }
         return await observation.bulkAssociateObservationWithObservationUnitDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+    },
+    /**
+     * bulkDisAssociateObservationWithGermplasmDbId - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateObservationWithGermplasmDbId: async function(bulkAssociationInput, context) {
+        let token = context.request ?
+            context.request.headers ?
+            context.request.headers.authorization :
+            undefined :
+            undefined;
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                germplasmDbId
+            }) => germplasmDbId)), models.germplasm, token);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                observationDbId
+            }) => observationDbId)), observation, token);
+        }
+        return await observation.bulkDisAssociateObservationWithGermplasmDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+    },
+    /**
+     * bulkDisAssociateObservationWithStudyDbId - bulkDisAssociaton resolver of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove , 
+     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
+     * @return {string} returns message on success
+     */
+    bulkDisAssociateObservationWithStudyDbId: async function(bulkAssociationInput, context) {
+        let token = context.request ?
+            context.request.headers ?
+            context.request.headers.authorization :
+            undefined :
+            undefined;
+        // if specified, check existence of the unique given ids
+        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                studyDbId
+            }) => studyDbId)), models.study, token);
+            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
+                observationDbId
+            }) => observationDbId)), observation, token);
+        }
+        return await observation.bulkDisAssociateObservationWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
     /**
      * bulkDisAssociateObservationWithObservationUnitDbId - bulkDisAssociaton resolver of given ids

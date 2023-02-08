@@ -18,50 +18,28 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    "model": "observation",
+    "model": "observationTreatment",
     "storageType": "sql",
     "attributes": {
-        "collector": "String",
-        "germplasmDbId": "String",
-        "studyDbId": "String",
-        "observationTimeStamp": "DateTime",
+        "factor": "String",
+        "modality": "String",
         "observationUnitDbId": "String",
-        "uploadedBy": "String",
-        "value": "String",
-        "observationDbId": "String"
+        "observationTreatmentDbId": "String"
     },
     "associations": {
-        "germplasm": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "observations",
-            "target": "germplasm",
-            "targetKey": "germplasmDbId",
-            "keysIn": "observation",
-            "targetStorageType": "sql"
-        },
-        "study": {
-            "type": "many_to_one",
-            "implementation": "foreignkeys",
-            "reverseAssociation": "observations",
-            "target": "study",
-            "targetKey": "studyDbId",
-            "keysIn": "observation",
-            "targetStorageType": "sql"
-        },
         "observationUnit": {
             "type": "many_to_one",
             "implementation": "foreignkeys",
-            "reverseAssociation": "observations",
+            "reverseAssociation": "observationTreatments",
             "target": "observationUnit",
             "targetKey": "observationUnitDbId",
-            "keysIn": "observation",
+            "keysIn": "observationTreatment",
             "targetStorageType": "sql"
         }
     },
-    "internalId": "observationDbId",
+    "internalId": "observationTreatmentDbId",
     "id": {
-        "name": "observationDbId",
+        "name": "observationTreatmentDbId",
         "type": "String"
     }
 };
@@ -71,7 +49,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class observation extends Sequelize.Model {
+module.exports = class observationTreatment extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -81,36 +59,24 @@ module.exports = class observation extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            observationDbId: {
+            observationTreatmentDbId: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            collector: {
+            factor: {
                 type: Sequelize[dict['String']]
             },
-            germplasmDbId: {
+            modality: {
                 type: Sequelize[dict['String']]
-            },
-            studyDbId: {
-                type: Sequelize[dict['String']]
-            },
-            observationTimeStamp: {
-                type: Sequelize[dict['DateTime']]
             },
             observationUnitDbId: {
-                type: Sequelize[dict['String']]
-            },
-            uploadedBy: {
-                type: Sequelize[dict['String']]
-            },
-            value: {
                 type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "observation",
-            tableName: "observations",
+            modelName: "observationTreatment",
+            tableName: "observationTreatments",
             sequelize
         });
     }
@@ -158,15 +124,7 @@ module.exports = class observation extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        observation.belongsTo(models.germplasm, {
-            as: 'germplasm',
-            foreignKey: 'germplasmDbId'
-        });
-        observation.belongsTo(models.study, {
-            as: 'study',
-            foreignKey: 'studyDbId'
-        });
-        observation.belongsTo(models.observationUnit, {
+        observationTreatment.belongsTo(models.observationUnit, {
             as: 'observationUnit',
             foreignKey: 'observationUnitDbId'
         });
@@ -180,13 +138,13 @@ module.exports = class observation extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: observation.idAttribute(),
+            field: observationTreatment.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await observation.readAllCursor(queryArg);
-        cursorRes = cursorRes.observations.reduce(
-            (map, obj) => ((map[obj[observation.idAttribute()]] = obj), map), {}
+        let cursorRes = await observationTreatment.readAllCursor(queryArg);
+        cursorRes = cursorRes.observationTreatments.reduce(
+            (map, obj) => ((map[obj[observationTreatment.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -194,7 +152,7 @@ module.exports = class observation extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(observation.batchReadById, {
+    static readByIdLoader = new DataLoader(observationTreatment.batchReadById, {
         cache: false,
     });
 
@@ -203,11 +161,11 @@ module.exports = class observation extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type observation, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type observationTreatment, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await observation.readByIdLoader.load(id);
+        return await observationTreatment.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -219,7 +177,7 @@ module.exports = class observation extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, observation.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, observationTreatment.definition.attributes);
         return super.count(options);
     }
 
@@ -234,9 +192,9 @@ module.exports = class observation extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), observation.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), observationTreatment.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => observation.postReadCast(x))
+        records = records.map(x => observationTreatment.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -252,10 +210,10 @@ module.exports = class observation extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), observation.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), observationTreatment.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => observation.postReadCast(x))
+        records = records.map(x => observationTreatment.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -266,7 +224,7 @@ module.exports = class observation extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), observation.definition.attributes);
+            }, this.idAttribute(), observationTreatment.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -275,7 +233,7 @@ module.exports = class observation extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            observations: edges.map((edge) => edge.node)
+            observationTreatments: edges.map((edge) => edge.node)
         };
     }
 
@@ -289,7 +247,7 @@ module.exports = class observation extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = observation.preWriteCast(input)
+        input = observationTreatment.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -297,8 +255,8 @@ module.exports = class observation extends Sequelize.Model {
                 });
                 return item;
             });
-            observation.postReadCast(result.dataValues)
-            observation.postReadCast(result._previousDataValues)
+            observationTreatment.postReadCast(result.dataValues)
+            observationTreatment.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -338,7 +296,7 @@ module.exports = class observation extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = observation.preWriteCast(input)
+        input = observationTreatment.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -351,8 +309,8 @@ module.exports = class observation extends Sequelize.Model {
                 });
                 return updated;
             });
-            observation.postReadCast(result.dataValues)
-            observation.postReadCast(result._previousDataValues)
+            observationTreatment.postReadCast(result.dataValues)
+            observationTreatment.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -375,65 +333,19 @@ module.exports = class observation extends Sequelize.Model {
 
 
     /**
-     * add_germplasmDbId - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
-     * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_germplasmDbId(observationDbId, germplasmDbId, benignErrorReporter) {
-        try {
-            let updated = await observation.update({
-                germplasmDbId: germplasmDbId
-            }, {
-                where: {
-                    observationDbId: observationDbId
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * add_studyDbId - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
-     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_studyDbId(observationDbId, studyDbId, benignErrorReporter) {
-        try {
-            let updated = await observation.update({
-                studyDbId: studyDbId
-            }, {
-                where: {
-                    observationDbId: observationDbId
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
      * add_observationUnitDbId - field Mutation (model-layer) for to_one associationsArguments to add
      *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
+     * @param {Id}   observationTreatmentDbId   IdAttribute of the root model to be updated
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async add_observationUnitDbId(observationDbId, observationUnitDbId, benignErrorReporter) {
+    static async add_observationUnitDbId(observationTreatmentDbId, observationUnitDbId, benignErrorReporter) {
         try {
-            let updated = await observation.update({
+            let updated = await observationTreatment.update({
                 observationUnitDbId: observationUnitDbId
             }, {
                 where: {
-                    observationDbId: observationDbId
+                    observationTreatmentDbId: observationTreatmentDbId
                 }
             });
             return updated[0];
@@ -445,67 +357,19 @@ module.exports = class observation extends Sequelize.Model {
     }
 
     /**
-     * remove_germplasmDbId - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
-     * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_germplasmDbId(observationDbId, germplasmDbId, benignErrorReporter) {
-        try {
-            let updated = await observation.update({
-                germplasmDbId: null
-            }, {
-                where: {
-                    observationDbId: observationDbId,
-                    germplasmDbId: germplasmDbId
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * remove_studyDbId - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
-     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_studyDbId(observationDbId, studyDbId, benignErrorReporter) {
-        try {
-            let updated = await observation.update({
-                studyDbId: null
-            }, {
-                where: {
-                    observationDbId: observationDbId,
-                    studyDbId: studyDbId
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
      * remove_observationUnitDbId - field Mutation (model-layer) for to_one associationsArguments to remove
      *
-     * @param {Id}   observationDbId   IdAttribute of the root model to be updated
+     * @param {Id}   observationTreatmentDbId   IdAttribute of the root model to be updated
      * @param {Id}   observationUnitDbId Foreign Key (stored in "Me") of the Association to be updated.
      * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
      */
-    static async remove_observationUnitDbId(observationDbId, observationUnitDbId, benignErrorReporter) {
+    static async remove_observationUnitDbId(observationTreatmentDbId, observationUnitDbId, benignErrorReporter) {
         try {
-            let updated = await observation.update({
+            let updated = await observationTreatment.update({
                 observationUnitDbId: null
             }, {
                 where: {
-                    observationDbId: observationDbId,
+                    observationTreatmentDbId: observationTreatmentDbId,
                     observationUnitDbId: observationUnitDbId
                 }
             });
@@ -522,76 +386,24 @@ module.exports = class observation extends Sequelize.Model {
 
 
     /**
-     * bulkAssociateObservationWithGermplasmDbId - bulkAssociaton of given ids
+     * bulkAssociateObservationTreatmentWithObservationUnitDbId - bulkAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkAssociateObservationWithGermplasmDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "germplasmDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            germplasmDbId,
-            observationDbId
-        }) => {
-            promises.push(super.update({
-                germplasmDbId: germplasmDbId
-            }, {
-                where: {
-                    observationDbId: observationDbId
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkAssociateObservationWithStudyDbId - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateObservationWithStudyDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "studyDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            studyDbId,
-            observationDbId
-        }) => {
-            promises.push(super.update({
-                studyDbId: studyDbId
-            }, {
-                where: {
-                    observationDbId: observationDbId
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkAssociateObservationWithObservationUnitDbId - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateObservationWithObservationUnitDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "observationUnitDbId");
+    static async bulkAssociateObservationTreatmentWithObservationUnitDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationTreatmentDbId", "observationUnitDbId");
         var promises = [];
         mappedForeignKeys.forEach(({
             observationUnitDbId,
-            observationDbId
+            observationTreatmentDbId
         }) => {
             promises.push(super.update({
                 observationUnitDbId: observationUnitDbId
             }, {
                 where: {
-                    observationDbId: observationDbId
+                    observationTreatmentDbId: observationTreatmentDbId
                 }
             }));
         })
@@ -601,78 +413,24 @@ module.exports = class observation extends Sequelize.Model {
 
 
     /**
-     * bulkDisAssociateObservationWithGermplasmDbId - bulkDisAssociaton of given ids
+     * bulkDisAssociateObservationTreatmentWithObservationUnitDbId - bulkDisAssociaton of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove
      * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
      * @return {string} returns message on success
      */
-    static async bulkDisAssociateObservationWithGermplasmDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "germplasmDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            germplasmDbId,
-            observationDbId
-        }) => {
-            promises.push(super.update({
-                germplasmDbId: null
-            }, {
-                where: {
-                    observationDbId: observationDbId,
-                    germplasmDbId: germplasmDbId
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateObservationWithStudyDbId - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateObservationWithStudyDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "studyDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            studyDbId,
-            observationDbId
-        }) => {
-            promises.push(super.update({
-                studyDbId: null
-            }, {
-                where: {
-                    observationDbId: observationDbId,
-                    studyDbId: studyDbId
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
-
-    /**
-     * bulkDisAssociateObservationWithObservationUnitDbId - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateObservationWithObservationUnitDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationDbId", "observationUnitDbId");
+    static async bulkDisAssociateObservationTreatmentWithObservationUnitDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationTreatmentDbId", "observationUnitDbId");
         var promises = [];
         mappedForeignKeys.forEach(({
             observationUnitDbId,
-            observationDbId
+            observationTreatmentDbId
         }) => {
             promises.push(super.update({
                 observationUnitDbId: null
             }, {
                 where: {
-                    observationDbId: observationDbId,
+                    observationTreatmentDbId: observationTreatmentDbId,
                     observationUnitDbId: observationUnitDbId
                 }
             }));
@@ -689,7 +447,7 @@ module.exports = class observation extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return observation.definition.id.name;
+        return observationTreatment.definition.id.name;
     }
 
     /**
@@ -698,16 +456,16 @@ module.exports = class observation extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return observation.definition.id.type;
+        return observationTreatment.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of observation.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of observationTreatment.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[observation.idAttribute()];
+        return this[observationTreatment.idAttribute()];
     }
 
     /**
@@ -728,9 +486,9 @@ module.exports = class observation extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  observation to a base 64 String
+     * base64Encode - Encode  observationTreatment to a base 64 String
      *
-     * @return {string} The observation object, encoded in a base 64 String
+     * @return {string} The observationTreatment object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -741,27 +499,27 @@ module.exports = class observation extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The observation object, encoded in a base 64 String
+     * @return {string} The observationTreatment object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of observation.
+     * stripAssociations - Instance method for getting all attributes of observationTreatment.
      *
-     * @return {object} The attributes of observation in object form
+     * @return {object} The attributes of observationTreatment in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(observation.definition.attributes);
+        let attributes = Object.keys(observationTreatment.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of observation that are marked as external IDs.
+     * externalIdsArray - Get all attributes of observationTreatment that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of observation that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of observationTreatment that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -773,7 +531,7 @@ module.exports = class observation extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of observation.
+     * externalIdsObject - Get all external IDs of observationTreatment.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

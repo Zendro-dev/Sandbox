@@ -34,6 +34,18 @@ module.exports.validator_patch = function(observationUnit) {
             "observationUnitDbId": {
                 "type": ["string", "null"]
             },
+            "germplasmDbId": {
+                "type": ["string", "null"]
+            },
+            "locationDbId": {
+                "type": ["string", "null"]
+            },
+            "studyDbId": {
+                "type": ["string", "null"]
+            },
+            "trialDbId": {
+                "type": ["string", "null"]
+            },
             "eventDbIds": {
                 "type": ["array", "null"]
             }

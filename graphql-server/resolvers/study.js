@@ -3,7 +3,7 @@
 */
 
 const path = require('path');
-const observationUnit = require(path.join(__dirname, '..', 'models', 'index.js')).observationUnit;
+const study = require(path.join(__dirname, '..', 'models', 'index.js')).study;
 const helper = require('../utils/helper');
 const checkAuthorization = require('../utils/check-authorization');
 const fs = require('fs');
@@ -14,12 +14,9 @@ const globals = require('../config/globals');
 const errorHelper = require('../utils/errors');
 const validatorUtil = require("../utils/validatorUtil");
 const associationArgsDef = {
-    'addObservationUnitPosition': 'observationUnitPosition',
     'addLocation': 'location',
-    'addGermplasm': 'germplasm',
-    'addStudy': 'study',
     'addTrial': 'trial',
-    'addObservationTreatments': 'observationTreatment',
+    'addObservationUnits': 'observationUnit',
     'addObservations': 'observation',
     'addEvents': 'event'
 }
@@ -27,47 +24,13 @@ const associationArgsDef = {
 
 
 /**
- * observationUnit.prototype.observationUnitPosition - Return associated record
+ * study.prototype.location - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-observationUnit.prototype.observationUnitPosition = async function({
-    search
-}, context) {
-    //build new search filter
-    let nsearch = helper.addSearchField({
-        "search": search,
-        "field": "observationUnitDbId",
-        "value": this.getIdValue(),
-        "operator": "eq"
-    });
-
-    let found = (await resolvers.observationUnitPositionsConnection({
-        search: nsearch,
-        pagination: {
-            first: 2
-        }
-    }, context)).edges;
-    if (found.length > 0) {
-        if (found.length > 1) {
-            context.benignErrors.push(new Error(
-                `Not unique "to_one" association Error: Found > 1 observationUnitPositions matching observationUnit with observationUnitDbId ${this.getIdValue()}. Consider making this a "to_many" association, or using unique constraints, or moving the foreign key into the observationUnit model. Returning first observationUnitPosition.`
-            ));
-        }
-        return found[0].node;
-    }
-    return null;
-}
-/**
- * observationUnit.prototype.location - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-observationUnit.prototype.location = async function({
+study.prototype.location = async function({
     search
 }, context) {
 
@@ -99,89 +62,13 @@ observationUnit.prototype.location = async function({
     }
 }
 /**
- * observationUnit.prototype.germplasm - Return associated record
+ * study.prototype.trial - Return associated record
  *
  * @param  {object} search       Search argument to match the associated record
  * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}         Associated record
  */
-observationUnit.prototype.germplasm = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.germplasmDbId)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneGermplasm({
-                [models.germplasm.idAttribute()]: this.germplasmDbId
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.germplasm.idAttribute(),
-                "value": this.germplasmDbId,
-                "operator": "eq"
-            });
-            let found = (await resolvers.germplasmsConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
-/**
- * observationUnit.prototype.study - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-observationUnit.prototype.study = async function({
-    search
-}, context) {
-
-    if (helper.isNotUndefinedAndNotNull(this.studyDbId)) {
-        if (search === undefined || search === null) {
-            return resolvers.readOneStudy({
-                [models.study.idAttribute()]: this.studyDbId
-            }, context)
-        } else {
-
-            //build new search filter
-            let nsearch = helper.addSearchField({
-                "search": search,
-                "field": models.study.idAttribute(),
-                "value": this.studyDbId,
-                "operator": "eq"
-            });
-            let found = (await resolvers.studiesConnection({
-                search: nsearch,
-                pagination: {
-                    first: 1
-                }
-            }, context)).edges;
-            if (found.length > 0) {
-                return found[0].node
-            }
-            return found;
-        }
-    }
-}
-/**
- * observationUnit.prototype.trial - Return associated record
- *
- * @param  {object} search       Search argument to match the associated record
- * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
- * @return {type}         Associated record
- */
-observationUnit.prototype.trial = async function({
+study.prototype.trial = async function({
     search
 }, context) {
 
@@ -214,7 +101,7 @@ observationUnit.prototype.trial = async function({
 }
 
 /**
- * observationUnit.prototype.observationTreatmentsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.observationUnitsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -224,7 +111,7 @@ observationUnit.prototype.trial = async function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.observationTreatmentsFilter = function({
+study.prototype.observationUnitsFilter = function({
     search,
     order,
     pagination
@@ -232,11 +119,11 @@ observationUnit.prototype.observationTreatmentsFilter = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.observationTreatments({
+    return resolvers.observationUnits({
         search: nsearch,
         order: order,
         pagination: pagination
@@ -244,29 +131,29 @@ observationUnit.prototype.observationTreatmentsFilter = function({
 }
 
 /**
- * observationUnit.prototype.countFilteredObservationTreatments - Count number of associated records that holds the conditions specified in the search argument
+ * study.prototype.countFilteredObservationUnits - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-observationUnit.prototype.countFilteredObservationTreatments = function({
+study.prototype.countFilteredObservationUnits = function({
     search
 }, context) {
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.countObservationTreatments({
+    return resolvers.countObservationUnits({
         search: nsearch
     }, context);
 }
 
 /**
- * observationUnit.prototype.observationTreatmentsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -276,7 +163,7 @@ observationUnit.prototype.countFilteredObservationTreatments = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.observationTreatmentsConnection = function({
+study.prototype.observationUnitsConnection = function({
     search,
     order,
     pagination
@@ -284,18 +171,18 @@ observationUnit.prototype.observationTreatmentsConnection = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
-    return resolvers.observationTreatmentsConnection({
+    return resolvers.observationUnitsConnection({
         search: nsearch,
         order: order,
         pagination: pagination
     }, context);
 }
 /**
- * observationUnit.prototype.observationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.observationsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -305,7 +192,7 @@ observationUnit.prototype.observationTreatmentsConnection = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.observationsFilter = function({
+study.prototype.observationsFilter = function({
     search,
     order,
     pagination
@@ -313,7 +200,7 @@ observationUnit.prototype.observationsFilter = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
@@ -325,19 +212,19 @@ observationUnit.prototype.observationsFilter = function({
 }
 
 /**
- * observationUnit.prototype.countFilteredObservations - Count number of associated records that holds the conditions specified in the search argument
+ * study.prototype.countFilteredObservations - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-observationUnit.prototype.countFilteredObservations = function({
+study.prototype.countFilteredObservations = function({
     search
 }, context) {
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
@@ -347,7 +234,7 @@ observationUnit.prototype.countFilteredObservations = function({
 }
 
 /**
- * observationUnit.prototype.observationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.observationsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -357,7 +244,7 @@ observationUnit.prototype.countFilteredObservations = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.observationsConnection = function({
+study.prototype.observationsConnection = function({
     search,
     order,
     pagination
@@ -365,7 +252,7 @@ observationUnit.prototype.observationsConnection = function({
     //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": "observationUnitDbId",
+        "field": "studyDbId",
         "value": this.getIdValue(),
         "operator": "eq"
     });
@@ -376,7 +263,7 @@ observationUnit.prototype.observationsConnection = function({
     }, context);
 }
 /**
- * observationUnit.prototype.eventsFilter - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.eventsFilter - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -386,22 +273,17 @@ observationUnit.prototype.observationsConnection = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of associated records holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.eventsFilter = function({
+study.prototype.eventsFilter = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.eventDbIds) || this.eventDbIds.length === 0) {
-        return [];
-    }
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.event.idAttribute(),
-        "value": this.eventDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "studyDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.events({
         search: nsearch,
@@ -411,27 +293,21 @@ observationUnit.prototype.eventsFilter = function({
 }
 
 /**
- * observationUnit.prototype.countFilteredEvents - Count number of associated records that holds the conditions specified in the search argument
+ * study.prototype.countFilteredEvents - Count number of associated records that holds the conditions specified in the search argument
  *
  * @param  {object} {search} description
  * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {type}          Number of associated records that holds the conditions specified in the search argument
  */
-observationUnit.prototype.countFilteredEvents = function({
+study.prototype.countFilteredEvents = function({
     search
 }, context) {
-
-    //return 0 if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.eventDbIds) || this.eventDbIds.length === 0) {
-        return 0;
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.event.idAttribute(),
-        "value": this.eventDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "studyDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.countEvents({
         search: nsearch
@@ -439,7 +315,7 @@ observationUnit.prototype.countFilteredEvents = function({
 }
 
 /**
- * observationUnit.prototype.eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records
+ * study.prototype.eventsConnection - Check user authorization and return certain number, specified in pagination argument, of records
  * associated with the current instance, this records should also
  * holds the condition of search argument, all of them sorted as specified by the order argument.
  *
@@ -449,32 +325,17 @@ observationUnit.prototype.countFilteredEvents = function({
  * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
  * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
  */
-observationUnit.prototype.eventsConnection = function({
+study.prototype.eventsConnection = function({
     search,
     order,
     pagination
 }, context) {
-
-    //return an empty response if the foreignKey Array is empty, no need to query the database
-    if (!Array.isArray(this.eventDbIds) || this.eventDbIds.length === 0) {
-        return {
-            edges: [],
-            events: [],
-            pageInfo: {
-                startCursor: null,
-                endCursor: null,
-                hasPreviousPage: false,
-                hasNextPage: false
-            }
-        };
-    }
-
+    //build new search filter
     let nsearch = helper.addSearchField({
         "search": search,
-        "field": models.event.idAttribute(),
-        "value": this.eventDbIds.join(','),
-        "valueType": "Array",
-        "operator": "in"
+        "field": "studyDbId",
+        "value": this.getIdValue(),
+        "operator": "eq"
     });
     return resolvers.eventsConnection({
         search: nsearch,
@@ -493,11 +354,11 @@ observationUnit.prototype.eventsConnection = function({
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
+study.prototype.handleAssociations = async function(input, benignErrorReporter, token) {
 
     let promises_add = [];
-    if (helper.isNonEmptyArray(input.addObservationTreatments)) {
-        promises_add.push(this.add_observationTreatments(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.addObservationUnits)) {
+        promises_add.push(this.add_observationUnits(input, benignErrorReporter, token));
     }
     if (helper.isNonEmptyArray(input.addObservations)) {
         promises_add.push(this.add_observations(input, benignErrorReporter, token));
@@ -505,17 +366,8 @@ observationUnit.prototype.handleAssociations = async function(input, benignError
     if (helper.isNonEmptyArray(input.addEvents)) {
         promises_add.push(this.add_events(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.addObservationUnitPosition)) {
-        promises_add.push(this.add_observationUnitPosition(input, benignErrorReporter, token));
-    }
     if (helper.isNotUndefinedAndNotNull(input.addLocation)) {
         promises_add.push(this.add_location(input, benignErrorReporter, token));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addGermplasm)) {
-        promises_add.push(this.add_germplasm(input, benignErrorReporter, token));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.addStudy)) {
-        promises_add.push(this.add_study(input, benignErrorReporter, token));
     }
     if (helper.isNotUndefinedAndNotNull(input.addTrial)) {
         promises_add.push(this.add_trial(input, benignErrorReporter, token));
@@ -523,8 +375,8 @@ observationUnit.prototype.handleAssociations = async function(input, benignError
 
     await Promise.all(promises_add);
     let promises_remove = [];
-    if (helper.isNonEmptyArray(input.removeObservationTreatments)) {
-        promises_remove.push(this.remove_observationTreatments(input, benignErrorReporter, token));
+    if (helper.isNonEmptyArray(input.removeObservationUnits)) {
+        promises_remove.push(this.remove_observationUnits(input, benignErrorReporter, token));
     }
     if (helper.isNonEmptyArray(input.removeObservations)) {
         promises_remove.push(this.remove_observations(input, benignErrorReporter, token));
@@ -532,17 +384,8 @@ observationUnit.prototype.handleAssociations = async function(input, benignError
     if (helper.isNonEmptyArray(input.removeEvents)) {
         promises_remove.push(this.remove_events(input, benignErrorReporter, token));
     }
-    if (helper.isNotUndefinedAndNotNull(input.removeObservationUnitPosition)) {
-        promises_remove.push(this.remove_observationUnitPosition(input, benignErrorReporter, token));
-    }
     if (helper.isNotUndefinedAndNotNull(input.removeLocation)) {
         promises_remove.push(this.remove_location(input, benignErrorReporter, token));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeGermplasm)) {
-        promises_remove.push(this.remove_germplasm(input, benignErrorReporter, token));
-    }
-    if (helper.isNotUndefinedAndNotNull(input.removeStudy)) {
-        promises_remove.push(this.remove_study(input, benignErrorReporter, token));
     }
     if (helper.isNotUndefinedAndNotNull(input.removeTrial)) {
         promises_remove.push(this.remove_trial(input, benignErrorReporter, token));
@@ -552,22 +395,22 @@ observationUnit.prototype.handleAssociations = async function(input, benignError
 
 }
 /**
- * add_observationTreatments - field Mutation for to_many associations to add
+ * add_observationUnits - field Mutation for to_many associations to add
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to add  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.add_observationTreatments = async function(input, benignErrorReporter, token) {
+study.prototype.add_observationUnits = async function(input, benignErrorReporter, token) {
 
-    let bulkAssociationInput = input.addObservationTreatments.map(associatedRecordId => {
+    let bulkAssociationInput = input.addObservationUnits.map(associatedRecordId => {
         return {
-            observationUnitDbId: this.getIdValue(),
-            [models.observationTreatment.idAttribute()]: associatedRecordId
+            studyDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
         }
     });
-    await models.observationTreatment.bulkAssociateObservationTreatmentWithObservationUnitDbId(bulkAssociationInput, benignErrorReporter, token);
+    await models.observationUnit.bulkAssociateObservationUnitWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -578,15 +421,15 @@ observationUnit.prototype.add_observationTreatments = async function(input, beni
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.add_observations = async function(input, benignErrorReporter, token) {
+study.prototype.add_observations = async function(input, benignErrorReporter, token) {
 
     let bulkAssociationInput = input.addObservations.map(associatedRecordId => {
         return {
-            observationUnitDbId: this.getIdValue(),
+            studyDbId: this.getIdValue(),
             [models.observation.idAttribute()]: associatedRecordId
         }
     });
-    await models.observation.bulkAssociateObservationWithObservationUnitDbId(bulkAssociationInput, benignErrorReporter, token);
+    await models.observation.bulkAssociateObservationWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -597,21 +440,15 @@ observationUnit.prototype.add_observations = async function(input, benignErrorRe
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.add_events = async function(input, benignErrorReporter, token) {
+study.prototype.add_events = async function(input, benignErrorReporter, token) {
 
-    await observationUnit.add_eventDbIds(this.getIdValue(), input.addEvents, benignErrorReporter, token);
-    this.eventDbIds = helper.unionIds(this.eventDbIds, input.addEvents);
-}
-
-/**
- * add_observationUnitPosition - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.add_observationUnitPosition = async function(input, benignErrorReporter, token) {
-    await models.observationUnitPosition.add_observationUnitDbId(input.addObservationUnitPosition, this.getIdValue(), benignErrorReporter, token);
+    let bulkAssociationInput = input.addEvents.map(associatedRecordId => {
+        return {
+            studyDbId: this.getIdValue(),
+            [models.event.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.event.bulkAssociateEventWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -621,33 +458,9 @@ observationUnit.prototype.add_observationUnitPosition = async function(input, be
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.add_location = async function(input, benignErrorReporter, token) {
-    await observationUnit.add_locationDbId(this.getIdValue(), input.addLocation, benignErrorReporter, token);
+study.prototype.add_location = async function(input, benignErrorReporter, token) {
+    await study.add_locationDbId(this.getIdValue(), input.addLocation, benignErrorReporter, token);
     this.locationDbId = input.addLocation;
-}
-
-/**
- * add_germplasm - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.add_germplasm = async function(input, benignErrorReporter, token) {
-    await observationUnit.add_germplasmDbId(this.getIdValue(), input.addGermplasm, benignErrorReporter, token);
-    this.germplasmDbId = input.addGermplasm;
-}
-
-/**
- * add_study - field Mutation for to_one associations to add
- *
- * @param {object} input   Info of input Ids to add  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.add_study = async function(input, benignErrorReporter, token) {
-    await observationUnit.add_studyDbId(this.getIdValue(), input.addStudy, benignErrorReporter, token);
-    this.studyDbId = input.addStudy;
 }
 
 /**
@@ -657,28 +470,28 @@ observationUnit.prototype.add_study = async function(input, benignErrorReporter,
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.add_trial = async function(input, benignErrorReporter, token) {
-    await observationUnit.add_trialDbId(this.getIdValue(), input.addTrial, benignErrorReporter, token);
+study.prototype.add_trial = async function(input, benignErrorReporter, token) {
+    await study.add_trialDbId(this.getIdValue(), input.addTrial, benignErrorReporter, token);
     this.trialDbId = input.addTrial;
 }
 
 /**
- * remove_observationTreatments - field Mutation for to_many associations to remove
+ * remove_observationUnits - field Mutation for to_many associations to remove
  * uses bulkAssociate to efficiently update associations
  *
  * @param {object} input   Info of input Ids to remove  the association
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.remove_observationTreatments = async function(input, benignErrorReporter, token) {
+study.prototype.remove_observationUnits = async function(input, benignErrorReporter, token) {
 
-    let bulkAssociationInput = input.removeObservationTreatments.map(associatedRecordId => {
+    let bulkAssociationInput = input.removeObservationUnits.map(associatedRecordId => {
         return {
-            observationUnitDbId: this.getIdValue(),
-            [models.observationTreatment.idAttribute()]: associatedRecordId
+            studyDbId: this.getIdValue(),
+            [models.observationUnit.idAttribute()]: associatedRecordId
         }
     });
-    await models.observationTreatment.bulkDisAssociateObservationTreatmentWithObservationUnitDbId(bulkAssociationInput, benignErrorReporter, token);
+    await models.observationUnit.bulkDisAssociateObservationUnitWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -689,15 +502,15 @@ observationUnit.prototype.remove_observationTreatments = async function(input, b
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.remove_observations = async function(input, benignErrorReporter, token) {
+study.prototype.remove_observations = async function(input, benignErrorReporter, token) {
 
     let bulkAssociationInput = input.removeObservations.map(associatedRecordId => {
         return {
-            observationUnitDbId: this.getIdValue(),
+            studyDbId: this.getIdValue(),
             [models.observation.idAttribute()]: associatedRecordId
         }
     });
-    await models.observation.bulkDisAssociateObservationWithObservationUnitDbId(bulkAssociationInput, benignErrorReporter, token);
+    await models.observation.bulkDisAssociateObservationWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -708,21 +521,15 @@ observationUnit.prototype.remove_observations = async function(input, benignErro
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.remove_events = async function(input, benignErrorReporter, token) {
+study.prototype.remove_events = async function(input, benignErrorReporter, token) {
 
-    await observationUnit.remove_eventDbIds(this.getIdValue(), input.removeEvents, benignErrorReporter, token);
-    this.eventDbIds = helper.differenceIds(this.eventDbIds, input.removeEvents);
-}
-
-/**
- * remove_observationUnitPosition - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.remove_observationUnitPosition = async function(input, benignErrorReporter, token) {
-    await models.observationUnitPosition.remove_observationUnitDbId(input.removeObservationUnitPosition, this.getIdValue(), benignErrorReporter, token);
+    let bulkAssociationInput = input.removeEvents.map(associatedRecordId => {
+        return {
+            studyDbId: this.getIdValue(),
+            [models.event.idAttribute()]: associatedRecordId
+        }
+    });
+    await models.event.bulkDisAssociateEventWithStudyDbId(bulkAssociationInput, benignErrorReporter, token);
 }
 
 /**
@@ -732,38 +539,10 @@ observationUnit.prototype.remove_observationUnitPosition = async function(input,
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.remove_location = async function(input, benignErrorReporter, token) {
+study.prototype.remove_location = async function(input, benignErrorReporter, token) {
     if (input.removeLocation == this.locationDbId) {
-        await observationUnit.remove_locationDbId(this.getIdValue(), input.removeLocation, benignErrorReporter, token);
+        await study.remove_locationDbId(this.getIdValue(), input.removeLocation, benignErrorReporter, token);
         this.locationDbId = null;
-    }
-}
-
-/**
- * remove_germplasm - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.remove_germplasm = async function(input, benignErrorReporter, token) {
-    if (input.removeGermplasm == this.germplasmDbId) {
-        await observationUnit.remove_germplasmDbId(this.getIdValue(), input.removeGermplasm, benignErrorReporter, token);
-        this.germplasmDbId = null;
-    }
-}
-
-/**
- * remove_study - field Mutation for to_one associations to remove
- *
- * @param {object} input   Info of input Ids to remove  the association
- * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
- * @param {string} token The token used for authorization
- */
-observationUnit.prototype.remove_study = async function(input, benignErrorReporter, token) {
-    if (input.removeStudy == this.studyDbId) {
-        await observationUnit.remove_studyDbId(this.getIdValue(), input.removeStudy, benignErrorReporter, token);
-        this.studyDbId = null;
     }
 }
 
@@ -774,9 +553,9 @@ observationUnit.prototype.remove_study = async function(input, benignErrorReport
  * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
  * @param {string} token The token used for authorization
  */
-observationUnit.prototype.remove_trial = async function(input, benignErrorReporter, token) {
+study.prototype.remove_trial = async function(input, benignErrorReporter, token) {
     if (input.removeTrial == this.trialDbId) {
-        await observationUnit.remove_trialDbId(this.getIdValue(), input.removeTrial, benignErrorReporter, token);
+        await study.remove_trialDbId(this.getIdValue(), input.removeTrial, benignErrorReporter, token);
         this.trialDbId = null;
     }
 }
@@ -792,24 +571,20 @@ observationUnit.prototype.remove_trial = async function(input, benignErrorReport
  */
 async function countAssociatedRecordsWithRejectReaction(id, context) {
 
-    let observationUnit = await resolvers.readOneObservationUnit({
-        observationUnitDbId: id
+    let study = await resolvers.readOneStudy({
+        studyDbId: id
     }, context);
     //check that record actually exists
-    if (observationUnit === null) throw new Error(`Record with ID = ${id} does not exist`);
+    if (study === null) throw new Error(`Record with ID = ${id} does not exist`);
     let promises_to_many = [];
     let promises_to_one = [];
     let get_to_many_associated_fk = 0;
     let get_to_one_associated_fk = 0;
-    promises_to_many.push(observationUnit.countFilteredObservationTreatments({}, context));
-    promises_to_many.push(observationUnit.countFilteredObservations({}, context));
-
-    get_to_many_associated_fk += Array.isArray(observationUnit.eventDbIds) ? observationUnit.eventDbIds.length : 0;
-    promises_to_one.push(observationUnit.observationUnitPosition({}, context));
-    promises_to_one.push(observationUnit.location({}, context));
-    promises_to_one.push(observationUnit.germplasm({}, context));
-    promises_to_one.push(observationUnit.study({}, context));
-    promises_to_one.push(observationUnit.trial({}, context));
+    promises_to_many.push(study.countFilteredObservationUnits({}, context));
+    promises_to_many.push(study.countFilteredObservations({}, context));
+    promises_to_many.push(study.countFilteredEvents({}, context));
+    promises_to_one.push(study.location({}, context));
+    promises_to_one.push(study.trial({}, context));
 
 
     let result_to_many = await Promise.all(promises_to_many);
@@ -830,7 +605,7 @@ async function countAssociatedRecordsWithRejectReaction(id, context) {
  */
 async function validForDeletion(id, context) {
     if (await countAssociatedRecordsWithRejectReaction(id, context) > 0) {
-        throw new Error(`observationUnit with observationUnitDbId ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
+        throw new Error(`study with studyDbId ${id} has associated records with 'reject' reaction and is NOT valid for deletion. Please clean up before you delete.`);
     }
     return true;
 }
@@ -842,8 +617,8 @@ async function validForDeletion(id, context) {
  * @param  {object} context Default context by resolver
  */
 const updateAssociations = async (id, context) => {
-    const observationUnit_record = await resolvers.readOneObservationUnit({
-            observationUnitDbId: id
+    const study_record = await resolvers.readOneStudy({
+            studyDbId: id
         },
         context
     );
@@ -854,7 +629,7 @@ const updateAssociations = async (id, context) => {
 }
 module.exports = {
     /**
-     * observationUnits - Check user authorization and return certain number, specified in pagination argument, of records that
+     * studies - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -863,26 +638,26 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records holding conditions specified by search, order and pagination argument
      */
-    observationUnits: async function({
+    studies: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "observationUnits");
+        if (await checkAuthorization(context, 'study', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(pagination.limit, context, "studies");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observationUnit.readAll(search, order, pagination, context.benignErrors, token);
+            return await study.readAll(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * observationUnitsConnection - Check user authorization and return certain number, specified in pagination argument, of records that
+     * studiesConnection - Check user authorization and return certain number, specified in pagination argument, of records that
      * holds the condition of search argument, all of them sorted as specified by the order argument.
      *
      * @param  {object} search     Search argument for filtering records
@@ -891,80 +666,80 @@ module.exports = {
      * @param  {object} context     Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {array}             Array of records as grapqhql connections holding conditions specified by search, order and pagination argument
      */
-    observationUnitsConnection: async function({
+    studiesConnection: async function({
         search,
         order,
         pagination
     }, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'read') === true) {
+        if (await checkAuthorization(context, 'study', 'read') === true) {
             helper.checkCursorBasedPaginationArgument(pagination);
             let limit = helper.isNotUndefinedAndNotNull(pagination.first) ? pagination.first : pagination.last;
-            helper.checkCountAndReduceRecordsLimit(limit, context, "observationUnitsConnection");
+            helper.checkCountAndReduceRecordsLimit(limit, context, "studiesConnection");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observationUnit.readAllCursor(search, order, pagination, context.benignErrors, token);
+            return await study.readAllCursor(search, order, pagination, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * readOneObservationUnit - Check user authorization and return one record with the specified observationUnitDbId in the observationUnitDbId argument.
+     * readOneStudy - Check user authorization and return one record with the specified studyDbId in the studyDbId argument.
      *
-     * @param  {number} {observationUnitDbId}    observationUnitDbId of the record to retrieve
+     * @param  {number} {studyDbId}    studyDbId of the record to retrieve
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {object}         Record with observationUnitDbId requested
+     * @return {object}         Record with studyDbId requested
      */
-    readOneObservationUnit: async function({
-        observationUnitDbId
+    readOneStudy: async function({
+        studyDbId
     }, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'read') === true) {
-            helper.checkCountAndReduceRecordsLimit(1, context, "readOneObservationUnit");
+        if (await checkAuthorization(context, 'study', 'read') === true) {
+            helper.checkCountAndReduceRecordsLimit(1, context, "readOneStudy");
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observationUnit.readById(observationUnitDbId, context.benignErrors, token);
+            return await study.readById(studyDbId, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * countObservationUnits - Counts number of records that holds the conditions specified in the search argument
+     * countStudies - Counts number of records that holds the conditions specified in the search argument
      *
      * @param  {object} {search} Search argument for filtering records
      * @param  {object} context  Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {number}          Number of records that holds the conditions specified in the search argument
      */
-    countObservationUnits: async function({
+    countStudies: async function({
         search
     }, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'read') === true) {
+        if (await checkAuthorization(context, 'study', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return await observationUnit.countRecords(search, context.benignErrors, token);
+            return await study.countRecords(search, context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * validateObservationUnitForCreation - Check user authorization and validate input argument for creation.
+     * validateStudyForCreation - Check user authorization and validate input argument for creation.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateObservationUnitForCreation: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'observationUnit', 'read');
+    validateStudyForCreation: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'study', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -979,7 +754,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForCreate",
-                    observationUnit,
+                    study,
                     inputSanitized
                 );
                 return true;
@@ -995,14 +770,14 @@ module.exports = {
     },
 
     /**
-     * validateObservationUnitForUpdating - Check user authorization and validate input argument for updating.
+     * validateStudyForUpdating - Check user authorization and validate input argument for updating.
      *
      * @param  {object} input   Info of each field to create the new record
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateObservationUnitForUpdating: async (input, context) => {
-        let authorization = await checkAuthorization(context, 'observationUnit', 'read');
+    validateStudyForUpdating: async (input, context) => {
+        let authorization = await checkAuthorization(context, 'study', 'read');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [
                 Object.keys(associationArgsDef),
@@ -1017,7 +792,7 @@ module.exports = {
                 }
                 await validatorUtil.validateData(
                     "validateForUpdate",
-                    observationUnit,
+                    study,
                     inputSanitized
                 );
                 return true;
@@ -1033,26 +808,26 @@ module.exports = {
     },
 
     /**
-     * validateObservationUnitForDeletion - Check user authorization and validate record by ID for deletion.
+     * validateStudyForDeletion - Check user authorization and validate record by ID for deletion.
      *
-     * @param  {string} {observationUnitDbId} observationUnitDbId of the record to be validated
+     * @param  {string} {studyDbId} studyDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateObservationUnitForDeletion: async ({
-        observationUnitDbId
+    validateStudyForDeletion: async ({
+        studyDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'observationUnit', 'read')) === true) {
+        if ((await checkAuthorization(context, 'study', 'read')) === true) {
             try {
-                await validForDeletion(observationUnitDbId, context);
+                await validForDeletion(studyDbId, context);
                 await validatorUtil.validateData(
                     "validateForDelete",
-                    observationUnit,
-                    observationUnitDbId);
+                    study,
+                    studyDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    observationUnitDbId: observationUnitDbId
+                    studyDbId: studyDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -1063,25 +838,25 @@ module.exports = {
     },
 
     /**
-     * validateObservationUnitAfterReading - Check user authorization and validate record by ID after reading.
+     * validateStudyAfterReading - Check user authorization and validate record by ID after reading.
      *
-     * @param  {string} {observationUnitDbId} observationUnitDbId of the record to be validated
+     * @param  {string} {studyDbId} studyDbId of the record to be validated
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info
      * @return {boolean}        Validation result
      */
-    validateObservationUnitAfterReading: async ({
-        observationUnitDbId
+    validateStudyAfterReading: async ({
+        studyDbId
     }, context) => {
-        if ((await checkAuthorization(context, 'observationUnit', 'read')) === true) {
+        if ((await checkAuthorization(context, 'study', 'read')) === true) {
             try {
                 await validatorUtil.validateData(
                     "validateAfterRead",
-                    observationUnit,
-                    observationUnitDbId);
+                    study,
+                    studyDbId);
                 return true;
             } catch (error) {
                 error.input = {
-                    observationUnitDbId: observationUnitDbId
+                    studyDbId: studyDbId
                 };
                 context.benignErrors.push(error);
                 return false;
@@ -1091,7 +866,7 @@ module.exports = {
         }
     },
     /**
-     * addObservationUnit - Check user authorization and creates a new record with data specified in the input argument.
+     * addStudy - Check user authorization and creates a new record with data specified in the input argument.
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -1099,8 +874,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         New record created
      */
-    addObservationUnit: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'observationUnit', 'create');
+    addStudy: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'study', 'create');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -1113,33 +888,33 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let createdObservationUnit = await observationUnit.addOne(inputSanitized, context.benignErrors, token);
-            await createdObservationUnit.handleAssociations(inputSanitized, context.benignErrors, token);
-            return createdObservationUnit;
+            let createdStudy = await study.addOne(inputSanitized, context.benignErrors, token);
+            await createdStudy.handleAssociations(inputSanitized, context.benignErrors, token);
+            return createdStudy;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * deleteObservationUnit - Check user authorization and delete a record with the specified observationUnitDbId in the observationUnitDbId argument.
+     * deleteStudy - Check user authorization and delete a record with the specified studyDbId in the studyDbId argument.
      *
-     * @param  {number} {observationUnitDbId}    observationUnitDbId of the record to delete
+     * @param  {number} {studyDbId}    studyDbId of the record to delete
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string}         Message indicating if deletion was successfull.
      */
-    deleteObservationUnit: async function({
-        observationUnitDbId
+    deleteStudy: async function({
+        studyDbId
     }, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'delete') === true) {
-            if (await validForDeletion(observationUnitDbId, context)) {
-                await updateAssociations(observationUnitDbId, context);
+        if (await checkAuthorization(context, 'study', 'delete') === true) {
+            if (await validForDeletion(studyDbId, context)) {
+                await updateAssociations(studyDbId, context);
                 let token = context.request ?
                     context.request.headers ?
                     context.request.headers.authorization :
                     undefined :
                     undefined;
-                return observationUnit.deleteOne(observationUnitDbId, context.benignErrors, token);
+                return study.deleteOne(studyDbId, context.benignErrors, token);
             }
         } else {
             throw new Error("You don't have authorization to perform this action");
@@ -1147,7 +922,7 @@ module.exports = {
     },
 
     /**
-     * updateObservationUnit - Check user authorization and update the record specified in the input argument
+     * updateStudy - Check user authorization and update the record specified in the input argument
      * This function only handles attributes, not associations.
      * @see handleAssociations for further information.
      *
@@ -1155,8 +930,8 @@ module.exports = {
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {object}         Updated record
      */
-    updateObservationUnit: async function(input, context) {
-        let authorization = await checkAuthorization(context, 'observationUnit', 'update');
+    updateStudy: async function(input, context) {
+        let authorization = await checkAuthorization(context, 'study', 'update');
         if (authorization === true) {
             let inputSanitized = helper.sanitizeAssociationArguments(input, [Object.keys(associationArgsDef)]);
             await helper.checkAuthorizationOnAssocArgs(inputSanitized, context, associationArgsDef, ['read', 'create'], models);
@@ -1169,22 +944,22 @@ module.exports = {
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            let updatedObservationUnit = await observationUnit.updateOne(inputSanitized, context.benignErrors, token);
-            await updatedObservationUnit.handleAssociations(inputSanitized, context.benignErrors, token);
-            return updatedObservationUnit;
+            let updatedStudy = await study.updateOne(inputSanitized, context.benignErrors, token);
+            await updatedStudy.handleAssociations(inputSanitized, context.benignErrors, token);
+            return updatedStudy;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * bulkAssociateObservationUnitWithLocationDbId - bulkAssociaton resolver of given ids
+     * bulkAssociateStudyWithLocationDbId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateObservationUnitWithLocationDbId: async function(bulkAssociationInput, context) {
+    bulkAssociateStudyWithLocationDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -1196,67 +971,19 @@ module.exports = {
                 locationDbId
             }) => locationDbId)), models.location, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
-        }
-        return await observationUnit.bulkAssociateObservationUnitWithLocationDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
-    /**
-     * bulkAssociateObservationUnitWithGermplasmDbId - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateObservationUnitWithGermplasmDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                germplasmDbId
-            }) => germplasmDbId)), models.germplasm, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
-        }
-        return await observationUnit.bulkAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
-    /**
-     * bulkAssociateObservationUnitWithStudyDbId - bulkAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkAssociateObservationUnitWithStudyDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 studyDbId
-            }) => studyDbId)), models.study, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
+            }) => studyDbId)), study, token);
         }
-        return await observationUnit.bulkAssociateObservationUnitWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await study.bulkAssociateStudyWithLocationDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
     /**
-     * bulkAssociateObservationUnitWithTrialDbId - bulkAssociaton resolver of given ids
+     * bulkAssociateStudyWithTrialDbId - bulkAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to add , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkAssociateObservationUnitWithTrialDbId: async function(bulkAssociationInput, context) {
+    bulkAssociateStudyWithTrialDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -1268,19 +995,19 @@ module.exports = {
                 trialDbId
             }) => trialDbId)), models.trial, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
+                studyDbId
+            }) => studyDbId)), study, token);
         }
-        return await observationUnit.bulkAssociateObservationUnitWithTrialDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await study.bulkAssociateStudyWithTrialDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
     /**
-     * bulkDisAssociateObservationUnitWithLocationDbId - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateStudyWithLocationDbId - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateObservationUnitWithLocationDbId: async function(bulkAssociationInput, context) {
+    bulkDisAssociateStudyWithLocationDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -1292,67 +1019,19 @@ module.exports = {
                 locationDbId
             }) => locationDbId)), models.location, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
-        }
-        return await observationUnit.bulkDisAssociateObservationUnitWithLocationDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
-    /**
-     * bulkDisAssociateObservationUnitWithGermplasmDbId - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateObservationUnitWithGermplasmDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                germplasmDbId
-            }) => germplasmDbId)), models.germplasm, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
-        }
-        return await observationUnit.bulkDisAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
-    },
-    /**
-     * bulkDisAssociateObservationUnitWithStudyDbId - bulkDisAssociaton resolver of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove , 
-     * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
-     * @return {string} returns message on success
-     */
-    bulkDisAssociateObservationUnitWithStudyDbId: async function(bulkAssociationInput, context) {
-        let token = context.request ?
-            context.request.headers ?
-            context.request.headers.authorization :
-            undefined :
-            undefined;
-        // if specified, check existence of the unique given ids
-        if (!bulkAssociationInput.skipAssociationsExistenceChecks) {
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
                 studyDbId
-            }) => studyDbId)), models.study, token);
-            await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
+            }) => studyDbId)), study, token);
         }
-        return await observationUnit.bulkDisAssociateObservationUnitWithStudyDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await study.bulkDisAssociateStudyWithLocationDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
     /**
-     * bulkDisAssociateObservationUnitWithTrialDbId - bulkDisAssociaton resolver of given ids
+     * bulkDisAssociateStudyWithTrialDbId - bulkDisAssociaton resolver of given ids
      *
      * @param  {array} bulkAssociationInput Array of associations to remove , 
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {string} returns message on success
      */
-    bulkDisAssociateObservationUnitWithTrialDbId: async function(bulkAssociationInput, context) {
+    bulkDisAssociateStudyWithTrialDbId: async function(bulkAssociationInput, context) {
         let token = context.request ?
             context.request.headers ?
             context.request.headers.authorization :
@@ -1364,42 +1043,42 @@ module.exports = {
                 trialDbId
             }) => trialDbId)), models.trial, token);
             await helper.validateExistence(helper.unique(bulkAssociationInput.bulkAssociationInput.map(({
-                observationUnitDbId
-            }) => observationUnitDbId)), observationUnit, token);
+                studyDbId
+            }) => studyDbId)), study, token);
         }
-        return await observationUnit.bulkDisAssociateObservationUnitWithTrialDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
+        return await study.bulkDisAssociateStudyWithTrialDbId(bulkAssociationInput.bulkAssociationInput, context.benignErrors, token);
     },
 
     /**
-     * csvTableTemplateObservationUnit - Returns table's template
+     * csvTableTemplateStudy - Returns table's template
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {Array}         Strings, one for header and one columns types
      */
-    csvTableTemplateObservationUnit: async function(_, context) {
-        if (await checkAuthorization(context, 'observationUnit', 'read') === true) {
+    csvTableTemplateStudy: async function(_, context) {
+        if (await checkAuthorization(context, 'study', 'read') === true) {
             let token = context.request ?
                 context.request.headers ?
                 context.request.headers.authorization :
                 undefined :
                 undefined;
-            return observationUnit.csvTableTemplate(context.benignErrors, token);
+            return study.csvTableTemplate(context.benignErrors, token);
         } else {
             throw new Error("You don't have authorization to perform this action");
         }
     },
 
     /**
-     * observationUnitsZendroDefinition - Return data model definition
+     * studiesZendroDefinition - Return data model definition
      *
      * @param  {string} _       First parameter is not used
      * @param  {object} context Provided to every resolver holds contextual information like the resquest query and user info.
      * @return {GraphQLJSONObject}        Data model definition
      */
-    observationUnitsZendroDefinition: async function(_, context) {
-        if ((await checkAuthorization(context, "observationUnit", "read")) === true) {
-            return observationUnit.definition;
+    studiesZendroDefinition: async function(_, context) {
+        if ((await checkAuthorization(context, "study", "read")) === true) {
+            return study.definition;
         } else {
             throw new Error("You don't have authorization to perform this action");
         }

@@ -6,57 +6,70 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(event) {
+module.exports.validator_patch = function(trial) {
 
-    event.prototype.validationControl = {
+    trial.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    event.prototype.validatorSchema = {
+    trial.prototype.validatorSchema = {
         "$async": true,
         "type": "object",
         "properties": {
-            "eventDbId": {
+            "trialDbId": {
                 "type": ["string", "null"]
             },
-            "eventDescription": {
+            "active": {
+                "type": ["boolean", "null"]
+            },
+            "commonCropName": {
                 "type": ["string", "null"]
             },
-            "eventType": {
+            "documentationURL": {
                 "type": ["string", "null"]
             },
-            "date": {
+            "endDate": {
                 "anyOf": [{
                     "isoDateTime": true
                 }, {
                     "type": "null"
                 }]
             },
-            "observationUnitDbIds": {
-                "type": ["array", "null"]
+            "startDate": {
+                "anyOf": [{
+                    "isoDateTime": true
+                }, {
+                    "type": "null"
+                }]
             },
-            "studyDbId": {
+            "trialDescription": {
+                "type": ["string", "null"]
+            },
+            "trialName": {
+                "type": ["string", "null"]
+            },
+            "trialPUI": {
                 "type": ["string", "null"]
             }
         }
     }
 
-    event.prototype.asyncValidate = ajv.compile(
-        event.prototype.validatorSchema
+    trial.prototype.asyncValidate = ajv.compile(
+        trial.prototype.validatorSchema
     )
 
-    event.prototype.validateForCreate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    trial.prototype.validateForCreate = async function(record) {
+        return await trial.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForUpdate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    trial.prototype.validateForUpdate = async function(record) {
+        return await trial.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForDelete = async function(id) {
+    trial.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -67,9 +80,9 @@ module.exports.validator_patch = function(event) {
         }
     }
 
-    event.prototype.validateAfterRead = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    trial.prototype.validateAfterRead = async function(record) {
+        return await trial.prototype.asyncValidate(record)
     }
 
-    return event
+    return trial
 }

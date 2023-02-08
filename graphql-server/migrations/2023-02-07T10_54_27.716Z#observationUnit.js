@@ -47,6 +47,18 @@ module.exports = {
                     plantNumber: {
                         type: Sequelize[dict['String']]
                     },
+                    germplasmDbId: {
+                        type: Sequelize[dict['String']]
+                    },
+                    locationDbId: {
+                        type: Sequelize[dict['String']]
+                    },
+                    studyDbId: {
+                        type: Sequelize[dict['String']]
+                    },
+                    trialDbId: {
+                        type: Sequelize[dict['String']]
+                    },
                     eventDbIds: {
                         type: Sequelize[dict['[String]']],
                         defaultValue: '[]'

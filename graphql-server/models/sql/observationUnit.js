@@ -26,6 +26,10 @@ const definition = {
         "observationUnitPUI": "String",
         "plantNumber": "String",
         "observationUnitDbId": "String",
+        "germplasmDbId": "String",
+        "locationDbId": "String",
+        "studyDbId": "String",
+        "trialDbId": "String",
         "eventDbIds": "[String]"
     },
     "associations": {
@@ -38,6 +42,24 @@ const definition = {
             "keysIn": "observationUnitPosition",
             "targetStorageType": "sql"
         },
+        "observationTreatments": {
+            "type": "one_to_many",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnit",
+            "target": "observationTreatment",
+            "targetKey": "observationUnitDbId",
+            "keysIn": "observationTreatment",
+            "targetStorageType": "sql"
+        },
+        "location": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "location",
+            "targetKey": "locationDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
         "observations": {
             "type": "one_to_many",
             "implementation": "foreignkeys",
@@ -45,6 +67,33 @@ const definition = {
             "target": "observation",
             "targetKey": "observationUnitDbId",
             "keysIn": "observation",
+            "targetStorageType": "sql"
+        },
+        "germplasm": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "germplasm",
+            "targetKey": "germplasmDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "study": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "study",
+            "targetKey": "studyDbId",
+            "keysIn": "observationUnit",
+            "targetStorageType": "sql"
+        },
+        "trial": {
+            "type": "many_to_one",
+            "implementation": "foreignkeys",
+            "reverseAssociation": "observationUnits",
+            "target": "trial",
+            "targetKey": "trialDbId",
+            "keysIn": "observationUnit",
             "targetStorageType": "sql"
         },
         "events": {
@@ -94,6 +143,18 @@ module.exports = class observationUnit extends Sequelize.Model {
                 type: Sequelize[dict['String']]
             },
             plantNumber: {
+                type: Sequelize[dict['String']]
+            },
+            germplasmDbId: {
+                type: Sequelize[dict['String']]
+            },
+            locationDbId: {
+                type: Sequelize[dict['String']]
+            },
+            studyDbId: {
+                type: Sequelize[dict['String']]
+            },
+            trialDbId: {
                 type: Sequelize[dict['String']]
             },
             eventDbIds: {
@@ -154,6 +215,26 @@ module.exports = class observationUnit extends Sequelize.Model {
     static associate(models) {
         observationUnit.hasOne(models.observationUnitPosition, {
             as: 'observationUnitPosition',
+            foreignKey: 'observationUnitDbId'
+        });
+        observationUnit.belongsTo(models.location, {
+            as: 'location',
+            foreignKey: 'locationDbId'
+        });
+        observationUnit.belongsTo(models.germplasm, {
+            as: 'germplasm',
+            foreignKey: 'germplasmDbId'
+        });
+        observationUnit.belongsTo(models.study, {
+            as: 'study',
+            foreignKey: 'studyDbId'
+        });
+        observationUnit.belongsTo(models.trial, {
+            as: 'trial',
+            foreignKey: 'trialDbId'
+        });
+        observationUnit.hasMany(models.observationTreatment, {
+            as: 'observationTreatments',
             foreignKey: 'observationUnitDbId'
         });
         observationUnit.hasMany(models.observation, {
@@ -365,6 +446,98 @@ module.exports = class observationUnit extends Sequelize.Model {
 
 
     /**
+     * add_locationDbId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_locationDbId(observationUnitDbId, locationDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                locationDbId: locationDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * add_germplasmDbId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_germplasmDbId(observationUnitDbId, germplasmDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                germplasmDbId: germplasmDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * add_studyDbId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_studyDbId(observationUnitDbId, studyDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                studyDbId: studyDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * add_trialDbId - field Mutation (model-layer) for to_one associationsArguments to add
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async add_trialDbId(observationUnitDbId, trialDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                trialDbId: trialDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
      * add_eventDbIds - field Mutation (model-layer) for to_many associationsArguments to add
      *
      * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
@@ -392,6 +565,102 @@ module.exports = class observationUnit extends Sequelize.Model {
         }
     }
 
+    /**
+     * remove_locationDbId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   locationDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_locationDbId(observationUnitDbId, locationDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                locationDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    locationDbId: locationDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_germplasmDbId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   germplasmDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_germplasmDbId(observationUnitDbId, germplasmDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                germplasmDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    germplasmDbId: germplasmDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_studyDbId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_studyDbId(observationUnitDbId, studyDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                studyDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    studyDbId: studyDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
+    /**
+     * remove_trialDbId - field Mutation (model-layer) for to_one associationsArguments to remove
+     *
+     * @param {Id}   observationUnitDbId   IdAttribute of the root model to be updated
+     * @param {Id}   trialDbId Foreign Key (stored in "Me") of the Association to be updated.
+     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
+     */
+    static async remove_trialDbId(observationUnitDbId, trialDbId, benignErrorReporter) {
+        try {
+            let updated = await observationUnit.update({
+                trialDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    trialDbId: trialDbId
+                }
+            });
+            return updated[0];
+        } catch (error) {
+            benignErrorReporter.push({
+                message: error
+            });
+        }
+    }
     /**
      * remove_eventDbIds - field Mutation (model-layer) for to_many associationsArguments to remove
      *
@@ -424,6 +693,218 @@ module.exports = class observationUnit extends Sequelize.Model {
 
 
 
+    /**
+     * bulkAssociateObservationUnitWithLocationDbId - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateObservationUnitWithLocationDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "locationDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            locationDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                locationDbId: locationDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateObservationUnitWithGermplasmDbId - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "germplasmDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            germplasmDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                germplasmDbId: germplasmDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateObservationUnitWithStudyDbId - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateObservationUnitWithStudyDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "studyDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            studyDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                studyDbId: studyDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkAssociateObservationUnitWithTrialDbId - bulkAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to add
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkAssociateObservationUnitWithTrialDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "trialDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            trialDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                trialDbId: trialDbId
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+
+    /**
+     * bulkDisAssociateObservationUnitWithLocationDbId - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateObservationUnitWithLocationDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "locationDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            locationDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                locationDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    locationDbId: locationDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateObservationUnitWithGermplasmDbId - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateObservationUnitWithGermplasmDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "germplasmDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            germplasmDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                germplasmDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    germplasmDbId: germplasmDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateObservationUnitWithStudyDbId - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateObservationUnitWithStudyDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "studyDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            studyDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                studyDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    studyDbId: studyDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
+
+    /**
+     * bulkDisAssociateObservationUnitWithTrialDbId - bulkDisAssociaton of given ids
+     *
+     * @param  {array} bulkAssociationInput Array of associations to remove
+     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
+     * @return {string} returns message on success
+     */
+    static async bulkDisAssociateObservationUnitWithTrialDbId(bulkAssociationInput) {
+        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "observationUnitDbId", "trialDbId");
+        var promises = [];
+        mappedForeignKeys.forEach(({
+            trialDbId,
+            observationUnitDbId
+        }) => {
+            promises.push(super.update({
+                trialDbId: null
+            }, {
+                where: {
+                    observationUnitDbId: observationUnitDbId,
+                    trialDbId: trialDbId
+                }
+            }));
+        })
+        await Promise.all(promises);
+        return "Records successfully updated!"
+    }
 
 
 

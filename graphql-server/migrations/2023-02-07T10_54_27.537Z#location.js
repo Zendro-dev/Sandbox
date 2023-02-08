@@ -19,10 +19,10 @@ module.exports = {
      */
     up: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.observation.storageHandler;
+            const storageHandler = await zendro.models.location.storageHandler;
             await storageHandler.getQueryInterface()
-                .createTable('observations', {
-                    observationDbId: {
+                .createTable('locations', {
+                    locationDbId: {
                         type: Sequelize.STRING,
                         primaryKey: true
                     },
@@ -35,19 +35,46 @@ module.exports = {
                         type: Sequelize.DATE
                     },
 
-                    collector: {
+                    abbreviation: {
                         type: Sequelize[dict['String']]
                     },
-                    observationTimeStamp: {
-                        type: Sequelize[dict['DateTime']]
-                    },
-                    observationUnitDbId: {
+                    coordinateDescription: {
                         type: Sequelize[dict['String']]
                     },
-                    uploadedBy: {
+                    countryCode: {
                         type: Sequelize[dict['String']]
                     },
-                    value: {
+                    countryName: {
+                        type: Sequelize[dict['String']]
+                    },
+                    documentationURL: {
+                        type: Sequelize[dict['String']]
+                    },
+                    environmentType: {
+                        type: Sequelize[dict['String']]
+                    },
+                    exposure: {
+                        type: Sequelize[dict['String']]
+                    },
+                    instituteAddress: {
+                        type: Sequelize[dict['String']]
+                    },
+                    instituteName: {
+                        type: Sequelize[dict['String']]
+                    },
+                    locationName: {
+                        type: Sequelize[dict['String']]
+                    },
+                    locationType: {
+                        type: Sequelize[dict['String']]
+                    },
+                    siteStatus: {
+                        type: Sequelize[dict['String']]
+                    },
+                    slope: {
+                        type: Sequelize[dict['String']]
+                    },
+                    topography: {
                         type: Sequelize[dict['String']]
                     }
 
@@ -65,14 +92,14 @@ module.exports = {
      */
     down: async (zendro) => {
         try {
-            const storageHandler = await zendro.models.observation.storageHandler;
-            const recordsExists = await zendro.models.observation.count();
+            const storageHandler = await zendro.models.location.storageHandler;
+            const recordsExists = await zendro.models.location.count();
             if (recordsExists && !DOWN_MIGRATION) {
-                throw new Error(`You are trying to delete all records of observation and its associations. 
+                throw new Error(`You are trying to delete all records of location and its associations. 
             If you are sure about this, set environment variable 'DOWN_MIGRATION' to 'true' 
             and re-execute this down-migration.`);
             }
-            await storageHandler.getQueryInterface().dropTable('observations');
+            await storageHandler.getQueryInterface().dropTable('locations');
         } catch (error) {
             throw new Error(error);
         }

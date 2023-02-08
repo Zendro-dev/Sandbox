@@ -6,57 +6,47 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(event) {
+module.exports.validator_patch = function(observationTreatment) {
 
-    event.prototype.validationControl = {
+    observationTreatment.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    event.prototype.validatorSchema = {
+    observationTreatment.prototype.validatorSchema = {
         "$async": true,
         "type": "object",
         "properties": {
-            "eventDbId": {
+            "factor": {
                 "type": ["string", "null"]
             },
-            "eventDescription": {
+            "modality": {
                 "type": ["string", "null"]
             },
-            "eventType": {
+            "observationUnitDbId": {
                 "type": ["string", "null"]
             },
-            "date": {
-                "anyOf": [{
-                    "isoDateTime": true
-                }, {
-                    "type": "null"
-                }]
-            },
-            "observationUnitDbIds": {
-                "type": ["array", "null"]
-            },
-            "studyDbId": {
+            "observationTreatmentDbId": {
                 "type": ["string", "null"]
             }
         }
     }
 
-    event.prototype.asyncValidate = ajv.compile(
-        event.prototype.validatorSchema
+    observationTreatment.prototype.asyncValidate = ajv.compile(
+        observationTreatment.prototype.validatorSchema
     )
 
-    event.prototype.validateForCreate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    observationTreatment.prototype.validateForCreate = async function(record) {
+        return await observationTreatment.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForUpdate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    observationTreatment.prototype.validateForUpdate = async function(record) {
+        return await observationTreatment.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForDelete = async function(id) {
+    observationTreatment.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -67,9 +57,9 @@ module.exports.validator_patch = function(event) {
         }
     }
 
-    event.prototype.validateAfterRead = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    observationTreatment.prototype.validateAfterRead = async function(record) {
+        return await observationTreatment.prototype.asyncValidate(record)
     }
 
-    return event
+    return observationTreatment
 }

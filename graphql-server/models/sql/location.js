@@ -18,40 +18,48 @@ const moment = require('moment');
 const errorHelper = require('../../utils/errors');
 // An exact copy of the the model definition that comes from the .json file
 const definition = {
-    "model": "event",
+    "model": "location",
     "storageType": "sql",
     "attributes": {
-        "eventDbId": "String",
-        "eventDescription": "String",
-        "eventType": "String",
-        "date": "DateTime",
-        "observationUnitDbIds": "[String]",
-        "studyDbId": "String"
+        "abbreviation": "String",
+        "coordinateDescription": "String",
+        "countryCode": "String",
+        "countryName": "String",
+        "documentationURL": "String",
+        "environmentType": "String",
+        "exposure": "String",
+        "instituteAddress": "String",
+        "instituteName": "String",
+        "locationName": "String",
+        "locationType": "String",
+        "siteStatus": "String",
+        "slope": "String",
+        "topography": "String",
+        "locationDbId": "String"
     },
     "associations": {
         "observationUnits": {
-            "type": "many_to_many",
+            "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "events",
+            "reverseAssociation": "location",
             "target": "observationUnit",
-            "targetKey": "eventDbIds",
-            "sourceKey": "observationUnitDbIds",
-            "keysIn": "event",
+            "targetKey": "locationDbId",
+            "keysIn": "observationUnit",
             "targetStorageType": "sql"
         },
-        "study": {
-            "type": "many_to_one",
+        "studies": {
+            "type": "one_to_many",
             "implementation": "foreignkeys",
-            "reverseAssociation": "events",
+            "reverseAssociation": "location",
             "target": "study",
-            "targetKey": "studyDbId",
-            "keysIn": "event",
+            "targetKey": "locationDbId",
+            "keysIn": "study",
             "targetStorageType": "sql"
         }
     },
-    "internalId": "eventType",
+    "internalId": "locationDbId",
     "id": {
-        "name": "eventType",
+        "name": "locationDbId",
         "type": "String"
     }
 };
@@ -61,7 +69,7 @@ const DataLoader = require("dataloader");
  * module - Creates a sequelize model
  */
 
-module.exports = class event extends Sequelize.Model {
+module.exports = class location extends Sequelize.Model {
     /**
      * Initialize sequelize model.
      * @param  {object} sequelize Sequelize instance.
@@ -71,31 +79,57 @@ module.exports = class event extends Sequelize.Model {
     static init(sequelize, DataTypes) {
         return super.init({
 
-            eventType: {
+            locationDbId: {
                 type: Sequelize[dict['String']],
                 primaryKey: true
             },
-            eventDbId: {
+            abbreviation: {
                 type: Sequelize[dict['String']]
             },
-            eventDescription: {
+            coordinateDescription: {
                 type: Sequelize[dict['String']]
             },
-            date: {
-                type: Sequelize[dict['DateTime']]
+            countryCode: {
+                type: Sequelize[dict['String']]
             },
-            observationUnitDbIds: {
-                type: Sequelize[dict['[String]']],
-                defaultValue: '[]'
+            countryName: {
+                type: Sequelize[dict['String']]
             },
-            studyDbId: {
+            documentationURL: {
+                type: Sequelize[dict['String']]
+            },
+            environmentType: {
+                type: Sequelize[dict['String']]
+            },
+            exposure: {
+                type: Sequelize[dict['String']]
+            },
+            instituteAddress: {
+                type: Sequelize[dict['String']]
+            },
+            instituteName: {
+                type: Sequelize[dict['String']]
+            },
+            locationName: {
+                type: Sequelize[dict['String']]
+            },
+            locationType: {
+                type: Sequelize[dict['String']]
+            },
+            siteStatus: {
+                type: Sequelize[dict['String']]
+            },
+            slope: {
+                type: Sequelize[dict['String']]
+            },
+            topography: {
                 type: Sequelize[dict['String']]
             }
 
 
         }, {
-            modelName: "event",
-            tableName: "events",
+            modelName: "location",
+            tableName: "locations",
             sequelize
         });
     }
@@ -143,9 +177,13 @@ module.exports = class event extends Sequelize.Model {
      * @param  {object} models  Indexed models.
      */
     static associate(models) {
-        event.belongsTo(models.study, {
-            as: 'study',
-            foreignKey: 'studyDbId'
+        location.hasMany(models.observationUnit, {
+            as: 'observationUnits',
+            foreignKey: 'locationDbId'
+        });
+        location.hasMany(models.study, {
+            as: 'studies',
+            foreignKey: 'locationDbId'
         });
     }
 
@@ -157,13 +195,13 @@ module.exports = class event extends Sequelize.Model {
     static async batchReadById(keys) {
         let queryArg = {
             operator: "in",
-            field: event.idAttribute(),
+            field: location.idAttribute(),
             value: keys.join(),
             valueType: "Array",
         };
-        let cursorRes = await event.readAllCursor(queryArg);
-        cursorRes = cursorRes.events.reduce(
-            (map, obj) => ((map[obj[event.idAttribute()]] = obj), map), {}
+        let cursorRes = await location.readAllCursor(queryArg);
+        cursorRes = cursorRes.locations.reduce(
+            (map, obj) => ((map[obj[location.idAttribute()]] = obj), map), {}
         );
         return keys.map(
             (key) =>
@@ -171,7 +209,7 @@ module.exports = class event extends Sequelize.Model {
         );
     }
 
-    static readByIdLoader = new DataLoader(event.batchReadById, {
+    static readByIdLoader = new DataLoader(location.batchReadById, {
         cache: false,
     });
 
@@ -180,11 +218,11 @@ module.exports = class event extends Sequelize.Model {
      *
      * Read a single record by a given ID
      * @param {string} id - The ID of the requested record
-     * @return {object} The requested record as an object with the type event, or an error object if the validation after reading fails
+     * @return {object} The requested record as an object with the type location, or an error object if the validation after reading fails
      * @throws {Error} If the requested record does not exist
      */
     static async readById(id) {
-        return await event.readByIdLoader.load(id);
+        return await location.readByIdLoader.load(id);
     }
     /**
      * countRecords - The model implementation for counting the number of records, possibly restricted by a search term
@@ -196,7 +234,7 @@ module.exports = class event extends Sequelize.Model {
      */
     static async countRecords(search) {
         let options = {}
-        options['where'] = helper.searchConditionsToSequelize(search, event.definition.attributes);
+        options['where'] = helper.searchConditionsToSequelize(search, location.definition.attributes);
         return super.count(options);
     }
 
@@ -211,9 +249,9 @@ module.exports = class event extends Sequelize.Model {
      */
     static async readAll(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for limit-offset-based pagination
-        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), event.definition.attributes);
+        let options = helper.buildLimitOffsetSequelizeOptions(search, order, pagination, this.idAttribute(), location.definition.attributes);
         let records = await super.findAll(options);
-        records = records.map(x => event.postReadCast(x))
+        records = records.map(x => location.postReadCast(x))
         // validationCheck after read
         return validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
     }
@@ -229,10 +267,10 @@ module.exports = class event extends Sequelize.Model {
      */
     static async readAllCursor(search, order, pagination, benignErrorReporter) {
         // build the sequelize options object for cursor-based pagination
-        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), event.definition.attributes);
+        let options = helper.buildCursorBasedSequelizeOptions(search, order, pagination, this.idAttribute(), location.definition.attributes);
         let records = await super.findAll(options);
 
-        records = records.map(x => event.postReadCast(x))
+        records = records.map(x => location.postReadCast(x))
 
         // validationCheck after read
         records = await validatorUtil.bulkValidateData('validateAfterRead', this, records, benignErrorReporter);
@@ -243,7 +281,7 @@ module.exports = class event extends Sequelize.Model {
             let oppOptions = helper.buildOppositeSearchSequelize(search, order, {
                 ...pagination,
                 includeCursor: false
-            }, this.idAttribute(), event.definition.attributes);
+            }, this.idAttribute(), location.definition.attributes);
             oppRecords = await super.findAll(oppOptions);
         }
         // build the graphql Connection Object
@@ -252,7 +290,7 @@ module.exports = class event extends Sequelize.Model {
         return {
             edges,
             pageInfo,
-            events: edges.map((edge) => edge.node)
+            locations: edges.map((edge) => edge.node)
         };
     }
 
@@ -266,7 +304,7 @@ module.exports = class event extends Sequelize.Model {
     static async addOne(input) {
         //validate input
         await validatorUtil.validateData('validateForCreate', this, input);
-        input = event.preWriteCast(input)
+        input = location.preWriteCast(input)
         try {
             const result = await this.sequelize.transaction(async (t) => {
                 let item = await super.create(input, {
@@ -274,8 +312,8 @@ module.exports = class event extends Sequelize.Model {
                 });
                 return item;
             });
-            event.postReadCast(result.dataValues)
-            event.postReadCast(result._previousDataValues)
+            location.postReadCast(result.dataValues)
+            location.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -315,7 +353,7 @@ module.exports = class event extends Sequelize.Model {
     static async updateOne(input) {
         //validate input
         await validatorUtil.validateData('validateForUpdate', this, input);
-        input = event.preWriteCast(input)
+        input = location.preWriteCast(input)
         try {
             let result = await this.sequelize.transaction(async (t) => {
                 let to_update = await super.findByPk(input[this.idAttribute()]);
@@ -328,8 +366,8 @@ module.exports = class event extends Sequelize.Model {
                 });
                 return updated;
             });
-            event.postReadCast(result.dataValues)
-            event.postReadCast(result._previousDataValues)
+            location.postReadCast(result.dataValues)
+            location.postReadCast(result._previousDataValues)
             return result;
         } catch (error) {
             throw error;
@@ -351,166 +389,12 @@ module.exports = class event extends Sequelize.Model {
 
 
 
-    /**
-     * add_studyDbId - field Mutation (model-layer) for to_one associationsArguments to add
-     *
-     * @param {Id}   eventType   IdAttribute of the root model to be updated
-     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async add_studyDbId(eventType, studyDbId, benignErrorReporter) {
-        try {
-            let updated = await event.update({
-                studyDbId: studyDbId
-            }, {
-                where: {
-                    eventType: eventType
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * add_observationUnitDbIds - field Mutation (model-layer) for to_many associationsArguments to add
-     *
-     * @param {Id}   eventType   IdAttribute of the root model to be updated
-     * @param {Array}   observationUnitDbIds Array foreign Key (stored in "Me") of the Association to be updated.
-     * @param {string} token The token used for authorization
-     * @param {boolean} handle_inverse Handle inverse association
-     */
-    static async add_observationUnitDbIds(eventType, observationUnitDbIds, benignErrorReporter, token, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            observationUnitDbIds.forEach(idx => {
-                promises.push(models.observationUnit.add_eventDbIds(idx, [`${eventType}`], benignErrorReporter, token, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(eventType);
-        if (record !== null) {
-            let updated_ids = helper.unionIds(JSON.parse(record.observationUnitDbIds), observationUnitDbIds);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                observationUnitDbIds: updated_ids
-            });
-        }
-    }
-
-    /**
-     * remove_studyDbId - field Mutation (model-layer) for to_one associationsArguments to remove
-     *
-     * @param {Id}   eventType   IdAttribute of the root model to be updated
-     * @param {Id}   studyDbId Foreign Key (stored in "Me") of the Association to be updated.
-     * @param {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors
-     */
-    static async remove_studyDbId(eventType, studyDbId, benignErrorReporter) {
-        try {
-            let updated = await event.update({
-                studyDbId: null
-            }, {
-                where: {
-                    eventType: eventType,
-                    studyDbId: studyDbId
-                }
-            });
-            return updated[0];
-        } catch (error) {
-            benignErrorReporter.push({
-                message: error
-            });
-        }
-    }
-    /**
-     * remove_observationUnitDbIds - field Mutation (model-layer) for to_many associationsArguments to remove
-     *
-     * @param {Id}   eventType   IdAttribute of the root model to be updated
-     * @param {Array}   observationUnitDbIds Array foreign Key (stored in "Me") of the Association to be updated.
-     * @param {string} token The token used for authorization
-     * @param {boolean} handle_inverse Handle inverse association
-     */
-    static async remove_observationUnitDbIds(eventType, observationUnitDbIds, benignErrorReporter, token, handle_inverse = true) {
-        //handle inverse association
-        if (handle_inverse) {
-            let promises = [];
-            observationUnitDbIds.forEach(idx => {
-                promises.push(models.observationUnit.remove_eventDbIds(idx, [`${eventType}`], benignErrorReporter, token, false));
-            });
-            await Promise.all(promises);
-        }
-
-        let record = await super.findByPk(eventType);
-        if (record !== null) {
-            let updated_ids = helper.differenceIds(JSON.parse(record.observationUnitDbIds), observationUnitDbIds);
-            updated_ids = JSON.stringify(updated_ids);
-            await record.update({
-                observationUnitDbIds: updated_ids
-            });
-        }
-    }
 
 
 
 
 
-    /**
-     * bulkAssociateEventWithStudyDbId - bulkAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to add
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkAssociateEventWithStudyDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "eventType", "studyDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            studyDbId,
-            eventType
-        }) => {
-            promises.push(super.update({
-                studyDbId: studyDbId
-            }, {
-                where: {
-                    eventType: eventType
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
-
-    /**
-     * bulkDisAssociateEventWithStudyDbId - bulkDisAssociaton of given ids
-     *
-     * @param  {array} bulkAssociationInput Array of associations to remove
-     * @param  {BenignErrorReporter} benignErrorReporter Error Reporter used for reporting Errors from remote zendro services
-     * @return {string} returns message on success
-     */
-    static async bulkDisAssociateEventWithStudyDbId(bulkAssociationInput) {
-        let mappedForeignKeys = helper.mapForeignKeysToPrimaryKeyArray(bulkAssociationInput, "eventType", "studyDbId");
-        var promises = [];
-        mappedForeignKeys.forEach(({
-            studyDbId,
-            eventType
-        }) => {
-            promises.push(super.update({
-                studyDbId: null
-            }, {
-                where: {
-                    eventType: eventType,
-                    studyDbId: studyDbId
-                }
-            }));
-        })
-        await Promise.all(promises);
-        return "Records successfully updated!"
-    }
 
 
 
@@ -520,7 +404,7 @@ module.exports = class event extends Sequelize.Model {
      * @return {type} Name of the attribute that functions as an internalId
      */
     static idAttribute() {
-        return event.definition.id.name;
+        return location.definition.id.name;
     }
 
     /**
@@ -529,16 +413,16 @@ module.exports = class event extends Sequelize.Model {
      * @return {type} Type given in the JSON model
      */
     static idAttributeType() {
-        return event.definition.id.type;
+        return location.definition.id.type;
     }
 
     /**
-     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of event.
+     * getIdValue - Get the value of the idAttribute ("id", or "internalId") for an instance of location.
      *
      * @return {type} id value
      */
     getIdValue() {
-        return this[event.idAttribute()];
+        return this[location.idAttribute()];
     }
 
     /**
@@ -559,9 +443,9 @@ module.exports = class event extends Sequelize.Model {
     }
 
     /**
-     * base64Encode - Encode  event to a base 64 String
+     * base64Encode - Encode  location to a base 64 String
      *
-     * @return {string} The event object, encoded in a base 64 String
+     * @return {string} The location object, encoded in a base 64 String
      */
     base64Encode() {
         return Buffer.from(JSON.stringify(this.stripAssociations())).toString(
@@ -572,27 +456,27 @@ module.exports = class event extends Sequelize.Model {
     /**
      * asCursor - alias method for base64Encode
      *
-     * @return {string} The event object, encoded in a base 64 String
+     * @return {string} The location object, encoded in a base 64 String
      */
     asCursor() {
         return this.base64Encode()
     }
 
     /**
-     * stripAssociations - Instance method for getting all attributes of event.
+     * stripAssociations - Instance method for getting all attributes of location.
      *
-     * @return {object} The attributes of event in object form
+     * @return {object} The attributes of location in object form
      */
     stripAssociations() {
-        let attributes = Object.keys(event.definition.attributes);
+        let attributes = Object.keys(location.definition.attributes);
         let data_values = _.pick(this, attributes);
         return data_values;
     }
 
     /**
-     * externalIdsArray - Get all attributes of event that are marked as external IDs.
+     * externalIdsArray - Get all attributes of location that are marked as external IDs.
      *
-     * @return {Array<String>} An array of all attributes of event that are marked as external IDs
+     * @return {Array<String>} An array of all attributes of location that are marked as external IDs
      */
     static externalIdsArray() {
         let externalIds = [];
@@ -604,7 +488,7 @@ module.exports = class event extends Sequelize.Model {
     }
 
     /**
-     * externalIdsObject - Get all external IDs of event.
+     * externalIdsObject - Get all external IDs of location.
      *
      * @return {object} An object that has the names of the external IDs as keys and their types as values
      */

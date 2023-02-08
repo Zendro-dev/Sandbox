@@ -22,6 +22,12 @@ module.exports.validator_patch = function(observation) {
             "collector": {
                 "type": ["string", "null"]
             },
+            "germplasmDbId": {
+                "type": ["string", "null"]
+            },
+            "studyDbId": {
+                "type": ["string", "null"]
+            },
             "observationTimeStamp": {
                 "anyOf": [{
                     "isoDateTime": true

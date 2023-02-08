@@ -6,57 +6,47 @@ const ajv = validatorUtil.addValidatorFunc(validatorUtil.addDateTimeAjvKeywords(
 })))
 
 // Dear user, edit the schema to adjust it to your model
-module.exports.validator_patch = function(event) {
+module.exports.validator_patch = function(breedingMethod) {
 
-    event.prototype.validationControl = {
+    breedingMethod.prototype.validationControl = {
         validateForCreate: true,
         validateForUpdate: true,
         validateForDelete: false,
         validateAfterRead: false
     }
 
-    event.prototype.validatorSchema = {
+    breedingMethod.prototype.validatorSchema = {
         "$async": true,
         "type": "object",
         "properties": {
-            "eventDbId": {
+            "abbreviation": {
                 "type": ["string", "null"]
             },
-            "eventDescription": {
+            "breedingMethodDbId": {
                 "type": ["string", "null"]
             },
-            "eventType": {
+            "breedingMethodName": {
                 "type": ["string", "null"]
             },
-            "date": {
-                "anyOf": [{
-                    "isoDateTime": true
-                }, {
-                    "type": "null"
-                }]
-            },
-            "observationUnitDbIds": {
-                "type": ["array", "null"]
-            },
-            "studyDbId": {
+            "description": {
                 "type": ["string", "null"]
             }
         }
     }
 
-    event.prototype.asyncValidate = ajv.compile(
-        event.prototype.validatorSchema
+    breedingMethod.prototype.asyncValidate = ajv.compile(
+        breedingMethod.prototype.validatorSchema
     )
 
-    event.prototype.validateForCreate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    breedingMethod.prototype.validateForCreate = async function(record) {
+        return await breedingMethod.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForUpdate = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    breedingMethod.prototype.validateForUpdate = async function(record) {
+        return await breedingMethod.prototype.asyncValidate(record)
     }
 
-    event.prototype.validateForDelete = async function(id) {
+    breedingMethod.prototype.validateForDelete = async function(id) {
 
         //TODO: on the input you have the id of the record to be deleted, no generic
         // validation checks are available. You might need to import the correspondant model
@@ -67,9 +57,9 @@ module.exports.validator_patch = function(event) {
         }
     }
 
-    event.prototype.validateAfterRead = async function(record) {
-        return await event.prototype.asyncValidate(record)
+    breedingMethod.prototype.validateAfterRead = async function(record) {
+        return await breedingMethod.prototype.asyncValidate(record)
     }
 
-    return event
+    return breedingMethod
 }

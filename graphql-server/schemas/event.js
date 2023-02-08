@@ -28,7 +28,14 @@ module.exports = `
     """
     observationUnitDbIds: [String]
 
-      
+    """
+    @original-field
+    
+    """
+    studyDbId: String
+
+    study(search: searchStudyInput): study
+    
     """
     @search-request
     """
@@ -68,6 +75,7 @@ type EventEdge{
     eventDescription
     date
     observationUnitDbIds
+    studyDbId
   }
   
   input searchEventInput {
@@ -83,7 +91,10 @@ type EventEdge{
     order: Order
   }
 
-
+  input bulkAssociationEventWithStudyDbIdInput{
+    eventType: ID!
+    studyDbId: ID!
+  }
 
   type Query {
     events(search: searchEventInput, order: [ orderEventInput ], pagination: paginationInput! ): [event]
@@ -91,8 +102,8 @@ type EventEdge{
     countEvents(search: searchEventInput ): Int
     csvTableTemplateEvent: [String]
     eventsConnection(search:searchEventInput, order: [ orderEventInput ], pagination: paginationCursorInput! ): EventConnection
-    validateEventForCreation(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime   , addObservationUnits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
-    validateEventForUpdating(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime   , addObservationUnits:[ID], removeObservationUnits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateEventForCreation(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime , addStudy:ID  , addObservationUnits:[ID] , skipAssociationsExistenceChecks:Boolean = false): Boolean!
+    validateEventForUpdating(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime , addStudy:ID, removeStudy:ID   , addObservationUnits:[ID], removeObservationUnits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): Boolean!
     validateEventForDeletion(eventType: ID!): Boolean!
     validateEventAfterReading(eventType: ID!): Boolean!
     """
@@ -102,8 +113,10 @@ type EventEdge{
   }
 
   type Mutation {
-    addEvent(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime   , addObservationUnits:[ID] , skipAssociationsExistenceChecks:Boolean = false): event!
-    updateEvent(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime   , addObservationUnits:[ID], removeObservationUnits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): event!
+    addEvent(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime , addStudy:ID  , addObservationUnits:[ID] , skipAssociationsExistenceChecks:Boolean = false): event!
+    updateEvent(eventType: ID!, eventDbId: String, eventDescription: String, date: DateTime , addStudy:ID, removeStudy:ID   , addObservationUnits:[ID], removeObservationUnits:[ID]  , skipAssociationsExistenceChecks:Boolean = false): event!
     deleteEvent(eventType: ID!): String!
-      }
+        bulkAssociateEventWithStudyDbId(bulkAssociationInput: [bulkAssociationEventWithStudyDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+    bulkDisAssociateEventWithStudyDbId(bulkAssociationInput: [bulkAssociationEventWithStudyDbIdInput], skipAssociationsExistenceChecks:Boolean = false): String!
+  }
 `;
