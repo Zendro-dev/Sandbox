@@ -1,0 +1,11 @@
+{
+    "model": "plant_growth",
+    "storageType": "sql",
+    "attributes": {
+      "record_id": "String",
+      "height": "Int",
+      "day_of_measurement": "Int",
+      "leaf_number": "Int"
+    },
+    "internalId": "record_id"
+}
